@@ -18,93 +18,110 @@ CpuTemperature.prototype = {
     _init: function(){
         PanelMenu.SystemStatusButton.prototype._init.call(this, 'temperature');
         
-        this.statusLabel = new St.Label({ text: '-' });
+
+	this.statusLabel = new St.Label({ text: "--", style_class: "temperature-label" });
+
         // destroy all previously created children, and add our statusLabel
         this.actor.get_children().forEach(function(c) { c.destroy() });
         this.actor.add_actor(this.statusLabel);
-        
-        this._update_temp();
+
+	this.sensorsPath = this._detectSensors();
+	debug(this.sensorsPath);
+
+	if(this.sensorsPath){
+		this.title='Error';
+		this.content='Run sensors-detect as root. If it doesn\'t help, click here to report!';
+	        this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
+	}
+	else{
+		this.title='Warning';
+		this.content='Please install lm_sensors. If it doesn\'t help, click here to report!';
+	        this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
+	}
+
+	this._update_temp();
         //update every 15 seconds
         GLib.timeout_add(0, 15000, Lang.bind(this, function () {
-            this._update_temp();
-            return true;
+		this._update_temp();
+		return true;
         }));
     },
+
+	_detectSensors: function(){
+		//detect if sensors is installed
+		let ret = GLib.spawn_command_line_sync("which --skip-alias sensors");
+		
+		if ( (ret[0]) && (ret[3] == 0) ) {//if yes
+			return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
+			}
+		return null;	
+	},
 	
     _update_temp: function() {
-        let title='Error';
-        let content='Click here to report!';
-        let command=["firefox", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
-        
-        let foundTemperature=false;
-        let cpuTemperatureInfo = ['/sys/devices/platform/coretemp.0/temp1_input',
-            '/sys/bus/acpi/devices/LNXTHERM\:00/thermal_zone/temp',
-            '/sys/devices/virtual/thermal/thermal_zone0/temp',
-            //old kernels with proc fs
-            '/proc/acpi/thermal_zone/THM0/temperature',
-            '/proc/acpi/thermal_zone/THRM/temperature',
-            '/proc/acpi/thermal_zone/THR0/temperature',
-            '/proc/acpi/thermal_zone/TZ0/temperature',
-            '/sys/bus/acpi/drivers/ATK0110/ATK0110:00/hwmon/hwmon0/temp1_input',
-            //hwmon for new 2.6.39, 3.0 linux kernels
-            '/sys/class/hwmon/hwmon0/temp1_input',
-            //Debian Sid/Experimental on AMD-64
-            '/sys/class/hwmon/hwmon0/device/temp1_input'];
-        
-        for (let i=0;i<cpuTemperatureInfo.length;i++){
-            if(GLib.file_test(cpuTemperatureInfo[i],1<<4)){
-                let temperature = GLib.file_get_contents(cpuTemperatureInfo[i]);
-                if(temperature[0]) {
-                    let c = parseInt(temperature[1])/1000;
-                    title=this._getTitle(c);
-                    content=this._getContent(c);
-                    command=["echo"];
-                    foundTemperature = true;
-                }
-                if(foundTemperature) break;
-            }
-        }
+	debug("Into update_temp");
+
+	let temp=null;
+	
+	if (this.sensorsPath){
+			let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
+			if(sensors_output[0]) temp = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
+		}
+		
+		//if we don't have the temperature yet
+		if(!temp)
+			temp = this._findTemperatureFromFiles();
+
+		if (temp){
+			this.title=this._getTitle(temp);
+			this.content=this._getContent(temp);
+			this.command=["echo"];
+      		}  
  
-        if (!foundTemperature) {
-            let foundSensor = 0;
-            let sensorInfo = ['/usr/bin/sensors',
-                '/bin/sensors'];
-            for (let i=0;i<sensorInfo.length;i++){
-                if(GLib.file_test(sensorInfo[i],1<<4)) foundSensor=sensorInfo[i];
-                if (foundSensor) break;
-            }
-            if(foundSensor) {
-                let sensors = GLib.spawn_command_line_sync(foundSensor);
-                if(sensors[0]){
-                    let temp=this._findTemperatureFromSensorsOutput(sensors[1]);
-                    title=this._getTitle(temp);
-                    content=this._getContent(temp);
-                    command=["echo"];
-                }
-            }
-            else {
-                title="Warning";
-                content="Please install lm-sensors";
-                command=["echo"];
-            }
-        }
         
-        this.statusLabel.set_text(title);
+        this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) { c.destroy() });
 
         let section = new PopupMenu.PopupMenuSection("Temperature");
         let item = new PopupMenu.PopupMenuItem("");
-        item.addActor(new St.Label({ text:content, style_class: "sm-label"}));
-        item.connect('activate', function() {
+        item.addActor(new St.Label({ text:this.content, style_class: "sm-label"}));
+	let command=this.command;
+	item.connect('activate',function() {
             Util.spawn(command);
         });
-
         section.addMenuItem(item);
         this.menu.addMenuItem(section);
+
     },
 
-    _findTemperatureFromSensorsOutput: function(text){
-        let senses_lines=text.split("\n");
+	_findTemperatureFromFiles: function(){
+	debug("Into findTemperatureFromFiles");
+	let cpuTemperatureInfo = ['/sys/devices/platform/coretemp.0/temp1_inputa',
+            '/sys/bus/acpi/devices/LNXTHERM\:00/thermal_zone/tempa',
+            '/sys/devices/virtual/thermal/thermal_zone0/tempa',
+            //old kernels with proc fs
+            '/proc/acpi/thermal_zone/THM0/temperaturea',
+            '/proc/acpi/thermal_zone/THRM/temperaturea',
+            '/proc/acpi/thermal_zone/THR0/temperaturea',
+            '/proc/acpi/thermal_zone/TZ0/temperaturea',
+            '/sys/bus/acpi/drivers/ATK0110/ATK0110:00/hwmon/hwmon0/temp1_inputa',
+            //hwmon for new 2.6.39, 3.0 linux kernels
+            '/sys/class/hwmon/hwmon0/temp1_inputa',
+            //Debian Sid/Experimental on AMD-64
+            '/sys/class/hwmon/hwmon0/device/temp1_inputa'];
+                for (let i=0;i<cpuTemperatureInfo.length;i++){
+            if(GLib.file_test(cpuTemperatureInfo[i],1<<4)){
+                let temperature = GLib.file_get_contents(cpuTemperatureInfo[i]);
+                if(temperature[0]) {
+                    return parseInt(temperature[1])/1000;
+                    }
+            }
+        }
+	return false;
+	},
+
+    _findTemperatureFromSensorsOutput: function(txt){
+	debug("Into findTemperatureFromSensors");
+        let senses_lines=txt.split("\n");
         let line = '';
         let s=0;
         let n=0;
@@ -196,7 +213,8 @@ CpuTemperature.prototype = {
 
 //for debugging
 function debug(a){
-    Util.spawn(['echo',a]);
+	global.log(a);
+//    Util.spawn(['echo',a]);
 }
 
 function init(extensionMeta) {
