@@ -4,7 +4,7 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
-const Gio = imports.gi.Gio;
+//const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
 //gnome 3.0
 const Panel = imports.ui.panel;
