@@ -4,7 +4,7 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
-const Gio = imports.gi.Gio;
+//const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
 //gnome 3.0
 const Panel = imports.ui.panel;
@@ -57,7 +57,6 @@ CpuTemperature.prototype = {
     },
 	
     _update_temp: function() {
-	debug("Into update_temp");
 	let items = new Array();
 	let tempInfo=null;
 	if (this.sensorsPath){
@@ -135,7 +134,6 @@ CpuTemperature.prototype = {
     },
 
     _findTemperatureFromFiles: function(){
-	debug("Into findTemperatureFromFiles");
 	let info = new Array();
 	let temp_files = [
             //hwmon for new 2.6.39, 3.x linux kernels
@@ -181,7 +179,6 @@ CpuTemperature.prototype = {
     },
 
     _findTemperatureFromSensorsOutput: function(txt){
-	debug("Into findTemperatureFromSensors");
         senses_lines=txt.split("\n");
         line = '';
         let s= new Array();
