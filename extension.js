@@ -4,6 +4,7 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
+const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
 //gnome 3.0
 const Panel = imports.ui.panel;
@@ -18,9 +19,7 @@ CpuTemperature.prototype = {
     _init: function(){
         PanelMenu.SystemStatusButton.prototype._init.call(this, 'temperature');
         
-
 	this.lang = {'acpi' : 'ACPI Adapter', 'pci' : 'PCI Adapter', 'virt' : 'Virtual Thermal Zone'};
-
 	this.statusLabel = new St.Label({ text: "--", style_class: "temperature-label" });
 
         // destroy all previously created children, and add our statusLabel
@@ -28,119 +27,120 @@ CpuTemperature.prototype = {
         this.actor.add_actor(this.statusLabel);
 
 	this.sensorsPath = this._detectSensors();
-	debug(this.sensorsPath);
 
+	this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
 	if(this.sensorsPath){
-		this.title='Error';
-		this.content='Run sensors-detect as root. If it doesn\'t help, click here to report!';
-	        this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
+            this.title='Error';
+            this.content='Run sensors-detect as root. If it doesn\'t help, click here to report!';
+	        
 	}
 	else{
-		this.title='Warning';
-		this.content='Please install lm_sensors. If it doesn\'t help, click here to report!';
-	        this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
+            this.title='Warning';
+            this.content='Please install lm_sensors. If it doesn\'t help, click here to report!';
 	}
 
 	this._update_temp();
         //update every 15 seconds
-        GLib.timeout_add(0, 15000, Lang.bind(this, function () {
-		this._update_temp();
-		return true;
+        GLib.timeout_add_seconds(0, 15, Lang.bind(this, function () {
+            this._update_temp();
+            return true;
         }));
     },
 
-	_detectSensors: function(){
-		//detect if sensors is installed
-		let ret = GLib.spawn_command_line_sync("which --skip-alias sensorss");
-		
-		if ( (ret[0]) && (ret[3] == 0) ) {//if yes
-			return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
-			}
-		return null;	
-	},
+    _detectSensors: function(){
+        //detect if sensors is installed
+        let ret = GLib.spawn_command_line_sync("which --skip-alias sensors");
+        if ( (ret[0]) && (ret[3] == 0) ) {//if yes
+            return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
+        }
+        return null;	
+    },
 	
     _update_temp: function() {
 	debug("Into update_temp");
-
-	this.menu.box.get_children().forEach(function(c) { c.destroy() });
-        let section = new PopupMenu.PopupMenuSection("Temperature");
-        let item = new PopupMenu.PopupMenuItem("");
-        item.addActor(new St.Label({ text:this.content, style_class: "sm-label"}));
-	let command=this.command;
-	item.connect('activate',function() {
-            Util.spawn(command);
-        });
-        section.addMenuItem(item);
-        this.menu.addMenuItem(section);
-
+	let items = new Array();
 	let tempInfo=null;
-	
 	if (this.sensorsPath){
-			let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
-			if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
-			if (tempInfo){
-			//destroy all items in popup
-			this.menu.box.get_children().forEach(function(c) { c.destroy() });
-
-			for (let adapter in tempInfo){
-			if(adapter!=0){
-				var s=0, n=0;//sum and count
-				//ISA Adapters
-				if (adapter=='isa'){
-				var c=0;
-					for (core in tempInfo[adapter]){
-						if (!c++) this.menu.addMenuItem(this._createSectionForText("ISA Adapter :"));
-						s+=tempInfo[adapter][core]['temp'];n++;
-						this.menu.addMenuItem(this._createSectionForText(core+' : '+this._formatTemp(tempInfo[adapter][core]['temp'])));
-					}
-				}else{
-				s+=tempInfo[adapter]['temp'];n++;
-				this.menu.addMenuItem(this._createSectionForText(this.lang[adapter] + ' : '+this._formatTemp(tempInfo[adapter]['temp'])));
-				}
-				this.title=this._formatTemp(s/n);//set title as average
-			}
+            let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
+            if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
+            if (tempInfo){
+                //destroy all items in popup
+                this.menu.box.get_children().forEach(function(c) { c.destroy() });
+                var s=0, n=0;//sum and count
+                for (let adapter in tempInfo){
+                    if(adapter!=0){
+                        //ISA Adapters
+                        if (adapter=='isa'){
+                            var c=0;
+                            for (core in tempInfo[adapter]){
+                                if (!c++) items.push("ISA Adapter :");
+                                s+=tempInfo[adapter][core]['temp'];n++;
+                                //this.menu.addMenuItem(this._createSectionForText(core+' : '+this._formatTemp(tempInfo[adapter][core]['temp'])));
+                                items.push(core+' : '+this._formatTemp(tempInfo[adapter][core]['temp']))
+                            }
+                        }else{
+                            s+=tempInfo[adapter]['temp'];n++;
+                            items.push(this.lang[adapter] + ' : '+this._formatTemp(tempInfo[adapter]['temp']));
+                        }
+                    }
 		}
-
-			}
-		}
-		
-		//if we don't have the temperature yet, use some known files
-		if(!tempInfo){
-			tempInfo = this._findTemperatureFromFiles();
-			if(tempInfo.temp){
-				this.menu.box.get_children().forEach(function(c) { c.destroy() });
-				this.title=this._formatTemp(tempInfo.temp);
-				this.menu.addMenuItem(this._createSectionForText('Current Temperature : '+this._formatTemp(tempInfo.temp)));
-				if (tempInfo.crit)
-					this.menu.addMenuItem(this._createSectionForText('Critical Temperature : '+this._formatTemp(tempInfo.crit)));
-				
-			}
-		}
-
-		if (tempInfo){
-			//this.title=this._getTitle(temp);
-			//this.content=this._getContent(temp);
-			//this.command=["echo"];
-      		}  
+                if (n==0)//if temperature can't be detected from any adapter
+                {
+                    tempInfo=null;
+                }else{
+                    this.title=this._formatTemp(s/n);//set title as average
+                }
+            }
+        }
+        //if we don't have the temperature yet, use some known files
+        if(!tempInfo){
+            tempInfo = this._findTemperatureFromFiles();
+            if(tempInfo.temp){
+                this.menu.box.get_children().forEach(function(c) { c.destroy() });
+                this.title=this._formatTemp(tempInfo.temp);
+                items.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
+                if (tempInfo.crit)
+                    items.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
+            }
+        }
         
         this.statusLabel.set_text(this.title);
+	this.menu.box.get_children().forEach(function(c) { c.destroy() });
+	let section = new PopupMenu.PopupMenuSection("Temperature");
+	if (items.length>0){
+            let item;
+            for each (let itemText in items){
+                item = new PopupMenu.PopupMenuItem("");
+                item.addActor(new St.Label({ text:itemText, style_class: "sm-label"}));
+                section.addMenuItem(item);
+            }
+        }else{
+            let command=this.command;
+            let item = new PopupMenu.PopupMenuItem("");
+            item.addActor(new St.Label({ text:this.content, style_class: "sm-label"}));
+            item.connect('activate',function() {
+                Util.spawn(command);
+            });
+            section.addMenuItem(item);
+        }
+        this.menu.addMenuItem(section);
     },
 
-	_createSectionForText: function(txt){
+    _createSectionForText: function(txt){
 	let section = new PopupMenu.PopupMenuSection("Temperature");
         let item = new PopupMenu.PopupMenuItem("");
         item.addActor(new St.Label({ text:txt, style_class: "sm-label"}));
         section.addMenuItem(item);
 	return section;
-	},
+    },
 
-	_findTemperatureFromFiles: function(){
+    _findTemperatureFromFiles: function(){
 	debug("Into findTemperatureFromFiles");
 	let info = new Array();
 	let temp_files = [
             //hwmon for new 2.6.39, 3.x linux kernels
             '/sys/class/hwmon/hwmon0/temp1_input',
-		'/sys/devices/platform/coretemp.0/temp1_input',
+            '/sys/devices/platform/coretemp.0/temp1_input',
             '/sys/bus/acpi/devices/LNXTHERM\:00/thermal_zone/temp',
             '/sys/devices/virtual/thermal/thermal_zone0/temp',
             '/sys/bus/acpi/drivers/ATK0110/ATK0110:00/hwmon/hwmon0/temp1_input',
@@ -151,30 +151,34 @@ CpuTemperature.prototype = {
             '/proc/acpi/thermal_zone/TZ0/temperature',
             //Debian Sid/Experimental on AMD-64
             '/sys/class/hwmon/hwmon0/device/temp1_input'];
-                for each (let file in temp_files){
+        for each (let file in temp_files){
             if(GLib.file_test(file,1<<4)){
-                let temperature = GLib.file_get_contents(file);
+		//let f = Gio.file_new_for_path(file);
+		//f.read_async(0, null, function(source, result) {debug(source.read_finish(result).read())});
+
+		let temperature = GLib.file_get_contents(file);
                 if(temperature[0]) {
                     info['temp']= parseInt(temperature[1])/1000;
-                    }
+                }
             }
-}
+            break;
+        }
 	let crit_files = ['/sys/devices/platform/coretemp.0/temp1_crit',
             '/sys/bus/acpi/drivers/ATK0110/ATK0110:00/hwmon/hwmon0/temp1_crit',
             //hwmon for new 2.6.39, 3.0 linux kernels
             '/sys/class/hwmon/hwmon0/temp1_crit',
             //Debian Sid/Experimental on AMD-64
             '/sys/class/hwmon/hwmon0/device/temp1_crit'];
-                for each (let file in crit_files){
+        for each (let file in crit_files){
             if(GLib.file_test(file,1<<4)){
                 let temperature = GLib.file_get_contents(file);
                 if(temperature[0]) {
                     info['crit']= parseInt(temperature[1])/1000;
-                    }
+                }
             }
         }
 	return info;
-	},
+    },
 
     _findTemperatureFromSensorsOutput: function(txt){
 	debug("Into findTemperatureFromSensors");
@@ -251,29 +255,29 @@ CpuTemperature.prototype = {
                         break;
                     case 'PCI adapter':
                         if (senses_lines[i-1].substr(0,6)=='k10tem' || senses_lines[i-1].substr(0,6)=='k8temp'){
-                        //starting from the next line, loop, also increase the outer line counter i
-                        for (let j=i+1;;j++,i++){
-                            //continue only if line exists and isn't adapter
-                            if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
-                                if(senses_lines[j].substr(0,5)=='temp1'){
-                                    senses_lines[j]=senses_lines[j].replace(/\s/g, "");
-                                    s['pci'] = new Array();
-                                    s['pci']['temp']=parseFloat(senses_lines[j].substr(7,4));
-                                    s['pci']['high']=this._getHigh(senses_lines[j]);
-                                    s['pci']['crit']=this._getCrit(senses_lines[j]);
-                                    s['pci']['hyst']=this._getHyst(senses_lines[j]);
-                                    //In some cases crit,hyst temp may be on next line
-                                    let nextLine=senses_lines[j+1].replace(/\s/g, "");
-                                    if (nextLine.substr(0,1)=='('){
-                                        if (!s['pci']['high']) s['pci']['high']=this._getHigh(nextLine);
-                                        if (!s['pci']['crit']) s['pci']['crit']=this._getCrit(nextLine);
-                                        if (!s['pci']['hyst']) s['pci']['hyst']=this._getHyst(nextLine);
-                                    }
-                                    c=1;
-                                };
+                            //starting from the next line, loop, also increase the outer line counter i
+                            for (let j=i+1;;j++,i++){
+                                //continue only if line exists and isn't adapter
+                                if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
+                                    if(senses_lines[j].substr(0,5)=='temp1'){
+                                        senses_lines[j]=senses_lines[j].replace(/\s/g, "");
+                                        s['pci'] = new Array();
+                                        s['pci']['temp']=parseFloat(senses_lines[j].substr(7,4));
+                                        s['pci']['high']=this._getHigh(senses_lines[j]);
+                                        s['pci']['crit']=this._getCrit(senses_lines[j]);
+                                        s['pci']['hyst']=this._getHyst(senses_lines[j]);
+                                        //In some cases crit,hyst temp may be on next line
+                                        let nextLine=senses_lines[j+1].replace(/\s/g, "");
+                                        if (nextLine.substr(0,1)=='('){
+                                            if (!s['pci']['high']) s['pci']['high']=this._getHigh(nextLine);
+                                            if (!s['pci']['crit']) s['pci']['crit']=this._getCrit(nextLine);
+                                            if (!s['pci']['hyst']) s['pci']['hyst']=this._getHyst(nextLine);
+                                        }
+                                        c=1;
+                                    };
+                                }
+                                else break;
                             }
-                            else break;
-                        }
                         }
                         break;
                         
@@ -285,28 +289,29 @@ CpuTemperature.prototype = {
                 //if (c==1) break;
             }
         }
-                //return(s[0]/n+"\u1d3cC");
-                return s;
+        //return(s[0]/n+"\u1d3cC");
+        return s;
+	
     },
 
     _isAdapter: function(line){
         if(line.substr(0, 8)=='Adapter:') {
-          return true;
+            return true;
         }
         return false;
     },
 
-	_getHigh: function(t){
-                return (r=/high=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
-            },
+    _getHigh: function(t){
+        return (r=/high=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
         
-            _getCrit: function(t){
-                return (r=/crit=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
-            },
+    _getCrit: function(t){
+        return (r=/crit=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
             
-            _getHyst: function(t){
-                return (r=/hyst=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
-            },
+    _getHyst: function(t){
+        return (r=/hyst=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
                 
 
     _toFahrenheit: function(c){
@@ -326,12 +331,12 @@ CpuTemperature.prototype = {
 
 //for debugging
 function debug(a){
-	global.log(a);
-//    Util.spawn(['echo',a]);
+    global.log(a);
+    Util.spawn(['echo',a]);
 }
 
 function init(extensionMeta) {
-    // do nothing here    
+    //do nothing
 }
 
 //gnome3.0
@@ -340,22 +345,15 @@ function main() {
     Panel.STANDARD_TRAY_ICON_SHELL_IMPLEMENTATION['temperature'] = CpuTemperature;
 }
 
-function enable() {
-    let role = 'temperature';
+let indicator;
 
-    if(Main.panel._status_area_order.indexOf(role) == -1) {
-        Main.panel._status_area_order.unshift(role);
-        Main.panel._status_area_shell_implementation[role] = CpuTemperature;
-    
-        let constructor = Main.panel._status_area_shell_implementation[role];
-        let indicator = new constructor();
-        Main.panel.addToStatusArea(role, indicator, 0);
-    } else {
-        Main.panel._statusArea['temperature'].actor.show();
-    }
+function enable() {
+    indicator = new CpuTemperature();
+    Main.panel.addToStatusArea('temperature', indicator);
 }
 
 function disable() {
-    Main.panel._statusArea['temperature'].actor.hide();
+    indicator.destroy();
+    indicator = null;
 }
 
