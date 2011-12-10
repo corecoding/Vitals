@@ -206,113 +206,119 @@ CpuTemperature.prototype = {
     },
 
     _findTemperatureFromSensorsOutput: function(txt){
-         let senses_lines=txt.split("\n");
-    let line = '';
-    let s= new Array();
-    s['isa'] = new Array();
-    let n=0,c=0;
-    //iterate through each lines
-    for(let i = 0; i < senses_lines.length; i++) {
-        line = senses_lines[i];
-        //check for adapter
-        if (this._isAdapter(line)){
-            type=line.substr(9,line.length-9);
-            switch (type){
-                case 'ISA adapter':
-                    //starting from the next line, loop, also increase the outer line counter i
-                    for (let j=i+1;;j++,i++){
-                        //continue only if line exists and isn't adapter
-                        if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
-                            if(senses_lines[j].substr(0,4)=='Core'){
-                                s['isa'][++n]=new Array();
-                                senses_lines[j]=senses_lines[j].replace(/\s/g, "");
-                                //get the core number
-                                let k = senses_lines[j].substr(0,5);
-                                s['isa'][n][k]=new Array();
-                                s['isa'][n][k]['temp']=parseFloat(senses_lines[j].substr(7,4));
-                                s['isa'][n][k]['high']=this._getHigh(senses_lines[j]);
-                                s['isa'][n][k]['crit']=this._getCrit(senses_lines[j]);
-                                s['isa'][n][k]['hyst']=this._getHyst(senses_lines[j]);
-                                c++;
-                            }
-                        }
-                        else break;
-                    }
-                    break;
-                case 'Virtual device':
-                    //starting from the next line, loop, also increase the outer line counter i
-                    for (let j=i+1;;j++,i++){
-                        //continue only if line exists and isn't adapter
-                        if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
-                            if(senses_lines[j].substr(0,5)=='temp1'){
-                                //remove all space characters
-                                senses_lines[j]=senses_lines[j].replace(/\s/g, "");
-                                s['virt'] = new Array();
-                                s['virt']['temp']=parseFloat(senses_lines[j].substr(7,4));
-                                s['virt']['high']=this._getHigh(senses_lines[j]);
-                                s['virt']['crit']=this._getCrit(senses_lines[j]);
-                                s['virt']['hyst']=this._getHyst(senses_lines[j]);
-                                c++;
-                            }
-                        }
-                        else break;
-                    }
-                    break;
-                case 'ACPI interface':
-                    //starting from the next line, loop, also increase the outer line counter i
-                    for (let j=i+1;;j++,i++){
-                        //continue only if line exists and isn't adapter
-                        if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
-                            if(senses_lines[j].substr(0,8)=='CPU Temp'){
-                                senses_lines[j]=senses_lines[j].replace(/\s/g, "");
-                                s['acpi'] = new Array();
-                                s['acpi']['temp']=parseFloat(senses_lines[j].substr(16,4));
-                                s['acpi']['high']=this._getHigh(senses_lines[j]);
-                                s['acpi']['crit']=this._getCrit(senses_lines[j]);
-                                s['acpi']['hyst']=this._getHyst(senses_lines[j]);
-                                c++;
-                            }
-                        }
-                        else break;
-                    }
-                    break;
-                case 'PCI adapter':
-                    if (senses_lines[i-1].substr(0,6)=='k10tem' || senses_lines[i-1].substr(0,6)=='k8temp'){
+    let senses_lines=txt.split("\n");
+        let line = '';
+        let s= new Array();
+        s['isa'] = new Array();
+        let n=0,c=0;
+        let f;
+        //iterate through each lines
+        for(let i = 0; i < senses_lines.length; i++) {
+            line = senses_lines[i];
+            //check for adapter
+            if (this._isAdapter(line)){
+                type=line.substr(9,line.length-9);
+                switch (type){
+                    case 'ISA adapter':
+                        //reset flag
+                        f=0;
                         //starting from the next line, loop, also increase the outer line counter i
                         for (let j=i+1;;j++,i++){
                             //continue only if line exists and isn't adapter
                             if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
-                                if(senses_lines[j].substr(0,5)=='temp1'){
+                                if(senses_lines[j].substr(0,4)=='Core'){
                                     senses_lines[j]=senses_lines[j].replace(/\s/g, "");
-                                    s['pci'] = new Array();
-                                    s['pci']['temp']=parseFloat(senses_lines[j].substr(7,4));
-                                    s['pci']['high']=this._getHigh(senses_lines[j]);
-                                    s['pci']['crit']=this._getCrit(senses_lines[j]);
-                                    s['pci']['hyst']=this._getHyst(senses_lines[j]);
-                                    //In some cases crit,hyst temp may be on next line
-                                    let nextLine=senses_lines[j+1].replace(/\s/g, "");
-                                    if (nextLine.substr(0,1)=='('){
-                                        if (!s['pci']['high']) s['pci']['high']=this._getHigh(nextLine);
-                                        if (!s['pci']['crit']) s['pci']['crit']=this._getCrit(nextLine);
-                                        if (!s['pci']['hyst']) s['pci']['hyst']=this._getHyst(nextLine);
+                                    //get the core number
+                                    let k = senses_lines[j].substr(0,5);
+                                    //test if it's the first match for this adapter, if yes, initialize array
+                                    if (!f++){
+                                        s['isa'][++n]=new Array();
                                     }
+                                    s['isa'][n][k]=new Array();
+                                    s['isa'][n][k]['temp']=parseFloat(senses_lines[j].substr(7,4));
+                                    s['isa'][n][k]['high']=this._getHigh(senses_lines[j]);
+                                    s['isa'][n][k]['crit']=this._getCrit(senses_lines[j]);
+                                    s['isa'][n][k]['hyst']=this._getHyst(senses_lines[j]);
                                     c++;
                                 }
                             }
                             else break;
                         }
-                    }
-                    break;
+                        break;
+                    case 'Virtual device':
+                        //starting from the next line, loop, also increase the outer line counter i
+                        for (let j=i+1;;j++,i++){
+                            //continue only if line exists and isn't adapter
+                            if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
+                                if(senses_lines[j].substr(0,5)=='temp1'){
+                                    //remove all space characters
+                                    senses_lines[j]=senses_lines[j].replace(/\s/g, "");
+                                    s['virt'] = new Array();
+                                    s['virt']['temp']=parseFloat(senses_lines[j].substr(7,4));
+                                    s['virt']['high']=this._getHigh(senses_lines[j]);
+                                    s['virt']['crit']=this._getCrit(senses_lines[j]);
+                                    s['virt']['hyst']=this._getHyst(senses_lines[j]);
+                                    c++;
+                                }
+                            }
+                            else break;
+                        }
+                        break;
+                    case 'ACPI interface':
+                        //starting from the next line, loop, also increase the outer line counter i
+                        for (let j=i+1;;j++,i++){
+                            //continue only if line exists and isn't adapter
+                            if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
+                                if(senses_lines[j].substr(0,8)=='CPU Temp'){
+                                    senses_lines[j]=senses_lines[j].replace(/\s/g, "");
+                                    s['acpi'] = new Array();
+                                    s['acpi']['temp']=parseFloat(senses_lines[j].substr(16,4));
+                                    s['acpi']['high']=this._getHigh(senses_lines[j]);
+                                    s['acpi']['crit']=this._getCrit(senses_lines[j]);
+                                    s['acpi']['hyst']=this._getHyst(senses_lines[j]);
+                                    c++;
+                                }
+                            }
+                            else break;
+                        }
+                        break;
+                    case 'PCI adapter':
+                        if (senses_lines[i-1].substr(0,6)=='k10tem' || senses_lines[i-1].substr(0,6)=='k8temp'){
+                            //starting from the next line, loop, also increase the outer line counter i
+                            for (let j=i+1;;j++,i++){
+                                //continue only if line exists and isn't adapter
+                                if(senses_lines[j] && !this._isAdapter(senses_lines[j])){
+                                    if(senses_lines[j].substr(0,5)=='temp1'){
+                                        senses_lines[j]=senses_lines[j].replace(/\s/g, "");
+                                        s['pci'] = new Array();
+                                        s['pci']['temp']=parseFloat(senses_lines[j].substr(7,4));
+                                        s['pci']['high']=this._getHigh(senses_lines[j]);
+                                        s['pci']['crit']=this._getCrit(senses_lines[j]);
+                                        s['pci']['hyst']=this._getHyst(senses_lines[j]);
+                                        //In some cases crit,hyst temp may be on next line
+                                        let nextLine=senses_lines[j+1].replace(/\s/g, "");
+                                        if (nextLine.substr(0,1)=='('){
+                                            if (!s['pci']['high']) s['pci']['high']=this._getHigh(nextLine);
+                                            if (!s['pci']['crit']) s['pci']['crit']=this._getCrit(nextLine);
+                                            if (!s['pci']['hyst']) s['pci']['hyst']=this._getHyst(nextLine);
+                                        }
+                                        c++;
+                                    }
+                                }
+                                else break;
+                            }
+                        }
+                        break;
 
 
-                default:
-                    break;
+                    default:
+                        break;
+                }
+            //uncomment next line to return temperature from only one adapter
+            //if (c==1) break;
             }
-        //uncomment next line to return temperature from only one adapter
-        //if (c==1) break;
         }
-    }
-    return s;
+        return s;
     },
 
     _isAdapter: function(line){
@@ -343,10 +349,10 @@ CpuTemperature.prototype = {
         return c.toString()+"\u1d3cC / "+this._toFahrenheit(c).toString()+"\u1d3cF";
     },
 
-    _formatTemp: function(c) {
+    _formatTemp: function(t) {
         //uncomment the next line to display temperature in Fahrenheit
-        //return this._toFahrenheit(c).toString()+"\u1d3cF";
-        return c.toString()+"\u1d3cC";
+        //return this._toFahrenheit(t).toString()+"\u1d3cF";
+        return (Math.round(t*10)/10).toString()+"\u1d3cC";
     }
 }
 
