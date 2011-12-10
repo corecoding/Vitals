@@ -58,7 +58,7 @@ CpuTemperature.prototype = {
 
     _detectSensors: function(){
         //detect if sensors is installed
-        let ret = GLib.spawn_command_line_sync("which --skip-alias sensor");
+        let ret = GLib.spawn_command_line_sync("which --skip-alias sensors");
         if ( (ret[0]) && (ret[3] == 0) ) {//if yes
             return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
         }
