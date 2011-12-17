@@ -6,6 +6,7 @@ const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
 //const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
+const Mainloop = imports.mainloop;
 //gnome 3.0
 const Panel = imports.ui.panel;
 
@@ -50,7 +51,7 @@ CpuTemperature.prototype = {
 
         this._update_temp();
         //update every 15 seconds
-        GLib.timeout_add_seconds(0, 15, Lang.bind(this, function () {
+        event = GLib.timeout_add_seconds(0, 15, Lang.bind(this, function () {
             this._update_temp();
             return true;
         }));
@@ -373,6 +374,7 @@ function main() {
 }
 
 let indicator;
+let event=null;
 
 function enable() {
     indicator = new CpuTemperature();
@@ -381,5 +383,6 @@ function enable() {
 
 function disable() {
     indicator.destroy();
-    indicator = null;
+Mainloop.source_remove(event);    
+indicator = null;
 }
