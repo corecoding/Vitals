@@ -4,11 +4,8 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
-//const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
-//gnome 3.0
-const Panel = imports.ui.panel;
 
 function CpuTemperature() {
     this._init.apply(this, arguments);
@@ -21,12 +18,12 @@ CpuTemperature.prototype = {
         PanelMenu.SystemStatusButton.prototype._init.call(this, 'temperature');
 
         this.lang = {
-            'acpi' : 'ACPI Adapter', 
-            'pci' : 'PCI Adapter', 
+            'acpi' : 'ACPI Adapter',
+            'pci' : 'PCI Adapter',
             'virt' : 'Virtual Thermal Zone'
         };
         this.statusLabel = new St.Label({
-            text: "--", 
+            text: "--",
             style_class: "temperature-label"
         });
 
@@ -37,16 +34,14 @@ CpuTemperature.prototype = {
         this.actor.add_actor(this.statusLabel);
 
         this.sensorsPath = this._detectSensors();
-
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
         if(this.sensorsPath){
             this.title='Error';
-            this.content='Run sensors-detect as root. If it doesn\'t help, click here to report!';
-
+            this.content='Run sensors-detect as root. If it doesn\'t help, click here to report with your sensors output!';
         }
         else{
             this.title='Warning';
-            this.content='Please install lm_sensors. If it doesn\'t help, click here to report!';
+            this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
         this._update_temp();
@@ -59,7 +54,7 @@ CpuTemperature.prototype = {
 
     _detectSensors: function(){
         //detect if sensors is installed
-        let ret = GLib.spawn_command_line_sync("which --skip-alias sensors");
+        let ret = GLib.spawn_command_line_sync("which sensors");
         if ( (ret[0]) && (ret[3] == 0) ) {//if yes
             return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
         }
@@ -68,7 +63,6 @@ CpuTemperature.prototype = {
 
     _update_temp: function() {
         let items = new Array();
-        let tempInfo=null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
             if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
@@ -91,7 +85,7 @@ CpuTemperature.prototype = {
                                 }
                             }
 
-                        }else{
+                        }else if (tempInfo[adapter]['temp']>0){
                             s+=tempInfo[adapter]['temp'];
                             n++;
                             items.push(this.lang[adapter] + ' : '+this._formatTemp(tempInfo[adapter]['temp']));
@@ -130,7 +124,7 @@ CpuTemperature.prototype = {
             for each (let itemText in items){
                 item = new PopupMenu.PopupMenuItem("");
                 item.addActor(new St.Label({
-                    text:itemText, 
+                    text:itemText,
                     style_class: "sm-label"
                 }));
                 section.addMenuItem(item);
@@ -139,7 +133,7 @@ CpuTemperature.prototype = {
             let command=this.command;
             let item = new PopupMenu.PopupMenuItem("");
             item.addActor(new St.Label({
-                text:this.content, 
+                text:this.content,
                 style_class: "sm-label"
             }));
             item.connect('activate',function() {
@@ -154,7 +148,7 @@ CpuTemperature.prototype = {
         let section = new PopupMenu.PopupMenuSection("Temperature");
         let item = new PopupMenu.PopupMenuItem("");
         item.addActor(new St.Label({
-            text:txt, 
+            text:txt,
             style_class: "sm-label"
         }));
         section.addMenuItem(item);
@@ -207,7 +201,7 @@ CpuTemperature.prototype = {
     },
 
     _findTemperatureFromSensorsOutput: function(txt){
-    let senses_lines=txt.split("\n");
+        let senses_lines=txt.split("\n");
         let line = '';
         let s= new Array();
         s['isa'] = new Array();
@@ -363,14 +357,8 @@ function debug(a){
     Util.spawn(['echo',a]);
 }
 
-function init(extensionMeta) {
+function init() {
 //do nothing
-}
-
-//gnome3.0
-function main() {
-    Panel.STANDARD_TRAY_ICON_ORDER.unshift('temperature');
-    Panel.STANDARD_TRAY_ICON_SHELL_IMPLEMENTATION['temperature'] = CpuTemperature;
 }
 
 let indicator;
@@ -383,6 +371,6 @@ function enable() {
 
 function disable() {
     indicator.destroy();
-Mainloop.source_remove(event);    
-indicator = null;
+    Mainloop.source_remove(event);
+    indicator = null;
 }
