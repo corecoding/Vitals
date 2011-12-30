@@ -63,6 +63,7 @@ CpuTemperature.prototype = {
 
     _update_temp: function() {
         let items = new Array();
+        let tempInfo=null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
             if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
@@ -92,10 +93,7 @@ CpuTemperature.prototype = {
                         }
                     }
                 }
-                if (n==0)//if temperature can't be detected from any adapter
-                {
-                    tempInfo=null;
-                }else{
+                if (n!=0){//if temperature is detected
                     this.title=this._formatTemp(s/n);//set title as average
                 }
             }
