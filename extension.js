@@ -54,7 +54,7 @@ CpuTemperature.prototype = {
 
     _detectSensors: function(){
         //detect if sensors is installed
-        let ret = GLib.spawn_command_line_sync("which sensors");
+        let ret = GLib.spawn_command_line_sync("which sensor");
         if ( (ret[0]) && (ret[3] == 0) ) {//if yes
             return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
         }
@@ -201,6 +201,7 @@ CpuTemperature.prototype = {
     _findTemperatureFromSensorsOutput: function(txt){
         let senses_lines=txt.split("\n");
         let line = '';
+        let type = '';
         let s= new Array();
         s['isa'] = new Array();
         let n=0,c=0;
@@ -322,14 +323,17 @@ CpuTemperature.prototype = {
     },
 
     _getHigh: function(t){
+        let r;
         return (r=/high=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
     _getCrit: function(t){
+        let r;
         return (r=/crit=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
     _getHyst: function(t){
+        let r;
         return (r=/hyst=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
