@@ -68,10 +68,6 @@ CpuTemperature.prototype = {
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
             if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
             if (tempInfo){
-                //destroy all items in popup
-                this.menu.box.get_children().forEach(function(c) {
-                    c.destroy()
-                });
                 var s=0, n=0;//sum and count
                 for (let adapter in tempInfo){
                     if(adapter!=0){
@@ -102,9 +98,6 @@ CpuTemperature.prototype = {
         if(!tempInfo){
             tempInfo = this._findTemperatureFromFiles();
             if(tempInfo.temp){
-                this.menu.box.get_children().forEach(function(c) {
-                    c.destroy()
-                });
                 this.title=this._formatTemp(tempInfo.temp);
                 items.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
                 if (tempInfo.crit)
@@ -140,17 +133,6 @@ CpuTemperature.prototype = {
             section.addMenuItem(item);
         }
         this.menu.addMenuItem(section);
-    },
-
-    _createSectionForText: function(txt){
-        let section = new PopupMenu.PopupMenuSection("Temperature");
-        let item = new PopupMenu.PopupMenuItem("");
-        item.addActor(new St.Label({
-            text:txt,
-            style_class: "sm-label"
-        }));
-        section.addMenuItem(item);
-        return section;
     },
 
     _findTemperatureFromFiles: function(){
@@ -340,10 +322,6 @@ CpuTemperature.prototype = {
 
     _toFahrenheit: function(c){
         return ((9/5)*c+32).toFixed(1);
-    },
-
-    _getContent: function(c){
-        return c.toString()+"\u1d3cC / "+this._toFahrenheit(c).toString()+"\u1d3cF";
     },
 
     _formatTemp: function(t) {
