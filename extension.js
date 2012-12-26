@@ -52,7 +52,7 @@ CpuTemperature.prototype = {
         //detect if sensors is installed
         let ret = GLib.spawn_command_line_sync("which sensors");
         if ( (ret[0]) && (ret[3] == 0) ) {//if yes
-            return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
+            return ret[1].toString().split("\n", 1)[0];//find the path of sensors
         }
         return null;
     },
@@ -61,7 +61,7 @@ CpuTemperature.prototype = {
         //detect if hddtemp is installed
         let ret = GLib.spawn_command_line_sync("which hddtemp");
         if ( (ret[0]) && (ret[3] == 0) ) {//if yes
-            return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
+            return ret[1].toString().split("\n", 1)[0];//find the path of hddtemp
         }
         return null;
     },
@@ -270,7 +270,7 @@ CpuTemperature.prototype = {
 
     _formatTemp: function(t) {
         //uncomment the next line to display temperature in Fahrenheit
-        //return this._toFahrenheit(t).toString()+"\u00b0F";
+        //return (Math.round(this._toFahrenheit(t))).toString()+"\u00b0F";
         return (Math.round(t)).toString()+"\u00b0C";
     }
 }
