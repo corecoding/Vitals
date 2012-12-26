@@ -235,8 +235,8 @@ CpuTemperature.prototype = {
 
     _formatTemp: function(t) {
         //uncomment the next line to display temperature in Fahrenheit
-        //return this._toFahrenheit(t).toString()+"\u1d3cF";
-        return (Math.round(t*10)/10).toFixed(1).toString()+"\u1d3cC";
+        //return this._toFahrenheit(t).toString()+"\u00b0F";
+        return (Math.round(t*10)/10).toFixed(1).toString()+"\u00b0C";
     }
 }
 
