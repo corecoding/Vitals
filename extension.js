@@ -29,6 +29,7 @@ CpuTemperature.prototype = {
         this.actor.add_actor(this.statusLabel);
 
         this.sensorsPath = this._detectSensors();
+        this.hddtempPath = this._detectHDDTemp();
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
         if(this.sensorsPath){
             this.title='Error';
@@ -56,6 +57,15 @@ CpuTemperature.prototype = {
         return null;
     },
 
+    _detectHDDTemp: function(){
+        //detect if hddtemp is installed
+        let ret = GLib.spawn_command_line_sync("which hddtemp");
+        if ( (ret[0]) && (ret[3] == 0) ) {//if yes
+            return ret[1].toString().split("\n", 1)[0];//find the path of the sensors
+        }
+        return null;
+    },
+
     _update_temp: function() {
         let items = new Array();
         let tempInfo=null;
@@ -71,6 +81,15 @@ CpuTemperature.prototype = {
                 }
                 if (n!=0){//if temperature is detected
                     this.title=this._formatTemp(s/n);//set title as average
+                }
+            }
+        }
+        if (this.hddtempPath){
+            let hddtemp_output = GLib.spawn_command_line_sync(this.hddtempPath);//get the output of the hddtemp command
+            if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
+            if(tempInfo){
+                for (let sensor in tempInfo){
+                    items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                 }
             }
         }
@@ -208,6 +227,22 @@ CpuTemperature.prototype = {
                 s['high'] = this._getHigh(value);
                 s['crit'] = this._getCrit(value);
                 s['hyst'] = this._getHyst(value);
+            }
+        }
+        return s;
+    },
+
+    _findTemperatureFromHDDTempOutput: function(txt){
+        let hddtemp_output=txt.split("\n");
+        let s= new Array();
+        let n=0;
+        for(let i = 0; i < hddtemp_output.length; i++)
+        {
+            if(hddtemp_output[i]){
+                s[++n] = new Array();
+                s[n]['label'] = hddtemp_output[i].split(': ')[0].split('/');
+                s[n]['label'] = s[n]['label'][s[n]['label'].length - 1];
+                s[n]['temp'] = parseFloat(hddtemp_output[i].split(': ')[2]);
             }
         }
         return s;
