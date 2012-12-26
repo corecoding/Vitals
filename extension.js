@@ -59,11 +59,15 @@ CpuTemperature.prototype = {
 
     _detectHDDTemp: function(){
         //detect if hddtemp is installed
+        let hddtempPath = null;
         let ret = GLib.spawn_command_line_sync("which hddtemp");
         if ( (ret[0]) && (ret[3] == 0) ) {//if yes
-            return ret[1].toString().split("\n", 1)[0];//find the path of hddtemp
+            hddtempPath =ret[1].toString().split("\n", 1)[0];
+            // for any reason it is not possible to run hddtemp directly.
+            if(GLib.spawn_command_line_sync(hddtempPath)[3])
+                hddtempPath = null;
         }
-        return null;
+        return hddtempPath;
     },
 
     _update_temp: function() {
