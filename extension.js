@@ -75,7 +75,7 @@ CpuTemperature.prototype = {
         //detect if hddtemp is running as daemon
         let hddtempDaemonPort = null;
         let ret = GLib.spawn_command_line_sync("pidof hddtemp");
-        if(ret[1]) {
+        if(ret[1].length) {
             let cmdline = GLib.spawn_command_line_sync("ps --pid=" + ret[1] + " -o args=");
             //get listening TCP port
             hddtempDaemonPort = cmdline[1].toString().split("-p ")[1].split(" ")[0];
