@@ -92,13 +92,19 @@ CpuTemperature.prototype = {
             if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
             if (tempInfo){
                 var s=0, n=0;//sum and count
+		var smax = 0;//max temp
                 for (let sensor in tempInfo){
-                    s+=tempInfo[sensor]['temp'];
-                    n++;
-                    items.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+			if (tempInfo[sensor]['temp']>0){
+	                    s+=tempInfo[sensor]['temp'];
+        	            n++;
+			    if (tempInfo[sensor]['temp'] > smax) 
+				smax=tempInfo[sensor]['temp']; 
+        	            items.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+			}
                 }
                 if (n!=0){//if temperature is detected
                     this.title=this._formatTemp(s/n);//set title as average
+                    //this.title=this._formatTemp(smax);//or the maximum temp
                 }
             }
         }
