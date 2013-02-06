@@ -68,11 +68,10 @@ This extensions uses the output of `sensors`(1) command to obtain the
 temperature data and sensor labeling. To relabel, hide or correct the
 output consult the `sensors.conf`(5) manual.
 
-Authors
--------
-* Dipesh Acharya <xtranophilist@gmail.com>
+Authors : [authors]
 
 [sensors]: http://www.lm-sensors.org/
 [hddtemp]: https://savannah.nongnu.org/projects/hddtemp/
 [GNOME extensions]: https://extensions.gnome.org/extension/82/cpu-temperature-indicator/
 [system files]: https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/blob/master/extension.js#L174
+[authors]: https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/graphs/contributors
