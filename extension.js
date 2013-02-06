@@ -94,7 +94,7 @@ CpuTemperature.prototype = {
                 var s=0, n=0;//sum and count
 		var smax = 0;//max temp
                 for (let sensor in tempInfo){
-			if (tempInfo[sensor]['temp']>0){
+			if (tempInfo[sensor]['temp']>0 && tempInfo[sensor]['temp']<115){
 	                    s+=tempInfo[sensor]['temp'];
         	            n++;
 			    if (tempInfo[sensor]['temp'] > smax) 
