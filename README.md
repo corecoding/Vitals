@@ -43,10 +43,28 @@ After installation you need to restart the GNOME shell by:
 * `ALT`+`F2` to open the command prompt
 * Enter `r` to restart the GNOME shell
 
+
+Installing dependencies
+-------------
+Installing lm-sensors for Fedora, CentOS and other distros with yum:
+
+`yum install -y lm_sensors`
+
+Ubuntu, Debian and other distros with apt-get:
+
+`apt-get install lm-sensors`
+
+Then run `sensors-detect` as root as one time detection process.
+
+Installing `hdd-temp`:
+
+`yum -y install hddtemp`
+
+
 Configuration
 -------------
 
-This extensions uses the output `sensors`(1) command to obstain the
+This extensions uses the output `sensors`(1) command to obtain the
 temperature data and sensor labeling. To relabel, hide or correct the
 output consult the `sensors.conf`(5) manual.
 
