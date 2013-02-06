@@ -64,7 +64,7 @@ Installing `hdd-temp`:
 Configuration
 -------------
 
-This extensions uses the output `sensors`(1) command to obtain the
+This extensions uses the output of `sensors`(1) command to obtain the
 temperature data and sensor labeling. To relabel, hide or correct the
 output consult the `sensors.conf`(5) manual.
 
