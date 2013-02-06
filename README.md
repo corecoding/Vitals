@@ -1,22 +1,15 @@
 gnome-shell-extension-cpu-temperature
 =====================================
 
-*gnome-shell-extension-cpu-temperature* is a extension for displaying
-system temperature data in GNOME Shell. The temperature data are
-provided by [lm_sensors] and optionally by [hddtemp].
+*gnome-shell-extension-cpu-temperature* is an extension for displaying
+system temperature data in GNOME Shell.
 
-----
+The extension uses [sensors] from lm_sensors package (lm-sensors for Debian systems)
+to read temperature for different CPU cores and adapters.
+If lm_sensors is not installed, temperature is read from [system files].
 
-Dependencies
-------------
+Optionally, this extension uses [hddtemp] to read hard drive temperature data.
 
-This extension requires:
-
-* [lm_sensors] to read CPU and motherboard temperature data.
-
-Optionally this extension uses:
-
-* [hddtemp] to read hard drive temperature data.
 
 Installation
 ------------
@@ -34,13 +27,13 @@ Fedora has packaged this extension. You can install it by running:
 Manual installation
 -------------------
 
-If you prefer a manual installation you can install this extension
-for your user by executing:
+This is the recommended method for installation as you always get the latest version.
+You can install this extension for your user by executing:
 
     cd ~/.local/share/gnome-shell/extensions
     git clone https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature.git temperature@xtranophilist
 
-or system wide by excuting (this requires root permissions):
+or system wide by executing (this requires root permissions):
 
     cd /usr/share/gnome-shell/extensions/
     git clone https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature.git temperature@xtranophilist
@@ -61,6 +54,7 @@ Authors
 -------
 * Dipesh Acharya <xtranophilist@gmail.com>
 
-[lm_sensors]: http://www.lm-sensors.org/
+[sensors]: http://www.lm-sensors.org/
 [hddtemp]: https://savannah.nongnu.org/projects/hddtemp/
 [GNOME extensions]: https://extensions.gnome.org/extension/82/cpu-temperature-indicator/
+[system files]: https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/blob/master/extension.js#L174
