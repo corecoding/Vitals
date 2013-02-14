@@ -33,8 +33,8 @@ CpuTemperature.prototype = {
         });
         this.actor.add_actor(this.statusLabel);
 
-        let unit  = settings.get_string('unit')
-        let update_time  = settings.get_int('update-time')
+        let unit  = settings.get_string('unit');
+        let update_time  = settings.get_int('update-time');
         let display_degree_sign  = settings.get_boolean('display-degree-sign');
         let display_decimal_value  = settings.get_boolean('display-decimal-value');
         let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
@@ -102,7 +102,7 @@ CpuTemperature.prototype = {
     },
 
     _update_temp: function() {
-        
+
         let items = new Array();
         let tempInfo=null;
         if (this.sensorsPath){
@@ -121,8 +121,10 @@ CpuTemperature.prototype = {
 			}
                 }
                 if (n!=0){//if temperature is detected
+                    if (settings.get_boolean('show-in-panel')=='Average')
                     this.title=this._formatTemp(s/n);//set title as average
-                    //this.title=this._formatTemp(smax);//or the maximum temp
+                else
+                    this.title=this._formatTemp(smax);//or the maximum temp
                 }
             }
         }
@@ -333,13 +335,25 @@ CpuTemperature.prototype = {
 
 
     _toFahrenheit: function(c){
-        return ((9/5)*c+32).toFixed(1);
+        return ((9/5)*c+32);
     },
 
     _formatTemp: function(t) {
-        //uncomment the next line to display temperature in Fahrenheit
-        //return (Math.round(this._toFahrenheit(t))).toString()+"\u00b0F";
-        return (Math.round(t)).toString()+"\u00b0C";
+        let ret = t;
+        if (settings.get_string('unit')=='Fahrenheit'){
+            ret = this._toFahrenheit(t);
+        }
+        ret = ret.toFixed(1);
+        if (!settings.get_boolean('display-decimal-value'))
+            ret = Math.round(ret);
+        ret = ret.toString(); // no more mathematics
+        if (settings.get_boolean('display-degree-sign'))
+            ret += "\u00b0";
+        if (settings.get_string('unit')=='Fahrenheit')
+            ret += "F";
+        else
+            ret+= "C";
+        return ret;
     }
 }
 
@@ -353,6 +367,7 @@ let event=null;
 function enable() {
     indicator = new CpuTemperature();
     Main.panel.addToStatusArea('temperature', indicator);
+    //TODO catch preference change signals with settings.connect('changed::
 }
 
 function disable() {

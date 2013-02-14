@@ -5,7 +5,7 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 
 
-const Gettext = imports.gettext.domain('gnome-shell-extensions');
+const Gettext = imports.gettext.domain('cpu-temperature');
 const _ = Gettext.gettext;
 
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -23,12 +23,12 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
 
     _init: function(params) {
         this.parent(params);
-            // this.margin = this.row_spacing = this.column_spacing = 30;
+            this.margin = this.row_spacing = this.column_spacing = 20;
 
         this._settings = Convenience.getSettings();
 
         this.attach(new Gtk.Label({ label: 'Seconds before next update' }), 0, 0, 1, 1);
-        let update_time = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 5);
+        let update_time = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 5, 100, 5);
             update_time.set_value(this._settings.get_int('update-time'));
             update_time.set_digits(0);
             update_time.set_hexpand(true);
@@ -118,6 +118,5 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
 function buildPrefsWidget() {
     let widget = new CPUTemperaturePrefsWidget();
     widget.show_all();
-
     return widget;
 }
