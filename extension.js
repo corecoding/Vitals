@@ -10,7 +10,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-// let settings;
+let settings;
 
 function CpuTemperature() {
     this._init.apply(this, arguments);
@@ -33,7 +33,6 @@ CpuTemperature.prototype = {
         });
         this.actor.add_actor(this.statusLabel);
 
-        let settings = Convenience.getSettings();
         let unit  = settings.get_string('unit')
         let update_time  = settings.get_int('update-time')
         let display_degree_sign  = settings.get_boolean('display-degree-sign');
@@ -58,13 +57,10 @@ CpuTemperature.prototype = {
 
         this._update_temp();
 
-
-        
-
         // if (display_hdd_temp)
         //     Main.notify('a', settings.get_int('update-time').toString());
         
-        event = GLib.timeout_add_seconds(0, 15, Lang.bind(this, function () {
+        event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
             this._update_temp();
             return true;
         }));
@@ -106,6 +102,7 @@ CpuTemperature.prototype = {
     },
 
     _update_temp: function() {
+        
         let items = new Array();
         let tempInfo=null;
         if (this.sensorsPath){
@@ -129,7 +126,7 @@ CpuTemperature.prototype = {
                 }
             }
         }
-        
+
         if (this.hddtempPath){
             let hddtemp_output = GLib.spawn_command_line_sync(this.hddtempPath);//get the output of the hddtemp command
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
@@ -347,8 +344,7 @@ CpuTemperature.prototype = {
 }
 
 function init(extensionMeta) {
-    // Convenience.initTranslations();
-
+    settings = Convenience.getSettings();
 }
 
 let indicator;
