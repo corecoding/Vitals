@@ -56,7 +56,12 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
                 name: _("display-decimal-value"),
                 label: _("Display decimal value"),
                 help: _("Show one digit after decimal. (default: ON)")
-           }
+           },
+           show_hdd_temp: {
+                name: _("display-hdd-temp"),
+                label: _("Display hard disk temperature"),
+                help: _("Requires hddtemp installed. (default: ON)")
+           },
         }
 
         let counter = 3;

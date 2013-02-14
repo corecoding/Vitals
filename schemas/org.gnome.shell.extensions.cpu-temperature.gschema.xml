@@ -33,5 +33,11 @@
       <description>Show one digit after decimal</description>
     </key>
 
+    <key type="b" name="display-hdd-temp">
+      <default>true</default>
+      <summary>Display HDD Temp</summary>
+      <description>Display hard disk drive temperature. Requires hddtemp installed.</description>
+    </key>
+
   </schema>
 </schemalist>
