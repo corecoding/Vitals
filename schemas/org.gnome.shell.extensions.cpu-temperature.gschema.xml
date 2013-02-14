@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema path="/org/gnome/shell/extensions/cpu-temperature/" id="org.gnome.shell.extensions.cpu-temperature">
+    <key type="i" name="hpadding">
+      <default>6</default>
+      <summary>Hpadding between icons (pixels)</summary>
+      <description>This hpadding will be applied to the icons in the status area. Default is 12 pixels, we recommend at least 6.</description>
+    </key>
+  </schema>
+</schemalist>

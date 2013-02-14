@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions">
+
+<enum id='org.gnome.shell.extensions.cpu-temperature.Unit'>
+    <value value='Centigrade' nick='Centigrade'/>
+    <value value='Fahrenheit' nick='Fahrenheit'/>
+  </enum>
+
+  <schema path="/org/gnome/shell/extensions/cpu-temperature/" id="org.gnome.shell.extensions.cpu-temperature">
+    <key type="i" name="update_time">
+      <default>15</default>
+      <summary>Seconds before next update</summary>
+      <description>This is the seconds after CPU temperature extension updates the data from the syetem. The default is 15.</description>
+    </key>
+    <key type="i" name="update_time">
+      <default>15</default>
+      <summary>Seconds before next update</summary>
+      <description>This is the seconds after CPU temperature extension updates the data from the syetem. The default is 15.</description>
+    </key>
+  </schema>
+</schemalist>
