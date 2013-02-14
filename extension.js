@@ -6,11 +6,12 @@ const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
+const Shell = imports.gi.Shell;
 
 let settings;
+let metadata = Me.metadata;
 
 function CpuTemperature() {
     this._init.apply(this, arguments);
@@ -33,12 +34,9 @@ CpuTemperature.prototype = {
         });
         this.actor.add_actor(this.statusLabel);
 
-        let unit  = settings.get_string('unit');
+        
         let update_time  = settings.get_int('update-time');
-        let display_degree_sign  = settings.get_boolean('display-degree-sign');
-        let display_decimal_value  = settings.get_boolean('display-decimal-value');
         let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
-        let show_in_panel  = settings.get_string('show-in-panel');
 
         this.sensorsPath = this._detectSensors();
         if (display_hdd_temp){
@@ -56,9 +54,6 @@ CpuTemperature.prototype = {
         }
 
         this._update_temp();
-
-        // if (display_hdd_temp)
-        //     Main.notify('a', settings.get_int('update-time').toString());
         
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
             this._update_temp();
@@ -121,10 +116,12 @@ CpuTemperature.prototype = {
 			}
                 }
                 if (n!=0){//if temperature is detected
-                    if (settings.get_boolean('show-in-panel')=='Average')
+                    if (settings.get_string('show-in-panel')=='Average'){
                     this.title=this._formatTemp(s/n);//set title as average
-                else
+                }
+                else{
                     this.title=this._formatTemp(smax);//or the maximum temp
+                }
                 }
             }
         }
@@ -166,25 +163,31 @@ CpuTemperature.prototype = {
         if (items.length>0){
             let item;
             for each (let itemText in items){
-                item = new PopupMenu.PopupMenuItem("");
-                item.addActor(new St.Label({
-                    text:itemText,
-                    style_class: "sm-label"
-                }));
+                item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
             }
         }else{
             let command=this.command;
-            let item = new PopupMenu.PopupMenuItem("");
-            item.addActor(new St.Label({
-                text:this.content,
-                style_class: "sm-label"
-            }));
+            let item = new PopupMenu.PopupMenuItem(this.content);
             item.connect('activate',function() {
                 Util.spawn(command);
             });
             section.addMenuItem(item);
         }
+        
+        let _appSys = Shell.AppSystem.get_default();
+        let _gsmPrefs = _appSys.lookup_app('gnome-shell-extension-prefs.desktop');
+        
+        item = new PopupMenu.PopupMenuItem(_("Preferences..."));
+        item.connect('activate', function () {
+            if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
+                _gsmPrefs.activate();
+            } else {
+                _gsmPrefs.launch(global.display.get_current_time_roundtrip(),
+                                 [metadata.uuid],-1,null);
+            }
+        });
+        section.addMenuItem(item);
         this.menu.addMenuItem(section);
     },
 
