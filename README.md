@@ -1,6 +1,3 @@
-gnome-shell-extension-cpu-temperature
-=====================================
-
 *gnome-shell-extension-cpu-temperature* is an extension for displaying
 system temperature data in GNOME Shell.
 
@@ -8,11 +5,12 @@ The extension uses [sensors] from lm_sensors package (lm-sensors for Debian syst
 to read temperature for different CPU cores and adapters.
 If lm_sensors is not installed, temperature is read from [system files].
 
-Optionally, this extension uses [hddtemp] to read hard drive temperature data.
+Optionally, this extension uses [hddtemp] to read hard drive temperature data.  
+The data is updated every 15 seconds.
 
 
 Installation
-------------
+=============
 
 You can install this extension by visiting the [GNOME extensions]
 homepage.
@@ -27,7 +25,7 @@ Fedora has packaged this extension. You can install it by running:
 Manual installation
 -------------------
 
-This is the recommended method for installation as you always get the latest version.
+This is the **recommended method** for installation as you always get the latest version.
 You can install this extension for your user by executing:
 
     cd ~/.local/share/gnome-shell/extensions
@@ -42,6 +40,9 @@ After installation you need to restart the GNOME shell by:
 
 * `ALT`+`F2` to open the command prompt
 * Enter `r` to restart the GNOME shell
+
+Then enable the extension:
+Open `gnome-tweak-tool` -> `Shell Extensions` -> `CPU temperature indicator` -> On
 
 
 Installing dependencies
@@ -62,7 +63,7 @@ Installing `hdd-temp`:
 
 
 Configuration
--------------
+---------------------
 
 This extensions uses the output of `sensors`(1) command to obtain the
 temperature data and sensor labeling. To relabel, hide or correct the
