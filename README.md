@@ -5,7 +5,7 @@ The extension uses [sensors] from lm_sensors package (lm-sensors for Debian syst
 to read temperature for different CPU cores and adapters.
 If lm_sensors is not installed, temperature is read from [system files].
 
-Optionally, this extension uses [hddtemp] to read hard drive temperature data.  
+Optionally, this extension uses [hddtemp] to read hard drive temperature data.
 The data is updated every 15 seconds.
 
 
@@ -13,7 +13,7 @@ Installation
 =============
 
 You can install this extension by visiting the [GNOME extensions]
-homepage.
+page for this extension.
 
 Installation by package manager
 -------------------------------
@@ -30,13 +30,15 @@ You can install this extension for your user by executing:
 
     cd ~/.local/share/gnome-shell/extensions
     git clone https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature.git temperature@xtranophilist
+    glib-compile-schemas temperature@xtranophilist/schemas/
 
 or system wide by executing (this requires root permissions):
 
     cd /usr/share/gnome-shell/extensions/
     git clone https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature.git temperature@xtranophilist
+    glib-compile-schemas temperature@xtranophilist/schemas/
 
-After installation you need to restart the GNOME shell by:
+After installation you need to restart the GNOME shell:
 
 * `ALT`+`F2` to open the command prompt
 * Enter `r` to restart the GNOME shell
