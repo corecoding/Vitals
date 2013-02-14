@@ -6,6 +6,11 @@ const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
+
+// let settings;
 
 function CpuTemperature() {
     this._init.apply(this, arguments);
@@ -28,9 +33,19 @@ CpuTemperature.prototype = {
         });
         this.actor.add_actor(this.statusLabel);
 
+        let settings = Convenience.getSettings();
+        let unit  = settings.get_string('unit')
+        let update_time  = settings.get_int('update-time')
+        let display_degree_sign  = settings.get_boolean('display-degree-sign');
+        let display_decimal_value  = settings.get_boolean('display-decimal-value');
+        let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
+        let show_in_panel  = settings.get_string('show-in-panel');
+
         this.sensorsPath = this._detectSensors();
-        this.hddtempPath = this._detectHDDTemp();
-        this.hddtempDaemonPort = this._detectHDDTempDaemon();
+        if (display_hdd_temp){
+            this.hddtempPath = this._detectHDDTemp();
+            this.hddtempDaemonPort = this._detectHDDTempDaemon();
+        }
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
         if(this.sensorsPath){
             this.title='Error';
@@ -42,7 +57,13 @@ CpuTemperature.prototype = {
         }
 
         this._update_temp();
-        //update every 15 seconds
+
+
+        
+
+        // if (display_hdd_temp)
+        //     Main.notify('a', settings.get_int('update-time').toString());
+        
         event = GLib.timeout_add_seconds(0, 15, Lang.bind(this, function () {
             this._update_temp();
             return true;
@@ -108,6 +129,7 @@ CpuTemperature.prototype = {
                 }
             }
         }
+        
         if (this.hddtempPath){
             let hddtemp_output = GLib.spawn_command_line_sync(this.hddtempPath);//get the output of the hddtemp command
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
@@ -324,14 +346,9 @@ CpuTemperature.prototype = {
     }
 }
 
-//for debugging
-function debug(a){
-    global.log(a);
-    Util.spawn(['echo',a]);
-}
+function init(extensionMeta) {
+    // Convenience.initTranslations();
 
-function init() {
-//do nothing
 }
 
 let indicator;
