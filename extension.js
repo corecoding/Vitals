@@ -34,11 +34,12 @@ CpuTemperature.prototype = {
         });
         this.actor.add_actor(this.statusLabel);
 
-        
+
         let update_time  = settings.get_int('update-time');
         let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
 
-        this.sensorsPath = this._detectSensors();
+        this.sensorsPath = GLib.find_program_in_path('sensors');
+
         if (display_hdd_temp){
             this.hddtempPath = this._detectHDDTemp();
             this.hddtempDaemonPort = this._detectHDDTempDaemon();
@@ -54,20 +55,11 @@ CpuTemperature.prototype = {
         }
 
         this._update_temp();
-        
+
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
             this._update_temp();
             return true;
         }));
-    },
-
-    _detectSensors: function(){
-        //detect if sensors is installed
-        let ret = GLib.spawn_command_line_sync("which sensors");
-        if ( (ret[0]) && (ret[3] == 0) ) {//if yes
-            return ret[1].toString().split("\n", 1)[0];//find the path of sensors
-        }
-        return null;
     },
 
     _detectHDDTemp: function(){
@@ -110,8 +102,8 @@ CpuTemperature.prototype = {
 			if (tempInfo[sensor]['temp']>0 && tempInfo[sensor]['temp']<115){
 	                    s+=tempInfo[sensor]['temp'];
         	            n++;
-			    if (tempInfo[sensor]['temp'] > smax) 
-				smax=tempInfo[sensor]['temp']; 
+			    if (tempInfo[sensor]['temp'] > smax)
+				smax=tempInfo[sensor]['temp'];
         	            items.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
 			}
                 }
@@ -123,6 +115,17 @@ CpuTemperature.prototype = {
                     this.title=this._formatTemp(smax);//or the maximum temp
                 }
                 }
+            }
+        }
+
+        //if we don't have the temperature yet, use some known files
+        if(!tempInfo){
+            tempInfo = this._findTemperatureFromFiles();
+            if(tempInfo.temp){
+                this.title=this._formatTemp(tempInfo.temp);
+                items.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
+                if (tempInfo.crit)
+                    items.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
             }
         }
 
@@ -142,16 +145,6 @@ CpuTemperature.prototype = {
                 for (let sensor in tempInfo){
                     items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                 }
-            }
-        }
-        //if we don't have the temperature yet, use some known files
-        if(!tempInfo){
-            tempInfo = this._findTemperatureFromFiles();
-            if(tempInfo.temp){
-                this.title=this._formatTemp(tempInfo.temp);
-                items.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
-                if (tempInfo.crit)
-                    items.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
             }
         }
 
@@ -174,10 +167,10 @@ CpuTemperature.prototype = {
             });
             section.addMenuItem(item);
         }
-        
+
         let _appSys = Shell.AppSystem.get_default();
         let _gsmPrefs = _appSys.lookup_app('gnome-shell-extension-prefs.desktop');
-        
+
         item = new PopupMenu.PopupMenuItem(_("Preferences..."));
         item.connect('activate', function () {
             if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
@@ -261,7 +254,7 @@ CpuTemperature.prototype = {
                else{
                   feature_value += sensors_output[i];
                }
-               i++; 
+               i++;
             }
         }
         let feature = this._parseSensorsTemperatureLine(feature_label, feature_value);
