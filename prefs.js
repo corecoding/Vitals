@@ -35,25 +35,27 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
         this.attach(update_time, 1, 0, 1, 1);
         
 
-		// this.attach(new Gtk.Label({ label: 'Unit' }), 0, 2, 1, 1);
-  //       centigrade = new Gtk.RadioButton({ group: null, label: "Centigrade", valign: Gtk.Align.START });
-  //       fahrenheit = new Gtk.RadioButton({ group: centigrade, label: "Fahrenheit", valign: Gtk.Align.START });
-  //       // centigrade.connect('toggled', Lang.bind(this, this._onUnitChanged));
-  //       this.attach(centigrade, 1, 2, 1, 1);
-  //       this.attach(fahrenheit, 2, 2, 1, 1);
+		this.attach(new Gtk.Label({ label: 'Unit' }), 0, 2, 1, 1);
+        let centigradeRadio = new Gtk.RadioButton({ group: null, label: "Centigrade", valign: Gtk.Align.START });
+        let fahrenheitRadio = new Gtk.RadioButton({ group: centigradeRadio, label: "Fahrenheit", valign: Gtk.Align.START });
+        fahrenheitRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
+        centigradeRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
+        if (this._settings.get_string('unit')=='Centigrade') centigradeRadio.active = true;
+            else fahrenheitRadio.active = true;
+        this.attach(centigradeRadio, 1, 2, 1, 1);
+        this.attach(fahrenheitRadio, 2, 2, 1, 1);
 
 
-
-        // this._place3.set_active (true);
-        this._update_time = update_time;
     },
 
     _onUpdateTimeChanged: function (update_time) {
-        this._settings.set_int('update-time', this._update_time.get_value());
+        this._settings.set_int('update-time', update_time.get_value());
     },
 
 	_onUnitChanged: function (unit) {
-		// Main.notify('a', 'b');
+        if (unit.get_active()){
+        	  this._settings.set_string('unit', unit.label);
+          }
     }
 
 });
