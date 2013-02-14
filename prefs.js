@@ -26,6 +26,7 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
             // this.margin = this.row_spacing = this.column_spacing = 30;
 
         this._settings = Convenience.getSettings();
+
         this.attach(new Gtk.Label({ label: 'Seconds before next update' }), 0, 0, 1, 1);
         let update_time = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 5);
             update_time.set_value(this._settings.get_int('update-time'));
@@ -45,12 +46,51 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
         this.attach(centigradeRadio, 1, 2, 1, 1);
         this.attach(fahrenheitRadio, 2, 2, 1, 1);
 
+        let boolSettings = {
+            display_degree_sign: {
+                name: _("display-degree-sign"),
+                label: _("Display degree sign"),
+                help: _("Show or hide the arrow near the text when charging. (default: ON)")
+            },
+            display_decimal_value: {
+                name: _("display-decimal-value"),
+                label: _("Display decimal value"),
+                help: _("Show or hide the percentage near the time. (default: ON)")
+           }
+        }
+
+        let counter = 0;
+
+        for (boolSetting in boolSettings){
+            let setting = boolSettings[boolSetting];
+            let settingLabel = new Gtk.Label({ label: setting.label });
+            let settingSwitch = new Gtk.Switch({active: this._settings.get_boolean(setting.name)});
+            let settings = this._settings;
+            settingSwitch.connect('notify::active', function(button) {
+             settings.set_boolean(setting.name, button.active);
+             });
+
+            if (setting.help) {
+               settingLabel.set_tooltip_text(setting.help);
+               settingSwitch.set_tooltip_text(setting.help);
+            }
+
+            this.attach(settingLabel, 0, 3 + counter, 1, 1);
+            this.attach(settingSwitch, 1, 3 + counter++, 1, 1);
+
+        }
+
+        
+
 
     },
 
     _onUpdateTimeChanged: function (update_time) {
         this._settings.set_int('update-time', update_time.get_value());
     },
+
+    
+
 
 	_onUnitChanged: function (unit) {
         if (unit.get_active()){
