@@ -10,8 +10,15 @@
     </key>
 
     <key type="s" name="unit">
-      <default>"centigrade"</default>
+      <default>"Centigrade"</default>
+      <summary>Unit</summary>
       <description>The unit ('centigrade' or 'fahrenheit', without quotes) the extension should display the temperature in.</description>
+    </key>
+
+    <key type="s" name="show-in-panel">
+      <default>"Average"</default>
+      <summary>Average or maximum in panel</summary>
+      <description>Select if "Average" or "Maximum" temperature has to be shown in the panel</description>
     </key>
 
     <key type="b" name="display-degree-sign">

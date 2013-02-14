@@ -50,16 +50,16 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
             display_degree_sign: {
                 name: _("display-degree-sign"),
                 label: _("Display degree sign"),
-                help: _("Show or hide the arrow near the text when charging. (default: ON)")
+                help: _("Show degree sign in panel and menu. (default: ON)")
             },
             display_decimal_value: {
                 name: _("display-decimal-value"),
                 label: _("Display decimal value"),
-                help: _("Show or hide the percentage near the time. (default: ON)")
+                help: _("Show one digit after decimal. (default: ON)")
            }
         }
 
-        let counter = 0;
+        let counter = 3;
 
         for (boolSetting in boolSettings){
             let setting = boolSettings[boolSetting];
@@ -75,13 +75,20 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
                settingSwitch.set_tooltip_text(setting.help);
             }
 
-            this.attach(settingLabel, 0, 3 + counter, 1, 1);
-            this.attach(settingSwitch, 1, 3 + counter++, 1, 1);
+            this.attach(settingLabel, 0, counter, 1, 1);
+            this.attach(settingSwitch, 1, counter++, 1, 1);
 
         }
 
-        
-
+        this.attach(new Gtk.Label({ label: 'Show in panel' }), 0, counter+1, 1, 1);
+        let averageRadio = new Gtk.RadioButton({ group: null, label: "Average", valign: Gtk.Align.START });
+        let maximumRadio = new Gtk.RadioButton({ group: averageRadio, label: "Maximum", valign: Gtk.Align.START });
+        averageRadio.connect('toggled', Lang.bind(this, this._onMethodChanged));
+        maximumRadio.connect('toggled', Lang.bind(this, this._onMethodChanged));
+        if (this._settings.get_string('show-in-panel')=='Average') averageRadio.active = true;
+            else maximumRadio.active = true;
+        this.attach(averageRadio, 1, counter + 1, 1, 1);
+        this.attach(maximumRadio, 2, counter + 1, 1, 1);
 
     },
 
@@ -89,14 +96,17 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
         this._settings.set_int('update-time', update_time.get_value());
     },
 
-    
-
-
 	_onUnitChanged: function (unit) {
         if (unit.get_active()){
         	  this._settings.set_string('unit', unit.label);
           }
-    }
+    },
+
+    _onMethodChanged: function (method) {
+        if (method.get_active()){
+              this._settings.set_string('show-in-panel', method.label);
+          }
+    },
 
 });
 
