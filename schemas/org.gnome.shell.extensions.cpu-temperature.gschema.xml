@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="gnome-shell-extensions">
+
   <schema path="/org/gnome/shell/extensions/cpu-temperature/" id="org.gnome.shell.extensions.cpu-temperature">
-    <key type="i" name="hpadding">
-      <default>6</default>
-      <summary>Hpadding between icons (pixels)</summary>
-      <description>This hpadding will be applied to the icons in the status area. Default is 12 pixels, we recommend at least 6.</description>
+
+    <key type="i" name="update-time">
+      <default>15</default>
+      <summary>Seconds before next update</summary>
+      <description>This is the seconds after CPU temperature extension updates the data from the syetem. The default is 15.</description>
     </key>
+
+    <key type="s" name="unit">
+      <default>"centigrade"</default>
+      <description>The unit ('centigrade' or 'fahrenheit', without quotes) the extension should display the temperature in.</description>
+    </key>
+
   </schema>
 </schemalist>
