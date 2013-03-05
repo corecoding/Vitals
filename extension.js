@@ -171,7 +171,7 @@ CpuTemperature.prototype = {
         let _appSys = Shell.AppSystem.get_default();
         let _gsmPrefs = _appSys.lookup_app('gnome-shell-extension-prefs.desktop');
 
-        item = new PopupMenu.PopupMenuItem(_("Preferences..."));
+        let item = new PopupMenu.PopupMenuItem(_("Preferences..."));
         item.connect('activate', function () {
             if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
                 _gsmPrefs.activate();
