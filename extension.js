@@ -148,6 +148,8 @@ CpuTemperature.prototype = {
             }
         }
 
+        items.sort();
+
         this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
             c.destroy()
