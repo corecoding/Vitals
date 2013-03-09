@@ -54,6 +54,7 @@ CpuTemperature.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
+        this._parseSensorsTemperatureLine();
         this._updateDisplay();
 
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
@@ -91,7 +92,7 @@ CpuTemperature.prototype = {
         let tempInfo=null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
-            if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
+            if(sensors_output[0]) tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
             if (tempInfo){
                 var s=0, n=0;//sum and count
                 var smax = 0;//max temp
@@ -231,7 +232,7 @@ CpuTemperature.prototype = {
         return info;
     },
 
-    _findTemperatureFromSensorsOutput: function(txt){
+    _parseSensorsOutput: function(txt,parser){
         let sensors_output=txt.split("\n");
         let feature_label=undefined;
         let feature_value=undefined;
@@ -246,7 +247,7 @@ CpuTemperature.prototype = {
             while(sensors_output[i]){
                // if it is not a continutation of a feature line
                if(sensors_output[i].indexOf(' ') != 0){
-                  let feature = this._parseSensorsTemperatureLine(feature_label, feature_value);
+                  let feature = parser(feature_label, feature_value);
                   if (feature) {
                       s[n++] = feature;
                       feature = undefined;
@@ -259,7 +260,7 @@ CpuTemperature.prototype = {
                i++;
             }
         }
-        let feature = this._parseSensorsTemperatureLine(feature_label, feature_value);
+        let feature = parser(feature_label, feature_value);
         if (feature) {
             s[n++] = feature;
             feature = undefined;
