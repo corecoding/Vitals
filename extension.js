@@ -91,8 +91,10 @@ CpuTemperature.prototype = {
         let display_fan_rpm  = settings.get_boolean('display-fan-rpm');
         let tempItems = new Array();
         let fanItems = new Array();
+        let voltageItems = new Array();
         let tempInfo = null;
         let fanInfo = null;
+        let voltageInfo = null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
             if(sensors_output[0]) tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
@@ -123,6 +125,12 @@ CpuTemperature.prototype = {
                     if (fanInfo[fan]['rpm']>0){
                         fanItems.push(fanInfo[fan]['label']+': '+fanInfo[fan]['rpm']+' rpm');
                     }
+                }
+            }
+            if(sensors_output[0]) voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
+            if (voltageInfo){
+                for (let voltage in voltageInfo){
+                    voltageItems.push(voltageInfo[voltage]['label']+': '+voltageInfo[voltage]['volt']+'V');
                 }
             }
         }
@@ -171,10 +179,17 @@ CpuTemperature.prototype = {
                 item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
             }
-            if (tempItems.length > 0 && fanItems.length > 0){
+            if (tempItems.length > 0 && (fanItems.length > 0 || voltageItems.length > 0)){
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let itemText in fanItems){
+                item = new PopupMenu.PopupMenuItem(itemText);
+                section.addMenuItem(item);
+            }
+            if (fanItems.length > 0 && voltageItems.length > 0){
+                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
+            for each (let itemText in voltageItems){
                 item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
             }
@@ -319,6 +334,22 @@ CpuTemperature.prototype = {
         return s;
     },
 
+    _parseVoltageLine: function(label, value) {
+        let s = undefined;
+        if(label != undefined && value != undefined) {
+            let curValue = value.trim().split('  ')[0];
+            // does the current value look like a voltage unit (°C)?
+            if(curValue.indexOf("V", curValue.length - "V".length) !== -1){
+                s = new Array();
+                s['label'] = label.trim();
+                s['volt'] = parseFloat(curValue.split(' ')[0]);
+                s['min'] = this._getMin(value);
+                s['max'] = this._getMax(value);
+            }
+        }
+        return s;
+    },
+
     _findTemperatureFromHDDTempOutput: function(txt){
         let hddtemp_output=txt.split("\n");
         let s= new Array();
@@ -368,7 +399,12 @@ CpuTemperature.prototype = {
 
     _getMin: function(t){
         let r;
-        return (r=/min=(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
+        return (r=/min=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
+
+    _getMax: function(t){
+        let r;
+        return (r=/max=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
     _toFahrenheit: function(c){
