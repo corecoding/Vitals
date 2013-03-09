@@ -171,6 +171,9 @@ CpuTemperature.prototype = {
                 item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
             }
+            if (tempItems.length > 0 && fanItems.length > 0){
+                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
             for each (let itemText in fanItems){
                 item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
