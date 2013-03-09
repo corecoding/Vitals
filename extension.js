@@ -54,10 +54,12 @@ CpuTemperature.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
-        this._update_temp();
+        this._parseFanRPMLine();
+        this._parseSensorsTemperatureLine();
+        this._updateDisplay();
 
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
-            this._update_temp();
+            this._updateDisplay();
             return true;
         }));
     },
@@ -85,13 +87,18 @@ CpuTemperature.prototype = {
         return hddtempDaemonPort;
     },
 
-    _update_temp: function() {
-
-        let items = new Array();
-        let tempInfo=null;
+    _updateDisplay: function() {
+        let display_fan_rpm  = settings.get_boolean('display-fan-rpm');
+        let display_voltage  = settings.get_boolean('display-voltage');
+        let tempItems = new Array();
+        let fanItems = new Array();
+        let voltageItems = new Array();
+        let tempInfo = null;
+        let fanInfo = null;
+        let voltageInfo = null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
-            if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
+            if(sensors_output[0]) tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
             if (tempInfo){
                 var s=0, n=0;//sum and count
                 var smax = 0;//max temp
@@ -101,7 +108,7 @@ CpuTemperature.prototype = {
         	            n++;
                         if (tempInfo[sensor]['temp'] > smax)
                             smax=tempInfo[sensor]['temp'];
-        	            items.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                        tempItems.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                     }
                 }
                 if (n!=0){//if temperature is detected
@@ -113,16 +120,30 @@ CpuTemperature.prototype = {
                     }
                 }
             }
+            if(display_fan_rpm && sensors_output[0]) fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
+            if (fanInfo){
+                for (let fan in fanInfo){
+                    if (fanInfo[fan]['rpm']>0){
+                        fanItems.push(fanInfo[fan]['label']+': '+fanInfo[fan]['rpm']+' rpm');
+                    }
+                }
+            }
+            if(display_voltage && sensors_output[0]) voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
+            if (voltageInfo){
+                for (let voltage in voltageInfo){
+                    voltageItems.push(voltageInfo[voltage]['label']+': '+voltageInfo[voltage]['volt']+'V');
+                }
+            }
         }
 
         //if we don't have the temperature yet, use some known files
-        if(!tempInfo){
+        if(tempItems.length == 0){
             tempInfo = this._findTemperatureFromFiles();
             if(tempInfo.temp){
                 this.title=this._formatTemp(tempInfo.temp);
-                items.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
+                tempItems.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
                 if (tempInfo.crit)
-                    items.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
+                    tempItems.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
             }
         }
 
@@ -131,7 +152,7 @@ CpuTemperature.prototype = {
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                    tempItems.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                 }
             }
         }
@@ -140,21 +161,36 @@ CpuTemperature.prototype = {
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempDaemon(hddtemp_output[1].toString());//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                    tempItems.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                 }
             }
         }
 
-        items.sort();
+        tempItems.sort();
+        fanItems.sort();
 
         this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
             c.destroy()
         });
         let section = new PopupMenu.PopupMenuSection("Temperature");
-        if (items.length>0){
+        if (tempItems.length > 0 || fanItems.length > 0){
             let item;
-            for each (let itemText in items){
+            for each (let itemText in tempItems){
+                item = new PopupMenu.PopupMenuItem(itemText);
+                section.addMenuItem(item);
+            }
+            if (tempItems.length > 0 && (fanItems.length > 0 || voltageItems.length > 0)){
+                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
+            for each (let itemText in fanItems){
+                item = new PopupMenu.PopupMenuItem(itemText);
+                section.addMenuItem(item);
+            }
+            if (fanItems.length > 0 && voltageItems.length > 0){
+                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
+            for each (let itemText in voltageItems){
                 item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
             }
@@ -231,7 +267,7 @@ CpuTemperature.prototype = {
         return info;
     },
 
-    _findTemperatureFromSensorsOutput: function(txt){
+    _parseSensorsOutput: function(txt,parser){
         let sensors_output=txt.split("\n");
         let feature_label=undefined;
         let feature_value=undefined;
@@ -246,7 +282,7 @@ CpuTemperature.prototype = {
             while(sensors_output[i]){
                // if it is not a continutation of a feature line
                if(sensors_output[i].indexOf(' ') != 0){
-                  let feature = this._parseSensorsTemperatureLine(feature_label, feature_value);
+                  let feature = parser(feature_label, feature_value);
                   if (feature) {
                       s[n++] = feature;
                       feature = undefined;
@@ -259,7 +295,7 @@ CpuTemperature.prototype = {
                i++;
             }
         }
-        let feature = this._parseSensorsTemperatureLine(feature_label, feature_value);
+        let feature = parser(feature_label, feature_value);
         if (feature) {
             s[n++] = feature;
             feature = undefined;
@@ -279,6 +315,37 @@ CpuTemperature.prototype = {
                 s['high'] = this._getHigh(value);
                 s['crit'] = this._getCrit(value);
                 s['hyst'] = this._getHyst(value);
+            }
+        }
+        return s;
+    },
+
+    _parseFanRPMLine: function(label, value) {
+        let s = undefined;
+        if(label != undefined && value != undefined) {
+            let curValue = value.trim().split('  ')[0];
+            // does the current value look like a temperature unit (°C)?
+            if(curValue.indexOf("RPM", curValue.length - "RPM".length) !== -1){
+                s = new Array();
+                s['label'] = label.trim();
+                s['rpm'] = parseFloat(curValue.split(' ')[0]);
+                s['min'] = this._getMin(value);
+            }
+        }
+        return s;
+    },
+
+    _parseVoltageLine: function(label, value) {
+        let s = undefined;
+        if(label != undefined && value != undefined) {
+            let curValue = value.trim().split('  ')[0];
+            // does the current value look like a voltage unit (°C)?
+            if(curValue.indexOf("V", curValue.length - "V".length) !== -1){
+                s = new Array();
+                s['label'] = label.trim();
+                s['volt'] = parseFloat(curValue.split(' ')[0]);
+                s['min'] = this._getMin(value);
+                s['max'] = this._getMax(value);
             }
         }
         return s;
@@ -331,6 +398,15 @@ CpuTemperature.prototype = {
         return (r=/hyst=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
+    _getMin: function(t){
+        let r;
+        return (r=/min=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
+
+    _getMax: function(t){
+        let r;
+        return (r=/max=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
 
     _toFahrenheit: function(c){
         return ((9/5)*c+32);
