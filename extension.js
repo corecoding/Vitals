@@ -88,7 +88,7 @@ CpuTemperature.prototype = {
     },
 
     _updateDisplay: function() {
-
+        let display_fan_rpm  = settings.get_boolean('display-fan-rpm');
         let tempItems = new Array();
         let fanItems = new Array();
         let tempInfo = null;
@@ -117,7 +117,7 @@ CpuTemperature.prototype = {
                     }
                 }
             }
-            if(sensors_output[0]) fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
+            if(display_fan_rpm && sensors_output[0]) fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
             if (fanInfo){
                 for (let fan in fanInfo){
                     if (fanInfo[fan]['rpm']>0){

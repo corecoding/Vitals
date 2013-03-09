@@ -39,5 +39,11 @@
       <description>Display hard disk drive temperature. Requires hddtemp installed.</description>
     </key>
 
+    <key type="b" name="display-fan-rpm">
+      <default>true</default>
+      <summary>Display Fan RPM</summary>
+      <description>Display fan rotation per minute.</description>
+    </key>
+
   </schema>
 </schemalist>
