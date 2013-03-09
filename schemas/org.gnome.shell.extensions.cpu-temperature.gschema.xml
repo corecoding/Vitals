@@ -45,5 +45,11 @@
       <description>Display fan rotation per minute.</description>
     </key>
 
+    <key type="b" name="display-voltage">
+      <default>true</default>
+      <summary>Display voltage</summary>
+      <description>Display voltage of various components.</description>
+    </key>
+
   </schema>
 </schemalist>

@@ -89,6 +89,7 @@ CpuTemperature.prototype = {
 
     _updateDisplay: function() {
         let display_fan_rpm  = settings.get_boolean('display-fan-rpm');
+        let display_voltage  = settings.get_boolean('display-voltage');
         let tempItems = new Array();
         let fanItems = new Array();
         let voltageItems = new Array();
@@ -127,7 +128,7 @@ CpuTemperature.prototype = {
                     }
                 }
             }
-            if(sensors_output[0]) voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
+            if(display_voltage && sensors_output[0]) voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
             if (voltageInfo){
                 for (let voltage in voltageInfo){
                     voltageItems.push(voltageInfo[voltage]['label']+': '+voltageInfo[voltage]['volt']+'V');
