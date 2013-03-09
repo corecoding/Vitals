@@ -54,10 +54,10 @@ CpuTemperature.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
-        this._update_temp();
+        this._updateDisplay();
 
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
-            this._update_temp();
+            this._updateDisplay();
             return true;
         }));
     },
@@ -85,7 +85,7 @@ CpuTemperature.prototype = {
         return hddtempDaemonPort;
     },
 
-    _update_temp: function() {
+    _updateDisplay: function() {
 
         let items = new Array();
         let tempInfo=null;
