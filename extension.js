@@ -54,6 +54,7 @@ CpuTemperature.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
+        this._parseFanRPMLine();
         this._parseSensorsTemperatureLine();
         this._updateDisplay();
 
@@ -89,7 +90,9 @@ CpuTemperature.prototype = {
     _updateDisplay: function() {
 
         let tempItems = new Array();
+        let fanItems = new Array();
         let tempInfo = null;
+        let fanInfo = null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
             if(sensors_output[0]) tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
@@ -111,6 +114,14 @@ CpuTemperature.prototype = {
                     }
                     else{
                         this.title=this._formatTemp(smax);//or the maximum temp
+                    }
+                }
+            }
+            if(sensors_output[0]) fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
+            if (fanInfo){
+                for (let fan in fanInfo){
+                    if (fanInfo[fan]['rpm']>0){
+                        fanItems.push(fanInfo[fan]['label']+': '+fanInfo[fan]['rpm']+' rpm');
                     }
                 }
             }
@@ -147,15 +158,20 @@ CpuTemperature.prototype = {
         }
 
         tempItems.sort();
+        fanItems.sort();
 
         this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
             c.destroy()
         });
         let section = new PopupMenu.PopupMenuSection("Temperature");
-        if (items.length>0){
+        if (tempItems.length > 0 || fanItems.length > 0){
             let item;
             for each (let itemText in tempItems){
+                item = new PopupMenu.PopupMenuItem(itemText);
+                section.addMenuItem(item);
+            }
+            for each (let itemText in fanItems){
                 item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
             }
@@ -285,6 +301,21 @@ CpuTemperature.prototype = {
         return s;
     },
 
+    _parseFanRPMLine: function(label, value) {
+        let s = undefined;
+        if(label != undefined && value != undefined) {
+            let curValue = value.trim().split('  ')[0];
+            // does the current value look like a temperature unit (°C)?
+            if(curValue.indexOf("RPM", curValue.length - "RPM".length) !== -1){
+                s = new Array();
+                s['label'] = label.trim();
+                s['rpm'] = parseFloat(curValue.split(' ')[0]);
+                s['min'] = this._getMin(value);
+            }
+        }
+        return s;
+    },
+
     _findTemperatureFromHDDTempOutput: function(txt){
         let hddtemp_output=txt.split("\n");
         let s= new Array();
@@ -332,6 +363,10 @@ CpuTemperature.prototype = {
         return (r=/hyst=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
+    _getMin: function(t){
+        let r;
+        return (r=/min=(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
 
     _toFahrenheit: function(c){
         return ((9/5)*c+32);
