@@ -88,8 +88,8 @@ CpuTemperature.prototype = {
 
     _updateDisplay: function() {
 
-        let items = new Array();
-        let tempInfo=null;
+        let tempItems = new Array();
+        let tempInfo = null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
             if(sensors_output[0]) tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
@@ -102,7 +102,7 @@ CpuTemperature.prototype = {
         	            n++;
                         if (tempInfo[sensor]['temp'] > smax)
                             smax=tempInfo[sensor]['temp'];
-        	            items.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                        tempItems.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                     }
                 }
                 if (n!=0){//if temperature is detected
@@ -117,13 +117,13 @@ CpuTemperature.prototype = {
         }
 
         //if we don't have the temperature yet, use some known files
-        if(!tempInfo){
+        if(tempItems.length == 0){
             tempInfo = this._findTemperatureFromFiles();
             if(tempInfo.temp){
                 this.title=this._formatTemp(tempInfo.temp);
-                items.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
+                tempItems.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
                 if (tempInfo.crit)
-                    items.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
+                    tempItems.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
             }
         }
 
@@ -132,7 +132,7 @@ CpuTemperature.prototype = {
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                    tempItems.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                 }
             }
         }
@@ -141,12 +141,12 @@ CpuTemperature.prototype = {
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempDaemon(hddtemp_output[1].toString());//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                    tempItems.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
                 }
             }
         }
 
-        items.sort();
+        tempItems.sort();
 
         this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
@@ -155,7 +155,7 @@ CpuTemperature.prototype = {
         let section = new PopupMenu.PopupMenuSection("Temperature");
         if (items.length>0){
             let item;
-            for each (let itemText in items){
+            for each (let itemText in tempItems){
                 item = new PopupMenu.PopupMenuItem(itemText);
                 section.addMenuItem(item);
             }
