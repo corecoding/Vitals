@@ -42,7 +42,6 @@ CpuTemperature.prototype = {
 
         if (display_hdd_temp){
             this.hddtempPath = this._detectHDDTemp();
-            this.hddtempDaemonPort = this._detectHDDTempDaemon();
         }
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
         if(this.sensorsPath){
@@ -68,23 +67,22 @@ CpuTemperature.prototype = {
         let hddtempPath = GLib.find_program_in_path('hddtemp');
         if(hddtempPath) {
             // check if this user can run hddtemp directly.
-            if(GLib.spawn_command_line_sync(hddtempPath)[3])
-                hddtempPath = '';
+            if(GLib.spawn_command_line_sync(hddtempPath)[3]){
+                // doesn't seem to be the case… it running as a daemon?
+                let pid = GLib.spawn_command_line_sync("pidof hddtemp");
+                if(pid[1].length) {
+                    //get listening TCP port
+                    let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=");
+                    // use net cat to get data
+                    hddtempPath = "nc localhost " + cmdline[1].toString().split("-p ")[1].split(" ")[0];
+                }
+                else
+                {
+                    hddtempPath = '';
+                }
+            }
         }
         return hddtempPath;
-    },
-
-    _detectHDDTempDaemon: function(){
-        //detect if hddtemp is running as daemon
-        let hddtempDaemonPort = null;
-        let ret = GLib.spawn_command_line_sync("pidof hddtemp");
-        if(ret[1].length) {
-            let cmdline = GLib.spawn_command_line_sync("ps --pid=" + ret[1] + " -o args=");
-            //get listening TCP port
-            hddtempDaemonPort = cmdline[1].toString().split("-p ")[1].split(" ")[0];
-        }
-
-        return hddtempDaemonPort;
     },
 
     _updateDisplay: function() {
@@ -149,16 +147,7 @@ CpuTemperature.prototype = {
 
         if (this.hddtempPath){
             let hddtemp_output = GLib.spawn_command_line_sync(this.hddtempPath);//get the output of the hddtemp command
-            if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
-            if(tempInfo){
-                for (let sensor in tempInfo){
-                    tempItems.push('Disk %s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
-                }
-            }
-        }
-        else if (this.hddtempDaemonPort) {  //Try hddtemp daemon
-            let hddtemp_output = GLib.spawn_command_line_sync("nc localhost " + this.hddtempDaemonPort); //query hddtemp daemon on loopback interface
-            if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempDaemon(hddtemp_output[1].toString());//get temperature from hddtemp
+            if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString(), (this.hddtempPath.substring(0,2) != 'nc') ? ': ' : '|');//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
                     tempItems.push('Disk %s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
@@ -351,33 +340,18 @@ CpuTemperature.prototype = {
         return s;
     },
 
-    _findTemperatureFromHDDTempOutput: function(txt){
-        let hddtemp_output=txt.split("\n");
-        let s= new Array();
+    _findTemperatureFromHDDTempOutput: function(txt,sep){
+        let hddtemp_output = txt.split("\n");
+        let s = new Array();
         let n=0;
         for(let i = 0; i < hddtemp_output.length; i++)
         {
             if(hddtemp_output[i]){
                 s[++n] = new Array();
-                s[n]['label'] = hddtemp_output[i].split(': ')[0].split('/');
+                let fields = hddtemp_output[i].split(sep).filter(function(e){ return e; });
+                s[n]['label'] = fields[0].split('/');
                 s[n]['label'] = s[n]['label'][s[n]['label'].length - 1];
-                s[n]['temp'] = parseFloat(hddtemp_output[i].split(': ')[2]);
-            }
-        }
-        return s;
-    },
-
-    _findTemperatureFromHDDTempDaemon: function(txt){
-        let hddtemp_output=txt.split("\n");
-        let s= new Array();
-        let n=0;
-        for(let i = 0; i < hddtemp_output.length; i++)
-        {
-            if(hddtemp_output[i]){
-                s[++n] = new Array();
-                s[n]['label'] = hddtemp_output[i].split('|')[1].split('/');
-                s[n]['label'] = s[n]['label'][s[n]['label'].length - 1];
-                s[n]['temp'] = parseFloat(hddtemp_output[i].split('|')[3]);
+                s[n]['temp'] = parseFloat(fields[2]);
             }
         }
         return s;
