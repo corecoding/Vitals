@@ -108,7 +108,7 @@ CpuTemperature.prototype = {
         	            n++;
                         if (tempInfo[sensor]['temp'] > smax)
                             smax=tempInfo[sensor]['temp'];
-                        tempItems.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                        tempItems.push('%s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
                     }
                 }
                 if (n!=0){//if temperature is detected
@@ -124,14 +124,14 @@ CpuTemperature.prototype = {
             if (fanInfo){
                 for (let fan in fanInfo){
                     if (fanInfo[fan]['rpm']>0){
-                        fanItems.push(fanInfo[fan]['label']+': '+fanInfo[fan]['rpm']+' rpm');
+                        fanItems.push('%s: %drpm'.format(fanInfo[fan]['label'], fanInfo[fan]['rpm']));
                     }
                 }
             }
             if(display_voltage && sensors_output[0]) voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
             if (voltageInfo){
                 for (let voltage in voltageInfo){
-                    voltageItems.push(voltageInfo[voltage]['label']+': '+voltageInfo[voltage]['volt']+'V');
+                    voltageItems.push('%s: %s%.2fV'.format(voltageInfo[voltage]['label'], ((voltageInfo[voltage]['volt'] >= 0) ? '+' : '-'), voltageInfo[voltage]['volt']));
                 }
             }
         }
@@ -152,7 +152,7 @@ CpuTemperature.prototype = {
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    tempItems.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                    tempItems.push('Disk %s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
                 }
             }
         }
@@ -161,7 +161,7 @@ CpuTemperature.prototype = {
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempDaemon(hddtemp_output[1].toString());//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    tempItems.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                    tempItems.push('Disk %s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
                 }
             }
         }
@@ -412,22 +412,19 @@ CpuTemperature.prototype = {
         return ((9/5)*c+32);
     },
 
-    _formatTemp: function(t) {
-        let ret = t;
+    _formatTemp: function(value) {
         if (settings.get_string('unit')=='Fahrenheit'){
-            ret = this._toFahrenheit(t);
+            value = this._toFahrenheit(value);
         }
-        ret = ret.toFixed(1);
-        if (!settings.get_boolean('display-decimal-value'))
-            ret = Math.round(ret);
-        ret = ret.toString(); // no more mathematics
-        if (settings.get_boolean('display-degree-sign'))
-            ret += "\u00b0";
-        if (settings.get_string('unit')=='Fahrenheit')
-            ret += "F";
-        else
-            ret+= "C";
-        return ret;
+        let format = '%.1f';
+        if (!settings.get_boolean('display-decimal-value')){
+            ret = Math.round(value);
+            format = '%d';
+        }
+        if (settings.get_boolean('display-degree-sign')) {
+            format += '%s';
+        }
+        return format.format(value, (settings.get_string('unit')=='Fahrenheit') ? "\u00b0F" : "\u00b0C");
     }
 }
 
