@@ -159,6 +159,7 @@ CpuTemperature.prototype = {
 
         tempItems.sort();
         fanItems.sort();
+        voltageItems.sort();
 
         this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
