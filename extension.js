@@ -67,23 +67,23 @@ CpuTemperature.prototype = {
         let hddtempPath = GLib.find_program_in_path('hddtemp');
         if(hddtempPath) {
             // check if this user can run hddtemp directly.
-            if(GLib.spawn_command_line_sync(hddtempPath)[3]){
-                // doesn't seem to be the case… it running as a daemon?
-                let pid = GLib.spawn_command_line_sync("pidof hddtemp");
-                if(pid[1].length) {
-                    // get daemon command line
-                    let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=")[1].toString();
-                    // get port or assume default
-                    let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
-                    // use net cat to get data
-                    hddtempPath = 'nc localhost ' + port;
-                }
-                else
-                {
-                    hddtempPath = '';
-                }
-            }
+            if(!GLib.spawn_command_line_sync(hddtempPath)[3])
+                return hddtempPath;
         }
+
+        // doesn't seem to be the case… is it running as a daemon?
+        let pid = GLib.spawn_command_line_sync("pidof hddtemp");
+        if(pid[1].length) {
+            // get daemon command line
+            let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=")[1].toString();
+            // get port or assume default
+            let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
+            // use net cat to get data
+            hddtempPath = 'nc localhost ' + port;
+        }
+        else
+            hddtempPath = '';
+
         return hddtempPath;
     },
 
@@ -102,21 +102,35 @@ CpuTemperature.prototype = {
             if (tempInfo){
                 var s=0, n=0;//sum and count
                 var smax = 0;//max temp
+                var sel = 0; //selected sensor temp
                 for (let sensor in tempInfo){
                     if (tempInfo[sensor]['temp']>0 && tempInfo[sensor]['temp']<115){
-	                    s+=tempInfo[sensor]['temp'];
-        	            n++;
+                        s+=tempInfo[sensor]['temp'];
+                        n++;
                         if (tempInfo[sensor]['temp'] > smax)
                             smax=tempInfo[sensor]['temp'];
+                        if (tempInfo[sensor]['label'] == settings.get_string('sensor'))
+                            sel = tempInfo[sensor]['temp'];
+
                         tempItems.push('%s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
                     }
                 }
                 if (n!=0){//if temperature is detected
-                    if (settings.get_string('show-in-panel')=='Average'){
-                        this.title=this._formatTemp(s/n);//set title as average
-                    }
-                    else{
-                        this.title=this._formatTemp(smax);//or the maximum temp
+                    switch (settings.get_string('show-in-panel'))
+                    {
+                        case 'Maximum':
+                            this.title=this._formatTemp(smax);//or the maximum temp
+                            break;
+                        case 'Sensor':
+                            if(sel)
+                                this.title=this._formatTemp(sel);//or temperature from a selected sensor
+                            else
+                                this.title='N/A';
+                            break;
+                        case 'Average':
+                        default:
+                            this.title=this._formatTemp(s/n);//average as default
+                            break;
                     }
                 }
             }
@@ -169,21 +183,21 @@ CpuTemperature.prototype = {
         if (tempItems.length > 0 || fanItems.length > 0){
             let item;
             for each (let itemText in tempItems){
-                item = new PopupMenu.PopupMenuItem(itemText);
+                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
                 section.addMenuItem(item);
             }
             if (tempItems.length > 0 && (fanItems.length > 0 || voltageItems.length > 0)){
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let itemText in fanItems){
-                item = new PopupMenu.PopupMenuItem(itemText);
+                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
                 section.addMenuItem(item);
             }
             if (fanItems.length > 0 && voltageItems.length > 0){
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let itemText in voltageItems){
-                item = new PopupMenu.PopupMenuItem(itemText);
+                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
                 section.addMenuItem(item);
             }
         }else{
