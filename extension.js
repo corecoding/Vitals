@@ -102,21 +102,34 @@ CpuTemperature.prototype = {
             if (tempInfo){
                 var s=0, n=0;//sum and count
                 var smax = 0;//max temp
+                var sel = 0; //selected sensor temp
                 for (let sensor in tempInfo){
                     if (tempInfo[sensor]['temp']>0 && tempInfo[sensor]['temp']<115){
 	                    s+=tempInfo[sensor]['temp'];
         	            n++;
                         if (tempInfo[sensor]['temp'] > smax)
                             smax=tempInfo[sensor]['temp'];
+                        if (tempInfo[sensor]['label'] == settings.get_string('sensor'))
+                            sel = tempInfo[sensor]['temp'];
+
                         tempItems.push('%s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
                     }
                 }
                 if (n!=0){//if temperature is detected
-                    if (settings.get_string('show-in-panel')=='Average'){
-                        this.title=this._formatTemp(s/n);//set title as average
-                    }
-                    else{
-                        this.title=this._formatTemp(smax);//or the maximum temp
+                    switch (settings.get_string('show-in-panel'))
+                    {
+                        case 'Average':
+                            this.title=this._formatTemp(s/n);//set title as average
+                            break;
+                        case 'Maximum':
+                            this.title=this._formatTemp(smax);//or the maximum temp
+                            break;
+                        case 'Sensor':
+                            this.title=this._formatTemp(sel);//or temperature from a selected sensor
+                            break;
+                        default:
+                            this.title=this._formatTemp(s/n);//average as default
+                            break;
                     }
                 }
             }
