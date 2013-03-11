@@ -105,8 +105,8 @@ CpuTemperature.prototype = {
                 var sel = 0; //selected sensor temp
                 for (let sensor in tempInfo){
                     if (tempInfo[sensor]['temp']>0 && tempInfo[sensor]['temp']<115){
-	                    s+=tempInfo[sensor]['temp'];
-        	            n++;
+                        s+=tempInfo[sensor]['temp'];
+                        n++;
                         if (tempInfo[sensor]['temp'] > smax)
                             smax=tempInfo[sensor]['temp'];
                         if (tempInfo[sensor]['label'] == settings.get_string('sensor'))
@@ -122,7 +122,10 @@ CpuTemperature.prototype = {
                             this.title=this._formatTemp(smax);//or the maximum temp
                             break;
                         case 'Sensor':
-                            this.title=this._formatTemp(sel);//or temperature from a selected sensor
+                            if(sel)
+                                this.title=this._formatTemp(sel);//or temperature from a selected sensor
+                            else
+                                this.title='N/A';
                             break;
                         case 'Average':
                         default:
