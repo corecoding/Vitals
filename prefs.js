@@ -62,6 +62,16 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
                 label: _("Display hard disk temperature"),
                 help: _("Requires hddtemp installed. (default: ON)")
            },
+           show_fan_rpm: {
+                name: _("display-fan-rpm"),
+                label: _("Display fan RPM"),
+                help: _("Show the fan rotations per minute. (default: ON)")
+           },
+           show_voltage: {
+                name: _("display-voltage"),
+                label: _("Display voltage"),
+                help: _("Show the voltage of various components. (default: ON)")
+           },
         }
 
         let counter = 3;

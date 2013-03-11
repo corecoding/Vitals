@@ -42,7 +42,6 @@ CpuTemperature.prototype = {
 
         if (display_hdd_temp){
             this.hddtempPath = this._detectHDDTemp();
-            this.hddtempDaemonPort = this._detectHDDTempDaemon();
         }
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
         if(this.sensorsPath){
@@ -54,10 +53,12 @@ CpuTemperature.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
-        this._update_temp();
+        this._parseFanRPMLine();
+        this._parseSensorsTemperatureLine();
+        this._updateDisplay();
 
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
-            this._update_temp();
+            this._updateDisplay();
             return true;
         }));
     },
@@ -66,32 +67,38 @@ CpuTemperature.prototype = {
         let hddtempPath = GLib.find_program_in_path('hddtemp');
         if(hddtempPath) {
             // check if this user can run hddtemp directly.
-            if(GLib.spawn_command_line_sync(hddtempPath)[3])
-                hddtempPath = '';
+            if(GLib.spawn_command_line_sync(hddtempPath)[3]){
+                // doesn't seem to be the case… it running as a daemon?
+                let pid = GLib.spawn_command_line_sync("pidof hddtemp");
+                if(pid[1].length) {
+                    // get daemon command line
+                    let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=")[1].toString();
+                    // get port or assume default
+                    let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
+                    // use net cat to get data
+                    hddtempPath = 'nc localhost ' + port;
+                }
+                else
+                {
+                    hddtempPath = '';
+                }
+            }
         }
         return hddtempPath;
     },
 
-    _detectHDDTempDaemon: function(){
-        //detect if hddtemp is running as daemon
-        let hddtempDaemonPort = null;
-        let ret = GLib.spawn_command_line_sync("pidof hddtemp");
-        if(ret[1].length) {
-            let cmdline = GLib.spawn_command_line_sync("ps --pid=" + ret[1] + " -o args=");
-            //get listening TCP port
-            hddtempDaemonPort = cmdline[1].toString().split("-p ")[1].split(" ")[0];
-        }
-
-        return hddtempDaemonPort;
-    },
-
-    _update_temp: function() {
-
-        let items = new Array();
-        let tempInfo=null;
+    _updateDisplay: function() {
+        let display_fan_rpm  = settings.get_boolean('display-fan-rpm');
+        let display_voltage  = settings.get_boolean('display-voltage');
+        let tempItems = new Array();
+        let fanItems = new Array();
+        let voltageItems = new Array();
+        let tempInfo = null;
+        let fanInfo = null;
+        let voltageInfo = null;
         if (this.sensorsPath){
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);//get the output of the sensors command
-            if(sensors_output[0]) tempInfo = this._findTemperatureFromSensorsOutput(sensors_output[1].toString());//get temperature from sensors
+            if(sensors_output[0]) tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
             if (tempInfo){
                 var s=0, n=0;//sum and count
                 var smax = 0;//max temp
@@ -101,7 +108,7 @@ CpuTemperature.prototype = {
         	            n++;
                         if (tempInfo[sensor]['temp'] > smax)
                             smax=tempInfo[sensor]['temp'];
-        	            items.push(tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                        tempItems.push('%s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
                     }
                 }
                 if (n!=0){//if temperature is detected
@@ -113,48 +120,69 @@ CpuTemperature.prototype = {
                     }
                 }
             }
+            if(display_fan_rpm && sensors_output[0]) fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
+            if (fanInfo){
+                for (let fan in fanInfo){
+                    if (fanInfo[fan]['rpm']>0){
+                        fanItems.push('%s: %drpm'.format(fanInfo[fan]['label'], fanInfo[fan]['rpm']));
+                    }
+                }
+            }
+            if(display_voltage && sensors_output[0]) voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
+            if (voltageInfo){
+                for (let voltage in voltageInfo){
+                    voltageItems.push('%s: %s%.2fV'.format(voltageInfo[voltage]['label'], ((voltageInfo[voltage]['volt'] >= 0) ? '+' : '-'), voltageInfo[voltage]['volt']));
+                }
+            }
         }
 
         //if we don't have the temperature yet, use some known files
-        if(!tempInfo){
+        if(tempItems.length == 0){
             tempInfo = this._findTemperatureFromFiles();
             if(tempInfo.temp){
                 this.title=this._formatTemp(tempInfo.temp);
-                items.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
+                tempItems.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
                 if (tempInfo.crit)
-                    items.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
+                    tempItems.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
             }
         }
 
         if (this.hddtempPath){
             let hddtemp_output = GLib.spawn_command_line_sync(this.hddtempPath);//get the output of the hddtemp command
-            if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString());//get temperature from hddtemp
+            if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString(), (this.hddtempPath.substring(0,2) != 'nc') ? ': ' : '|');//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
-                }
-            }
-        }
-        else if (this.hddtempDaemonPort) {  //Try hddtemp daemon
-            let hddtemp_output = GLib.spawn_command_line_sync("nc localhost " + this.hddtempDaemonPort); //query hddtemp daemon on loopback interface
-            if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempDaemon(hddtemp_output[1].toString());//get temperature from hddtemp
-            if(tempInfo){
-                for (let sensor in tempInfo){
-                    items.push('Disk ' + tempInfo[sensor]['label']+': '+this._formatTemp(tempInfo[sensor]['temp']));
+                    tempItems.push('Disk %s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
                 }
             }
         }
 
-        items.sort();
+        tempItems.sort();
+        fanItems.sort();
+        voltageItems.sort();
 
         this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
             c.destroy()
         });
         let section = new PopupMenu.PopupMenuSection("Temperature");
-        if (items.length>0){
+        if (tempItems.length > 0 || fanItems.length > 0){
             let item;
-            for each (let itemText in items){
+            for each (let itemText in tempItems){
+                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
+                section.addMenuItem(item);
+            }
+            if (tempItems.length > 0 && (fanItems.length > 0 || voltageItems.length > 0)){
+                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
+            for each (let itemText in fanItems){
+                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
+                section.addMenuItem(item);
+            }
+            if (fanItems.length > 0 && voltageItems.length > 0){
+                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
+            for each (let itemText in voltageItems){
                 item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
                 section.addMenuItem(item);
             }
@@ -231,7 +259,7 @@ CpuTemperature.prototype = {
         return info;
     },
 
-    _findTemperatureFromSensorsOutput: function(txt){
+    _parseSensorsOutput: function(txt,parser){
         let sensors_output=txt.split("\n");
         let feature_label=undefined;
         let feature_value=undefined;
@@ -246,7 +274,7 @@ CpuTemperature.prototype = {
             while(sensors_output[i]){
                // if it is not a continutation of a feature line
                if(sensors_output[i].indexOf(' ') != 0){
-                  let feature = this._parseSensorsTemperatureLine(feature_label, feature_value);
+                  let feature = parser(feature_label, feature_value);
                   if (feature) {
                       s[n++] = feature;
                       feature = undefined;
@@ -259,7 +287,7 @@ CpuTemperature.prototype = {
                i++;
             }
         }
-        let feature = this._parseSensorsTemperatureLine(feature_label, feature_value);
+        let feature = parser(feature_label, feature_value);
         if (feature) {
             s[n++] = feature;
             feature = undefined;
@@ -284,33 +312,49 @@ CpuTemperature.prototype = {
         return s;
     },
 
-    _findTemperatureFromHDDTempOutput: function(txt){
-        let hddtemp_output=txt.split("\n");
-        let s= new Array();
-        let n=0;
-        for(let i = 0; i < hddtemp_output.length; i++)
-        {
-            if(hddtemp_output[i]){
-                s[++n] = new Array();
-                s[n]['label'] = hddtemp_output[i].split(': ')[0].split('/');
-                s[n]['label'] = s[n]['label'][s[n]['label'].length - 1];
-                s[n]['temp'] = parseFloat(hddtemp_output[i].split(': ')[2]);
+    _parseFanRPMLine: function(label, value) {
+        let s = undefined;
+        if(label != undefined && value != undefined) {
+            let curValue = value.trim().split('  ')[0];
+            // does the current value look like a temperature unit (°C)?
+            if(curValue.indexOf("RPM", curValue.length - "RPM".length) !== -1){
+                s = new Array();
+                s['label'] = label.trim();
+                s['rpm'] = parseFloat(curValue.split(' ')[0]);
+                s['min'] = this._getMin(value);
             }
         }
         return s;
     },
 
-    _findTemperatureFromHDDTempDaemon: function(txt){
-        let hddtemp_output=txt.split("\n");
-        let s= new Array();
+    _parseVoltageLine: function(label, value) {
+        let s = undefined;
+        if(label != undefined && value != undefined) {
+            let curValue = value.trim().split('  ')[0];
+            // does the current value look like a voltage unit (°C)?
+            if(curValue.indexOf("V", curValue.length - "V".length) !== -1){
+                s = new Array();
+                s['label'] = label.trim();
+                s['volt'] = parseFloat(curValue.split(' ')[0]);
+                s['min'] = this._getMin(value);
+                s['max'] = this._getMax(value);
+            }
+        }
+        return s;
+    },
+
+    _findTemperatureFromHDDTempOutput: function(txt,sep){
+        let hddtemp_output = txt.split("\n");
+        let s = new Array();
         let n=0;
         for(let i = 0; i < hddtemp_output.length; i++)
         {
             if(hddtemp_output[i]){
                 s[++n] = new Array();
-                s[n]['label'] = hddtemp_output[i].split('|')[1].split('/');
+                let fields = hddtemp_output[i].split(sep).filter(function(e){ return e; });
+                s[n]['label'] = fields[0].split('/');
                 s[n]['label'] = s[n]['label'][s[n]['label'].length - 1];
-                s[n]['temp'] = parseFloat(hddtemp_output[i].split('|')[3]);
+                s[n]['temp'] = parseFloat(fields[2]);
             }
         }
         return s;
@@ -331,27 +375,33 @@ CpuTemperature.prototype = {
         return (r=/hyst=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
+    _getMin: function(t){
+        let r;
+        return (r=/min=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
+
+    _getMax: function(t){
+        let r;
+        return (r=/max=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
+    },
 
     _toFahrenheit: function(c){
         return ((9/5)*c+32);
     },
 
-    _formatTemp: function(t) {
-        let ret = t;
+    _formatTemp: function(value) {
         if (settings.get_string('unit')=='Fahrenheit'){
-            ret = this._toFahrenheit(t);
+            value = this._toFahrenheit(value);
         }
-        ret = ret.toFixed(1);
-        if (!settings.get_boolean('display-decimal-value'))
-            ret = Math.round(ret);
-        ret = ret.toString(); // no more mathematics
-        if (settings.get_boolean('display-degree-sign'))
-            ret += "\u00b0";
-        if (settings.get_string('unit')=='Fahrenheit')
-            ret += "F";
-        else
-            ret+= "C";
-        return ret;
+        let format = '%.1f';
+        if (!settings.get_boolean('display-decimal-value')){
+            ret = Math.round(value);
+            format = '%d';
+        }
+        if (settings.get_boolean('display-degree-sign')) {
+            format += '%s';
+        }
+        return format.format(value, (settings.get_string('unit')=='Fahrenheit') ? "\u00b0F" : "\u00b0C");
     }
 }
 
