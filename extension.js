@@ -67,23 +67,23 @@ CpuTemperature.prototype = {
         let hddtempPath = GLib.find_program_in_path('hddtemp');
         if(hddtempPath) {
             // check if this user can run hddtemp directly.
-            if(GLib.spawn_command_line_sync(hddtempPath)[3]){
-                // doesn't seem to be the case… it running as a daemon?
-                let pid = GLib.spawn_command_line_sync("pidof hddtemp");
-                if(pid[1].length) {
-                    // get daemon command line
-                    let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=")[1].toString();
-                    // get port or assume default
-                    let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
-                    // use net cat to get data
-                    hddtempPath = 'nc localhost ' + port;
-                }
-                else
-                {
-                    hddtempPath = '';
-                }
-            }
+            if(!GLib.spawn_command_line_sync(hddtempPath)[3])
+                return hddtempPath;
         }
+
+        // doesn't seem to be the case… is it running as a daemon?
+        let pid = GLib.spawn_command_line_sync("pidof hddtemp");
+        if(pid[1].length) {
+            // get daemon command line
+            let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=")[1].toString();
+            // get port or assume default
+            let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
+            // use net cat to get data
+            hddtempPath = 'nc localhost ' + port;
+        }
+        else
+            hddtempPath = '';
+
         return hddtempPath;
     },
 
