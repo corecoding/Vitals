@@ -118,15 +118,13 @@ CpuTemperature.prototype = {
                 if (n!=0){//if temperature is detected
                     switch (settings.get_string('show-in-panel'))
                     {
-                        case 'Average':
-                            this.title=this._formatTemp(s/n);//set title as average
-                            break;
                         case 'Maximum':
                             this.title=this._formatTemp(smax);//or the maximum temp
                             break;
                         case 'Sensor':
                             this.title=this._formatTemp(sel);//or temperature from a selected sensor
                             break;
+                        case 'Average':
                         default:
                             this.title=this._formatTemp(s/n);//average as default
                             break;

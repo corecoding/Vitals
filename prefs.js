@@ -104,15 +104,13 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
         sensorRadio.connect('toggled', Lang.bind(this, this._onMethodChanged));
         switch(this._settings.get_string('show-in-panel'))
         {
-            case 'Average':
-                averageRadio.active = true;
-                break;
             case 'Maximum':
                 maximumRadio.active = true;
                 break;
             case 'Sensor':
                 sensorRadio.active = true;
                 break;
+            case 'Average':
             default:    //average temp is default
                 averageRadio.active = true;
                 break;
