@@ -155,7 +155,7 @@ CpuTemperature.prototype = {
         if (items.length>0){
             let item;
             for each (let itemText in items){
-                item = new PopupMenu.PopupMenuItem(itemText);
+                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
                 section.addMenuItem(item);
             }
         }else{
