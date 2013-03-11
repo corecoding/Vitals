@@ -164,18 +164,18 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
     _getActiveSensorIter: function() {
         /* Get the first iter in the list */
         [success, iter] = this._listStore.get_iter_first();
-	let sensorLabel = this._listStore.get_value(iter, 0);
+        let sensorLabel = this._listStore.get_value(iter, 0);
 
         while (success)
         {
             /* Walk through the list, reading each row */
-	    let sensorLabel = this._listStore.get_value(iter, 0);
-	    if(sensorLabel == this._settings.get_string('sensor'))
-		break;
+            let sensorLabel = this._listStore.get_value(iter, 0);
+            if(sensorLabel == this._settings.get_string('sensor'))
+            break;
 
             success = this._listStore.iter_next(iter);
         }
-	return iter;
+        return iter;
     },
 
     _onUpdateTimeChanged: function (update_time) {
