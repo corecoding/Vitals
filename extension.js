@@ -13,19 +13,19 @@ const Shell = imports.gi.Shell;
 let settings;
 let metadata = Me.metadata;
 
-function CpuTemperature() {
+function Sensors() {
     this._init.apply(this, arguments);
 }
 
-CpuTemperature.prototype = {
+Sensors.prototype = {
     __proto__: PanelMenu.SystemStatusButton.prototype,
 
     _init: function(){
-        PanelMenu.SystemStatusButton.prototype._init.call(this, 'temperature');
+        PanelMenu.SystemStatusButton.prototype._init.call(this, 'sensors');
 
         this.statusLabel = new St.Label({
             text: "--",
-            style_class: "temperature-label"
+            style_class: "sensors-label"
         });
 
         // destroy all previously created children, and add our statusLabel
@@ -43,7 +43,7 @@ CpuTemperature.prototype = {
         if (display_hdd_temp){
             this.hddtempPath = this._detectHDDTemp();
         }
-        this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/issues/"];
+        this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"];
         if(this.sensorsPath){
             this.title='Error';
             this.content='Run sensors-detect as root. If it doesn\'t help, click here to report with your sensors output!';
@@ -388,7 +388,7 @@ CpuTemperature.prototype = {
         }
         let format = '%.1f';
         if (!settings.get_boolean('display-decimal-value')){
-            ret = Math.round(value);
+            //ret = Math.round(value);
             format = '%d';
         }
         if (settings.get_boolean('display-degree-sign')) {
@@ -406,8 +406,8 @@ let indicator;
 let event=null;
 
 function enable() {
-    indicator = new CpuTemperature();
-    Main.panel.addToStatusArea('temperature', indicator);
+    indicator = new Sensors();
+    Main.panel.addToStatusArea('sensors', indicator);
     //TODO catch preference change signals with settings.connect('changed::
 }
 

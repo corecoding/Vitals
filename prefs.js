@@ -5,7 +5,7 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 
 
-const Gettext = imports.gettext.domain('cpu-temperature');
+const Gettext = imports.gettext.domain('gse-sensors');
 const _ = Gettext.gettext;
 
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -16,9 +16,9 @@ function init() {
     Convenience.initTranslations();
 }
 
-const CPUTemperaturePrefsWidget = new GObject.Class({
-    Name: 'CPUTemperature.Prefs.Widget',
-    GTypeName: 'CPUTemperaturePrefsWidget',
+const SensorsPrefsWidget = new GObject.Class({
+    Name: 'Sensors.Prefs.Widget',
+    GTypeName: 'SensorsPrefsWidget',
     Extends: Gtk.Grid,
 
     _init: function(params) {
@@ -217,7 +217,7 @@ const CPUTemperaturePrefsWidget = new GObject.Class({
 });
 
 function buildPrefsWidget() {
-    let widget = new CPUTemperaturePrefsWidget();
+    let widget = new SensorsPrefsWidget();
     widget.show_all();
     return widget;
 }
