@@ -118,16 +118,16 @@ Sensors.prototype = {
                 if (n!=0){//if temperature is detected
                     switch (settings.get_string('show-in-panel'))
                     {
-                        case 'Maximum':
+                        case 'maximum':
                             this.title=this._formatTemp(smax);//or the maximum temp
                             break;
-                        case 'Sensor':
+                        case 'sensor':
                             if(sel)
                                 this.title=this._formatTemp(sel);//or temperature from a selected sensor
                             else
                                 this.title='N/A';
                             break;
-                        case 'Average':
+                        case 'average':
                         default:
                             this.title=this._formatTemp(s/n);//average as default
                             break;
@@ -139,6 +139,8 @@ Sensors.prototype = {
                 for (let fan in fanInfo){
                     if (fanInfo[fan]['rpm']>0){
                         fanItems.push('%s: %drpm'.format(fanInfo[fan]['label'], fanInfo[fan]['rpm']));
+                        if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == fanInfo[fan]['label'])
+                            this.title='%drpm'.format(fanInfo[fan]['rpm']);
                     }
                 }
             }
@@ -146,6 +148,8 @@ Sensors.prototype = {
             if (voltageInfo){
                 for (let voltage in voltageInfo){
                     voltageItems.push('%s: %s%.2fV'.format(voltageInfo[voltage]['label'], ((voltageInfo[voltage]['volt'] >= 0) ? '+' : '-'), voltageInfo[voltage]['volt']));
+                    if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == voltageInfo[voltage]['label'])
+                        this.title='%s%.2fV'.format(((voltageInfo[voltage]['volt'] >= 0) ? '+' : '-'),voltageInfo[voltage]['volt']);
                 }
             }
         }

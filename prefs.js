@@ -3,6 +3,7 @@ const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
+const Pango = imports.gi.Pango;
 
 
 const Gettext = imports.gettext.domain('gse-sensors');
@@ -11,6 +12,12 @@ const _ = Gettext.gettext;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
+
+const modelColumn = {
+    label: 0,
+    method: 1, 
+    separator: 2
+}
 
 function init() {
     Convenience.initTranslations();
@@ -36,7 +43,7 @@ const SensorsPrefsWidget = new GObject.Class({
         this.attach(update_time, 1, 0, 1, 1);
         
 
-		this.attach(new Gtk.Label({ label: 'Unit' }), 0, 2, 1, 1);
+        this.attach(new Gtk.Label({ label: 'Unit' }), 0, 2, 1, 1);
         let centigradeRadio = new Gtk.RadioButton({ group: null, label: "Centigrade", valign: Gtk.Align.START });
         let fahrenheitRadio = new Gtk.RadioButton({ group: centigradeRadio, label: "Fahrenheit", valign: Gtk.Align.START });
         fahrenheitRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
@@ -95,64 +102,46 @@ const SensorsPrefsWidget = new GObject.Class({
 
         }
 
-        this.attach(new Gtk.Label({ label: 'Show in panel' }), 0, counter+1, 1, 1);
-        let averageRadio = new Gtk.RadioButton({ group: null, label: "Average", valign: Gtk.Align.START });
-        let maximumRadio = new Gtk.RadioButton({ group: averageRadio, label: "Maximum", valign: Gtk.Align.START });
-        let sensorRadio = new Gtk.RadioButton({ group: averageRadio, label: "Sensor", valign: Gtk.Align.START });
-        averageRadio.connect('toggled', Lang.bind(this, this._onMethodChanged));
-        maximumRadio.connect('toggled', Lang.bind(this, this._onMethodChanged));
-        sensorRadio.connect('toggled', Lang.bind(this, this._onMethodChanged));
-        switch(this._settings.get_string('show-in-panel'))
-        {
-            case 'Maximum':
-                maximumRadio.active = true;
-                break;
-            case 'Sensor':
-                sensorRadio.active = true;
-                break;
-            case 'Average':
-            default:    //average temp is default
-                averageRadio.active = true;
-                break;
-        }
+        //List of items of the ComboBox 
+        this._model =  new Gtk.ListStore();
+        this._model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_BOOLEAN]);
+        this._model.set (this._model.append(), [modelColumn.label, modelColumn.method], ['Average temperature', 'average']);
+        this._model.set (this._model.append(), [modelColumn.label, modelColumn.method], ['Maximum temperature', 'maximum']);
+        this._model.set (this._model.append(), [modelColumn.separator], [true]);
 
-        this.attach(averageRadio, 1, counter + 1, 1, 1);
-        this.attach(maximumRadio, 2, counter + 1, 1, 1);
-        this.attach(sensorRadio, 3, ++counter, 1, 1);
+	//Fill the list
+        this._getSensorsLabels();
 
         // ComboBox to select which sensor to show in panel
-
-        this._getSensorsLabels();
-        this._sensorSelector = new Gtk.ComboBox({ model: this._listStore });
+        this._sensorSelector = new Gtk.ComboBox({ model: this._model });
         this._sensorSelector.set_active_iter(this._getActiveSensorIter());
+        this._sensorSelector.set_row_separator_func(Lang.bind(this, this._comboBoxSeparator), null, null);
 
         let renderer = new Gtk.CellRendererText();
         this._sensorSelector.pack_start(renderer, true);
-        this._sensorSelector.add_attribute(renderer, 'text', 0);
+        this._sensorSelector.add_attribute(renderer, 'text', modelColumn.label);
         this._sensorSelector.connect('changed', Lang.bind(this, this._onSelectorChanged));
 
-        this.attach(new Gtk.Label({ label: 'Sensor to show' }), 0, ++counter, 1, 1);
+        this.attach(new Gtk.Label({ label: "Show in panel" }), 0, ++counter, 1, 1);
         this.attach(this._sensorSelector, 1, counter , 1, 1);
+    },
 
-        if(!sensorRadio.active)
-            this._sensorSelector.set_sensitive(false);
+    _comboBoxSeparator: function(aaa, iter, data) {
+        return this._model.get_value(iter, modelColumn.separator);
     },
 
     _getSensorsLabels: function() {
-        this._listStore =  new Gtk.ListStore();
-        this._listStore.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING]);
         this.sensorsPath = GLib.find_program_in_path('sensors');
         if (this.sensorsPath) {
-            let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath + ' -A');
-            if(sensors_output[0]) {
-                sensors = sensors_output[1].toString().split('\n').sort();
+           let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath + ' -A');
+           if(sensors_output[0]) {
+                let sensors = sensors_output[1].toString().split('\n');
                 for (let i in sensors) {
-                    line = sensors[i];
+                    let line = sensors[i];
                     if(line.search(':') != -1)
                     {
                         let label = line.split(':')[0];
-                        let iter = this._listStore.append();
-                        this._listStore.set (iter, [0, 1], [label, i]);
+                        this._model.set (this._model.append(), [modelColumn.label, modelColumn.method], [label, 'sensor']);
                     }
                 }
             }
@@ -161,17 +150,17 @@ const SensorsPrefsWidget = new GObject.Class({
 
     _getActiveSensorIter: function() {
         /* Get the first iter in the list */
-        [success, iter] = this._listStore.get_iter_first();
-        let sensorLabel = this._listStore.get_value(iter, 0);
+        [success, iter] = this._model.get_iter_first();
+        let sensorLabel = this._model.get_value(iter, 0);
 
         while (success)
         {
             /* Walk through the list, reading each row */
-            let sensorLabel = this._listStore.get_value(iter, 0);
+            let sensorLabel = this._model.get_value(iter, 0);
             if(sensorLabel == this._settings.get_string('sensor'))
-            break;
+               break;
 
-            success = this._listStore.iter_next(iter);
+            success = this._model.iter_next(iter);
         }
         return iter;
     },
@@ -186,32 +175,16 @@ const SensorsPrefsWidget = new GObject.Class({
         }
     },
 
-    _onMethodChanged: function (method) {
-        if (method.get_active()){
-            this._settings.set_string('show-in-panel', method.label);
-        }
-
-        if(method.label == 'Sensor')
-        {
-            this._sensorSelector.set_sensitive(true);
-            let [success, iter] = this._sensorSelector.get_active_iter();
-            if (!success)
-                return;
-
-            let sensorLabel = this._listStore.get_value(iter, 0);
-            this._settings.set_string('sensor', sensorLabel);
-        }
-        else
-            this._sensorSelector.set_sensitive(false);
-    },
-
     _onSelectorChanged: function () {
         let [success, iter] = this._sensorSelector.get_active_iter();
         if (!success)
             return;
 
-        let sensorLabel = this._listStore.get_value(iter, 0);
-        this._settings.set_string('sensor', sensorLabel);
+        let label = this._model.get_value(iter, modelColumn.label);
+        let method = this._model.get_value(iter, modelColumn.method);
+
+        this._settings.set_string('show-in-panel', method);
+        this._settings.set_string('sensor', label);
     },
 
 });
