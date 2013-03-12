@@ -316,11 +316,13 @@ CpuTemperature.prototype = {
             // does the current value look like a temperature unit (°C)?
             if(curValue.indexOf("C", curValue.length - "C".length) !== -1){
                 s = new Array();
+                let r;
                 s['label'] = label.trim();
                 s['temp'] = parseFloat(curValue.split(' ')[0]);
-                s['high'] = this._getHigh(value);
-                s['crit'] = this._getCrit(value);
-                s['hyst'] = this._getHyst(value);
+                s['low']  = (r = /low=\+(\d{1,3}.\d)/.exec(value))  ? parseFloat(r[1]) : undefined;
+                s['high'] = (r = /high=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                s['crit'] = (r = /crit=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                s['hyst'] = (r = /hyst=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
             }
         }
         return s;
@@ -333,9 +335,10 @@ CpuTemperature.prototype = {
             // does the current value look like a temperature unit (°C)?
             if(curValue.indexOf("RPM", curValue.length - "RPM".length) !== -1){
                 s = new Array();
+                let r;
                 s['label'] = label.trim();
                 s['rpm'] = parseFloat(curValue.split(' ')[0]);
-                s['min'] = this._getMin(value);
+                s['min'] = (r = /min=(\d{1,5})/.exec(value)) ? parseFloat(r[1]) : undefined;
             }
         }
         return s;
@@ -348,10 +351,11 @@ CpuTemperature.prototype = {
             // does the current value look like a voltage unit (°C)?
             if(curValue.indexOf("V", curValue.length - "V".length) !== -1){
                 s = new Array();
+                let r;
                 s['label'] = label.trim();
                 s['volt'] = parseFloat(curValue.split(' ')[0]);
-                s['min'] = this._getMin(value);
-                s['max'] = this._getMax(value);
+                s['min'] = (r = /min=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                s['max'] = (r = /max=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
             }
         }
         return s;
@@ -372,31 +376,6 @@ CpuTemperature.prototype = {
             }
         }
         return s;
-    },
-
-    _getHigh: function(t){
-        let r;
-        return (r=/high=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
-    },
-
-    _getCrit: function(t){
-        let r;
-        return (r=/crit=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
-    },
-
-    _getHyst: function(t){
-        let r;
-        return (r=/hyst=\+(\d{1,3}.\d)/.exec(t))?parseFloat(r[1]):null;
-    },
-
-    _getMin: function(t){
-        let r;
-        return (r=/min=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
-    },
-
-    _getMax: function(t){
-        let r;
-        return (r=/max=\+?(\d{1,5}.\d)/.exec(t))?parseFloat(r[1]):null;
     },
 
     _toFahrenheit: function(c){
