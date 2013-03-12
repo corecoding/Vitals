@@ -16,9 +16,9 @@
     </key>
 
     <key type="s" name="show-in-panel">
-      <default>"Average"</default>
+      <default>"average"</default>
       <summary>Average, maximum or specific sensor in panel</summary>
-      <description>Select if "Average", "Maximum" or a specific sensor temperature has to be shown in the panel</description>
+      <description>Select if "average", "maximum" or a specific sensor temperature has to be shown in the panel</description>
     </key>
 
     <key type="s" name="sensor">
