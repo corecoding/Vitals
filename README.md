@@ -1,12 +1,12 @@
-*gnome-shell-extension-cpu-temperature* is an extension for displaying
-system temperature data in GNOME Shell.
+*gnome-shell-extension-sensors* (previously known as gnome-shell-extension-cpu-temperature)
+is an extension for displaying CPU temperature, hard disk temperature, voltage and
+CPU fan RPM in GNOME Shell.
 
 The extension uses [sensors] from lm_sensors package (lm-sensors for Debian systems)
-to read temperature for different CPU cores and adapters.
+to read temperature for different CPU cores and adapters, voltage data and fan speed.
 If lm_sensors is not installed, temperature is read from [system files].
 
 Optionally, this extension uses [hddtemp] to read hard drive temperature data.
-The data is updated every 15 seconds.
 
 
 Installation
@@ -29,13 +29,13 @@ This is the **recommended method** for installation as you always get the latest
 You can install this extension for your user by executing:
 
     cd ~/.local/share/gnome-shell/extensions
-    git clone https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature.git temperature@xtranophilist
+    git clone https://github.com/xtranophilist/gnome-shell-extension-sensors.git temperature@xtranophilist
     glib-compile-schemas temperature@xtranophilist/schemas/
 
 or system wide by executing (this requires root permissions):
 
     cd /usr/share/gnome-shell/extensions/
-    git clone https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature.git temperature@xtranophilist
+    git clone https://github.com/xtranophilist/gnome-shell-extension-sensors.git temperature@xtranophilist
     glib-compile-schemas temperature@xtranophilist/schemas/
 
 After installation you need to restart the GNOME shell:
@@ -44,7 +44,7 @@ After installation you need to restart the GNOME shell:
 * Enter `r` to restart the GNOME shell
 
 Then enable the extension:
-Open `gnome-tweak-tool` -> `Shell Extensions` -> `CPU temperature indicator` -> On
+Open `gnome-tweak-tool` -> `Shell Extensions` -> `Sensors` -> On
 
 
 Installing dependencies
@@ -76,5 +76,5 @@ Authors : [authors]
 [sensors]: http://www.lm-sensors.org/
 [hddtemp]: https://savannah.nongnu.org/projects/hddtemp/
 [GNOME extensions]: https://extensions.gnome.org/extension/82/cpu-temperature-indicator/
-[system files]: https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/blob/master/extension.js#L174
-[authors]: https://github.com/xtranophilist/gnome-shell-extension-cpu-temperature/graphs/contributors
+[system files]: https://github.com/xtranophilist/gnome-shell-extension-sensors/blob/master/extension.js#L234
+[authors]: https://github.com/xtranophilist/gnome-shell-extension-sensors/graphs/contributors
