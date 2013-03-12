@@ -3,8 +3,6 @@ const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
-const Pango = imports.gi.Pango;
-
 
 const Gettext = imports.gettext.domain('gse-sensors');
 const _ = Gettext.gettext;
@@ -36,20 +34,21 @@ const SensorsPrefsWidget = new GObject.Class({
 
         this.attach(new Gtk.Label({ label: 'Seconds before next update' }), 0, 0, 1, 1);
         let update_time = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 5, 100, 5);
-            update_time.set_value(this._settings.get_int('update-time'));
-            update_time.set_digits(0);
-            update_time.set_hexpand(true);
-            update_time.connect('value-changed', Lang.bind(this, this._onUpdateTimeChanged));
+        update_time.set_value(this._settings.get_int('update-time'));
+        update_time.set_digits(0);
+        update_time.set_hexpand(true);
+        update_time.connect('value-changed', Lang.bind(this, this._onUpdateTimeChanged));
         this.attach(update_time, 1, 0, 1, 1);
-        
 
         this.attach(new Gtk.Label({ label: 'Unit' }), 0, 2, 1, 1);
         let centigradeRadio = new Gtk.RadioButton({ group: null, label: "Centigrade", valign: Gtk.Align.START });
         let fahrenheitRadio = new Gtk.RadioButton({ group: centigradeRadio, label: "Fahrenheit", valign: Gtk.Align.START });
         fahrenheitRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
         centigradeRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
-        if (this._settings.get_string('unit')=='Centigrade') centigradeRadio.active = true;
-            else fahrenheitRadio.active = true;
+        if (this._settings.get_string('unit')=='Centigrade')
+            centigradeRadio.active = true;
+        else
+            fahrenheitRadio.active = true;
         this.attach(centigradeRadio, 1, 2, 1, 1);
         this.attach(fahrenheitRadio, 2, 2, 1, 1);
 
@@ -89,8 +88,8 @@ const SensorsPrefsWidget = new GObject.Class({
             let settingSwitch = new Gtk.Switch({active: this._settings.get_boolean(setting.name)});
             let settings = this._settings;
             settingSwitch.connect('notify::active', function(button) {
-             settings.set_boolean(setting.name, button.active);
-             });
+                settings.set_boolean(setting.name, button.active);
+            });
 
             if (setting.help) {
                settingLabel.set_tooltip_text(setting.help);
@@ -109,7 +108,7 @@ const SensorsPrefsWidget = new GObject.Class({
         this._model.set (this._model.append(), [modelColumn.label, modelColumn.method], ['Maximum temperature', 'maximum']);
         this._model.set (this._model.append(), [modelColumn.separator], [true]);
 
-	//Fill the list
+        //Fill the list
         this._getSensorsLabels();
 
         // ComboBox to select which sensor to show in panel
@@ -135,8 +134,8 @@ const SensorsPrefsWidget = new GObject.Class({
         if (this.sensorsPath) {
            let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath + ' -A');
            if(sensors_output[0]) {
-                let sensors = sensors_output[1].toString().split('\n');
-                for (let i in sensors) {
+               let sensors = sensors_output[1].toString().split('\n');
+               for (let i in sensors) {
                     let line = sensors[i];
                     if(line.search(':') != -1)
                     {
