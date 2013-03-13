@@ -125,8 +125,8 @@ const SensorsPrefsWidget = new GObject.Class({
         this.attach(this._sensorSelector, 1, counter , 1, 1);
     },
 
-    _comboBoxSeparator: function(aaa, iter, data) {
-        return this._model.get_value(iter, modelColumn.separator);
+    _comboBoxSeparator: function(model, iter, data) {
+        return model.get_value(iter, modelColumn.separator);
     },
 
     _getSensorsLabels: function() {
@@ -174,8 +174,8 @@ const SensorsPrefsWidget = new GObject.Class({
         }
     },
 
-    _onSelectorChanged: function () {
-        let [success, iter] = this._sensorSelector.get_active_iter();
+    _onSelectorChanged: function (comboBox) {
+        let [success, iter] = comboBox.get_active_iter();
         if (!success)
             return;
 
