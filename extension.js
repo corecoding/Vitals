@@ -114,13 +114,13 @@ Sensors.prototype = {
             var s = 0, n = 0;//sum and count
             var smax = 0;//max temp
             var sel = 0; //selected sensor temp
-            for (let sensor in tempInfo){
-                s+=tempInfo[sensor]['temp'];
+            for each (let sensor in tempInfo){
+                s += sensor['temp'];
                 n++;
-                if (tempInfo[sensor]['temp'] > smax)
-                    smax=tempInfo[sensor]['temp'];
-                if (tempInfo[sensor]['label'] == settings.get_string('sensor'))
-                    sel = tempInfo[sensor]['temp'];
+                if (sensor['temp'] > smax)
+                    smax = sensor['temp'];
+                if (sensor['label'] == settings.get_string('sensor'))
+                    sel = sensor['temp'];
             }
             if (n!=0){//if temperature is detected
                 switch (settings.get_string('show-in-panel'))
@@ -144,16 +144,16 @@ Sensors.prototype = {
                 fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
             }
             fanInfo = fanInfo.filter(function(a) { return a['rpm'] > 0; });
-            for (let fan in fanInfo){
-                if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == fanInfo[fan]['label'])
-                    this.title='%drpm'.format(fanInfo[fan]['rpm']);
+            for each (let fan in fanInfo){
+                if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == fan['label'])
+                    this.title='%drpm'.format(fan['rpm']);
             }
             if (display_voltage && sensors_output[0]){
                 voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
             }
-            for (let voltage in voltageInfo){
-                if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == voltageInfo[voltage]['label'])
-                    this.title='%s%.2fV'.format(((voltageInfo[voltage]['volt'] >= 0) ? '+' : '-'),voltageInfo[voltage]['volt']);
+            for each (let voltage in voltageInfo){
+                if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == voltage['label'])
+                    this.title = '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']);
             }
         }
 
