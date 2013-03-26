@@ -198,7 +198,7 @@ Sensors.prototype = {
         // separator
         section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        let item = new PopupMenu.PopupMenuItem(_("Preferences..."));
+        let item = new PopupMenu.PopupMenuItem(_("Preferences\u2026"));
         item.connect('activate', function () {
             if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
                 _gsmPrefs.activate();
