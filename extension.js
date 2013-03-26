@@ -17,6 +17,18 @@ function Sensors() {
     this._init.apply(this, arguments);
 }
 
+const SensorsItem = new Lang.Class({
+    Name: 'Sensors.SensorsItem',
+    Extends: PopupMenu.PopupBaseMenuItem,
+
+    _init: function(label, value) {
+        this.parent({reactive: false});
+
+        this.addActor(new St.Label({text: label}));
+        this.addActor(new St.Label({text: value}), {align: St.Align.END});
+    }
+});
+
 Sensors.prototype = {
     __proto__: PanelMenu.SystemStatusButton.prototype,
 
@@ -112,7 +124,7 @@ Sensors.prototype = {
                         if (tempInfo[sensor]['label'] == settings.get_string('sensor'))
                             sel = tempInfo[sensor]['temp'];
 
-                        tempItems.push('%s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
+                        tempItems.push(tempInfo[sensor]);
                     }
                 }
                 if (n!=0){//if temperature is detected
@@ -138,7 +150,7 @@ Sensors.prototype = {
             if (fanInfo){
                 for (let fan in fanInfo){
                     if (fanInfo[fan]['rpm']>0){
-                        fanItems.push('%s: %drpm'.format(fanInfo[fan]['label'], fanInfo[fan]['rpm']));
+                        fanItems.push(fanInfo[fan]);
                         if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == fanInfo[fan]['label'])
                             this.title='%drpm'.format(fanInfo[fan]['rpm']);
                     }
@@ -147,7 +159,7 @@ Sensors.prototype = {
             if(display_voltage && sensors_output[0]) voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
             if (voltageInfo){
                 for (let voltage in voltageInfo){
-                    voltageItems.push('%s: %s%.2fV'.format(voltageInfo[voltage]['label'], ((voltageInfo[voltage]['volt'] >= 0) ? '+' : '-'), voltageInfo[voltage]['volt']));
+                    voltageItems.push(voltageInfo[voltage]);
                     if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == voltageInfo[voltage]['label'])
                         this.title='%s%.2fV'.format(((voltageInfo[voltage]['volt'] >= 0) ? '+' : '-'),voltageInfo[voltage]['volt']);
                 }
@@ -159,9 +171,7 @@ Sensors.prototype = {
             tempInfo = this._findTemperatureFromFiles();
             if(tempInfo.temp){
                 this.title=this._formatTemp(tempInfo.temp);
-                tempItems.push('Current Temperature : '+this._formatTemp(tempInfo.temp));
-                if (tempInfo.crit)
-                    tempItems.push('Critical Temperature : '+this._formatTemp(tempInfo.crit));
+                tempItems.push({label: 'Current Temperature', temp: tempInfo.temp});
             }
         }
 
@@ -170,14 +180,14 @@ Sensors.prototype = {
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString(), (this.hddtempPath.substring(0,2) != 'nc') ? ': ' : '|');//get temperature from hddtemp
             if(tempInfo){
                 for (let sensor in tempInfo){
-                    tempItems.push('Disk %s: %s'.format(tempInfo[sensor]['label'], this._formatTemp(tempInfo[sensor]['temp'])));
+                    tempItems.push({label: 'Disk %s'.format(tempInfo[sensor]['label']), temp: tempInfo[sensor]['temp']});
                 }
             }
         }
 
-        tempItems.sort();
-        fanItems.sort();
-        voltageItems.sort();
+        tempItems.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
+        fanItems.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
+        voltageItems.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
 
         this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
@@ -186,22 +196,22 @@ Sensors.prototype = {
         let section = new PopupMenu.PopupMenuSection("Temperature");
         if (tempItems.length > 0 || fanItems.length > 0){
             let item;
-            for each (let itemText in tempItems){
-                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
+            for each (let temp in tempItems){
+                item = new SensorsItem(temp['label'], this._formatTemp(temp['temp']));
                 section.addMenuItem(item);
             }
             if (tempItems.length > 0 && (fanItems.length > 0 || voltageItems.length > 0)){
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
-            for each (let itemText in fanItems){
-                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
+            for each (let fan in fanItems){
+                item = new SensorsItem(fan['label'], '%drpm'.format(fan['rpm']));
                 section.addMenuItem(item);
             }
             if (fanItems.length > 0 && voltageItems.length > 0){
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
-            for each (let itemText in voltageItems){
-                item = new PopupMenu.PopupMenuItem(itemText, {reactive: false});
+            for each (let voltage in voltageItems){
+                item = new SensorsItem(voltage['label'], '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']));
                 section.addMenuItem(item);
             }
         }else{
