@@ -6,7 +6,6 @@ CPU fan RPM in GNOME Shell.
 
 The extension uses [sensors] from lm_sensors package (lm-sensors for Debian systems)
 to read temperature for different CPU cores and adapters, voltage data and fan speed.
-If lm_sensors is not installed, temperature is read from [system files].
 
 Optionally, this extension uses [hddtemp] to read hard drive temperature data.
 
@@ -79,6 +78,5 @@ Authors : [authors]
 [sensors]: http://www.lm-sensors.org/
 [hddtemp]: https://savannah.nongnu.org/projects/hddtemp/
 [GNOME extensions]: https://extensions.gnome.org/extension/82/cpu-temperature-indicator/
-[system files]: https://github.com/xtranophilist/gnome-shell-extension-sensors/blob/master/extension.js#L234
 [authors]: https://github.com/xtranophilist/gnome-shell-extension-sensors/graphs/contributors
 [screenshot]: https://raw.github.com/wiki/xtranophilist/gnome-shell-extension-sensors/gnome-shell-extension-sensors.png

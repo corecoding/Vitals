@@ -56,12 +56,11 @@ Sensors.prototype = {
             this.hddtempPath = this._detectHDDTemp();
         }
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"];
+        this.title = 'Error';
         if(this.sensorsPath){
-            this.title='Error';
             this.content='Run sensors-detect as root. If it doesn\'t help, click here to report with your sensors output!';
         }
         else{
-            this.title='Warning';
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
@@ -166,15 +165,6 @@ Sensors.prototype = {
             }
         }
 
-        //if we don't have the temperature yet, use some known files
-        if(tempItems.length == 0){
-            tempInfo = this._findTemperatureFromFiles();
-            if(tempInfo.temp){
-                this.title=this._formatTemp(tempInfo.temp);
-                tempItems.push({label: 'Current Temperature', temp: tempInfo.temp});
-            }
-        }
-
         if (this.hddtempPath){
             let hddtemp_output = GLib.spawn_command_line_sync(this.hddtempPath);//get the output of the hddtemp command
             if(hddtemp_output[0]) tempInfo = this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString(), (this.hddtempPath.substring(0,2) != 'nc') ? ': ' : '|');//get temperature from hddtemp
@@ -194,7 +184,7 @@ Sensors.prototype = {
             c.destroy()
         });
         let section = new PopupMenu.PopupMenuSection("Temperature");
-        if (tempItems.length > 0 || fanItems.length > 0){
+        if (tempItems.length > 0){
             let item;
             for each (let temp in tempItems){
                 item = new SensorsItem(temp['label'], this._formatTemp(temp['temp']));
@@ -240,51 +230,6 @@ Sensors.prototype = {
         });
         section.addMenuItem(item);
         this.menu.addMenuItem(section);
-    },
-
-    _findTemperatureFromFiles: function(){
-        let info = new Array();
-        let temp_files = [
-        //hwmon for new 2.6.39, 3.x linux kernels
-        '/sys/class/hwmon/hwmon0/temp1_input',
-        '/sys/devices/platform/coretemp.0/temp1_input',
-        '/sys/bus/acpi/devices/LNXTHERM\:00/thermal_zone/temp',
-        '/sys/devices/virtual/thermal/thermal_zone0/temp',
-        '/sys/bus/acpi/drivers/ATK0110/ATK0110:00/hwmon/hwmon0/temp1_input',
-        //old kernels with proc fs
-        '/proc/acpi/thermal_zone/THM0/temperature',
-        '/proc/acpi/thermal_zone/THRM/temperature',
-        '/proc/acpi/thermal_zone/THR0/temperature',
-        '/proc/acpi/thermal_zone/TZ0/temperature',
-        //Debian Sid/Experimental on AMD-64
-        '/sys/class/hwmon/hwmon0/device/temp1_input'];
-        for each (let file in temp_files){
-            if(GLib.file_test(file,1<<4)){
-                //let f = Gio.file_new_for_path(file);
-                //f.read_async(0, null, function(source, result) {debug(source.read_finish(result).read())});
-
-                let temperature = GLib.file_get_contents(file);
-                if(temperature[0]) {
-                    info['temp']= parseInt(temperature[1])/1000;
-                }
-            }
-            break;
-        }
-        let crit_files = ['/sys/devices/platform/coretemp.0/temp1_crit',
-        '/sys/bus/acpi/drivers/ATK0110/ATK0110:00/hwmon/hwmon0/temp1_crit',
-        //hwmon for new 2.6.39, 3.0 linux kernels
-        '/sys/class/hwmon/hwmon0/temp1_crit',
-        //Debian Sid/Experimental on AMD-64
-        '/sys/class/hwmon/hwmon0/device/temp1_crit'];
-        for each (let file in crit_files){
-            if(GLib.file_test(file,1<<4)){
-                let temperature = GLib.file_get_contents(file);
-                if(temperature[0]) {
-                    info['crit']= parseInt(temperature[1])/1000;
-                }
-            }
-        }
-        return info;
     },
 
     _parseSensorsOutput: function(txt,parser){
