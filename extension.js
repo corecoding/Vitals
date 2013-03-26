@@ -212,26 +212,24 @@ Sensors.prototype = {
     },
 
     _parseSensorsOutput: function(txt,parser){
-        let sensors_output=txt.split("\n");
-        let feature_label=undefined;
-        let feature_value=undefined;
-        let s= new Array();
-        let n=0,c=0;
-        let f;
+        let sensors_output = txt.split("\n");
+        let feature_label = undefined;
+        let feature_value = undefined;
+        let sensors = new Array();
         //iterate through each lines
-        for(let i = 0; i < sensors_output.length; i++) {
+        for(let i = 0; i < sensors_output.length; i++){
             // ignore chipset driver name and 'Adapter:' line for now
-            i+=2;
+            i += 2;
             // get every feature of the chip
             while(sensors_output[i]){
                // if it is not a continutation of a feature line
                if(sensors_output[i].indexOf(' ') != 0){
                   let feature = parser(feature_label, feature_value);
-                  if (feature) {
-                      s[n++] = feature;
+                  if (feature){
+                      sensors.push(feature);
                       feature = undefined;
                   }
-                  [feature_label, feature_value]=sensors_output[i].split(':');
+                  [feature_label, feature_value] = sensors_output[i].split(':');
                }
                else{
                   feature_value += sensors_output[i];
@@ -241,79 +239,76 @@ Sensors.prototype = {
         }
         let feature = parser(feature_label, feature_value);
         if (feature) {
-            s[n++] = feature;
+            sensors.push(feature);
             feature = undefined;
         }
-        return s;
+        return sensors;
     },
 
     _parseSensorsTemperatureLine: function(label, value) {
-        let s = undefined;
+        let sensor = undefined;
         if(label != undefined && value != undefined) {
             let curValue = value.trim().split('  ')[0];
             // does the current value look like a temperature unit (°C)?
             if(curValue.indexOf("C", curValue.length - "C".length) !== -1){
-                s = new Array();
+                sensor = new Array();
                 let r;
-                s['label'] = label.trim();
-                s['temp'] = parseFloat(curValue.split(' ')[0]);
-                s['low']  = (r = /low=\+(\d{1,3}.\d)/.exec(value))  ? parseFloat(r[1]) : undefined;
-                s['high'] = (r = /high=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-                s['crit'] = (r = /crit=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-                s['hyst'] = (r = /hyst=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                sensor['label'] = label.trim();
+                sensor['temp'] = parseFloat(curValue.split(' ')[0]);
+                sensor['low']  = (r = /low=\+(\d{1,3}.\d)/.exec(value))  ? parseFloat(r[1]) : undefined;
+                sensor['high'] = (r = /high=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                sensor['crit'] = (r = /crit=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                sensor['hyst'] = (r = /hyst=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
             }
         }
-        return s;
+        return sensor;
     },
 
     _parseFanRPMLine: function(label, value) {
-        let s = undefined;
+        let sensor = undefined;
         if(label != undefined && value != undefined) {
             let curValue = value.trim().split('  ')[0];
-            // does the current value look like a temperature unit (°C)?
+            // does the current value look like a fan rpm line?
             if(curValue.indexOf("RPM", curValue.length - "RPM".length) !== -1){
-                s = new Array();
+                sensor = new Array();
                 let r;
-                s['label'] = label.trim();
-                s['rpm'] = parseFloat(curValue.split(' ')[0]);
-                s['min'] = (r = /min=(\d{1,5})/.exec(value)) ? parseFloat(r[1]) : undefined;
+                sensor['label'] = label.trim();
+                sensor['rpm'] = parseFloat(curValue.split(' ')[0]);
+                sensor['min'] = (r = /min=(\d{1,5})/.exec(value)) ? parseFloat(r[1]) : undefined;
             }
         }
-        return s;
+        return sensor;
     },
 
     _parseVoltageLine: function(label, value) {
-        let s = undefined;
+        let sensor = undefined;
         if(label != undefined && value != undefined) {
             let curValue = value.trim().split('  ')[0];
-            // does the current value look like a voltage unit (°C)?
+            // does the current value look like a voltage line?
             if(curValue.indexOf("V", curValue.length - "V".length) !== -1){
-                s = new Array();
+                sensor = new Array();
                 let r;
-                s['label'] = label.trim();
-                s['volt'] = parseFloat(curValue.split(' ')[0]);
-                s['min'] = (r = /min=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-                s['max'] = (r = /max=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                sensor['label'] = label.trim();
+                sensor['volt'] = parseFloat(curValue.split(' ')[0]);
+                sensor['min'] = (r = /min=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
+                sensor['max'] = (r = /max=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
             }
         }
-        return s;
+        return sensor;
     },
 
     _findTemperatureFromHDDTempOutput: function(txt,sep){
-        let hddtemp_output = txt.split("\n");
-        let s = new Array();
-        let n=0;
-        for(let i = 0; i < hddtemp_output.length; i++)
+        let hddtemp_output = txt.split("\n").filter(function(e){ return e; });
+        let sensors = new Array();
+        for each(line in hddtemp_output)
         {
-            if(hddtemp_output[i]){
-                s[++n] = new Array();
-                let fields = hddtemp_output[i].split(sep).filter(function(e){ return e; });
-                s[n]['label'] = fields[0].split('/');
-                s[n]['label'] = 'Disk %s'.format(s[n]['label'][s[n]['label'].length - 1]);
-                s[n]['temp'] = parseFloat(fields[2]);
-            }
+            let sensor = new Array();
+            let fields = line.split(sep).filter(function(e){ return e; });
+            sensor['label'] = _('Drive %s').format(fields[0].split('/').pop());
+            sensor['temp'] = parseFloat(fields[2]);
+            sensors.push(sensor);
         }
-        return s;
+        return sensors;
     },
 
     _toFahrenheit: function(c){
