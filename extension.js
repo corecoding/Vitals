@@ -104,56 +104,20 @@ Sensors.prototype = {
         let tempInfo = Array();
         let fanInfo = Array();
         let voltageInfo = Array();
+
         if (this.sensorsPath){
             //get the output of the sensors command
             let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);
             if (sensors_output[0]){
                 tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
-            }
-            tempInfo = tempInfo.filter(function(a) { return a['temp'] > 0 && a['temp'] < 115; });
-            var s = 0, n = 0;//sum and count
-            var smax = 0;//max temp
-            var sel = 0; //selected sensor temp
-            for each (let sensor in tempInfo){
-                s += sensor['temp'];
-                n++;
-                if (sensor['temp'] > smax)
-                    smax = sensor['temp'];
-                if (sensor['label'] == settings.get_string('sensor'))
-                    sel = sensor['temp'];
-            }
-            if (n!=0){//if temperature is detected
-                switch (settings.get_string('show-in-panel'))
-                {
-                    case 'maximum':
-                        this.title=this._formatTemp(smax);//or the maximum temp
-                        break;
-                    case 'sensor':
-                        if(sel)
-                            this.title=this._formatTemp(sel);//or temperature from a selected sensor
-                        else
-                            this.title='N/A';
-                        break;
-                    case 'average':
-                    default:
-                        this.title=this._formatTemp(s/n);//average as default
-                        break;
-                }
+                tempInfo = tempInfo.filter(function(a) { return a['temp'] > 0 && a['temp'] < 115; });
             }
             if (display_fan_rpm && sensors_output[0]){
                 fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
-            }
-            fanInfo = fanInfo.filter(function(a) { return a['rpm'] > 0; });
-            for each (let fan in fanInfo){
-                if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == fan['label'])
-                    this.title='%drpm'.format(fan['rpm']);
+                fanInfo = fanInfo.filter(function(a) { return a['rpm'] > 0; });
             }
             if (display_voltage && sensors_output[0]){
                 voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
-            }
-            for each (let voltage in voltageInfo){
-                if (settings.get_string('show-in-panel') == 'sensor' && settings.get_string('sensor') == voltage['label'])
-                    this.title = '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']);
             }
         }
 
@@ -169,14 +133,21 @@ Sensors.prototype = {
         fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
         voltageInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
 
-        this.statusLabel.set_text(this.title);
         this.menu.box.get_children().forEach(function(c) {
             c.destroy()
         });
         let section = new PopupMenu.PopupMenuSection("Temperature");
         if (tempInfo.length > 0){
             let item;
+            let sum = 0; //sum
+            let max = 0; //max temp
+            let sel = 'N/A'; //selected sensor temp
             for each (let temp in tempInfo){
+                sum += temp['temp'];
+                if (temp['temp'] > max)
+                    max = temp['temp'];
+                if (temp['label'] == settings.get_string('sensor'))
+                    sel = this._formatTemp(temp['temp']);
                 item = new SensorsItem(temp['label'], this._formatTemp(temp['temp']));
                 section.addMenuItem(item);
             }
@@ -184,6 +155,8 @@ Sensors.prototype = {
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let fan in fanInfo){
+                if (settings.get_string('sensor') == fan['label'])
+                    sel = '%drpm'.format(fan['rpm']);
                 item = new SensorsItem(fan['label'], '%drpm'.format(fan['rpm']));
                 section.addMenuItem(item);
             }
@@ -191,9 +164,25 @@ Sensors.prototype = {
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let voltage in voltageInfo){
+               if (settings.get_string('sensor') == voltage['label'])
+                    sel = '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']);
                 item = new SensorsItem(voltage['label'], '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']));
                 section.addMenuItem(item);
             }
+            switch (settings.get_string('show-in-panel'))
+            {
+                case 'maximum':
+                    this.title = this._formatTemp(max);//or the maximum temp
+                    break;
+                case 'sensor':
+                    this.title = sel;//or temperature from a selected sensor
+                    break;
+                case 'average':
+                default:
+                    this.title = this._formatTemp(sum/tempInfo.length);//average as default
+                    break;
+            }
+            this.statusLabel.set_text(this.title);
         }else{
             let command=this.command;
             let item = new PopupMenu.PopupMenuItem(this.content);
