@@ -152,6 +152,11 @@ Sensors.prototype = {
                 new Gio.UnixOutputStream({fd: stdin, close_fd: true}).close(null);
                 new Gio.UnixInputStream({fd: stderr, close_fd: true}).close(null);
 
+                this._sensorsChildWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
+                    Shell.util_wifexited(status);
+                    GLib.source_remove(this._sensorsChildWatch);
+                }));
+
                 this._sensorsReadStdout();
             } catch(e){
                 global.log(e.toString());
@@ -170,6 +175,11 @@ Sensors.prototype = {
                 this._hddtempDataStdout = new Gio.DataInputStream({base_stream: this._hddtempStdout});
                 new Gio.UnixOutputStream({fd: stdin, close_fd: true}).close(null);
                 new Gio.UnixInputStream({fd: stderr, close_fd: true}).close(null);
+
+                this._hddtempChildWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
+                    Shell.util_wifexited(status);
+                    GLib.source_remove(this._hddtempChildWatch);
+                }));
 
                 this._hddtempReadStdout();
             } catch(e){
