@@ -9,6 +9,7 @@ const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Shell = imports.gi.Shell;
+const Gio = imports.gi.Gio;
 
 let settings;
 let metadata = Me.metadata;
@@ -35,6 +36,9 @@ Sensors.prototype = {
     _init: function(){
         PanelMenu.SystemStatusButton.prototype._init.call(this, 'sensors');
 
+        this._sensorsOutput = '';
+        this._hddtempOutput = '';
+
         this.statusLabel = new St.Label({
             text: "--",
             style_class: "sensors-label"
@@ -50,14 +54,14 @@ Sensors.prototype = {
         let update_time  = settings.get_int('update-time');
         let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
 
-        this.sensorsPath = GLib.find_program_in_path('sensors');
+        this.sensorsArgv = [GLib.find_program_in_path('sensors')];
 
         if (display_hdd_temp){
-            this.hddtempPath = this._detectHDDTemp();
+            this.hddtempArgv = this._detectHDDTemp();
         }
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"];
         this.title = 'Error';
-        if(this.sensorsPath){
+        if(this.sensorsArgv){
             this.content='Run sensors-detect as root. If it doesn\'t help, click here to report with your sensors output!';
         }
         else{
@@ -66,20 +70,20 @@ Sensors.prototype = {
 
         this._parseFanRPMLine();
         this._parseSensorsTemperatureLine();
-        this._updateDisplay();
+        this._querySensors();
 
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
-            this._updateDisplay();
+            this._querySensors();
             return true;
         }));
     },
 
     _detectHDDTemp: function(){
-        let hddtempPath = GLib.find_program_in_path('hddtemp');
-        if(hddtempPath) {
+        let hddtempArgv = GLib.find_program_in_path('hddtemp');
+        if(hddtempArgv) {
             // check if this user can run hddtemp directly.
-            if(!GLib.spawn_command_line_sync(hddtempPath)[3])
-                return hddtempPath;
+            if(!GLib.spawn_command_line_sync(hddtempArgv)[3])
+                return [hddtempArgv];
         }
 
         // doesn't seem to be the case… is it running as a daemon?
@@ -90,44 +94,110 @@ Sensors.prototype = {
             // get port or assume default
             let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
             // use net cat to get data
-            hddtempPath = 'nc localhost ' + port;
+            hddtempArgv = ['nc', 'localhost', port];
         }
         else
-            hddtempPath = '';
+            hddtempArgv = [];
 
-        return hddtempPath;
+        return hddtempArgv;
     },
 
-    _updateDisplay: function() {
-        let display_fan_rpm  = settings.get_boolean('display-fan-rpm');
-        let display_voltage  = settings.get_boolean('display-voltage');
+    _sensorsReadStdout: function(){
+        this._sensorsDataStdout.fill_async(-1, GLib.PRIORITY_DEFAULT, null, Lang.bind(this, function(stream, result) {
+            if (stream.fill_finish(result) == 0){
+                try{
+                    this._sensorsOutput = stream.peek_buffer().toString();
+                    this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
+                }catch(e){
+                    global.log(e.toString());
+                }
+                this._sensorsStdout.close(null);
+                return;
+            }
+
+            stream.set_buffer_size(2 * stream.get_buffer_size());
+            this._sensorsReadStdout();
+        }));
+    },
+
+    _hddtempReadStdout: function(){
+        this._hddtempDataStdout.fill_async(-1, GLib.PRIORITY_DEFAULT, null, Lang.bind(this, function(stream, result) {
+            if (stream.fill_finish(result) == 0){
+                try{
+                    this._hddtempOutput = stream.peek_buffer().toString();
+                    this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
+                }catch(e){
+                    global.log(e.toString());
+                }
+                this._hddtempStdout.close(null);
+                return;
+            }
+
+            stream.set_buffer_size(2 * stream.get_buffer_size());
+            this._hddtempReadStdout();
+        }));
+    },
+
+    _querySensors: function(){
+        if (this.sensorsArgv){
+            try{
+                let [exit, pid, stdin, stdout, stderr] =
+                    GLib.spawn_async_with_pipes(null, /* cwd */
+                                                this.sensorsArgv, /* args */
+                                                null, /* env */
+                                                GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+                                                null /* child_setup */);
+                this._sensorsStdout = new Gio.UnixInputStream({fd: stdout, close_fd: true});
+                this._sensorsDataStdout = new Gio.DataInputStream({base_stream: this._sensorsStdout});
+                new Gio.UnixOutputStream({fd: stdin, close_fd: true}).close(null);
+                new Gio.UnixInputStream({fd: stderr, close_fd: true}).close(null);
+
+                this._sensorsReadStdout();
+            } catch(e){
+                global.log(e.toString());
+            }
+        }
+
+        if (this.hddtempArgv){
+            try{
+                let [exit, pid, stdin, stdout, stderr] =
+                    GLib.spawn_async_with_pipes(null, /* cwd */
+                                                this.hddtempArgv, /* args */
+                                                null, /* env */
+                                                GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+                                                null /* child_setup */);
+                this._hddtempStdout = new Gio.UnixInputStream({fd: stdout, close_fd: true});
+                this._hddtempDataStdout = new Gio.DataInputStream({base_stream: this._hddtempStdout});
+                new Gio.UnixOutputStream({fd: stdin, close_fd: true}).close(null);
+                new Gio.UnixInputStream({fd: stderr, close_fd: true}).close(null);
+
+                this._hddtempReadStdout();
+            } catch(e){
+                global.log(e.toString());
+            }
+        }
+    },
+
+    _updateDisplay: function(sensors_output, hddtemp_output){
+        let display_fan_rpm = settings.get_boolean('display-fan-rpm');
+        let display_voltage = settings.get_boolean('display-voltage');
+
         let tempInfo = Array();
         let fanInfo = Array();
         let voltageInfo = Array();
 
-        if (this.sensorsPath){
-            //get the output of the sensors command
-            let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath);
-            if (sensors_output[0]){
-                tempInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseSensorsTemperatureLine.bind(this));//get temperature from sensors
-                tempInfo = tempInfo.filter(function(a) { return a['temp'] > 0 && a['temp'] < 115; });
-            }
-            if (display_fan_rpm && sensors_output[0]){
-                fanInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseFanRPMLine.bind(this));//get fan rpm from sensors
-                fanInfo = fanInfo.filter(function(a) { return a['rpm'] > 0; });
-            }
-            if (display_voltage && sensors_output[0]){
-                voltageInfo = this._parseSensorsOutput(sensors_output[1].toString(),this._parseVoltageLine.bind(this));//get voltage from sensors
-            }
+        tempInfo = this._parseSensorsOutput(sensors_output,this._parseSensorsTemperatureLine.bind(this));
+        tempInfo = tempInfo.filter(function(a) { return a['temp'] > 0 && a['temp'] < 115; });
+        if (display_fan_rpm){
+            fanInfo = this._parseSensorsOutput(sensors_output,this._parseFanRPMLine.bind(this));
+            fanInfo = fanInfo.filter(function(a) { return a['rpm'] > 0; });
+        }
+        if (display_voltage){
+            voltageInfo = this._parseSensorsOutput(sensors_output,this._parseVoltageLine.bind(this));
         }
 
-        if (this.hddtempPath){
-            let hddtemp_output = GLib.spawn_command_line_sync(this.hddtempPath);//get the output of the hddtemp command
-            if(hddtemp_output[0]){
-                //get temperature from hddtemp
-                tempInfo = tempInfo.concat(this._findTemperatureFromHDDTempOutput(hddtemp_output[1].toString(), (this.hddtempPath.substring(0,2) != 'nc') ? ': ' : '|'));
-            }
-        }
+        if(this.hddtempArgv)
+            tempInfo = tempInfo.concat(this._findTemperatureFromHDDTempOutput(hddtemp_output, (this.hddtempArgv[0] != 'nc') ? ': ' : '|'));
 
         tempInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
         fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
