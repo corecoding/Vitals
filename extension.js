@@ -94,12 +94,13 @@ Sensors.prototype = {
             // get port or assume default
             let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
             // use net cat to get data
-            hddtempArgv = ['nc', 'localhost', port];
+            let nc = GLib.find_program_in_path('nc');
+            if(nc)
+                return [nc, 'localhost', port.toString()];
         }
-        else
-            hddtempArgv = [];
 
-        return hddtempArgv;
+        // not found
+        return [];
     },
 
     _sensorsReadStdout: function(){
@@ -207,7 +208,7 @@ Sensors.prototype = {
         }
 
         if(this.hddtempArgv)
-            tempInfo = tempInfo.concat(this._findTemperatureFromHDDTempOutput(hddtemp_output, (this.hddtempArgv[0] != 'nc') ? ': ' : '|'));
+            tempInfo = tempInfo.concat(this._findTemperatureFromHDDTempOutput(hddtemp_output, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|'));
 
         tempInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
         fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
