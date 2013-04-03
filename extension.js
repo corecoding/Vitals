@@ -10,6 +10,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Shell = imports.gi.Shell;
 const Gio = imports.gi.Gio;
+const Utilities = Me.imports.utilities
 
 let settings;
 let metadata = Me.metadata;
@@ -29,6 +30,7 @@ const SensorsItem = new Lang.Class({
         this.addActor(new St.Label({text: value}), {align: St.Align.END});
     }
 });
+
 
 Sensors.prototype = {
     __proto__: PanelMenu.SystemStatusButton.prototype,
@@ -54,10 +56,10 @@ Sensors.prototype = {
         let update_time  = settings.get_int('update-time');
         let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
 
-        this.sensorsArgv = [GLib.find_program_in_path('sensors')];
+        this.sensorsArgv = Utilities.detectSensors();
 
         if (display_hdd_temp){
-            this.hddtempArgv = this._detectHDDTemp();
+            this.hddtempArgv = Utilities.detectHDDTemp();
         }
         this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"];
         this.title = 'Error';
@@ -68,39 +70,12 @@ Sensors.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
-        this._parseFanRPMLine();
-        this._parseSensorsTemperatureLine();
         this._querySensors();
 
         event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
             this._querySensors();
             return true;
         }));
-    },
-
-    _detectHDDTemp: function(){
-        let hddtempArgv = GLib.find_program_in_path('hddtemp');
-        if(hddtempArgv) {
-            // check if this user can run hddtemp directly.
-            if(!GLib.spawn_command_line_sync(hddtempArgv)[3])
-                return [hddtempArgv];
-        }
-
-        // doesn't seem to be the case… is it running as a daemon?
-        let pid = GLib.spawn_command_line_sync("pidof hddtemp");
-        if(pid[1].length) {
-            // get daemon command line
-            let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=")[1].toString();
-            // get port or assume default
-            let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
-            // use net cat to get data
-            let nc = GLib.find_program_in_path('nc');
-            if(nc)
-                return [nc, 'localhost', port.toString()];
-        }
-
-        // not found
-        return [];
     },
 
     _sensorsReadStdout: function(){
@@ -197,18 +172,18 @@ Sensors.prototype = {
         let fanInfo = Array();
         let voltageInfo = Array();
 
-        tempInfo = this._parseSensorsOutput(sensors_output,this._parseSensorsTemperatureLine.bind(this));
-        tempInfo = tempInfo.filter(function(a) { return a['temp'] > 0 && a['temp'] < 115; });
+        tempInfo = Utilities.parseSensorsOutput(sensors_output,Utilities.parseSensorsTemperatureLine);
+        tempInfo = tempInfo.filter(Utilities.filterTemperature);
         if (display_fan_rpm){
-            fanInfo = this._parseSensorsOutput(sensors_output,this._parseFanRPMLine.bind(this));
-            fanInfo = fanInfo.filter(function(a) { return a['rpm'] > 0; });
+            fanInfo = Utilities.parseSensorsOutput(sensors_output,Utilities.parseFanRPMLine);
+            fanInfo = fanInfo.filter(Utilities.filterFan);
         }
         if (display_voltage){
-            voltageInfo = this._parseSensorsOutput(sensors_output,this._parseVoltageLine.bind(this));
+            voltageInfo = Utilities.parseSensorsOutput(sensors_output,Utilities.parseVoltageLine);
         }
 
         if(this.hddtempArgv)
-            tempInfo = tempInfo.concat(this._findTemperatureFromHDDTempOutput(hddtemp_output, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|'));
+            tempInfo = tempInfo.concat(Utilities.parseHddTempOutput(hddtemp_output, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|'));
 
         tempInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
         fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
@@ -292,105 +267,6 @@ Sensors.prototype = {
         this.menu.addMenuItem(section);
     },
 
-    _parseSensorsOutput: function(txt,parser){
-        let sensors_output = txt.split("\n");
-        let feature_label = undefined;
-        let feature_value = undefined;
-        let sensors = new Array();
-        //iterate through each lines
-        for(let i = 0; i < sensors_output.length; i++){
-            // ignore chipset driver name and 'Adapter:' line for now
-            i += 2;
-            // get every feature of the chip
-            while(sensors_output[i]){
-               // if it is not a continutation of a feature line
-               if(sensors_output[i].indexOf(' ') != 0){
-                  let feature = parser(feature_label, feature_value);
-                  if (feature){
-                      sensors.push(feature);
-                      feature = undefined;
-                  }
-                  [feature_label, feature_value] = sensors_output[i].split(':');
-               }
-               else{
-                  feature_value += sensors_output[i];
-               }
-               i++;
-            }
-        }
-        let feature = parser(feature_label, feature_value);
-        if (feature) {
-            sensors.push(feature);
-            feature = undefined;
-        }
-        return sensors;
-    },
-
-    _parseSensorsTemperatureLine: function(label, value) {
-        let sensor = undefined;
-        if(label != undefined && value != undefined) {
-            let curValue = value.trim().split('  ')[0];
-            // does the current value look like a temperature unit (°C)?
-            if(curValue.indexOf("C", curValue.length - "C".length) !== -1){
-                sensor = new Array();
-                let r;
-                sensor['label'] = label.trim();
-                sensor['temp'] = parseFloat(curValue.split(' ')[0]);
-                sensor['low']  = (r = /low=\+(\d{1,3}.\d)/.exec(value))  ? parseFloat(r[1]) : undefined;
-                sensor['high'] = (r = /high=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-                sensor['crit'] = (r = /crit=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-                sensor['hyst'] = (r = /hyst=\+(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-            }
-        }
-        return sensor;
-    },
-
-    _parseFanRPMLine: function(label, value) {
-        let sensor = undefined;
-        if(label != undefined && value != undefined) {
-            let curValue = value.trim().split('  ')[0];
-            // does the current value look like a fan rpm line?
-            if(curValue.indexOf("RPM", curValue.length - "RPM".length) !== -1){
-                sensor = new Array();
-                let r;
-                sensor['label'] = label.trim();
-                sensor['rpm'] = parseFloat(curValue.split(' ')[0]);
-                sensor['min'] = (r = /min=(\d{1,5})/.exec(value)) ? parseFloat(r[1]) : undefined;
-            }
-        }
-        return sensor;
-    },
-
-    _parseVoltageLine: function(label, value) {
-        let sensor = undefined;
-        if(label != undefined && value != undefined) {
-            let curValue = value.trim().split('  ')[0];
-            // does the current value look like a voltage line?
-            if(curValue.indexOf("V", curValue.length - "V".length) !== -1){
-                sensor = new Array();
-                let r;
-                sensor['label'] = label.trim();
-                sensor['volt'] = parseFloat(curValue.split(' ')[0]);
-                sensor['min'] = (r = /min=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-                sensor['max'] = (r = /max=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;
-            }
-        }
-        return sensor;
-    },
-
-    _findTemperatureFromHDDTempOutput: function(txt,sep){
-        let hddtemp_output = txt.split("\n").filter(function(e){ return e; });
-        let sensors = new Array();
-        for each(line in hddtemp_output)
-        {
-            let sensor = new Array();
-            let fields = line.split(sep).filter(function(e){ return e; });
-            sensor['label'] = _('Drive %s').format(fields[0].split('/').pop());
-            sensor['temp'] = parseFloat(fields[2]);
-            sensors.push(sensor);
-        }
-        return sensors;
-    },
 
     _toFahrenheit: function(c){
         return ((9/5)*c+32);
