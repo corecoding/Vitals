@@ -10,6 +10,7 @@ const _ = Gettext.gettext;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
+const Utilities = Me.imports.utilities;
 
 const modelColumn = {
     label: 0,
@@ -104,12 +105,22 @@ const SensorsPrefsWidget = new GObject.Class({
         //List of items of the ComboBox 
         this._model =  new Gtk.ListStore();
         this._model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_BOOLEAN]);
-        this._model.set (this._model.append(), [modelColumn.label, modelColumn.method], ['Average temperature', 'average']);
-        this._model.set (this._model.append(), [modelColumn.label, modelColumn.method], ['Maximum temperature', 'maximum']);
-        this._model.set (this._model.append(), [modelColumn.separator], [true]);
+        this._appendItem('Average temperature', 'average');
+        this._appendItem('Maximum temperature', 'maximum');
+        this._appendSeparator();
+
+        //Get current options
+        this._display_fan_rpm = this._settings.get_boolean('display-fan-rpm');
+        this._display_voltage = this._settings.get_boolean('display-voltage');
+        this._display_hdd_temp = this._settings.get_boolean('display-hdd-temp');
 
         //Fill the list
         this._getSensorsLabels();
+
+        if(this._display_hdd_temp) {
+            this._appendSeparator();
+            this._getHddTempLabels();
+        }
 
         // ComboBox to select which sensor to show in panel
         this._sensorSelector = new Gtk.ComboBox({ model: this._model });
@@ -129,21 +140,51 @@ const SensorsPrefsWidget = new GObject.Class({
         return model.get_value(iter, modelColumn.separator);
     },
 
+    _appendItem: function(label, type) {
+        this._model.set(this._model.append(), [modelColumn.label, modelColumn.method], [label, type]);
+    },
+
+    _appendMultipleItems: function(sensorInfo, type) {
+        for each (let sensor in sensorInfo) {
+            this._model.set(this._model.append(), [modelColumn.label, modelColumn.method], [sensor['label'], type]);
+        }
+    },
+
+    _appendSeparator: function() {
+        this._model.set (this._model.append(), [modelColumn.separator], [true]);
+    },
+
     _getSensorsLabels: function() {
-        this.sensorsPath = GLib.find_program_in_path('sensors');
-        if (this.sensorsPath) {
-           let sensors_output = GLib.spawn_command_line_sync(this.sensorsPath + ' -A');
-           if(sensors_output[0]) {
-               let sensors = sensors_output[1].toString().split('\n');
-               for (let i in sensors) {
-                    let line = sensors[i];
-                    if(line.search(':') != -1)
-                    {
-                        let label = line.split(':')[0];
-                        this._model.set (this._model.append(), [modelColumn.label, modelColumn.method], [label, 'sensor']);
-                    }
+        let sensors_cmd = Utilities.detectSensors();
+        if(sensors_cmd) {
+            let sensors_output = GLib.spawn_command_line_sync(sensors_cmd.join(' '));
+            if(sensors_output[0])
+            {
+                let output = sensors_output[1].toString();
+                let tempInfo = Utilities.parseSensorsOutput(output,Utilities.parseSensorsTemperatureLine);
+                tempInfo = tempInfo.filter(Utilities.filterTemperature);
+                this._appendMultipleItems(tempInfo, 'sensor');
+
+                if (this._display_fan_rpm){
+                    let fanInfo = Utilities.parseSensorsOutput(output,Utilities.parseFanRPMLine);
+                    fanInfo = fanInfo.filter(Utilities.filterFan);
+                    this._appendMultipleItems(fanInfo, 'sensor');
+                }
+                if (this._display_voltage){
+                    let voltageInfo = Utilities.parseSensorsOutput(output,Utilities.parseVoltageLine);
+                    this._appendMultipleItems(voltageInfo, 'sensor');
                 }
             }
+        }
+    },
+
+    _getHddTempLabels: function() {
+        let hddtemp_cmd = Utilities.detectHDDTemp();
+        let hddtemp_output = GLib.spawn_command_line_sync(hddtemp_cmd.join(' '))
+        if(hddtemp_output[0]) {
+            let hddTempInfo = Utilities.parseHddTempOutput(hddtemp_output[1].toString(),
+                                    !(/nc$/.exec(hddtemp_cmd[0])) ? ': ' : '|');
+            this._appendMultipleItems(hddTempInfo, 'sensor');
         }
     },
 
@@ -152,8 +193,7 @@ const SensorsPrefsWidget = new GObject.Class({
         [success, iter] = this._model.get_iter_first();
         let sensorLabel = this._model.get_value(iter, 0);
 
-        while (success)
-        {
+        while (success) {
             /* Walk through the list, reading each row */
             let sensorLabel = this._model.get_value(iter, 0);
             if(sensorLabel == this._settings.get_string('sensor'))
