@@ -9,7 +9,6 @@ const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Shell = imports.gi.Shell;
-const Gio = imports.gi.Gio;
 const Utilities = Me.imports.utilities
 
 let settings;
@@ -30,7 +29,6 @@ const SensorsItem = new Lang.Class({
         this.addActor(new St.Label({text: value}), {align: St.Align.END});
     }
 });
-
 
 Sensors.prototype = {
     __proto__: PanelMenu.SystemStatusButton.prototype,
@@ -78,89 +76,21 @@ Sensors.prototype = {
         }));
     },
 
-    _sensorsReadStdout: function(){
-        this._sensorsDataStdout.fill_async(-1, GLib.PRIORITY_DEFAULT, null, Lang.bind(this, function(stream, result) {
-            if (stream.fill_finish(result) == 0){
-                try{
-                    this._sensorsOutput = stream.peek_buffer().toString();
-                    this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
-                }catch(e){
-                    global.log(e.toString());
-                }
-                this._sensorsStdout.close(null);
-                return;
-            }
-
-            stream.set_buffer_size(2 * stream.get_buffer_size());
-            this._sensorsReadStdout();
-        }));
-    },
-
-    _hddtempReadStdout: function(){
-        this._hddtempDataStdout.fill_async(-1, GLib.PRIORITY_DEFAULT, null, Lang.bind(this, function(stream, result) {
-            if (stream.fill_finish(result) == 0){
-                try{
-                    this._hddtempOutput = stream.peek_buffer().toString();
-                    this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
-                }catch(e){
-                    global.log(e.toString());
-                }
-                this._hddtempStdout.close(null);
-                return;
-            }
-
-            stream.set_buffer_size(2 * stream.get_buffer_size());
-            this._hddtempReadStdout();
-        }));
-    },
-
     _querySensors: function(){
         if (this.sensorsArgv){
-            try{
-                let [exit, pid, stdin, stdout, stderr] =
-                    GLib.spawn_async_with_pipes(null, /* cwd */
-                                                this.sensorsArgv, /* args */
-                                                null, /* env */
-                                                GLib.SpawnFlags.DO_NOT_REAP_CHILD,
-                                                null /* child_setup */);
-                this._sensorsStdout = new Gio.UnixInputStream({fd: stdout, close_fd: true});
-                this._sensorsDataStdout = new Gio.DataInputStream({base_stream: this._sensorsStdout});
-                new Gio.UnixOutputStream({fd: stdin, close_fd: true}).close(null);
-                new Gio.UnixInputStream({fd: stderr, close_fd: true}).close(null);
-
-                this._sensorsChildWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
-                    Shell.util_wifexited(status);
-                    GLib.source_remove(this._sensorsChildWatch);
-                }));
-
-                this._sensorsReadStdout();
-            } catch(e){
-                global.log(e.toString());
-            }
+            this._sensorsFuture = new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
+                this._sensorsOutput = stdout;
+                this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
+                this._sensorsFuture = undefined;
+            }));
         }
 
         if (this.hddtempArgv){
-            try{
-                let [exit, pid, stdin, stdout, stderr] =
-                    GLib.spawn_async_with_pipes(null, /* cwd */
-                                                this.hddtempArgv, /* args */
-                                                null, /* env */
-                                                GLib.SpawnFlags.DO_NOT_REAP_CHILD,
-                                                null /* child_setup */);
-                this._hddtempStdout = new Gio.UnixInputStream({fd: stdout, close_fd: true});
-                this._hddtempDataStdout = new Gio.DataInputStream({base_stream: this._hddtempStdout});
-                new Gio.UnixOutputStream({fd: stdin, close_fd: true}).close(null);
-                new Gio.UnixInputStream({fd: stderr, close_fd: true}).close(null);
-
-                this._hddtempChildWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
-                    Shell.util_wifexited(status);
-                    GLib.source_remove(this._hddtempChildWatch);
-                }));
-
-                this._hddtempReadStdout();
-            } catch(e){
-                global.log(e.toString());
-            }
+            this._hddtempFuture = new Utilities.Future(this.hddtempArgv, Lang.bind(this,function(stdout){
+                this._hddtempOutput = stdout;
+                this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
+                this._hddtempFuture = undefined;
+            }));
         }
     },
 
