@@ -180,11 +180,13 @@ const SensorsPrefsWidget = new GObject.Class({
 
     _getHddTempLabels: function() {
         let hddtemp_cmd = Utilities.detectHDDTemp();
-        let hddtemp_output = GLib.spawn_command_line_sync(hddtemp_cmd.join(' '))
-        if(hddtemp_output[0]) {
-            let hddTempInfo = Utilities.parseHddTempOutput(hddtemp_output[1].toString(),
-                                    !(/nc$/.exec(hddtemp_cmd[0])) ? ': ' : '|');
-            this._appendMultipleItems(hddTempInfo, 'sensor');
+        if(hddtemp_cmd){
+            let hddtemp_output = GLib.spawn_command_line_sync(hddtemp_cmd.join(' '))
+            if(hddtemp_output[0]){
+                let hddTempInfo = Utilities.parseHddTempOutput(hddtemp_output[1].toString(),
+                                        !(/nc$/.exec(hddtemp_cmd[0])) ? ': ' : '|');
+                this._appendMultipleItems(hddTempInfo, 'sensor');
+            }
         }
     },
 
