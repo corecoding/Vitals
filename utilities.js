@@ -7,7 +7,8 @@ const Gettext = imports.gettext.domain('gse-sensors');
 const _ = Gettext.gettext;
 
 function detectSensors() {
-    return [GLib.find_program_in_path('sensors')];
+    let path = GLib.find_program_in_path('sensors');
+    return path ? [path] : undefined;
 }
 
 function detectHDDTemp() {
@@ -33,7 +34,7 @@ function detectHDDTemp() {
     }
 
     // not found
-    return [];
+    return undefined;
 }
 
 function parseSensorsOutput(txt,parser) {
