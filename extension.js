@@ -3,7 +3,6 @@ const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
-const GLib = imports.gi.GLib;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -14,12 +13,8 @@ const Utilities = Me.imports.utilities
 let settings;
 let metadata = Me.metadata;
 
-function Sensors() {
-    this._init.apply(this, arguments);
-}
-
 const SensorsItem = new Lang.Class({
-    Name: 'Sensors.SensorsItem',
+    Name: 'SensorsItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
     _init: function(label, value) {
@@ -30,7 +25,11 @@ const SensorsItem = new Lang.Class({
     }
 });
 
-Sensors.prototype = {
+function SensorsMenuButton() {
+    this._init.apply(this, arguments);
+}
+
+SensorsMenuButton.prototype = {
     __proto__: PanelMenu.SystemStatusButton.prototype,
 
     _init: function(){
@@ -39,10 +38,7 @@ Sensors.prototype = {
         this._sensorsOutput = '';
         this._hddtempOutput = '';
 
-        this.statusLabel = new St.Label({
-            text: "--",
-            style_class: "sensors-label"
-        });
+        this.statusLabel = new St.Label({ text: "\u2026" });
 
         // destroy all previously created children, and add our statusLabel
         this.actor.get_children().forEach(function(c) {
@@ -51,7 +47,6 @@ Sensors.prototype = {
         this.actor.add_actor(this.statusLabel);
 
 
-        let update_time  = settings.get_int('update-time');
         let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
 
         this.sensorsArgv = Utilities.detectSensors();
@@ -68,15 +63,13 @@ Sensors.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
-        this._querySensors();
-
-        event = GLib.timeout_add_seconds(0, update_time, Lang.bind(this, function () {
-            this._querySensors();
-            return true;
-        }));
+        this._querySensors(true);
     },
 
-    _querySensors: function(){
+    disconnectSignals: function(){
+    },
+
+    _querySensors: function(recurse){
         if (this.sensorsArgv){
             this._sensorsFuture = new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
                 this._sensorsOutput = stdout;
@@ -90,6 +83,12 @@ Sensors.prototype = {
                 this._hddtempOutput = stdout;
                 this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
                 this._hddtempFuture = undefined;
+            }));
+        }
+
+        if(recurse){
+            Mainloop.timeout_add_seconds(settings.get_int('update-time'), Lang.bind(this, function (){
+                this._querySensors(true);
             }));
         }
     },
@@ -218,21 +217,18 @@ Sensors.prototype = {
     }
 }
 
+let sensorsMenu;
+
 function init(extensionMeta) {
     settings = Convenience.getSettings();
 }
 
-let indicator;
-let event=null;
-
 function enable() {
-    indicator = new Sensors();
-    Main.panel.addToStatusArea('sensors', indicator);
-    //TODO catch preference change signals with settings.connect('changed::
+    sensorsMenu = new SensorsMenuButton();
+    Main.panel.addToStatusArea('sensors', sensorsMenu);
 }
 
 function disable() {
-    indicator.destroy();
-    Mainloop.source_remove(event);
-    indicator = null;
+    sensorsMenu.disconnectSignals();
+    sensorsMenu.destroy();
 }
