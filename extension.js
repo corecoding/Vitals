@@ -63,10 +63,13 @@ SensorsMenuButton.prototype = {
             this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
+        this._settingsChanged = settings.connect("changed", Lang.bind(this,function(){ this._querySensors(false); }));
+
         this._querySensors(true);
     },
 
     disconnectSignals: function(){
+        settings.disconnect(this._settingsChanged);
     },
 
     _querySensors: function(recurse){
