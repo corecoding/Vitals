@@ -25,20 +25,18 @@ const SensorsItem = new Lang.Class({
     }
 });
 
-function SensorsMenuButton() {
-    this._init.apply(this, arguments);
-}
+const SensorsMenuButton = new Lang.Class({
+    Name: 'SensorsMenuButton',
 
-SensorsMenuButton.prototype = {
-    __proto__: PanelMenu.SystemStatusButton.prototype,
+    Extends: PanelMenu.SystemStatusButton,
 
     _init: function(){
-        PanelMenu.SystemStatusButton.prototype._init.call(this, 'sensors');
+        PanelMenu.SystemStatusButton.prototype._init.call(this, 'sensorsMenu');
 
         this._sensorsOutput = '';
         this._hddtempOutput = '';
 
-        this.statusLabel = new St.Label({ text: "\u2026" });
+        this.statusLabel = new St.Label({ text: '\u2026' });
 
         // destroy all previously created children, and add our statusLabel
         this.actor.get_children().forEach(function(c) {
@@ -46,21 +44,10 @@ SensorsMenuButton.prototype = {
         });
         this.actor.add_actor(this.statusLabel);
 
-
-        let display_hdd_temp  = settings.get_boolean('display-hdd-temp');
-
         this.sensorsArgv = Utilities.detectSensors();
 
-        if (display_hdd_temp){
+        if (settings.get_boolean('display-hdd-temp')){
             this.hddtempArgv = Utilities.detectHDDTemp();
-        }
-        this.command=["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"];
-        this.title = 'Error';
-        if(this.sensorsArgv){
-            this.content='Run sensors-detect as root. If it doesn\'t help, click here to report with your sensors output!';
-        }
-        else{
-            this.content='Please install lm_sensors. If it doesn\'t help, click here to report with your sensors output!';
         }
 
         this._settingsChanged = settings.connect("changed", Lang.bind(this,function(){ this._querySensors(false); }));
@@ -157,25 +144,31 @@ SensorsMenuButton.prototype = {
                 item = new SensorsItem(voltage['label'], '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']));
                 section.addMenuItem(item);
             }
+
+            let mainSensor = '';
+
             switch (settings.get_string('show-in-panel'))
             {
                 case 'maximum':
-                    this.title = this._formatTemp(max);//or the maximum temp
+                    mainSensor = this._formatTemp(max);//or the maximum temp
                     break;
                 case 'sensor':
-                    this.title = sel;//or temperature from a selected sensor
+                    mainSensor = sel;//or temperature from a selected sensor
                     break;
                 case 'average':
                 default:
-                    this.title = this._formatTemp(sum/tempInfo.length);//average as default
+                    mainSensor = this._formatTemp(sum/tempInfo.length);//average as default
                     break;
             }
-            this.statusLabel.set_text(this.title);
+            this.statusLabel.set_text(mainSensor);
         }else{
-            let command=this.command;
-            let item = new PopupMenu.PopupMenuItem(this.content);
+            this.statusLabel.set_text('Error');
+
+            let item = new PopupMenu.PopupMenuItem(
+                (this.sensorsArgv ? 'Please run sensors-detect as root.' : 'Please install lm_sensors.') + 'If it doesn\'t help, click here to report with your sensors output!'
+            );
             item.connect('activate',function() {
-                Util.spawn(command);
+                Util.spawn(["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"]);
             });
             section.addMenuItem(item);
         }
@@ -218,7 +211,7 @@ SensorsMenuButton.prototype = {
         }
         return format.format(value, (settings.get_string('unit')=='Fahrenheit') ? "\u00b0F" : "\u00b0C");
     }
-}
+});
 
 let sensorsMenu;
 
@@ -228,7 +221,7 @@ function init(extensionMeta) {
 
 function enable() {
     sensorsMenu = new SensorsMenuButton();
-    Main.panel.addToStatusArea('sensors', sensorsMenu);
+    Main.panel.addToStatusArea('sensorsMenu', sensorsMenu);
 }
 
 function disable() {
