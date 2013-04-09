@@ -167,7 +167,6 @@ const Future = new Lang.Class({
             new Gio.UnixInputStream({fd: stderr, close_fd: true}).close(null);
 
             this._childWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
-                Shell.util_wifexited(status);
                 GLib.source_remove(this._childWatch);
             }));
 
