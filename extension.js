@@ -19,10 +19,19 @@ const SensorsItem = new Lang.Class({
 
     _init: function(label, value) {
         this.parent({reactive: false});
+        this._label = label;
+        this._value = value;
 
         this.addActor(new St.Label({text: label}));
         this.addActor(new St.Label({text: value}), {align: St.Align.END});
-    }
+    },
+
+    getPanelString: function() {
+        if(settings.get_boolean('display-label'))
+            return '%s: %s'.format(this._label, this._value);
+        else
+            return this._value;
+    },
 });
 
 const SensorsMenuButton = new Lang.Class({
@@ -121,43 +130,48 @@ const SensorsMenuButton = new Lang.Class({
                 sum += temp['temp'];
                 if (temp['temp'] > max)
                     max = temp['temp'];
-                if (temp['label'] == settings.get_string('sensor'))
-                    sel = this._formatTemp(temp['temp']);
                 item = new SensorsItem(temp['label'], this._formatTemp(temp['temp']));
+                if (temp['label'] == settings.get_string('sensor'))
+                    sel = item;
                 section.addMenuItem(item);
             }
             if (tempInfo.length > 0 && (fanInfo.length > 0 || voltageInfo.length > 0)){
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let fan in fanInfo){
-                if (settings.get_string('sensor') == fan['label'])
-                    sel = '%drpm'.format(fan['rpm']);
                 item = new SensorsItem(fan['label'], '%drpm'.format(fan['rpm']));
+                if (settings.get_string('sensor') == fan['label'])
+                    sel = item;
                 section.addMenuItem(item);
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
                 section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let voltage in voltageInfo){
-               if (settings.get_string('sensor') == voltage['label'])
-                    sel = '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']);
                 item = new SensorsItem(voltage['label'], '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']));
+                if (settings.get_string('sensor') == voltage['label'])
+                    sel = item;
                 section.addMenuItem(item);
             }
 
             let mainSensor = '';
 
-            switch (settings.get_string('show-in-panel'))
-            {
+            switch (settings.get_string('show-in-panel')) {
                 case 'maximum':
-                    mainSensor = this._formatTemp(max);//or the maximum temp
+                    if(settings.get_boolean('display-label'))
+                        mainSensor = "Maximum: %s".format(this._formatTemp(max));
+                    else
+                        mainSensor = this._formatTemp(max);//or the maximum temp
                     break;
                 case 'sensor':
-                    mainSensor = sel;//or temperature from a selected sensor
+                    mainSensor = sel.getPanelString();//or temperature from a selected sensor
                     break;
                 case 'average':
                 default:
-                    mainSensor = this._formatTemp(sum/tempInfo.length);//average as default
+                    if(settings.get_boolean('display-label'))
+                        mainSensor = "Average: %s".format(this._formatTemp(sum/tempInfo.length));
+                    else
+                        mainSensor = this._formatTemp(sum/tempInfo.length);//average as default
                     break;
             }
             this.statusLabel.set_text(mainSensor);
