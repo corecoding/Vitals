@@ -18,7 +18,11 @@ const SensorsItem = new Lang.Class({
     Extends: PopupMenu.PopupBaseMenuItem,
 
     _init: function(label, value) {
-        this.parent({reactive: false});
+        this.parent();
+        this.connect('activate', function () {
+            settings.set_string('show-in-panel', 'sensor');
+            settings.set_string('sensor', label);
+        });
 
         this.addActor(new St.Label({text: label}));
         this.addActor(new St.Label({text: value}), {align: St.Align.END});
