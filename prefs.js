@@ -137,6 +137,7 @@ const SensorsPrefsWidget = new GObject.Class({
 
         let settings = this._settings;
         let checkButton = new Gtk.CheckButton({label: 'Display label'});
+        checkButton.set_active(settings.get_boolean('display-label'));
         checkButton.connect('toggled', function () {
             settings.set_boolean('display-label', checkButton.get_active());
         });
