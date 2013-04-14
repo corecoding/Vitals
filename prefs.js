@@ -134,6 +134,14 @@ const SensorsPrefsWidget = new GObject.Class({
 
         this.attach(new Gtk.Label({ label: "Show in panel" }), 0, ++counter, 1, 1);
         this.attach(this._sensorSelector, 1, counter , 1, 1);
+
+        let settings = this._settings;
+        let checkButton = new Gtk.CheckButton({label: 'Display label'});
+        checkButton.set_active(settings.get_boolean('display-label'));
+        checkButton.connect('toggled', function () {
+            settings.set_boolean('display-label', checkButton.get_active());
+        });
+        this.attach(checkButton, 2, counter , 1, 1);
     },
 
     _comboBoxSeparator: function(model, iter, data) {
