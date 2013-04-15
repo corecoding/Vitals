@@ -14,8 +14,7 @@ const Utilities = Me.imports.utilities;
 
 const modelColumn = {
     label: 0,
-    method: 1, 
-    separator: 2
+    separator: 1
 }
 
 function init() {
@@ -104,9 +103,9 @@ const SensorsPrefsWidget = new GObject.Class({
 
         //List of items of the ComboBox 
         this._model =  new Gtk.ListStore();
-        this._model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_BOOLEAN]);
-        this._appendItem('Average temperature', 'average');
-        this._appendItem('Maximum temperature', 'maximum');
+        this._model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_BOOLEAN]);
+        this._appendItem('Average');
+        this._appendItem('Maximum');
         this._appendSeparator();
 
         //Get current options
@@ -148,13 +147,13 @@ const SensorsPrefsWidget = new GObject.Class({
         return model.get_value(iter, modelColumn.separator);
     },
 
-    _appendItem: function(label, type) {
-        this._model.set(this._model.append(), [modelColumn.label, modelColumn.method], [label, type]);
+    _appendItem: function(label) {
+        this._model.set(this._model.append(), [modelColumn.label], [label]);
     },
 
-    _appendMultipleItems: function(sensorInfo, type) {
+    _appendMultipleItems: function(sensorInfo) {
         for each (let sensor in sensorInfo) {
-            this._model.set(this._model.append(), [modelColumn.label, modelColumn.method], [sensor['label'], type]);
+            this._model.set(this._model.append(), [modelColumn.label], [sensor['label']]);
         }
     },
 
@@ -171,16 +170,16 @@ const SensorsPrefsWidget = new GObject.Class({
                 let output = sensors_output[1].toString();
                 let tempInfo = Utilities.parseSensorsOutput(output,Utilities.parseSensorsTemperatureLine);
                 tempInfo = tempInfo.filter(Utilities.filterTemperature);
-                this._appendMultipleItems(tempInfo, 'sensor');
+                this._appendMultipleItems(tempInfo);
 
                 if (this._display_fan_rpm){
                     let fanInfo = Utilities.parseSensorsOutput(output,Utilities.parseFanRPMLine);
                     fanInfo = fanInfo.filter(Utilities.filterFan);
-                    this._appendMultipleItems(fanInfo, 'sensor');
+                    this._appendMultipleItems(fanInfo);
                 }
                 if (this._display_voltage){
                     let voltageInfo = Utilities.parseSensorsOutput(output,Utilities.parseVoltageLine);
-                    this._appendMultipleItems(voltageInfo, 'sensor');
+                    this._appendMultipleItems(voltageInfo);
                 }
             }
         }
@@ -193,7 +192,7 @@ const SensorsPrefsWidget = new GObject.Class({
             if(hddtemp_output[0]){
                 let hddTempInfo = Utilities.parseHddTempOutput(hddtemp_output[1].toString(),
                                         !(/nc$/.exec(hddtemp_cmd[0])) ? ': ' : '|');
-                this._appendMultipleItems(hddTempInfo, 'sensor');
+                this._appendMultipleItems(hddTempInfo);
             }
         }
     },
@@ -206,7 +205,7 @@ const SensorsPrefsWidget = new GObject.Class({
         while (success) {
             /* Walk through the list, reading each row */
             let sensorLabel = this._model.get_value(iter, 0);
-            if(sensorLabel == this._settings.get_string('sensor'))
+            if(sensorLabel == this._settings.get_string('main-sensor'))
                break;
 
             success = this._model.iter_next(iter);
@@ -230,10 +229,7 @@ const SensorsPrefsWidget = new GObject.Class({
             return;
 
         let label = this._model.get_value(iter, modelColumn.label);
-        let method = this._model.get_value(iter, modelColumn.method);
-
-        this._settings.set_string('show-in-panel', method);
-        this._settings.set_string('sensor', label);
+        this._settings.set_string('main-sensor', label);
     },
 
 });

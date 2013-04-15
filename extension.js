@@ -20,8 +20,7 @@ const SensorsItem = new Lang.Class({
     _init: function(label, value) {
         this.parent();
         this.connect('activate', function () {
-            settings.set_string('show-in-panel', 'sensor');
-            settings.set_string('sensor', label);
+            settings.set_string('main-sensor', label);
         });
         this._label = label;
         this._value = value;
@@ -35,6 +34,15 @@ const SensorsItem = new Lang.Class({
             return '%s: %s'.format(this._label, this._value);
         else
             return this._value;
+    },
+
+    setMainSensor: function() {
+        //this.setShowDot(true);
+        this.actor.add_style_class_name('popup-subtitle-menu-item'); //bold
+    },
+
+    getLabel: function() {
+        return this._label;
     },
 });
 
@@ -126,59 +134,51 @@ const SensorsMenuButton = new Lang.Class({
         });
         let section = new PopupMenu.PopupMenuSection("Temperature");
         if (tempInfo.length > 0){
-            let item;
+            let sensorsList = new Array();
             let sum = 0; //sum
             let max = 0; //max temp
-            let sel = 'N/A'; //selected sensor temp
             for each (let temp in tempInfo){
                 sum += temp['temp'];
                 if (temp['temp'] > max)
                     max = temp['temp'];
-                item = new SensorsItem(temp['label'], this._formatTemp(temp['temp']));
-                if (temp['label'] == settings.get_string('sensor'))
-                    sel = item;
-                section.addMenuItem(item);
+
+                sensorsList.push(new SensorsItem(temp['label'], this._formatTemp(temp['temp'])));
             }
-            if (tempInfo.length > 0 && (fanInfo.length > 0 || voltageInfo.length > 0)){
-                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            if (tempInfo.length > 0){
+                sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
+
+                // Add average and maximum entries
+                sensorsList.push(new SensorsItem('Average', this._formatTemp(sum/tempInfo.length)));
+                sensorsList.push(new SensorsItem('Maximum', this._formatTemp(max)));
+
+                if(fanInfo.length > 0 || voltageInfo.length > 0)
+                    sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
+
             for each (let fan in fanInfo){
-                item = new SensorsItem(fan['label'], '%drpm'.format(fan['rpm']));
-                if (settings.get_string('sensor') == fan['label'])
-                    sel = item;
-                section.addMenuItem(item);
+                sensorsList.push(new SensorsItem(fan['label'], '%drpm'.format(fan['rpm'])));
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
-                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+                sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let voltage in voltageInfo){
-                item = new SensorsItem(voltage['label'], '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt']));
-                if (settings.get_string('sensor') == voltage['label'])
-                    sel = item;
+                sensorsList.push(new SensorsItem(voltage['label'], '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
+            }
+
+            this.statusLabel.set_text('N/A'); // Just in case
+
+            for each (let item in sensorsList) {
+                if(item instanceof SensorsItem) {
+                    if (settings.get_string('main-sensor') == item.getLabel()) {
+
+                        // Configure as main sensor and set panel string
+                        item.setMainSensor();
+                        this.statusLabel.set_text(item.getPanelString());
+                    }
+                }
                 section.addMenuItem(item);
             }
 
-            let mainSensor = '';
-
-            switch (settings.get_string('show-in-panel')) {
-                case 'maximum':
-                    if(settings.get_boolean('display-label'))
-                        mainSensor = "Maximum: %s".format(this._formatTemp(max));
-                    else
-                        mainSensor = this._formatTemp(max);//or the maximum temp
-                    break;
-                case 'sensor':
-                    mainSensor = sel.getPanelString();//or temperature from a selected sensor
-                    break;
-                case 'average':
-                default:
-                    if(settings.get_boolean('display-label'))
-                        mainSensor = "Average: %s".format(this._formatTemp(sum/tempInfo.length));
-                    else
-                        mainSensor = this._formatTemp(sum/tempInfo.length);//average as default
-                    break;
-            }
-            this.statusLabel.set_text(mainSensor);
         }else{
             this.statusLabel.set_text('Error');
 

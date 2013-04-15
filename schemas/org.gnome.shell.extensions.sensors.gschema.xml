@@ -15,19 +15,13 @@
       <description>The unit ('centigrade' or 'fahrenheit', without quotes) the extension should display the temperature in.</description>
     </key>
 
-    <key type="s" name="show-in-panel">
-      <default>"average"</default>
-      <summary>Average, maximum or specific sensor in panel</summary>
-      <description>Select if "average", "maximum" or a specific sensor temperature has to be shown in the panel</description>
-    </key>
-
     <key type="b" name="display-label">
       <default>false</default>
       <summary>Display label</summary>
       <description>Display also the label of the sensor in the panel</description>
     </key>
 
-   <key type="s" name="sensor">
+   <key type="s" name="main-sensor">
       <default>""</default>
       <summary>Sensor temperature to show in panel</summary>
       <description>Select the sensor whose temperature has to be shown in the panel</description>
