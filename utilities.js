@@ -1,7 +1,6 @@
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
-const St = imports.gi.St;
 const Lang = imports.lang;
 const Gettext = imports.gettext.domain('gse-sensors');
 const _ = Gettext.gettext;
@@ -20,17 +19,40 @@ function detectHDDTemp() {
     }
 
     // doesn't seem to be the case… is it running as a daemon?
-    let pid = GLib.spawn_command_line_sync("pidof hddtemp");
-    if(pid[1].length) {
-        let r;
+	// Check first for systemd
+    let systemctl = GLib.find_program_in_path('systemctl');
+    let pidof = GLib.find_program_in_path('pidof');
+    let nc = GLib.find_program_in_path('nc');
+    let pid = undefined;
+
+    if(systemctl) {
+        let activeState = GLib.spawn_command_line_sync(systemctl + " show hddtemp.service -p ActiveState")[1].toString().trim();
+        if(activeState == "ActiveState=active") {
+            let output = GLib.spawn_command_line_sync(systemctl + " show hddtemp.service -p MainPID")[1].toString().trim();
+
+            if(output.length && output.split("=").length == 2) {
+                pid = output.split("=")[1];
+            }
+        }
+    }
+
+    // systemd isn't used on this system, try sysvinit instead
+    if(!pid && pidof) {
+        let output = GLib.spawn_command_line_sync("pidof hddtemp")[1].toString().trim();
+
+        if(output.length) {
+            pid = output;
+        }
+    }
+
+    if(nc && pid)
+    {
         // get daemon command line
-        let cmdline = GLib.spawn_command_line_sync("ps --pid=" + pid[1] + " -o args=")[1].toString();
+        let cmdline = GLib.file_get_contents('/proc/'+pid+'/cmdline');
         // get port or assume default
         let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
         // use net cat to get data
-        let nc = GLib.find_program_in_path('nc');
-        if(nc)
-            return [nc, 'localhost', port.toString()];
+        return [nc, 'localhost', port.toString()];
     }
 
     // not found
