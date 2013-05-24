@@ -217,3 +217,7 @@ const Future = new Lang.Class({
     }
 });
 
+function debug(str){
+    //tail -f -n100 ~/.cache/gdm/session.log | grep temperature
+    print ('LOG temperature@xtranophilist: ' + str);
+}
