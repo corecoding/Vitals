@@ -50,7 +50,8 @@ function detectHDDTemp() {
         // get daemon command line
         let cmdline = GLib.file_get_contents('/proc/'+pid+'/cmdline');
         // get port or assume default
-        let port = (r=/(-p\W*|--port=)(\d{1,5})/.exec(cmdline)) ? parseInt(r[2]) : 7634;
+        let match = /(-p\W*|--port=)(\d{1,5})/.exec(cmdline)
+        let port = match ? parseInt(match[2]) : 7634;
         // use net cat to get data
         return [nc, 'localhost', port.toString()];
     }
@@ -148,7 +149,7 @@ function parseVoltageLine(label, value) {
 function parseHddTempOutput(txt, sep) {
     let hddtemp_output = txt.split("\n").filter(function(e){ return e; });
     let sensors = new Array();
-    for each(line in hddtemp_output)
+    for each(let line in hddtemp_output)
     {
         let sensor = new Array();
         let fields = line.split(sep).filter(function(e){ return e; });
