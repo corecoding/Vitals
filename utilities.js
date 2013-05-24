@@ -155,7 +155,9 @@ function parseHddTempOutput(txt, sep) {
         let fields = line.split(sep).filter(function(e){ return e; });
         sensor['label'] = _('Drive %s').format(fields[0].split('/').pop());
         sensor['temp'] = parseFloat(fields[2]);
-        sensors.push(sensor);
+        //push only if the temp is a Number
+        if (!isNaN(sensor['temp']))
+            sensors.push(sensor);
     }
     return sensors;
 }
