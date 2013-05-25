@@ -1,2 +1,14 @@
-gschemas.compiled
 *~
+*.swp
+autom4te.cache
+configure
+Makefile.in
+Makefile
+sensors.shell-extension.zip
+gnome-shell-extension-sensors-1.3.tar.gz
+gnome-shell-extension-sensors-1.3.tar.xz
+aclocal.m4
+config.log
+config.status
+.build/
+ChangeLog

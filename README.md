@@ -14,6 +14,8 @@ Optionally, this extension uses [hddtemp] to read hard drive temperature data.
 Installation
 =============
 
+This is the **recommended method** for installation, as it doesn't require the build
+dependencies for installation.
 You can install this extension by visiting the [GNOME extensions]
 page for this extension.
 
@@ -27,18 +29,33 @@ Fedora has packaged an older version of this extension. You can install it by ru
 Manual installation
 -------------------
 
-This is the **recommended method** for installation as you always get the latest version.
+To install this extension you need to clone the source and build the extension.
+The build dependenciesare:
+
+* *gettext*,
+* *pkg-config*,
+* *git*,
+* *glib2*,
+* *glib2-devel* or *libglib2.0-dev*,
+* *zip*,
+* *gnome-common*,
+* *autoconf*,
+* *automake*,
+* *intltool*.
+
+To build the extension please run the following commands:
+
+    cd ~ && git clone https://github.com/xtranophilist/gnome-shell-extension-sensors.git
+    cd ~/gnome-shell-extension-sensors
+    ./autogen.sh
+
 You can install this extension for your user by executing:
 
-    cd ~/.local/share/gnome-shell/extensions
-    git clone https://github.com/xtranophilist/gnome-shell-extension-sensors.git temperature@xtranophilist
-    glib-compile-schemas temperature@xtranophilist/schemas/
+    make local-install
 
 or system wide by executing (this requires root permissions):
 
-    cd /usr/share/gnome-shell/extensions/
-    git clone https://github.com/xtranophilist/gnome-shell-extension-sensors.git temperature@xtranophilist
-    glib-compile-schemas temperature@xtranophilist/schemas/
+    make install
 
 After installation you need to restart the GNOME shell:
 
