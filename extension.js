@@ -9,6 +9,8 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Shell = imports.gi.Shell;
 const Utilities = Me.imports.utilities
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 
 let settings;
 let metadata = Me.metadata;
@@ -148,24 +150,24 @@ const SensorsMenuButton = new Lang.Class({
                 sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
 
                 // Add average and maximum entries
-                sensorsList.push(new SensorsItem('Average', this._formatTemp(sum/tempInfo.length)));
-                sensorsList.push(new SensorsItem('Maximum', this._formatTemp(max)));
+                sensorsList.push(new SensorsItem(_("Average"), this._formatTemp(sum/tempInfo.length)));
+                sensorsList.push(new SensorsItem(_("Maximum"), this._formatTemp(max)));
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
                     sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
 
             for each (let fan in fanInfo){
-                sensorsList.push(new SensorsItem(fan['label'], '%drpm'.format(fan['rpm'])));
+                sensorsList.push(new SensorsItem(fan['label'], _("%drpm").format(fan['rpm'])));
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
                 sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let voltage in voltageInfo){
-                sensorsList.push(new SensorsItem(voltage['label'], '%s%.2fV'.format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
+                sensorsList.push(new SensorsItem(voltage['label'], _("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
             }
 
-            this.statusLabel.set_text('N/A'); // Just in case
+            this.statusLabel.set_text(_("N/A")); // Just in case
 
             for each (let item in sensorsList) {
                 if(item instanceof SensorsItem) {
@@ -180,10 +182,12 @@ const SensorsMenuButton = new Lang.Class({
             }
 
         }else{
-            this.statusLabel.set_text('Error');
+            this.statusLabel.set_text(_("Error"));
 
             let item = new PopupMenu.PopupMenuItem(
-                (this.sensorsArgv ? 'Please run sensors-detect as root.' : 'Please install lm_sensors.') + 'If it doesn\'t help, click here to report with your sensors output!'
+                (this.sensorsArgv
+                    ? _("Please run sensors-detect as root.")
+                    : _("Please install lm_sensors.")) + _("If this doesn\'t help, click here to report with your sensors output!")
             );
             item.connect('activate',function() {
                 Util.spawn(["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"]);
@@ -234,6 +238,7 @@ const SensorsMenuButton = new Lang.Class({
 let sensorsMenu;
 
 function init(extensionMeta) {
+    Convenience.initTranslations();
     settings = Convenience.getSettings();
 }
 

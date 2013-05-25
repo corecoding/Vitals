@@ -2,7 +2,8 @@ const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
-const Gettext = imports.gettext.domain('gse-sensors');
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
 function detectSensors() {
@@ -153,7 +154,7 @@ function parseHddTempOutput(txt, sep) {
     {
         let sensor = new Array();
         let fields = line.split(sep).filter(function(e){ return e; });
-        sensor['label'] = _('Drive %s').format(fields[0].split('/').pop());
+        sensor['label'] = _("Drive %s").format(fields[0].split('/').pop());
         sensor['temp'] = parseFloat(fields[2]);
         //push only if the temp is a Number
         if (!isNaN(sensor['temp']))

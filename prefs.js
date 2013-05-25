@@ -4,13 +4,11 @@ const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 
-const Gettext = imports.gettext.domain('gse-sensors');
-const _ = Gettext.gettext;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Utilities = Me.imports.utilities;
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 
 const modelColumn = {
     label: 0,
@@ -32,7 +30,7 @@ const SensorsPrefsWidget = new GObject.Class({
 
         this._settings = Convenience.getSettings();
 
-        this.attach(new Gtk.Label({ label: 'Seconds before next update' }), 0, 0, 1, 1);
+        this.attach(new Gtk.Label({ label: _("Poll sensors every (in seconds)") }), 0, 0, 1, 1);
         let update_time = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 5, 100, 5);
         update_time.set_value(this._settings.get_int('update-time'));
         update_time.set_digits(0);
@@ -40,9 +38,9 @@ const SensorsPrefsWidget = new GObject.Class({
         update_time.connect('value-changed', Lang.bind(this, this._onUpdateTimeChanged));
         this.attach(update_time, 1, 0, 1, 1);
 
-        this.attach(new Gtk.Label({ label: 'Unit' }), 0, 2, 1, 1);
-        let centigradeRadio = new Gtk.RadioButton({ group: null, label: "Centigrade", valign: Gtk.Align.START });
-        let fahrenheitRadio = new Gtk.RadioButton({ group: centigradeRadio, label: "Fahrenheit", valign: Gtk.Align.START });
+        this.attach(new Gtk.Label({ label: _("Temperature unit") }), 0, 2, 1, 1);
+        let centigradeRadio = new Gtk.RadioButton({ group: null, label: _("Centigrade"), valign: Gtk.Align.START });
+        let fahrenheitRadio = new Gtk.RadioButton({ group: centigradeRadio, label: _("Fahrenheit"), valign: Gtk.Align.START });
         fahrenheitRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
         centigradeRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
         if (this._settings.get_string('unit')=='Centigrade')
@@ -54,29 +52,26 @@ const SensorsPrefsWidget = new GObject.Class({
 
         let boolSettings = {
             display_degree_sign: {
-                name: _("display-degree-sign"),
-                label: _("Display degree sign"),
-                help: _("Show degree sign in panel and menu. (default: ON)")
+                name: "display-degree-sign",
+                label: _("Display temperature unit"),
+                help: _("Show temperature unit in panel and menu.")
             },
             display_decimal_value: {
-                name: _("display-decimal-value"),
+                name: "display-decimal-value",
                 label: _("Display decimal value"),
-                help: _("Show one digit after decimal. (default: ON)")
+                help: _("Show one digit after decimal.")
            },
            show_hdd_temp: {
-                name: _("display-hdd-temp"),
-                label: _("Display hard disk temperature"),
-                help: _("Requires hddtemp installed. (default: ON)")
+                name: "display-hdd-temp",
+                label: _("Display drive temperature"),
            },
            show_fan_rpm: {
-                name: _("display-fan-rpm"),
-                label: _("Display fan RPM"),
-                help: _("Show the fan rotations per minute. (default: ON)")
+                name: "display-fan-rpm",
+                label: _("Display fan speed"),
            },
            show_voltage: {
-                name: _("display-voltage"),
-                label: _("Display voltage"),
-                help: _("Show the voltage of various components. (default: ON)")
+                name: "display-voltage",
+                label: _("Display power supply voltage"),
            },
         }
 
@@ -104,8 +99,8 @@ const SensorsPrefsWidget = new GObject.Class({
         //List of items of the ComboBox 
         this._model =  new Gtk.ListStore();
         this._model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_BOOLEAN]);
-        this._appendItem('Average');
-        this._appendItem('Maximum');
+        this._appendItem(_("Average"));
+        this._appendItem(_("Maximum"));
         this._appendSeparator();
 
         //Get current options
@@ -131,11 +126,11 @@ const SensorsPrefsWidget = new GObject.Class({
         this._sensorSelector.add_attribute(renderer, 'text', modelColumn.label);
         this._sensorSelector.connect('changed', Lang.bind(this, this._onSelectorChanged));
 
-        this.attach(new Gtk.Label({ label: "Show in panel" }), 0, ++counter, 1, 1);
+        this.attach(new Gtk.Label({ label: _("Sensor in panel") }), 0, ++counter, 1, 1);
         this.attach(this._sensorSelector, 1, counter , 1, 1);
 
         let settings = this._settings;
-        let checkButton = new Gtk.CheckButton({label: 'Display label'});
+        let checkButton = new Gtk.CheckButton({label: _("Display sensor label")});
         checkButton.set_active(settings.get_boolean('display-label'));
         checkButton.connect('toggled', function () {
             settings.set_boolean('display-label', checkButton.get_active());
