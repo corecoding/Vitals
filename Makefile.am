@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = src data
+SUBDIRS = src data po
 
 uuid = "temperature@xtranophilist"
 
