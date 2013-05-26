@@ -1,5 +1,5 @@
-# German translations for gnome-shell-extension-sensors package
-# German messages for gnome-shell-extension-sensors.
+# Spanish translations for gnome-shell-extension-sensors package
+# Spanish messages for gnome-shell-extension-sensors.
 # Copyright (C) 2013 THE gnome-shell-extension-sensors'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the gnome-shell-extension-sensors package.
 # Marcel Metz <mmetz@adrian-broher.net>, 2013.
@@ -57,7 +57,6 @@ msgstr "Por favor instale lm-sensors."
 msgid "If this doesn't help, click here to report with your sensors output!"
 msgstr ""
 "Si esto no ayuda, haz clic aquí para reportar un error con salida del sensor."
-""
 
 #: ../src/extension.js:204
 msgid "Sensors Settings"
