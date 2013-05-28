@@ -1,6 +1,6 @@
 AC_PREREQ(2.63)
 dnl be carefull, the version needs to be in sync with your gnome shell version
-AC_INIT([gnome-shell-extension-sensors],[1.3],[https://github.com/xtranophilist/gnome-shell-extension-sensorsi/issues])
+AC_INIT([gnome-shell-extension-sensors],[1.3],[https://github.com/xtranophilist/gnome-shell-extension-sensors/issues])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([config])
