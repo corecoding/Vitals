@@ -88,11 +88,11 @@ msgstr "Monstrar unidad de temperatura en panel y menú"
 
 #: ../src/prefs.js:61
 msgid "Display decimal value"
-msgstr ""
+msgstr "Monstrar el valor decimal"
 
 #: ../src/prefs.js:62
 msgid "Show one digit after decimal."
-msgstr ""
+msgstr "Monstrar un dígito después del decimal"
 
 #: ../src/prefs.js:66
 msgid "Display drive temperature"
