@@ -32,7 +32,7 @@ function detectHDDTemp() {
             let output = GLib.spawn_command_line_sync(systemctl + " show hddtemp.service -p MainPID")[1].toString().trim();
 
             if(output.length && output.split("=").length == 2) {
-                pid = output.split("=")[1];
+                pid = Number(output.split("=")[1].trim());
             }
         }
     }
@@ -42,7 +42,7 @@ function detectHDDTemp() {
         let output = GLib.spawn_command_line_sync("pidof hddtemp")[1].toString().trim();
 
         if(output.length) {
-            pid = output;
+            pid = Number(output.trim());
         }
     }
 
