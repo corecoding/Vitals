@@ -14,6 +14,7 @@ sensors.shell-extension.zip: all
 	$(AM_V_at)cp -r "$(builddir)/.build$(datadir)/gnome-shell/extensions/$(uuid)" "$(builddir)/.build"
 	$(AM_V_at)cp -r "$(builddir)/.build$(datadir)/locale" "$(builddir)/.build/$(uuid)"
 	$(AM_V_at)cp -r "$(builddir)/.build$(datadir)/glib-2.0/schemas" "$(builddir)/.build/$(uuid)"
+	$(AM_V_at)cp -r "$(builddir)/.build$(datadir)/icons" "$(builddir)/.build/$(uuid)"
 	$(AM_V_at)glib-compile-schemas "$(builddir)/.build/$(uuid)/schemas"
 	$(AM_V_at)(cd "$(builddir)/.build/$(uuid)/"; zip -qr "$(abs_builddir)/sensors.shell-extension.zip" .)
 

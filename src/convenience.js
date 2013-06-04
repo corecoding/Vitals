@@ -2,6 +2,7 @@
 
 const Gettext = imports.gettext;
 const Gio = imports.gi.Gio;
+const Gtk = imports.gi.Gtk;
 
 const Config = imports.misc.config;
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -27,6 +28,20 @@ function initTranslations(domain) {
         Gettext.bindtextdomain(domain, localeDir.get_path());
     else
         Gettext.bindtextdomain(domain, Config.LOCALEDIR);
+}
+
+/**
+ * initIcons:
+ *
+ * Initialize Gtk to load icons from extensionsdir/icons.
+ */
+function initIcons() {
+    let extension = ExtensionUtils.getCurrentExtension();
+
+    let theme = Gtk.IconTheme.get_default();
+    let iconDir = extension.dir.get_child('icons');
+    if(iconDir.query_exists(null))
+        theme.append_search_path(iconDir.get_path());
 }
 
 /**

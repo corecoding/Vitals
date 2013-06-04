@@ -19,7 +19,7 @@ const SensorsItem = new Lang.Class({
     Name: 'SensorsItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
-    _init: function(label, value) {
+    _init: function(type, label, value) {
         this.parent();
         this.connect('activate', function () {
             settings.set_string('main-sensor', label);
@@ -27,6 +27,7 @@ const SensorsItem = new Lang.Class({
         this._label = label;
         this._value = value;
 
+        this.addActor(new St.Icon({ style_class: 'system-status-icon', icon_name: 'sensors-'+type+'-symbolic' }));
         this.addActor(new St.Label({text: label}));
         this.addActor(new St.Label({text: value}), {align: St.Align.END});
     },
@@ -144,27 +145,27 @@ const SensorsMenuButton = new Lang.Class({
                 if (temp['temp'] > max)
                     max = temp['temp'];
 
-                sensorsList.push(new SensorsItem(temp['label'], this._formatTemp(temp['temp'])));
+                sensorsList.push(new SensorsItem('temperature', temp['label'], this._formatTemp(temp['temp'])));
             }
             if (tempInfo.length > 0){
                 sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
 
                 // Add average and maximum entries
-                sensorsList.push(new SensorsItem(_("Average"), this._formatTemp(sum/tempInfo.length)));
-                sensorsList.push(new SensorsItem(_("Maximum"), this._formatTemp(max)));
+                sensorsList.push(new SensorsItem('temperature', _("Average"), this._formatTemp(sum/tempInfo.length)));
+                sensorsList.push(new SensorsItem('temperature', _("Maximum"), this._formatTemp(max)));
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
                     sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
 
             for each (let fan in fanInfo){
-                sensorsList.push(new SensorsItem(fan['label'], _("%drpm").format(fan['rpm'])));
+                sensorsList.push(new SensorsItem('fan', fan['label'], _("%drpm").format(fan['rpm'])));
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
                 sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let voltage in voltageInfo){
-                sensorsList.push(new SensorsItem(voltage['label'], _("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
+                sensorsList.push(new SensorsItem('voltage', voltage['label'], _("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
             }
 
             this.statusLabel.set_text(_("N/A")); // Just in case
@@ -239,6 +240,7 @@ let sensorsMenu;
 
 function init(extensionMeta) {
     Convenience.initTranslations();
+    Convenience.initIcons();
     settings = Convenience.getSettings();
 }
 

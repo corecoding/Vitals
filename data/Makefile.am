@@ -19,6 +19,13 @@ metadata.json: metadata.json.in $(top_builddir)/config.status
 
 CLEANFILES = metadata.json
 
+icondir = $(datadir)/icons/hicolor/scalable/status
+
+icon_DATA = \
+	sensors-fan-symbolic.svg \
+	sensors-temperature-symbolic.svg \
+	sensors-voltage-symbolic.svg
+
 gschemas_in = org.gnome.shell.extensions.sensors.gschema.xml.in
 
 @INTLTOOL_XML_NOMERGE_RULE@
