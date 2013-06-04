@@ -136,7 +136,7 @@ const SensorsMenuButton = new Lang.Class({
             c.destroy()
         });
         let section = new PopupMenu.PopupMenuSection("Temperature");
-        if (tempInfo.length > 0){
+        if (this.sensorsArgv && tempInfo.length > 0){
             let sensorsList = new Array();
             let sum = 0; //sum
             let max = 0; //max temp
@@ -182,13 +182,33 @@ const SensorsMenuButton = new Lang.Class({
                 section.addMenuItem(item);
             }
 
+            let _appSys = Shell.AppSystem.get_default();
+            let _gsmPrefs = _appSys.lookup_app('gnome-shell-extension-prefs.desktop');
+
+            // separator
+            section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+            let item = new PopupMenu.PopupBaseMenuItem();
+            // HACK: span and expand parameters don't work as expected on Label, so add an invisible
+            // Label to switch columns and not totally break the layout.
+            item.addActor(new St.Label({ text: '' }));
+            item.addActor(new St.Label({ text: _("Sensors Settings") }));
+            item.connect('activate', function () {
+                if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
+                    _gsmPrefs.activate();
+                } else {
+                    _gsmPrefs.launch(global.display.get_current_time_roundtrip(),
+                                     [metadata.uuid],-1,null);
+                }
+            });
+            section.addMenuItem(item);
         }else{
             this.statusLabel.set_text(_("Error"));
 
             let item = new PopupMenu.PopupMenuItem(
                 (this.sensorsArgv
                     ? _("Please run sensors-detect as root.")
-                    : _("Please install lm_sensors.")) + _("If this doesn\'t help, click here to report with your sensors output!")
+                    : _("Please install lm_sensors.")) + "\n" + _("If this doesn\'t help, click here to report with your sensors output!")
             );
             item.connect('activate',function() {
                 Util.spawn(["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"]);
@@ -196,26 +216,6 @@ const SensorsMenuButton = new Lang.Class({
             section.addMenuItem(item);
         }
 
-        let _appSys = Shell.AppSystem.get_default();
-        let _gsmPrefs = _appSys.lookup_app('gnome-shell-extension-prefs.desktop');
-
-        // separator
-        section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-        let item = new PopupMenu.PopupBaseMenuItem();
-        // HACK: span and expand parameters don't work as expected on Label, so add an invisible
-        // Label to switch columns and not totally break the layout.
-        item.addActor(new St.Label({ text: '' }));
-        item.addActor(new St.Label({ text: _("Sensors Settings") }));
-        item.connect('activate', function () {
-            if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
-                _gsmPrefs.activate();
-            } else {
-                _gsmPrefs.launch(global.display.get_current_time_roundtrip(),
-                                 [metadata.uuid],-1,null);
-            }
-        });
-        section.addMenuItem(item);
         this.menu.addMenuItem(section);
     },
 
