@@ -202,7 +202,11 @@ const SensorsMenuButton = new Lang.Class({
         // separator
         section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        let item = new PopupMenu.PopupMenuItem(_("Sensors Settings"));
+        let item = new PopupMenu.PopupBaseMenuItem();
+        // HACK: span and expand parameters don't work as expected on Label, so add an invisible
+        // Label to switch columns and not totally break the layout.
+        item.addActor(new St.Label({ text: '' }));
+        item.addActor(new St.Label({ text: _("Sensors Settings") }));
         item.connect('activate', function () {
             if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
                 _gsmPrefs.activate();
