@@ -74,6 +74,12 @@ const SensorsMenuButton = new Lang.Class({
             this.hddtempArgv = Utilities.detectHDDTemp();
         }
 
+        this.udisksProxies = [];
+        Utilities.UDisks.get_drive_ata_proxies((function(proxies) {
+            this.udisksProxies = proxies;
+            this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
+        }).bind(this));
+
         this._settingsChanged = settings.connect("changed", Lang.bind(this,function(){ this._querySensors(false); }));
 
         this._querySensors(true);
@@ -127,6 +133,8 @@ const SensorsMenuButton = new Lang.Class({
 
         if(this.hddtempArgv)
             tempInfo = tempInfo.concat(Utilities.parseHddTempOutput(hddtemp_output, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|'));
+
+        tempInfo = tempInfo.concat(Utilities.UDisks.create_list_from_proxies(this.udisksProxies));
 
         tempInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
         fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
