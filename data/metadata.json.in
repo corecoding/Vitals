@@ -1,13 +1,14 @@
 {
-  "description": "Shows CPU temperature, HDD temperature, voltage and fan RPM", 
-  "name": "Sensors", 
-  "settings-schema": "org.gnome.shell.extensions.sensors", 
+  "description": "Shows CPU temperature, HDD temperature, voltage and fan RPM",
+  "name": "Sensors",
+  "settings-schema": "org.gnome.shell.extensions.sensors",
   "gettext-domain": "@GETTEXT_PACKAGE@",
   "shell-version": [
-    "3.2", 
-    "3.4", 
+    "3.2",
+    "3.4",
     "3.6",
-    "3.8"
+    "3.8",
+    "3.10"
   ],
   "localedir": "@LOCALEDIR@",
   "url": "@url@", 
