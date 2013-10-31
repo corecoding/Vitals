@@ -96,7 +96,7 @@ const SensorsPrefsWidget = new GObject.Class({
 
         }
 
-        //List of items of the ComboBox 
+        //List of items of the ComboBox
         this._model =  new Gtk.ListStore();
         this._model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_BOOLEAN]);
         this._appendItem(_("Average"));
@@ -110,6 +110,7 @@ const SensorsPrefsWidget = new GObject.Class({
 
         //Fill the list
         this._getSensorsLabels();
+        this._getUdisksLabels();
 
         if(this._display_hdd_temp) {
             this._appendSeparator();
@@ -190,6 +191,14 @@ const SensorsPrefsWidget = new GObject.Class({
                 this._appendMultipleItems(hddTempInfo);
             }
         }
+    },
+
+    _getUdisksLabels: function() {
+        Utilities.UDisks.get_drive_ata_proxies((function(proxies) {
+            let list = Utilities.UDisks.create_list_from_proxies(proxies);
+
+            this._appendMultipleItems(list);
+        }).bind(this));
     },
 
     _getActiveSensorIter: function() {
