@@ -6,6 +6,16 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
+const UDisksDriveProxy = Gio.DBusProxy.makeProxyWrapper(
+<interface name="org.freedesktop.UDisks2.Drive">
+    <property type="s" name="Model" access="read"/>
+</interface>);
+
+const UDisksDriveAtaProxy = Gio.DBusProxy.makeProxyWrapper(
+<interface name="org.freedesktop.UDisks2.Drive.Ata">
+    <property type="d" name="SmartTemperature" access="read"/>
+</interface>);
+
 function detectSensors() {
     let path = GLib.find_program_in_path('sensors');
     return path ? [path] : undefined;
@@ -306,104 +316,3 @@ const UDisks = {
         });
     }
 };
-
-const UDisksDriveInterface = <interface name="org.freedesktop.UDisks2.Drive">
-    <method name="Eject">
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="SetConfiguration">
-        <arg type="a{sv}" name="value" direction="in"/>
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="PowerOff">
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <property type="s" name="Vendor" access="read"/>
-    <property type="s" name="Model" access="read"/>
-    <property type="s" name="Revision" access="read"/>
-    <property type="s" name="Serial" access="read"/>
-    <property type="s" name="WWN" access="read"/>
-    <property type="s" name="Id" access="read"/>
-    <property type="a{sv}" name="Configuration" access="read"/>
-    <property type="s" name="Media" access="read"/>
-    <property type="as" name="MediaCompatibility" access="read"/>
-    <property type="b" name="MediaRemovable" access="read"/>
-    <property type="b" name="MediaAvailable" access="read"/>
-    <property type="b" name="MediaChangeDetected" access="read"/>
-    <property type="t" name="Size" access="read"/>
-    <property type="t" name="TimeDetected" access="read"/>
-    <property type="t" name="TimeMediaDetected" access="read"/>
-    <property type="b" name="Optical" access="read"/>
-    <property type="b" name="OpticalBlank" access="read"/>
-    <property type="u" name="OpticalNumTracks" access="read"/>
-    <property type="u" name="OpticalNumAudioTracks" access="read"/>
-    <property type="u" name="OpticalNumDataTracks" access="read"/>
-    <property type="u" name="OpticalNumSessions" access="read"/>
-    <property type="i" name="RotationRate" access="read"/>
-    <property type="s" name="ConnectionBus" access="read"/>
-    <property type="s" name="Seat" access="read"/>
-    <property type="b" name="Removable" access="read"/>
-    <property type="b" name="Ejectable" access="read"/>
-    <property type="s" name="SortKey" access="read"/>
-    <property type="b" name="CanPowerOff" access="read"/>
-    <property type="s" name="SiblingId" access="read"/>
-</interface>;
-const UDisksDriveProxy = Gio.DBusProxy.makeProxyWrapper(UDisksDriveInterface);
-
-const UDisksDriveAtaInterface = <interface name="org.freedesktop.UDisks2.Drive.Ata">
-    <method name="SmartUpdate">
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="SmartGetAttributes">
-        <arg type="a{sv}" name="options" direction="in"/>
-        <arg type="a(ysqiiixia{sv})" name="attributes" direction="out"/>
-    </method>
-    <method name="SmartSelftestStart">
-        <arg type="s" name="type" direction="in"/>
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="SmartSelftestAbort">
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="SmartSetEnabled">
-        <arg type="b" name="value" direction="in"/>
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="PmGetState">
-        <arg type="a{sv}" name="options" direction="in"/>
-        <arg type="y" name="state" direction="out"/>
-    </method>
-    <method name="PmStandby">
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="PmWakeup">
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <method name="SecurityEraseUnit">
-        <arg type="a{sv}" name="options" direction="in"/>
-    </method>
-    <property type="b" name="SmartSupported" access="read"/>
-    <property type="b" name="SmartEnabled" access="read"/>
-    <property type="t" name="SmartUpdated" access="read"/>
-    <property type="b" name="SmartFailing" access="read"/>
-    <property type="t" name="SmartPowerOnSeconds" access="read"/>
-    <property type="d" name="SmartTemperature" access="read"/>
-    <property type="i" name="SmartNumAttributesFailing" access="read"/>
-    <property type="i" name="SmartNumAttributesFailedInThePast" access="read"/>
-    <property type="x" name="SmartNumBadSectors" access="read"/>
-    <property type="s" name="SmartSelftestStatus" access="read"/>
-    <property type="i" name="SmartSelftestPercentRemaining" access="read"/>
-    <property type="b" name="PmSupported" access="read"/>
-    <property type="b" name="PmEnabled" access="read"/>
-    <property type="b" name="ApmSupported" access="read"/>
-    <property type="b" name="ApmEnabled" access="read"/>
-    <property type="b" name="AamSupported" access="read"/>
-    <property type="b" name="AamEnabled" access="read"/>
-    <property type="i" name="AamVendorRecommendedValue" access="read"/>
-    <property type="b" name="WriteCacheSupported" access="read"/>
-    <property type="b" name="WriteCacheEnabled" access="read"/>
-    <property type="i" name="SecurityEraseUnitMinutes" access="read"/>
-    <property type="i" name="SecurityEnhancedEraseUnitMinutes" access="read"/>
-    <property type="b" name="SecurityFrozen" access="read"/>
-</interface>;
-const UDisksDriveAtaProxy = Gio.DBusProxy.makeProxyWrapper(UDisksDriveAtaInterface);
