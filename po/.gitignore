@@ -2,3 +2,4 @@ stamp-it
 POTFILES
 Makefile.in.in
 *.gmo
+*.mo
