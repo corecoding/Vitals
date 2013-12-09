@@ -81,11 +81,12 @@ const SensorsMenuButton = new Lang.Class({
         }));
 
         this._settingsChanged = settings.connect('changed', Lang.bind(this, this._querySensors));
+        this.connect('destroy', Lang.bind(this, this._onDestroy));
 
         this._querySensors(true);
     },
 
-    disconnectSignals: function(){
+    _onDestroy: function(){
         settings.disconnect(this._settingsChanged);
     },
 
@@ -261,6 +262,5 @@ function enable() {
 }
 
 function disable() {
-    sensorsMenu.disconnectSignals();
     sensorsMenu.destroy();
 }
