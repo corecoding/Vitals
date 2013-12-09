@@ -75,12 +75,12 @@ const SensorsMenuButton = new Lang.Class({
         }
 
         this.udisksProxies = [];
-        Utilities.UDisks.get_drive_ata_proxies((function(proxies) {
+        Utilities.UDisks.get_drive_ata_proxies(Lang.bind(this, function(proxies) {
             this.udisksProxies = proxies;
             this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
-        }).bind(this));
+        }));
 
-        this._settingsChanged = settings.connect("changed", Lang.bind(this,function(){ this._querySensors(false); }));
+        this._settingsChanged = settings.connect('changed', Lang.bind(this, this._querySensors));
 
         this._querySensors(true);
     },
@@ -226,7 +226,6 @@ const SensorsMenuButton = new Lang.Class({
 
         this.menu.addMenuItem(section);
     },
-
 
     _toFahrenheit: function(c){
         return ((9/5)*c+32);
