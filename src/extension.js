@@ -27,9 +27,9 @@ const SensorsItem = new Lang.Class({
         this._label = label;
         this._value = value;
 
-        this.addActor(new St.Icon({ style_class: 'system-status-icon', icon_name: 'sensors-'+type+'-symbolic' }));
-        this.addActor(new St.Label({text: label}));
-        this.addActor(new St.Label({text: value}), {align: St.Align.END});
+        this.actor.add(new St.Icon({ style_class: 'system-status-icon', icon_name: 'sensors-'+type+'-symbolic' }));
+        this.actor.add(new St.Label({text: label}));
+        this.actor.add(new St.Label({text: value}), {align: St.Align.END});
     },
 
     getPanelString: function() {
@@ -52,10 +52,10 @@ const SensorsItem = new Lang.Class({
 const SensorsMenuButton = new Lang.Class({
     Name: 'SensorsMenuButton',
 
-    Extends: PanelMenu.SystemStatusButton,
+    Extends: PanelMenu.Button,
 
     _init: function(){
-        PanelMenu.SystemStatusButton.prototype._init.call(this, 'sensorsMenu');
+        this.parent(0.0, 'sensorMenu');
 
         this._sensorsOutput = '';
         this._hddtempOutput = '';
@@ -199,8 +199,8 @@ const SensorsMenuButton = new Lang.Class({
             let item = new PopupMenu.PopupBaseMenuItem();
             // HACK: span and expand parameters don't work as expected on Label, so add an invisible
             // Label to switch columns and not totally break the layout.
-            item.addActor(new St.Label({ text: '' }));
-            item.addActor(new St.Label({ text: _("Sensors Settings") }));
+            item.actor.add(new St.Label({ text: '' }));
+            item.actor.add(new St.Label({ text: _("Sensors Settings") }));
             item.connect('activate', function () {
                 if (_gsmPrefs.get_state() == _gsmPrefs.SHELL_APP_STATE_RUNNING){
                     _gsmPrefs.activate();
