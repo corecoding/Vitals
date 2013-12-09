@@ -83,14 +83,22 @@ const SensorsMenuButton = new Lang.Class({
         this._settingsChanged = settings.connect('changed', Lang.bind(this, this._querySensors));
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        this._querySensors(true);
+        // don't postprone the first call by update-time.
+        this._querySensors();
+
+        this._eventLoop = Mainloop.timeout_add_seconds(settings.get_int('update-time'), Lang.bind(this, function (){
+            this._querySensors();
+            // readd to update queue
+            return true;
+        }));
     },
 
     _onDestroy: function(){
+        Mainloop.source_remove(this._eventLoop);
         settings.disconnect(this._settingsChanged);
     },
 
-    _querySensors: function(recurse){
+    _querySensors: function(){
         if (this.sensorsArgv){
             this._sensorsFuture = new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
                 this._sensorsOutput = stdout;
@@ -104,12 +112,6 @@ const SensorsMenuButton = new Lang.Class({
                 this._hddtempOutput = stdout;
                 this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
                 this._hddtempFuture = undefined;
-            }));
-        }
-
-        if(recurse){
-            Mainloop.timeout_add_seconds(settings.get_int('update-time'), Lang.bind(this, function (){
-                this._querySensors(true);
             }));
         }
     },
