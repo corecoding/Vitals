@@ -4,10 +4,6 @@
   "settings-schema": "org.gnome.shell.extensions.sensors",
   "gettext-domain": "@GETTEXT_PACKAGE@",
   "shell-version": [
-    "3.2",
-    "3.4",
-    "3.6",
-    "3.8",
     "3.10"
   ],
   "localedir": "@LOCALEDIR@",
