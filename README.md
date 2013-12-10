@@ -7,7 +7,8 @@ CPU fan RPM in GNOME Shell.
 The extension uses [sensors] from lm_sensors package (lm-sensors for Debian systems)
 to read temperature for different CPU cores and adapters, voltage data and fan speed.
 
-Optionally, this extension uses [hddtemp] to read hard drive temperature data.
+Optionally, this extension uses the [UDisks2] dbus interface or [hddtemp] as fallback to
+read hard drive temperature data.
 
 ![Screenshot][screenshot]
 
@@ -93,6 +94,7 @@ output consult the `sensors.conf`(5) manual.
 Authors : [authors]
 
 [sensors]: http://www.lm-sensors.org/
+[UDisks2]: http://www.freedesktop.org/wiki/Software/udisks/
 [hddtemp]: https://savannah.nongnu.org/projects/hddtemp/
 [GNOME extensions]: https://extensions.gnome.org/extension/82/cpu-temperature-indicator/
 [authors]: https://github.com/xtranophilist/gnome-shell-extension-sensors/graphs/contributors
