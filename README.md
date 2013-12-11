@@ -23,9 +23,11 @@ page for this extension.
 Installation by package manager
 -------------------------------
 
-Fedora has packaged an older version of this extension. You can install it by running:
+Fedora has packaged a **very old** version of this extension. You can install it by running:
 
 `yum -y install gnome-shell-extension-cpu-temperature`
+
+However this package will be retired and possibly replaced in the future according to Bug [RH#983409].
 
 Manual installation
 -------------------
@@ -44,10 +46,17 @@ The build dependenciesare:
 * *automake*,
 * *intltool*.
 
-To build the extension please run the following commands:
+To build the extension for gnome-shell 3.10 or newer please run the following commands:
 
     cd ~ && git clone https://github.com/xtranophilist/gnome-shell-extension-sensors.git
     cd ~/gnome-shell-extension-sensors
+    ./autogen.sh
+
+To build the extension for gnome-shell 3.8 or older please run the following commands:
+
+    cd ~ && git clone https://github.com/xtranophilist/gnome-shell-extension-sensors.git
+    cd ~/gnome-shell-extension-sensors
+    git checkout gnome-3.8
     ./autogen.sh
 
 You can install this extension for your user by executing:
@@ -99,3 +108,4 @@ Authors : [authors]
 [GNOME extensions]: https://extensions.gnome.org/extension/82/cpu-temperature-indicator/
 [authors]: https://github.com/xtranophilist/gnome-shell-extension-sensors/graphs/contributors
 [screenshot]: https://raw.github.com/wiki/xtranophilist/gnome-shell-extension-sensors/gnome-shell-extension-sensors.png
+[RH#983409]: https://bugzilla.redhat.com/show_bug.cgi?id=983409
