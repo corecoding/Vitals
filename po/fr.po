@@ -1,7 +1,7 @@
-French translation for gnome-shell-extension-sensors package
+# French translation for gnome-shell-extension-sensors package
 # Copyright (C) 2014 THE gnome-shell-extension-sensors'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the gnome-shell-extension-sensors package.
-Pablo Martin-Gomez <pablomg@eskapa.be>, 2014
+# Pablo Martin-Gomez <pablomg@eskapa.be>, 2014
 
 msgid ""
 msgstr ""
@@ -34,11 +34,11 @@ msgstr "%d tr/min"
 #: ../src/extension.js:167
 #, c-format
 msgid "%s%.2fV"
-msgstr "%s%.2f V"
+msgstr ""
 
 #: ../src/extension.js:170
 msgid "N/A"
-msgstr "N/A"
+msgstr ""
 
 #: ../src/extension.js:185
 msgid "Error"
