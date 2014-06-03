@@ -41,8 +41,7 @@ const SensorsItem = new Lang.Class({
     },
 
     setMainSensor: function() {
-        //this.setShowDot(true);
-        this.actor.add_style_class_name('popup-subtitle-menu-item'); //bold
+        this.setOrnament(PopupMenu.Ornament.DOT);
     },
 
     getLabel: function() {
