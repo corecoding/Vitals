@@ -159,7 +159,7 @@ function parseVoltageLine(label, value) {
 
 function parseHddTempOutput(txt, sep) {
     let hddtemp_output = [];
-    if (txt.indexOf((sep+sep), txt.length - (sep+sep).length))
+    if (txt.indexOf((sep+sep), txt.length - (sep+sep).length) >= 0)
     {
         hddtemp_output = txt.split(sep+sep);
     }
