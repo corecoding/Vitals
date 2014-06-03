@@ -11,6 +11,7 @@ const Shell = imports.gi.Shell;
 const Utilities = Me.imports.utilities;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const Clutter = imports.gi.Clutter;
 
 let settings;
 let metadata = Me.metadata;
@@ -55,17 +56,14 @@ const SensorsMenuButton = new Lang.Class({
     Extends: PanelMenu.Button,
 
     _init: function(){
-        this.parent(0.0, 'sensorMenu');
+        this.parent(null, 'sensorMenu');
 
         this._sensorsOutput = '';
         this._hddtempOutput = '';
 
-        this.statusLabel = new St.Label({ text: '\u2026' });
+        this.statusLabel = new St.Label({ text: '\u2026', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
-        // destroy all previously created children, and add our statusLabel
-        this.actor.get_children().forEach(function(c) {
-            c.destroy()
-        });
+        this.menu.removeAll();
         this.actor.add_actor(this.statusLabel);
 
         this.sensorsArgv = Utilities.detectSensors();
@@ -95,6 +93,7 @@ const SensorsMenuButton = new Lang.Class({
 
     _onDestroy: function(){
         Mainloop.source_remove(this._eventLoop);
+        this.menu.removeAll();
         settings.disconnect(this._settingsChanged);
     },
 
@@ -143,9 +142,7 @@ const SensorsMenuButton = new Lang.Class({
         fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
         voltageInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
 
-        this.menu.box.get_children().forEach(function(c) {
-            c.destroy()
-        });
+        this.menu.removeAll();
         let section = new PopupMenu.PopupMenuSection("Temperature");
         if (this.sensorsArgv && tempInfo.length > 0){
             let sensorsList = new Array();
