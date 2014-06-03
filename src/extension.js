@@ -256,9 +256,10 @@ function init(extensionMeta) {
 
 function enable() {
     sensorsMenu = new SensorsMenuButton();
-    Main.panel.addToStatusArea('sensorsMenu', sensorsMenu);
+    Main.panel.addToStatusArea('sensorsMenu', sensorsMenu, 1, 'right');
 }
 
 function disable() {
     sensorsMenu.destroy();
+    sensorsMenu = null;
 }
