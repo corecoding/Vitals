@@ -19,9 +19,9 @@ function init() {
     Convenience.initTranslations();
 }
 
-const SensorsPrefsWidget = new GObject.Class({
-    Name: 'Sensors.Prefs.Widget',
-    GTypeName: 'SensorsPrefsWidget',
+const FreonPrefsWidget = new GObject.Class({
+    Name: 'Freon.Prefs.Widget',
+    GTypeName: 'FreonPrefsWidget',
     Extends: Gtk.Grid,
 
     _init: function(params) {
@@ -239,7 +239,7 @@ const SensorsPrefsWidget = new GObject.Class({
 });
 
 function buildPrefsWidget() {
-    let widget = new SensorsPrefsWidget();
+    let widget = new FreonPrefsWidget();
     widget.show_all();
     return widget;
 }

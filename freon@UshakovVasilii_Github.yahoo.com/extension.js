@@ -5,22 +5,23 @@ const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
+const Shell = imports.gi.Shell;
+const Clutter = imports.gi.Clutter;
+const Gio = imports.gi.Gio;
+
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Shell = imports.gi.Shell;
 const Utilities = Me.imports.utilities;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const Clutter = imports.gi.Clutter;
 
 let settings;
-let metadata = Me.metadata;
 
-const SensorsItem = new Lang.Class({
-    Name: 'SensorsItem',
+const FreonItem = new Lang.Class({
+    Name: 'FreonItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
-    _init: function(type, label, value) {
+    _init: function(gIcon, label, value) {
         this.parent();
         this.connect('activate', function () {
             settings.set_string('main-sensor', label);
@@ -28,7 +29,7 @@ const SensorsItem = new Lang.Class({
         this._label = label;
         this._value = value;
 
-        this.actor.add(new St.Icon({ style_class: 'system-status-icon', icon_name: 'sensors-'+type+'-symbolic' }));
+        this.actor.add(new St.Icon({ style_class: 'system-status-icon', gicon : gIcon}));
         this.actor.add(new St.Label({text: label}));
         this.actor.add(new St.Label({text: value}), {align: St.Align.END});
     },
@@ -49,8 +50,8 @@ const SensorsItem = new Lang.Class({
     },
 });
 
-const SensorsMenuButton = new Lang.Class({
-    Name: 'SensorsMenuButton',
+const FreonMenuButton = new Lang.Class({
+    Name: 'FreonMenuButton',
 
     Extends: PanelMenu.Button,
 
@@ -59,6 +60,10 @@ const SensorsMenuButton = new Lang.Class({
 
         this._sensorsOutput = '';
         this._hddtempOutput = '';
+
+        this._temperatureGIcon = Gio.icon_new_for_string(Me.path + '/icons/sensors-temperature-symbolic.svg');
+        this._voltageGIcon = Gio.icon_new_for_string(Me.path + '/icons/sensors-voltage-symbolic.svg');
+        this._fanGIcon = Gio.icon_new_for_string(Me.path + '/icons/sensors-fan-symbolic.svg');
 
         this.statusLabel = new St.Label({ text: '\u2026', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
@@ -91,6 +96,15 @@ const SensorsMenuButton = new Lang.Class({
     },
 
     _onDestroy: function(){
+        for each (let proxy in this.udisksProxies){
+            if(proxy.drive){
+                proxy.drive.run_dispose();
+            }
+            if(proxy.ata){
+                proxy.ata.run_dispose();
+            }
+        }
+        
         Mainloop.source_remove(this._eventLoop);
         this.menu.removeAll();
         settings.disconnect(this._settingsChanged);
@@ -152,33 +166,33 @@ const SensorsMenuButton = new Lang.Class({
                 if (temp['temp'] > max)
                     max = temp['temp'];
 
-                sensorsList.push(new SensorsItem('temperature', temp['label'], this._formatTemp(temp['temp'])));
+                sensorsList.push(new FreonItem(this._temperatureGIcon, temp['label'], this._formatTemp(temp['temp'])));
             }
             if (tempInfo.length > 0){
                 sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
 
                 // Add average and maximum entries
-                sensorsList.push(new SensorsItem('temperature', _("Average"), this._formatTemp(sum/tempInfo.length)));
-                sensorsList.push(new SensorsItem('temperature', _("Maximum"), this._formatTemp(max)));
+                sensorsList.push(new FreonItem(this._temperatureGIcon, _("Average"), this._formatTemp(sum/tempInfo.length)));
+                sensorsList.push(new FreonItem(this._temperatureGIcon, _("Maximum"), this._formatTemp(max)));
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
                     sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
 
             for each (let fan in fanInfo){
-                sensorsList.push(new SensorsItem('fan', fan['label'], _("%drpm").format(fan['rpm'])));
+                sensorsList.push(new FreonItem(this._fanGIcon, fan['label'], _("%drpm").format(fan['rpm'])));
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
                 sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
             }
             for each (let voltage in voltageInfo){
-                sensorsList.push(new SensorsItem('voltage', voltage['label'], _("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
+                sensorsList.push(new FreonItem(this._voltageGIcon, voltage['label'], _("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
             }
 
             this.statusLabel.set_text(_("N/A")); // Just in case
 
             for each (let item in sensorsList) {
-                if(item instanceof SensorsItem) {
+                if(item instanceof FreonItem) {
                     if (settings.get_string('main-sensor') == item.getLabel()) {
 
                         // Configure as main sensor and set panel string
@@ -199,11 +213,11 @@ const SensorsMenuButton = new Lang.Class({
             item.actor.add(new St.Label({ text: _("Sensors Settings") }));
 
             item.connect('activate', function () {
-                Util.spawn(["gnome-shell-extension-prefs", metadata.uuid]);
+                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
             });
 
             section.addMenuItem(item);
-        }else{
+        } else {
             this.statusLabel.set_text(_("Error"));
 
             let item = new PopupMenu.PopupMenuItem(
@@ -212,7 +226,7 @@ const SensorsMenuButton = new Lang.Class({
                     : _("Please install lm_sensors.")) + "\n" + _("If this doesn\'t help, click here to report with your sensors output!")
             );
             item.connect('activate',function() {
-                Util.spawn(["xdg-open", "http://github.com/xtranophilist/gnome-shell-extension-sensors/issues/"]);
+                Util.spawn(["xdg-open", "https://github.com/UshakovVasilii/gnome-shell-extension-freon/issues"]);
             });
             section.addMenuItem(item);
         }
@@ -240,20 +254,19 @@ const SensorsMenuButton = new Lang.Class({
     }
 });
 
-let sensorsMenu;
+let freonMenu;
 
 function init(extensionMeta) {
     Convenience.initTranslations();
-    Convenience.initIcons();
     settings = Convenience.getSettings();
 }
 
 function enable() {
-    sensorsMenu = new SensorsMenuButton();
-    Main.panel.addToStatusArea('sensorsMenu', sensorsMenu, 1, 'right');
+    freonMenu = new FreonMenuButton();
+    Main.panel.addToStatusArea('freonMenu', freonMenu, 1, 'right');
 }
 
 function disable() {
-    sensorsMenu.destroy();
-    sensorsMenu = null;
+    freonMenu.destroy();
+    freonMenu = null;
 }
