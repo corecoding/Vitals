@@ -77,7 +77,7 @@ const SensorsPrefsWidget = new GObject.Class({
 
         let counter = 3;
 
-        for (boolSetting in boolSettings){
+        for (let boolSetting in boolSettings) {
             let setting = boolSettings[boolSetting];
             let settingLabel = new Gtk.Label({ label: setting.label });
             let settingSwitch = new Gtk.Switch({active: this._settings.get_boolean(setting.name)});
