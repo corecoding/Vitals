@@ -50,17 +50,14 @@ const FreonPrefsWidget = new GObject.Class({
         this.attach(fahrenheitRadio, 2, i++, 1, 1);
 
         // Switches
-        this._addSwitch({key : 'display-degree-sign', y : i, x : 0,
-            label : _('Display temperature unit'),
-            help : _("Show temperature unit in panel and menu")});
-        this._addSwitch({key : 'display-decimal-value', y : i++, x : 2,
+        this._addSwitch({key : 'display-decimal-value', y : i, x : 0,
             label : _('Display decimal value'),
             help : _("Show one digit after decimal")});
-        this._addSwitch({key : 'display-hdd-temp', y : i, x : 0,
+        this._addSwitch({key : 'display-hdd-temp', y : i++, x : 2,
             label : _('Display drive temperature')});
-        this._addSwitch({key : 'display-fan-rpm', y : i++, x : 2,
+        this._addSwitch({key : 'display-fan-rpm', y : i, x : 0,
             label : _('Display fan speed')});
-        this._addSwitch({key : 'display-voltage', y : i++, x : 0,
+        this._addSwitch({key : 'display-voltage', y : i++, x : 2,
             label : _('Display power supply voltage')});
 
         //List of items of the ComboBox

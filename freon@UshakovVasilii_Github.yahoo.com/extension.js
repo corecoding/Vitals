@@ -247,9 +247,7 @@ const FreonMenuButton = new Lang.Class({
             //ret = Math.round(value);
             format = '%d';
         }
-        if (settings.get_boolean('display-degree-sign')) {
-            format += '%s';
-        }
+        format += '%s';
         return format.format(value, (settings.get_string('unit')=='Fahrenheit') ? "\u00b0F" : "\u00b0C");
     }
 });

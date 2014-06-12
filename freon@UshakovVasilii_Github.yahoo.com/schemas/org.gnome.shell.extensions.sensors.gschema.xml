@@ -27,12 +27,6 @@
       <description>Select the sensor whose value has to be shown in the panel</description>
     </key>
 
-    <key type="b" name="display-degree-sign">
-      <default>true</default>
-      <summary>Show degree sign</summary>
-      <description>Show degree sign in panel and menu</description>
-    </key>
-
     <key type="b" name="display-decimal-value">
       <default>false</default>
       <summary>Show decimal value</summary>
