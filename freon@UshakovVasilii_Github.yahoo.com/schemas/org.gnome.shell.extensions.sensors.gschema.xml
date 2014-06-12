@@ -10,9 +10,9 @@
     </key>
 
     <key type="s" name="unit">
-      <default>"Centigrade"</default>
+      <default>'centigrade'</default>
       <summary>Unit</summary>
-      <description>The unit ('centigrade' or 'fahrenheit', without quotes) the extension should display the temperature in.</description>
+      <description>The unit ('centigrade' or 'fahrenheit') the extension should display the temperature in.</description>
     </key>
 
     <key type="b" name="display-label">

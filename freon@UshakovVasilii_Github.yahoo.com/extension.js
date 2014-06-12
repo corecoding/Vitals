@@ -239,7 +239,7 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _formatTemp: function(value) {
-        if (settings.get_string('unit')=='Fahrenheit'){
+        if (settings.get_string('unit')=='fahrenheit'){
             value = this._toFahrenheit(value);
         }
         let format = '%.1f';
@@ -248,7 +248,7 @@ const FreonMenuButton = new Lang.Class({
             format = '%d';
         }
         format += '%s';
-        return format.format(value, (settings.get_string('unit')=='Fahrenheit') ? "\u00b0F" : "\u00b0C");
+        return format.format(value, (settings.get_string('unit')=='fahrenheit') ? "\u00b0F" : "\u00b0C");
     }
 });
 

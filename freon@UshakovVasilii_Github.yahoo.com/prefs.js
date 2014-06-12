@@ -34,31 +34,45 @@ const FreonPrefsWidget = new GObject.Class({
 
         this.attach(new Gtk.Label({ label: _('Poll sensors every (sec)'), halign : Gtk.Align.END}), 0, i, 1, 1);
         let updateTime = Gtk.SpinButton.new_with_range (1, 60, 1);
-        this.attach(updateTime, 1, i++, 1, 1);
+        this.attach(updateTime, 1, i, 1, 1);
         this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        this.attach(new Gtk.Label({ label: _("Temperature unit"), halign : Gtk.Align.END}), 0, i, 1, 1);
-        let centigradeRadio = new Gtk.RadioButton({ group: null, label: _("Centigrade"), valign: Gtk.Align.START });
-        let fahrenheitRadio = new Gtk.RadioButton({ group: centigradeRadio, label: _("Fahrenheit"), valign: Gtk.Align.START });
-        fahrenheitRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
-        centigradeRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
-        if (this._settings.get_string('unit')=='Centigrade')
-            centigradeRadio.active = true;
-        else
-            fahrenheitRadio.active = true;
-        this.attach(centigradeRadio, 1, i, 1, 1);
-        this.attach(fahrenheitRadio, 2, i++, 1, 1);
+        // Temperature Unit ComboBox
+        let tUnitModel = new Gtk.ListStore();
+        tUnitModel.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING]);
+
+        let tUnit = new Gtk.ComboBox({model: tUnitModel});
+        let tUnitRenderer = new Gtk.CellRendererText();
+        tUnit.pack_start(tUnitRenderer, true);
+        tUnit.add_attribute(tUnitRenderer, 'text', 1);
+
+        let tUnitItems = ["centigrade", "fahrenheit"];
+
+        tUnitModel.set(tUnitModel.append(), [0, 1], [tUnitItems[0], "\u00b0C"]);
+        tUnitModel.set(tUnitModel.append(), [0, 1], [tUnitItems[1], "\u00b0F"]);
+
+        tUnit.set_active(tUnitItems.indexOf(this._settings.get_string('unit')));
+        
+        tUnit.connect('changed', Lang.bind(this, function(entry) {
+            let [success, iter] = tUnit.get_active_iter();
+            if (!success)
+                return;
+            this._settings.set_string('unit', tUnitModel.get_value(iter, 0))
+        }));
+
+        this.attach(new Gtk.Label({ label: _('Temperature Unit'), halign : Gtk.Align.END}), 2, i, 1, 1);
+        this.attach(tUnit, 3, i++, 1, 1);
 
         // Switches
         this._addSwitch({key : 'display-decimal-value', y : i, x : 0,
-            label : _('Display decimal value'),
+            label : _('Show Decimal Value'),
             help : _("Show one digit after decimal")});
         this._addSwitch({key : 'display-hdd-temp', y : i++, x : 2,
-            label : _('Display drive temperature')});
+            label : _('Show Drive Temperature')});
         this._addSwitch({key : 'display-fan-rpm', y : i, x : 0,
-            label : _('Display fan speed')});
+            label : _('Show Fan Speed')});
         this._addSwitch({key : 'display-voltage', y : i++, x : 2,
-            label : _('Display power supply voltage')});
+            label : _('Show Power Supply Voltage')});
 
         //List of items of the ComboBox
         this._model =  new Gtk.ListStore();
@@ -191,12 +205,6 @@ const FreonPrefsWidget = new GObject.Class({
             success = this._model.iter_next(iter);
         }
         return iter;
-    },
-
-    _onUnitChanged: function (unit) {
-        if (unit.get_active()) {
-            this._settings.set_string('unit', unit.label);
-        }
     },
 
     _onSelectorChanged: function (comboBox) {
