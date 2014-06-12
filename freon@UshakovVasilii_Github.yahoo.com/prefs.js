@@ -30,10 +30,17 @@ const FreonPrefsWidget = new GObject.Class({
 
         let i = 0;
 
-        this.attach(new Gtk.Label({ label: _('Poll sensors every (sec)'), halign : Gtk.Align.END}), 0, i, 1, 1);
+        this.attach(new Gtk.Label({ label: _('Poll Sensors Every (sec)'), halign : Gtk.Align.END}), 0, i, 1, 1);
         let updateTime = Gtk.SpinButton.new_with_range (1, 60, 1);
         this.attach(updateTime, 1, i, 1, 1);
         this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
+
+        this._addSwitch({key : 'display-label', y : i++, x : 2,
+            label : _('Show Sensor Label')});
+
+        this._addSwitch({key : 'display-decimal-value', y : i, x : 0,
+            label : _('Show Decimal Value'),
+            help : _("Show one digit after decimal")});
 
         // Temperature Unit ComboBox
         let tUnitModel = new Gtk.ListStore();
@@ -61,19 +68,18 @@ const FreonPrefsWidget = new GObject.Class({
         this.attach(new Gtk.Label({ label: _('Temperature Unit'), halign : Gtk.Align.END}), 2, i, 1, 1);
         this.attach(tUnit, 3, i++, 1, 1);
 
-        // Switches
-        this._addSwitch({key : 'display-decimal-value', y : i, x : 0,
-            label : _('Show Decimal Value'),
-            help : _("Show one digit after decimal")});
-        this._addSwitch({key : 'display-hdd-temp', y : i++, x : 2,
+        //
+
+
+        this._addSwitch({key : 'display-hdd-temp', y : i, x : 0,
             label : _('Show Drive Temperature')});
-        this._addSwitch({key : 'display-fan-rpm', y : i, x : 0,
+
+        this._addSwitch({key : 'display-fan-rpm', y : i++, x : 2,
             label : _('Show Fan Speed')});
-        this._addSwitch({key : 'display-voltage', y : i++, x : 2,
+
+        this._addSwitch({key : 'display-voltage', y : i, x : 0,
             label : _('Show Power Supply Voltage')});
 
-        this._addSwitch({key : 'display-label', y : i, x : 0,
-            label : _('Show Sensor Label')});
     },
 
     _addSwitch : function(params){
