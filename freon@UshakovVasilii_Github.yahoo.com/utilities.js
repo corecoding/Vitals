@@ -163,20 +163,16 @@ function parseVoltageLine(label, value) {
 
 function parseHddTempOutput(txt, sep) {
     let hddtemp_output = [];
-    if (txt.indexOf((sep+sep), txt.length - (sep+sep).length) >= 0)
-    {
+    if (txt.indexOf(sep+sep) > 0) {
         hddtemp_output = txt.split(sep+sep);
-    }
-	else
-    {
+    } else {
         hddtemp_output = txt.split("\n");
     }
 
     hddtemp_output = hddtemp_output.filter(function(e){ return e; });
 
     let sensors = new Array();
-    for each(let line in hddtemp_output)
-    {
+    for each(let line in hddtemp_output) {
         let sensor = new Array();
         let fields = line.split(sep).filter(function(e){ return e; });
         sensor['label'] = _("Drive %s").format(fields[0].split('/').pop());
