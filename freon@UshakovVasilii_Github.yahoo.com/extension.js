@@ -35,7 +35,7 @@ const FreonItem = new Lang.Class({
     },
 
     getPanelString: function() {
-        if(settings.get_boolean('display-label'))
+        if(settings.get_boolean('show-label'))
             return '%s: %s'.format(this._label, this._value);
         else
             return this._value;
@@ -71,10 +71,7 @@ const FreonMenuButton = new Lang.Class({
         this.actor.add_actor(this.statusLabel);
 
         this.sensorsArgv = Utilities.detectSensors();
-
-        if (settings.get_boolean('display-hdd-temp')){
-            this.hddtempArgv = Utilities.detectHDDTemp();
-        }
+        this.hddtempArgv = Utilities.detectHDDTemp();
 
         this.udisksProxies = [];
         Utilities.UDisks.get_drive_ata_proxies(Lang.bind(this, function(proxies) {
@@ -119,7 +116,7 @@ const FreonMenuButton = new Lang.Class({
             }));
         }
 
-        if (this.hddtempArgv){
+        if (settings.get_boolean('show-hdd-temp') && this.hddtempArgv){
             this._hddtempFuture = new Utilities.Future(this.hddtempArgv, Lang.bind(this,function(stdout){
                 this._hddtempOutput = stdout;
                 this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
@@ -129,8 +126,8 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _updateDisplay: function(sensors_output, hddtemp_output){
-        let display_fan_rpm = settings.get_boolean('display-fan-rpm');
-        let display_voltage = settings.get_boolean('display-voltage');
+        let display_fan_rpm = settings.get_boolean('show-fan-rpm');
+        let display_voltage = settings.get_boolean('show-voltage');
 
         let tempInfo = Array();
         let fanInfo = Array();
@@ -146,7 +143,7 @@ const FreonMenuButton = new Lang.Class({
             voltageInfo = Utilities.parseSensorsOutput(sensors_output,Utilities.parseVoltageLine);
         }
 
-        if(this.hddtempArgv)
+        if(settings.get_boolean('show-hdd-temp') && this.hddtempArgv)
             tempInfo = tempInfo.concat(Utilities.parseHddTempOutput(hddtemp_output, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|'));
 
         tempInfo = tempInfo.concat(Utilities.UDisks.create_list_from_proxies(this.udisksProxies));
@@ -243,7 +240,7 @@ const FreonMenuButton = new Lang.Class({
             value = this._toFahrenheit(value);
         }
         let format = '%.1f';
-        if (!settings.get_boolean('display-decimal-value')){
+        if (!settings.get_boolean('show-decimal-value')){
             //ret = Math.round(value);
             format = '%d';
         }

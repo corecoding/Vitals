@@ -15,7 +15,7 @@
       <description>The unit ('centigrade' or 'fahrenheit') the extension should display the temperature in.</description>
     </key>
 
-    <key type="b" name="display-label">
+    <key type="b" name="show-label">
       <default>false</default>
       <summary>Display label</summary>
       <description>Display also the label of the sensor in the panel</description>
@@ -27,25 +27,25 @@
       <description>Select the sensor whose value has to be shown in the panel</description>
     </key>
 
-    <key type="b" name="display-decimal-value">
+    <key type="b" name="show-decimal-value">
       <default>false</default>
       <summary>Show decimal value</summary>
       <description>Show one digit after decimal</description>
     </key>
 
-    <key type="b" name="display-hdd-temp">
+    <key type="b" name="show-hdd-temp">
       <default>true</default>
       <summary>Display HDD Temp</summary>
       <description>Display hard disk drive temperature. Requires hddtemp installed.</description>
     </key>
 
-    <key type="b" name="display-fan-rpm">
+    <key type="b" name="show-fan-rpm">
       <default>true</default>
       <summary>Display Fan RPM</summary>
       <description>Display fan rotation per minute.</description>
     </key>
 
-    <key type="b" name="display-voltage">
+    <key type="b" name="show-voltage">
       <default>true</default>
       <summary>Display voltage</summary>
       <description>Display voltage of various components.</description>

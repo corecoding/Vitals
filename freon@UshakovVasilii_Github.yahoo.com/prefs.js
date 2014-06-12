@@ -35,10 +35,10 @@ const FreonPrefsWidget = new GObject.Class({
         this.attach(updateTime, 1, i, 1, 1);
         this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        this._addSwitch({key : 'display-label', y : i++, x : 2,
+        this._addSwitch({key : 'show-label', y : i++, x : 2,
             label : _('Show Sensor Label')});
 
-        this._addSwitch({key : 'display-decimal-value', y : i, x : 0,
+        this._addSwitch({key : 'show-decimal-value', y : i, x : 0,
             label : _('Show Decimal Value'),
             help : _("Show one digit after decimal")});
 
@@ -71,13 +71,13 @@ const FreonPrefsWidget = new GObject.Class({
         //
 
 
-        this._addSwitch({key : 'display-hdd-temp', y : i, x : 0,
+        this._addSwitch({key : 'show-hdd-temp', y : i, x : 0,
             label : _('Show Drive Temperature')});
 
-        this._addSwitch({key : 'display-fan-rpm', y : i++, x : 2,
+        this._addSwitch({key : 'show-fan-rpm', y : i++, x : 2,
             label : _('Show Fan Speed')});
 
-        this._addSwitch({key : 'display-voltage', y : i, x : 0,
+        this._addSwitch({key : 'show-voltage', y : i, x : 0,
             label : _('Show Power Supply Voltage')});
 
     },
