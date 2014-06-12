@@ -105,16 +105,11 @@ const FreonPrefsWidget = new GObject.Class({
         this._sensorSelector.add_attribute(renderer, 'text', modelColumn.label);
         this._sensorSelector.connect('changed', Lang.bind(this, this._onSelectorChanged));
 
-        this.attach(new Gtk.Label({ label: _("Sensor in panel"), halign : Gtk.Align.END}), 0, ++i, 1, 1);
+        this.attach(new Gtk.Label({ label: _("Sensor in Panel"), halign : Gtk.Align.END}), 0, ++i, 1, 1);
         this.attach(this._sensorSelector, 1, i , 1, 1);
 
-        let settings = this._settings;
-        let checkButton = new Gtk.CheckButton({label: _("Display sensor label")});
-        checkButton.set_active(settings.get_boolean('display-label'));
-        checkButton.connect('toggled', function () {
-            settings.set_boolean('display-label', checkButton.get_active());
-        });
-        this.attach(checkButton, 2, i , 1, 1);
+        this._addSwitch({key : 'display-label', y : i, x : 2,
+            label : _('Show Sensor Label')});
     },
 
     _addSwitch : function(params){
