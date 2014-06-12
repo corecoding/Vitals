@@ -30,12 +30,14 @@ const FreonPrefsWidget = new GObject.Class({
 
         this._settings = Convenience.getSettings();
 
-        this.attach(new Gtk.Label({ label: _('Poll sensors every (in seconds)'), halign : Gtk.Align.END}), 0, 0, 1, 1);
+        let i = 0;
+
+        this.attach(new Gtk.Label({ label: _('Poll sensors every (sec)'), halign : Gtk.Align.END}), 0, i, 1, 1);
         let updateTime = Gtk.SpinButton.new_with_range (1, 60, 1);
-        this.attach(updateTime, 1, 0, 1, 1);
+        this.attach(updateTime, 1, i++, 1, 1);
         this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        this.attach(new Gtk.Label({ label: _("Temperature unit") }), 0, 2, 1, 1);
+        this.attach(new Gtk.Label({ label: _("Temperature unit"), halign : Gtk.Align.END}), 0, i, 1, 1);
         let centigradeRadio = new Gtk.RadioButton({ group: null, label: _("Centigrade"), valign: Gtk.Align.START });
         let fahrenheitRadio = new Gtk.RadioButton({ group: centigradeRadio, label: _("Fahrenheit"), valign: Gtk.Align.START });
         fahrenheitRadio.connect('toggled', Lang.bind(this, this._onUnitChanged));
@@ -44,54 +46,22 @@ const FreonPrefsWidget = new GObject.Class({
             centigradeRadio.active = true;
         else
             fahrenheitRadio.active = true;
-        this.attach(centigradeRadio, 1, 2, 1, 1);
-        this.attach(fahrenheitRadio, 2, 2, 1, 1);
+        this.attach(centigradeRadio, 1, i, 1, 1);
+        this.attach(fahrenheitRadio, 2, i++, 1, 1);
 
-        let boolSettings = {
-            display_degree_sign: {
-                name: "display-degree-sign",
-                label: _("Display temperature unit"),
-                help: _("Show temperature unit in panel and menu.")
-            },
-            display_decimal_value: {
-                name: "display-decimal-value",
-                label: _("Display decimal value"),
-                help: _("Show one digit after decimal.")
-           },
-           show_hdd_temp: {
-                name: "display-hdd-temp",
-                label: _("Display drive temperature"),
-           },
-           show_fan_rpm: {
-                name: "display-fan-rpm",
-                label: _("Display fan speed"),
-           },
-           show_voltage: {
-                name: "display-voltage",
-                label: _("Display power supply voltage"),
-           },
-        }
-
-        let counter = 3;
-
-        for (let boolSetting in boolSettings) {
-            let setting = boolSettings[boolSetting];
-            let settingLabel = new Gtk.Label({ label: setting.label });
-            let settingSwitch = new Gtk.Switch({active: this._settings.get_boolean(setting.name)});
-            let settings = this._settings;
-            settingSwitch.connect('notify::active', function(button) {
-                settings.set_boolean(setting.name, button.active);
-            });
-
-            if (setting.help) {
-               settingLabel.set_tooltip_text(setting.help);
-               settingSwitch.set_tooltip_text(setting.help);
-            }
-
-            this.attach(settingLabel, 0, counter, 1, 1);
-            this.attach(settingSwitch, 1, counter++, 1, 1);
-
-        }
+        // Switches
+        this._addSwitch({key : 'display-degree-sign', y : i, x : 0,
+            label : _('Display temperature unit'),
+            help : _("Show temperature unit in panel and menu")});
+        this._addSwitch({key : 'display-decimal-value', y : i++, x : 2,
+            label : _('Display decimal value'),
+            help : _("Show one digit after decimal")});
+        this._addSwitch({key : 'display-hdd-temp', y : i, x : 0,
+            label : _('Display drive temperature')});
+        this._addSwitch({key : 'display-fan-rpm', y : i++, x : 2,
+            label : _('Display fan speed')});
+        this._addSwitch({key : 'display-voltage', y : i++, x : 0,
+            label : _('Display power supply voltage')});
 
         //List of items of the ComboBox
         this._model =  new Gtk.ListStore();
@@ -124,8 +94,8 @@ const FreonPrefsWidget = new GObject.Class({
         this._sensorSelector.add_attribute(renderer, 'text', modelColumn.label);
         this._sensorSelector.connect('changed', Lang.bind(this, this._onSelectorChanged));
 
-        this.attach(new Gtk.Label({ label: _("Sensor in panel") }), 0, ++counter, 1, 1);
-        this.attach(this._sensorSelector, 1, counter , 1, 1);
+        this.attach(new Gtk.Label({ label: _("Sensor in panel"), halign : Gtk.Align.END}), 0, ++i, 1, 1);
+        this.attach(this._sensorSelector, 1, i , 1, 1);
 
         let settings = this._settings;
         let checkButton = new Gtk.CheckButton({label: _("Display sensor label")});
@@ -133,7 +103,19 @@ const FreonPrefsWidget = new GObject.Class({
         checkButton.connect('toggled', function () {
             settings.set_boolean('display-label', checkButton.get_active());
         });
-        this.attach(checkButton, 2, counter , 1, 1);
+        this.attach(checkButton, 2, i , 1, 1);
+    },
+
+    _addSwitch : function(params){
+        let lbl = new Gtk.Label({label: params.label,halign : Gtk.Align.END});
+        this.attach(lbl, params.x, params.y, 1, 1);
+        let sw = new Gtk.Switch({halign : Gtk.Align.END, valign : Gtk.Align.CENTER});
+        this.attach(sw, params.x + 1, params.y, 1, 1);
+        if(params.help){
+            lbl.set_tooltip_text(params.help);
+            sw.set_tooltip_text(params.help);
+        }
+        this._settings.bind(params.key, sw, 'active', Gio.SettingsBindFlags.DEFAULT);
     },
 
     _comboBoxSeparator: function(model, iter, data) {
@@ -232,7 +214,7 @@ const FreonPrefsWidget = new GObject.Class({
 });
 
 function buildPrefsWidget() {
-    let widget = new FreonPrefsWidget();
-    widget.show_all();
-    return widget;
+    let w = new FreonPrefsWidget();
+    w.show_all();
+    return w;
 }
