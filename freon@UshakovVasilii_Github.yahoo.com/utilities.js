@@ -7,18 +7,18 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
 const UDisksDriveProxy = Gio.DBusProxy.makeProxyWrapper(
-<node>
-    <interface name="org.freedesktop.UDisks2.Drive">
-        <property type="s" name="Model" access="read"/>
-    </interface>
-</node>);
+'<node>'\
+'    <interface name="org.freedesktop.UDisks2.Drive">'\
+'        <property type="s" name="Model" access="read"/>'\
+'    </interface>'\
+'</node>');
 
 const UDisksDriveAtaProxy = Gio.DBusProxy.makeProxyWrapper(
-<node>
-    <interface name="org.freedesktop.UDisks2.Drive.Ata">
-        <property type="d" name="SmartTemperature" access="read"/>
-    </interface>
-</node>);
+'<node>'\
+'    <interface name="org.freedesktop.UDisks2.Drive.Ata">'\
+'        <property type="d" name="SmartTemperature" access="read"/>'\
+'    </interface>'\
+'</node>');
 
 function detectSensors() {
     let path = GLib.find_program_in_path('sensors');
