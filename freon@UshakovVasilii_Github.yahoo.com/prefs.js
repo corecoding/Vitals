@@ -1,4 +1,3 @@
-const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
@@ -6,7 +5,6 @@ const Lang = imports.lang;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Utilities = Me.imports.utilities;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -74,41 +72,7 @@ const FreonPrefsWidget = new GObject.Class({
         this._addSwitch({key : 'display-voltage', y : i++, x : 2,
             label : _('Show Power Supply Voltage')});
 
-        //List of items of the ComboBox
-        this._model =  new Gtk.ListStore();
-        this._model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_BOOLEAN]);
-        this._appendItem(_("Average"));
-        this._appendItem(_("Maximum"));
-        this._appendSeparator();
-
-        //Get current options
-        this._display_fan_rpm = this._settings.get_boolean('display-fan-rpm');
-        this._display_voltage = this._settings.get_boolean('display-voltage');
-        this._display_hdd_temp = this._settings.get_boolean('display-hdd-temp');
-
-        //Fill the list
-        this._getSensorsLabels();
-        this._getUdisksLabels();
-
-        if(this._display_hdd_temp) {
-            this._appendSeparator();
-            this._getHddTempLabels();
-        }
-
-        // ComboBox to select which sensor to show in panel
-        this._sensorSelector = new Gtk.ComboBox({ model: this._model });
-        this._sensorSelector.set_active_iter(this._getActiveSensorIter());
-        this._sensorSelector.set_row_separator_func(Lang.bind(this, this._comboBoxSeparator), null, null);
-
-        let renderer = new Gtk.CellRendererText();
-        this._sensorSelector.pack_start(renderer, true);
-        this._sensorSelector.add_attribute(renderer, 'text', modelColumn.label);
-        this._sensorSelector.connect('changed', Lang.bind(this, this._onSelectorChanged));
-
-        this.attach(new Gtk.Label({ label: _("Sensor in Panel"), halign : Gtk.Align.END}), 0, ++i, 1, 1);
-        this.attach(this._sensorSelector, 1, i , 1, 1);
-
-        this._addSwitch({key : 'display-label', y : i, x : 2,
+        this._addSwitch({key : 'display-label', y : i, x : 0,
             label : _('Show Sensor Label')});
     },
 
@@ -122,94 +86,7 @@ const FreonPrefsWidget = new GObject.Class({
             sw.set_tooltip_text(params.help);
         }
         this._settings.bind(params.key, sw, 'active', Gio.SettingsBindFlags.DEFAULT);
-    },
-
-    _comboBoxSeparator: function(model, iter, data) {
-        return model.get_value(iter, modelColumn.separator);
-    },
-
-    _appendItem: function(label) {
-        this._model.set(this._model.append(), [modelColumn.label], [label]);
-    },
-
-    _appendMultipleItems: function(sensorInfo) {
-        for each (let sensor in sensorInfo) {
-            this._model.set(this._model.append(), [modelColumn.label], [sensor['label']]);
-        }
-    },
-
-    _appendSeparator: function() {
-        this._model.set (this._model.append(), [modelColumn.separator], [true]);
-    },
-
-    _getSensorsLabels: function() {
-        let sensors_cmd = Utilities.detectSensors();
-        if(sensors_cmd) {
-            let sensors_output = GLib.spawn_command_line_sync(sensors_cmd.join(' '));
-            if(sensors_output[0])
-            {
-                let output = sensors_output[1].toString();
-                let tempInfo = Utilities.parseSensorsOutput(output,Utilities.parseSensorsTemperatureLine);
-                tempInfo = tempInfo.filter(Utilities.filterTemperature);
-                this._appendMultipleItems(tempInfo);
-
-                if (this._display_fan_rpm){
-                    let fanInfo = Utilities.parseSensorsOutput(output,Utilities.parseFanRPMLine);
-                    fanInfo = fanInfo.filter(Utilities.filterFan);
-                    this._appendMultipleItems(fanInfo);
-                }
-                if (this._display_voltage){
-                    let voltageInfo = Utilities.parseSensorsOutput(output,Utilities.parseVoltageLine);
-                    this._appendMultipleItems(voltageInfo);
-                }
-            }
-        }
-    },
-
-    _getHddTempLabels: function() {
-        let hddtemp_cmd = Utilities.detectHDDTemp();
-        if(hddtemp_cmd){
-            let hddtemp_output = GLib.spawn_command_line_sync(hddtemp_cmd.join(' '))
-            if(hddtemp_output[0]){
-                let hddTempInfo = Utilities.parseHddTempOutput(hddtemp_output[1].toString(),
-                                        !(/nc$/.exec(hddtemp_cmd[0])) ? ': ' : '|');
-                this._appendMultipleItems(hddTempInfo);
-            }
-        }
-    },
-
-    _getUdisksLabels: function() {
-        Utilities.UDisks.get_drive_ata_proxies((function(proxies) {
-            let list = Utilities.UDisks.create_list_from_proxies(proxies);
-
-            this._appendMultipleItems(list);
-        }).bind(this));
-    },
-
-    _getActiveSensorIter: function() {
-        /* Get the first iter in the list */
-        [success, iter] = this._model.get_iter_first();
-        let sensorLabel = this._model.get_value(iter, 0);
-
-        while (success) {
-            /* Walk through the list, reading each row */
-            let sensorLabel = this._model.get_value(iter, 0);
-            if(sensorLabel == this._settings.get_string('main-sensor'))
-               break;
-
-            success = this._model.iter_next(iter);
-        }
-        return iter;
-    },
-
-    _onSelectorChanged: function (comboBox) {
-        let [success, iter] = comboBox.get_active_iter();
-        if (!success)
-            return;
-
-        let label = this._model.get_value(iter, modelColumn.label);
-        this._settings.set_string('main-sensor', label);
-    },
+    }
 
 });
 
