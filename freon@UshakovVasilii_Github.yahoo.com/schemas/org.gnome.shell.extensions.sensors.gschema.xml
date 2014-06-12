@@ -4,9 +4,9 @@
   <schema id="org.gnome.shell.extensions.freon" path="/org/gnome/shell/extensions/freon/">
 
     <key type="i" name="update-time">
-      <default>15</default>
+      <default>5</default>
       <summary>Seconds before next update</summary>
-      <description>This is the seconds after CPU temperature extension updates the data from the syetem. The default is 15.</description>
+      <description>This is the seconds after CPU temperature extension updates the data from the syetem</description>
     </key>
 
     <key type="s" name="unit">

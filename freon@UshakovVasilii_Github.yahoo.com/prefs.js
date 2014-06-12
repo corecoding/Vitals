@@ -30,13 +30,10 @@ const FreonPrefsWidget = new GObject.Class({
 
         this._settings = Convenience.getSettings();
 
-        this.attach(new Gtk.Label({ label: _("Poll sensors every (in seconds)") }), 0, 0, 1, 1);
-        let update_time = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 5, 100, 5);
-        update_time.set_value(this._settings.get_int('update-time'));
-        update_time.set_digits(0);
-        update_time.set_hexpand(true);
-        update_time.connect('value-changed', Lang.bind(this, this._onUpdateTimeChanged));
-        this.attach(update_time, 1, 0, 1, 1);
+        this.attach(new Gtk.Label({ label: _('Poll sensors every (in seconds)'), halign : Gtk.Align.END}), 0, 0, 1, 1);
+        let updateTime = Gtk.SpinButton.new_with_range (1, 60, 1);
+        this.attach(updateTime, 1, 0, 1, 1);
+        this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
 
         this.attach(new Gtk.Label({ label: _("Temperature unit") }), 0, 2, 1, 1);
         let centigradeRadio = new Gtk.RadioButton({ group: null, label: _("Centigrade"), valign: Gtk.Align.START });
@@ -215,10 +212,6 @@ const FreonPrefsWidget = new GObject.Class({
             success = this._model.iter_next(iter);
         }
         return iter;
-    },
-
-    _onUpdateTimeChanged: function (update_time) {
-        this._settings.set_int('update-time', update_time.get_value());
     },
 
     _onUnitChanged: function (unit) {
