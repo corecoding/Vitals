@@ -23,6 +23,8 @@ const FreonItem = new Lang.Class({
 
     _init: function(gIcon, label, value) {
         this.parent();
+        this._active = false;
+
         this.connect('activate', function () {
             settings.set_string('main-sensor', label);
         });
@@ -37,6 +39,16 @@ const FreonItem = new Lang.Class({
 
     setMainSensor: function() {
         this.setOrnament(PopupMenu.Ornament.DOT);
+        this._active = true;
+    },
+
+    isMainSensor: function() {
+        return this._active;
+    },
+
+    setNotMainSensor: function() {
+        this._active = false;
+        this.setOrnament(PopupMenu.Ornament.NONE);
     },
 
     setValue: function(value) {
@@ -51,6 +63,8 @@ const FreonMenuButton = new Lang.Class({
 
     _init: function(){
         this.parent(null, 'sensorMenu');
+
+        this._sensorMenuItems = {};
 
         this._sensorsOutput = '';
         this._hddtempOutput = '';
@@ -180,22 +194,35 @@ const FreonMenuButton = new Lang.Class({
                 sensorsList.push({type : 'voltage', label:voltage['label'], value:_("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])});
             }
 
+            let needAppendMenuItems = false;
             let mainSensor = settings.get_string('main-sensor');
             let sensorCount = 0;
-            for each (let item in sensorsList) {
-                if(item.type != 'separator') {
+            for each (let s in sensorsList) {
+                if(s.type != 'separator') {
                     sensorCount++;
-                    if (mainSensor == item.label) {
+                    if (mainSensor == s.label) {
                         if(settings.get_boolean('show-label'))
-                            this.statusLabel.set_text('%s: %s'.format(item.label, item.value));
+                            this.statusLabel.set_text('%s: %s'.format(s.label, s.value));
                         else
-                            this.statusLabel.set_text(item.value);
+                            this.statusLabel.set_text(s.value);
+
+                        let item = this._sensorMenuItems[s.label];
+                        if(item) {
+                            if(!item.isMainSensor()){
+                                global.log('[FREON] Change active sensor');
+                                for each (let i in this._sensorMenuItems){
+                                    i.setNotMainSensor();
+                                }
+                                item.setMainSensor();
+                            }
+                        } else {
+                            needAppendMenuItems = true;
+                        }
                     }
                 }
             }
 
-            let needAppendMenuItems = false;
-            if(this._sensorMenuItems && Object.keys(this._sensorMenuItems).length==sensorCount){
+            if(Object.keys(this._sensorMenuItems).length==sensorCount){
                 for each (let s in sensorsList) {
                     if(s.type != 'separator') {
                         let item = this._sensorMenuItems[s.label];
@@ -247,7 +274,7 @@ const FreonMenuButton = new Lang.Class({
                 else
                     icon = this._voltageGIcon;
                 let item = new FreonItem(icon, s.label, s.value);
-                if (mainSensor == item.label)
+                if (mainSensor == s.label)
                     item.setMainSensor();
                 this._sensorMenuItems[s.label] = item;
                 this.menu.addMenuItem(item);
