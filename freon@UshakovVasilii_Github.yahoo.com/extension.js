@@ -23,7 +23,7 @@ const FreonItem = new Lang.Class({
 
     _init: function(gIcon, label, value) {
         this.parent();
-        this._active = false;
+        this._hasMainDot = false;
 
         this.connect('activate', function () {
             settings.set_string('main-sensor', label);
@@ -37,17 +37,17 @@ const FreonItem = new Lang.Class({
         this.actor.add(this._valueLabel, {align: St.Align.END});
     },
 
-    setMainSensor: function() {
+    addMainDot: function() {
         this.setOrnament(PopupMenu.Ornament.DOT);
-        this._active = true;
+        this._hasMainDot = true;
     },
 
-    isMainSensor: function() {
-        return this._active;
+    hasMainDot: function() {
+        return this._hasMainDot;
     },
 
-    setNotMainSensor: function() {
-        this._active = false;
+    removeMainDot: function() {
+        this._hasMainDot = false;
         this.setOrnament(PopupMenu.Ornament.NONE);
     },
 
@@ -69,9 +69,11 @@ const FreonMenuButton = new Lang.Class({
         this._sensorsOutput = '';
         this._hddtempOutput = '';
 
-        this._temperatureGIcon = Gio.icon_new_for_string(Me.path + '/icons/sensors-temperature-symbolic.svg');
-        this._voltageGIcon = Gio.icon_new_for_string(Me.path + '/icons/sensors-voltage-symbolic.svg');
-        this._fanGIcon = Gio.icon_new_for_string(Me.path + '/icons/sensors-fan-symbolic.svg');
+        this._sensorIcons = {
+            temperature : Gio.icon_new_for_string(Me.path + '/icons/sensors-temperature-symbolic.svg'),
+            voltage : Gio.icon_new_for_string(Me.path + '/icons/sensors-voltage-symbolic.svg'),
+            fan : Gio.icon_new_for_string(Me.path + '/icons/sensors-fan-symbolic.svg')
+        }
 
         this.statusLabel = new St.Label({ text: '\u2026', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
@@ -208,12 +210,12 @@ const FreonMenuButton = new Lang.Class({
 
                         let item = this._sensorMenuItems[s.label];
                         if(item) {
-                            if(!item.isMainSensor()){
+                            if(!item.hasMainDot()){
                                 global.log('[FREON] Change active sensor');
                                 for each (let i in this._sensorMenuItems){
-                                    i.setNotMainSensor();
+                                    i.removeMainDot();
                                 }
-                                item.setMainSensor();
+                                item.addMainDot();
                             }
                         } else {
                             needAppendMenuItems = true;
@@ -266,16 +268,9 @@ const FreonMenuButton = new Lang.Class({
             if(s.type == 'separator'){
                  this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             } else {
-                let icon = null;
-                if(s.type == 'temperature')
-                    icon = this._temperatureGIcon;
-                else if(s.type == 'fan')
-                    icon = this._fanGIcon;
-                else
-                    icon = this._voltageGIcon;
-                let item = new FreonItem(icon, s.label, s.value);
+                let item = new FreonItem(this._sensorIcons[s.type], s.label, s.value);
                 if (mainSensor == s.label)
-                    item.setMainSensor();
+                    item.addMainDot();
                 this._sensorMenuItems[s.label] = item;
                 this.menu.addMenuItem(item);
             }
