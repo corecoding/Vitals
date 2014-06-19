@@ -31,23 +31,17 @@ const FreonItem = new Lang.Class({
 
         this.actor.add(new St.Icon({ style_class: 'system-status-icon', gicon : gIcon}));
         this.actor.add(new St.Label({text: label}));
-        this.actor.add(new St.Label({text: value}), {align: St.Align.END});
-    },
-
-    getPanelString: function() {
-        if(settings.get_boolean('show-label'))
-            return '%s: %s'.format(this._label, this._value);
-        else
-            return this._value;
+        this._valueLabel = new St.Label({text: value});
+        this.actor.add(this._valueLabel, {align: St.Align.END});
     },
 
     setMainSensor: function() {
         this.setOrnament(PopupMenu.Ornament.DOT);
     },
 
-    getLabel: function() {
-        return this._label;
-    },
+    setValue: function(value) {
+        this._valueLabel.text = value;
+    }
 });
 
 const FreonMenuButton = new Lang.Class({
@@ -67,7 +61,6 @@ const FreonMenuButton = new Lang.Class({
 
         this.statusLabel = new St.Label({ text: '\u2026', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
-        this.menu.removeAll();
         this.actor.add_actor(this.statusLabel);
 
         this.sensorsArgv = Utilities.detectSensors();
@@ -110,9 +103,11 @@ const FreonMenuButton = new Lang.Class({
     _querySensors: function(){
         if (this.sensorsArgv){
             this._sensorsFuture = new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
+                //global.log('START ' + (new Date()).getTime());
                 this._sensorsOutput = stdout;
                 this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
                 this._sensorsFuture = undefined;
+                //global.log('END__ ' + (new Date()).getTime());
             }));
         }
 
@@ -186,8 +181,10 @@ const FreonMenuButton = new Lang.Class({
             }
 
             let mainSensor = settings.get_string('main-sensor');
+            let sensorCount = 0;
             for each (let item in sensorsList) {
                 if(item.type != 'separator') {
+                    sensorCount++;
                     if (mainSensor == item.label) {
                         if(settings.get_boolean('show-label'))
                             this.statusLabel.set_text('%s: %s'.format(item.label, item.value));
@@ -197,8 +194,29 @@ const FreonMenuButton = new Lang.Class({
                 }
             }
 
-            this._appendMenuItems(sensorsList);
+            let needAppendMenuItems = false;
+            if(this._sensorMenuItems && Object.keys(this._sensorMenuItems).length==sensorCount){
+                for each (let s in sensorsList) {
+                    if(s.type != 'separator') {
+                        let item = this._sensorMenuItems[s.label];
+                        if(item) {
+                            item.setValue(s.value);
+                        } else {
+                            needAppendMenuItems = true;
+                        }
+                    }
+                }
+            } else {
+                needAppendMenuItems = true;
+            }
+
+            if(needAppendMenuItems){
+                global.log('[FREON] Render all MenuItems');
+                this.menu.removeAll();
+                this._appendMenuItems(sensorsList);
+            }
         } else {
+            this._sensorMenuItems = {};
             this.menu.removeAll();
             this.statusLabel.set_text(_("Error"));
 
@@ -215,7 +233,7 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _appendMenuItems : function(sensorsList){
-        this.menu.removeAll();
+        this._sensorMenuItems = {};
         let mainSensor = settings.get_string('main-sensor');
         for each (let s in sensorsList){
             if(s.type == 'separator'){
@@ -231,6 +249,7 @@ const FreonMenuButton = new Lang.Class({
                 let item = new FreonItem(icon, s.label, s.value);
                 if (mainSensor == item.label)
                     item.setMainSensor();
+                this._sensorMenuItems[s.label] = item;
                 this.menu.addMenuItem(item);
             }
         }
