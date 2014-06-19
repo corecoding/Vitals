@@ -137,7 +137,7 @@ const FreonMenuButton = new Lang.Class({
         
         Mainloop.source_remove(this._timeoutId);
 
-        for each (signal in this._settingChangedSignals){
+        for each (let signal in this._settingChangedSignals){
             settings.disconnect(signal);
         };
     },
@@ -348,7 +348,7 @@ function init(extensionMeta) {
 
 function enable() {
     freonMenu = new FreonMenuButton();
-    Main.panel.addToStatusArea('freonMenu', freonMenu, 1, 'right');
+    Main.panel.addToStatusArea('freonMenu', freonMenu);
 }
 
 function disable() {
