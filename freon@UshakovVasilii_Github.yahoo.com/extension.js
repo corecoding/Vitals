@@ -126,20 +126,17 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _updateDisplay: function(sensors_output, hddtemp_output){
-        let display_fan_rpm = settings.get_boolean('show-fan-rpm');
-        let display_voltage = settings.get_boolean('show-voltage');
-
-        let tempInfo = Array();
-        let fanInfo = Array();
-        let voltageInfo = Array();
+        let tempInfo = [];
+        let fanInfo = [];
+        let voltageInfo = [];
 
         tempInfo = Utilities.parseSensorsOutput(sensors_output,Utilities.parseSensorsTemperatureLine);
         tempInfo = tempInfo.filter(Utilities.filterTemperature);
-        if (display_fan_rpm){
+        if (settings.get_boolean('show-fan-rpm')){
             fanInfo = Utilities.parseSensorsOutput(sensors_output,Utilities.parseFanRPMLine);
             fanInfo = fanInfo.filter(Utilities.filterFan);
         }
-        if (display_voltage){
+        if (settings.get_boolean('show-voltage')){
             voltageInfo = Utilities.parseSensorsOutput(sensors_output,Utilities.parseVoltageLine);
         }
 
@@ -152,69 +149,57 @@ const FreonMenuButton = new Lang.Class({
         fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
         voltageInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
 
-        this.menu.removeAll();
-        let section = new PopupMenu.PopupMenuSection("Temperature");
         if (this.sensorsArgv && tempInfo.length > 0){
-            let sensorsList = new Array();
             let sum = 0; //sum
             let max = 0; //max temp
             for each (let temp in tempInfo){
                 sum += temp['temp'];
                 if (temp['temp'] > max)
                     max = temp['temp'];
-
-                sensorsList.push(new FreonItem(this._temperatureGIcon, temp['label'], this._formatTemp(temp['temp'])));
             }
+
+            let sensorsList = [];
+
+            for each (let temp in tempInfo){
+                sensorsList.push({type:'temperature', label:temp['label'], value:this._formatTemp(temp['temp'])});
+            }
+
             if (tempInfo.length > 0){
-                sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
+                sensorsList.push({type : 'separator'});
 
                 // Add average and maximum entries
-                sensorsList.push(new FreonItem(this._temperatureGIcon, _("Average"), this._formatTemp(sum/tempInfo.length)));
-                sensorsList.push(new FreonItem(this._temperatureGIcon, _("Maximum"), this._formatTemp(max)));
+                sensorsList.push({type:'temperature', label:_("Average"), value:this._formatTemp(sum/tempInfo.length)});
+                sensorsList.push({type:'temperature', label:_("Maximum"), value:this._formatTemp(max)});
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
-                    sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
+                    sensorsList.push({type : 'separator'});
             }
 
             for each (let fan in fanInfo){
-                sensorsList.push(new FreonItem(this._fanGIcon, fan['label'], _("%drpm").format(fan['rpm'])));
+                sensorsList.push({type:'fan',label:fan['label'], value:_("%drpm").format(fan['rpm'])});
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
-                sensorsList.push(new PopupMenu.PopupSeparatorMenuItem());
+                sensorsList.push({type : 'separator'});
             }
             for each (let voltage in voltageInfo){
-                sensorsList.push(new FreonItem(this._voltageGIcon, voltage['label'], _("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])));
+                sensorsList.push({type : 'voltage', label:voltage['label'], value:_("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])});
             }
 
-            this.statusLabel.set_text(_("N/A")); // Just in case
-
+            let mainSensor = settings.get_string('main-sensor');
             for each (let item in sensorsList) {
-                if(item instanceof FreonItem) {
-                    if (settings.get_string('main-sensor') == item.getLabel()) {
-
-                        // Configure as main sensor and set panel string
-                        item.setMainSensor();
-                        this.statusLabel.set_text(item.getPanelString());
+                if(item.type != 'separator') {
+                    if (mainSensor == item.label) {
+                        if(settings.get_boolean('show-label'))
+                            this.statusLabel.set_text('%s: %s'.format(item.label, item.value));
+                        else
+                            this.statusLabel.set_text(item.value);
                     }
                 }
-                section.addMenuItem(item);
             }
 
-            // separator
-            section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-            let item = new PopupMenu.PopupBaseMenuItem();
-            // HACK: span and expand parameters don't work as expected on Label, so add an invisible
-            // Label to switch columns and not totally break the layout.
-            item.actor.add(new St.Label({ text: '' }));
-            item.actor.add(new St.Label({ text: _("Sensors Settings") }));
-
-            item.connect('activate', function () {
-                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
-            });
-
-            section.addMenuItem(item);
+            this._appendMenuItems(sensorsList);
         } else {
+            this.menu.removeAll();
             this.statusLabel.set_text(_("Error"));
 
             let item = new PopupMenu.PopupMenuItem(
@@ -225,11 +210,47 @@ const FreonMenuButton = new Lang.Class({
             item.connect('activate',function() {
                 Util.spawn(["xdg-open", "https://github.com/UshakovVasilii/gnome-shell-extension-freon/issues"]);
             });
-            section.addMenuItem(item);
+            this.menu.addMenuItem(item);
+        }
+    },
+
+    _appendMenuItems : function(sensorsList){
+        this.menu.removeAll();
+        let mainSensor = settings.get_string('main-sensor');
+        for each (let s in sensorsList){
+            if(s.type == 'separator'){
+                 this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            } else {
+                let icon = null;
+                if(s.type == 'temperature')
+                    icon = this._temperatureGIcon;
+                else if(s.type == 'fan')
+                    icon = this._fanGIcon;
+                else
+                    icon = this._voltageGIcon;
+                let item = new FreonItem(icon, s.label, s.value);
+                if (mainSensor == item.label)
+                    item.setMainSensor();
+                this.menu.addMenuItem(item);
+            }
         }
 
-        this.menu.addMenuItem(section);
+        // separator
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        let item = new PopupMenu.PopupBaseMenuItem();
+        // HACK: span and expand parameters don't work as expected on Label, so add an invisible
+        // Label to switch columns and not totally break the layout.
+        item.actor.add(new St.Label({ text: '' }));
+        item.actor.add(new St.Label({ text: _("Sensors Settings") }));
+
+        item.connect('activate', function () {
+            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+        });
+
+        this.menu.addMenuItem(item);
     },
+
 
     _toFahrenheit: function(c){
         return ((9/5)*c+32);
