@@ -107,8 +107,7 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _updateTimeChanged : function(){
-        // TODO remove
-        global.log('[FREON] readd timer');
+        //global.log('[FREON] readd timer');
 
         Mainloop.source_remove(this._timeoutId);
         this._addTimer();
@@ -144,8 +143,7 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _querySensors: function(){
-        // TODO remove
-        global.log('[FREON] Query sensors ' + (new Date()).getTime());
+        //global.log('[FREON] Query sensors ' + (new Date()).getTime());
 
         if (this.sensorsArgv){
             this._sensorsFuture = new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
