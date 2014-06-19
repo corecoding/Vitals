@@ -88,17 +88,42 @@ const FreonMenuButton = new Lang.Class({
             this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
         }));
 
-        this._settingsChanged = settings.connect('changed', Lang.bind(this, this._querySensors));
+        this._settingChangedSignals = [];
+        this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
+        this._addSettingChangedSignal('unit', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-label', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('main-sensor', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-decimal-value', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-hdd-temp', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-fan-rpm', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-voltage', Lang.bind(this, this._querySensors));
+
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
         // don't postprone the first call by update-time.
         this._querySensors();
 
-        this._eventLoop = Mainloop.timeout_add_seconds(settings.get_int('update-time'), Lang.bind(this, function (){
+        this._addTimer();
+    },
+
+    _updateTimeChanged : function(){
+        // TODO remove
+        global.log('[FREON] readd timer');
+
+        Mainloop.source_remove(this._timeoutId);
+        this._addTimer();
+    },
+
+    _addTimer : function(){
+        this._timeoutId = Mainloop.timeout_add_seconds(settings.get_int('update-time'), Lang.bind(this, function (){
             this._querySensors();
             // readd to update queue
             return true;
         }));
+    },
+
+    _addSettingChangedSignal : function(key, callback){
+        this._settingChangedSignals.push(settings.connect('changed::' + key, callback));
     },
 
     _onDestroy: function(){
@@ -111,12 +136,17 @@ const FreonMenuButton = new Lang.Class({
             }
         }
         
-        Mainloop.source_remove(this._eventLoop);
-        this.menu.removeAll();
-        settings.disconnect(this._settingsChanged);
+        Mainloop.source_remove(this._timeoutId);
+
+        for each (signal in this._settingChangedSignals){
+            settings.disconnect(signal);
+        };
     },
 
     _querySensors: function(){
+        // TODO remove
+        global.log('[FREON] Query sensors ' + (new Date()).getTime());
+
         if (this.sensorsArgv){
             this._sensorsFuture = new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
                 //global.log('START ' + (new Date()).getTime());
