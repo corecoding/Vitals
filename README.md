@@ -1,7 +1,7 @@
 gnome-shell-extension-freon
 ====================================
 
-Freon is forked from [gnome-shell-extension-sensors](https://github.com/xtranophilist/gnome-shell-extension-sensors). Freon is an extension for displaying CPU temperature, hard disk temperature, voltage and CPU fan RPM in GNOME Shell.
+Freon is forked from [gnome-shell-extension-sensors](https://github.com/xtranophilist/gnome-shell-extension-sensors). Freon is an extension for displaying CPU temperature, HDD/SSD temperature, AMD video card temperature (Catalyst), voltage and CPU fan RPM in GNOME Shell.
 
 More info in [wiki](https://github.com/UshakovVasilii/gnome-shell-extension-freon/wiki)
 

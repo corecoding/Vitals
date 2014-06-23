@@ -68,6 +68,7 @@ const FreonMenuButton = new Lang.Class({
 
         this._sensorsOutput = '';
         this._hddtempOutput = '';
+        this._aticonfigOutput = '';
 
         this._sensorIcons = {
             temperature : Gio.icon_new_for_string(Me.path + '/icons/sensors-temperature-symbolic.svg'),
@@ -80,12 +81,15 @@ const FreonMenuButton = new Lang.Class({
         this.actor.add_actor(this.statusLabel);
 
         this.sensorsArgv = Utilities.detectSensors();
-        this.hddtempArgv = Utilities.detectHDDTemp();
+        if(settings.get_boolean('show-hdd-temp'))
+            this.hddtempArgv = Utilities.detectHDDTemp();
+        if(settings.get_boolean('show-aticonfig-temp'))
+            this.aticonfigArgv = Utilities.detectAtiConfig();
 
         this.udisksProxies = [];
         Utilities.UDisks.get_drive_ata_proxies(Lang.bind(this, function(proxies) {
             this.udisksProxies = proxies;
-            this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
+            this._updateDisplay(this._sensorsOutput, this._hddtempOutput, this._aticonfigOutput);
         }));
 
         this._settingChangedSignals = [];
@@ -94,9 +98,10 @@ const FreonMenuButton = new Lang.Class({
         this._addSettingChangedSignal('show-label', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('main-sensor', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-decimal-value', Lang.bind(this, this._querySensors));
-        this._addSettingChangedSignal('show-hdd-temp', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-hdd-temp', Lang.bind(this, this._showHddTempChanged));
         this._addSettingChangedSignal('show-fan-rpm', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-voltage', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-aticonfig-temp', Lang.bind(this, this._showAtiConfigChanged));
 
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
@@ -111,6 +116,16 @@ const FreonMenuButton = new Lang.Class({
 
         Mainloop.source_remove(this._timeoutId);
         this._addTimer();
+    },
+
+    _showHddTempChanged : function(){
+        this.hddtempArgv = settings.get_boolean('show-hdd-temp') ? Utilities.detectHDDTemp() : undefined;
+        this._querySensors();
+    },
+
+    _showAtiConfigChanged : function(){
+        this.aticonfigArgv = settings.get_boolean('show-aticonfig-temp') ? Utilities.detectAtiConfig() : undefined;
+        this._querySensors();
     },
 
     _addTimer : function(){
@@ -143,28 +158,30 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _querySensors: function(){
-        //global.log('[FREON] Query sensors ' + (new Date()).getTime());
 
         if (this.sensorsArgv){
-            this._sensorsFuture = new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
-                //global.log('START ' + (new Date()).getTime());
+            new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
                 this._sensorsOutput = stdout;
-                this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
-                this._sensorsFuture = undefined;
-                //global.log('END__ ' + (new Date()).getTime());
+                this._updateDisplay(this._sensorsOutput, this._hddtempOutput, this._aticonfigOutput);
             }));
         }
 
         if (settings.get_boolean('show-hdd-temp') && this.hddtempArgv){
-            this._hddtempFuture = new Utilities.Future(this.hddtempArgv, Lang.bind(this,function(stdout){
+            new Utilities.Future(this.hddtempArgv, Lang.bind(this,function(stdout){
                 this._hddtempOutput = stdout;
-                this._updateDisplay(this._sensorsOutput, this._hddtempOutput);
-                this._hddtempFuture = undefined;
+                this._updateDisplay(this._sensorsOutput, this._hddtempOutput, this._aticonfigOutput);
+            }));
+        }
+
+        if (settings.get_boolean('show-aticonfig-temp') && this.aticonfigArgv){
+            new Utilities.Future(this.aticonfigArgv, Lang.bind(this,function(stdout){
+                this._aticonfigOutput = stdout;
+                this._updateDisplay(this._sensorsOutput, this._hddtempOutput, this._aticonfigOutput);
             }));
         }
     },
 
-    _updateDisplay: function(sensors_output, hddtemp_output){
+    _updateDisplay: function(sensors_output, hddtemp_output, aticonfig_output){
         let tempInfo = [];
         let fanInfo = [];
         let voltageInfo = [];
@@ -181,6 +198,9 @@ const FreonMenuButton = new Lang.Class({
 
         if(settings.get_boolean('show-hdd-temp') && this.hddtempArgv)
             tempInfo = tempInfo.concat(Utilities.parseHddTempOutput(hddtemp_output, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|'));
+
+        if(settings.get_boolean('show-aticonfig-temp') && this.aticonfigArgv)
+            tempInfo = tempInfo.concat(Utilities.parseAtiConfigOutput(aticonfig_output));
 
         tempInfo = tempInfo.concat(Utilities.UDisks.create_list_from_proxies(this.udisksProxies));
 

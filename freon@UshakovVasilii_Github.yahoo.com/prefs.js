@@ -80,6 +80,10 @@ const FreonPrefsWidget = new GObject.Class({
         this._addSwitch({key : 'show-voltage', y : i, x : 0,
             label : _('Show Power Supply Voltage')});
 
+        this._addSwitch({key : 'show-aticonfig-temp', y : i, x : 2,
+            label : _('Use Catalyst'),
+            help : _('Show AMD video card temperature, use aticonfig from Catalyst driver.')});
+
     },
 
     _addSwitch : function(params){

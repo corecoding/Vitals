@@ -75,6 +75,11 @@ function detectHDDTemp() {
     return undefined;
 }
 
+function detectAtiConfig() {
+    let path = GLib.find_program_in_path('aticonfig');
+    return path ? [path, '--odgt'] : undefined;
+}
+
 function parseSensorsOutput(txt,parser) {
     let sensors_output = txt.split("\n");
     let feature_label = undefined;
@@ -182,6 +187,32 @@ function parseHddTempOutput(txt, sep) {
             sensors.push(sensor);
     }
     return sensors;
+}
+
+/*
+Default Adapter - AMD Radeon R9 200 Series     
+                  Sensor 0: Temperature - 37.00 C
+*/
+function parseAtiConfigOutput(txt) {
+    if(!txt)
+        return [];
+    let output = txt.split('\n');
+    let label = null;
+    let temp = null;
+    for each(let line in output) {
+        if(!line)
+            continue;
+        let r;
+        if(line.indexOf('Adapter') > 0)
+            label = (r = /Adapter \- (.*)/.exec(line)) ? r[1] : undefined;
+        if(line.indexOf('Temperature') > 0)
+            temp = (r = /Temperature \- (\d{1,3}.\d{1,2})/.exec(line)) ? parseFloat(r[1]) : undefined;
+    }
+
+    if(!label || !temp)
+        return [];
+
+    return [{ label : label.trim(), temp : temp}];
 }
 
 function filterTemperature(tempInfo) {

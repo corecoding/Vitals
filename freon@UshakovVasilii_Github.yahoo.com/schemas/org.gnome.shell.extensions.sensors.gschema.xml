@@ -51,5 +51,11 @@
       <description>Display voltage of various components.</description>
     </key>
 
+    <key type="b" name="show-aticonfig-temp">
+      <default>false</default>
+      <summary>Show AMD Card Temperature (Catalyst)</summary>
+      <description>Show AMD card temperature, use aticonfig from Catalyst driver.</description>
+    </key>
+
   </schema>
 </schemalist>
