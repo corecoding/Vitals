@@ -1,24 +1,9 @@
 const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-
-const UDisksDriveProxy = Gio.DBusProxy.makeProxyWrapper(
-'<node> \
-    <interface name="org.freedesktop.UDisks2.Drive"> \
-        <property type="s" name="Model" access="read"/> \
-    </interface> \
-</node>');
-
-const UDisksDriveAtaProxy = Gio.DBusProxy.makeProxyWrapper(
-'<node> \
-    <interface name="org.freedesktop.UDisks2.Drive.Ata"> \
-        <property type="d" name="SmartTemperature" access="read"/> \
-    </interface> \
-</node>');
 
 function detectSensors() {
     let path = GLib.find_program_in_path('sensors');
@@ -272,78 +257,3 @@ const Future = new Lang.Class({
     }
 });
 
-// Poor man's async.js
-const Async = {
-    // mapping will be done in parallel
-    map: function(arr, mapClb /* function(in, successClb)) */, resClb /* function(result) */) {
-        let counter = arr.length;
-        let result = [];
-        for (let i = 0; i < arr.length; ++i) {
-            mapClb(arr[i], (function(i, newVal) {
-                result[i] = newVal;
-                if (--counter == 0) resClb(result);
-            }).bind(null, i)); // i needs to be bound since it will be changed during the next iteration
-        }
-    }
-}
-
-function debug(str){
-    //tail -f -n100 ~/.cache/gdm/session.log | grep temperature
-    print ('LOG temperature@xtranophilist: ' + str);
-}
-
-// routines for handling of udisks2
-const UDisks = {
-    // creates a list of sensor objects from the list of proxies given
-    create_list_from_proxies: function(proxies) {
-        return proxies.filter(function(proxy) {
-            // 0K means no data available
-            return proxy.ata.SmartTemperature > 0;
-        }).map(function(proxy) {
-            return {
-                label: proxy.drive.Model,
-                temp: proxy.ata.SmartTemperature - 272.15
-            };
-        });
-    },
-
-    // calls callback with [{ drive: UDisksDriveProxy, ata: UDisksDriveAtaProxy }, ... ] for every drive that implements both interfaces
-    get_drive_ata_proxies: function(callback) {
-        Gio.DBusObjectManagerClient.new(Gio.DBus.system, 0, "org.freedesktop.UDisks2", "/org/freedesktop/UDisks2", null, null, function(src, res) {
-            try {
-                let objMgr = Gio.DBusObjectManagerClient.new_finish(res); //might throw
-
-                let objPaths = objMgr.get_objects().filter(function(o) {
-                    return o.get_interface("org.freedesktop.UDisks2.Drive") != null
-                        && o.get_interface("org.freedesktop.UDisks2.Drive.Ata") != null;
-                }).map(function(o) { return o.get_object_path() });
-
-                // now create the proxy objects, log and ignore every failure
-                Async.map(objPaths, function(obj, callback) {
-                    // create the proxies object
-                    let driveProxy = new UDisksDriveProxy(Gio.DBus.system, "org.freedesktop.UDisks2", obj, function(res, error) {
-                        if (error) { //very unlikely - we even checked the interfaces before!
-                            debug("Could not create proxy on "+obj+":"+error);
-                            callback(null);
-                            return;
-                        }
-                        let ataProxy = new UDisksDriveAtaProxy(Gio.DBus.system, "org.freedesktop.UDisks2", obj, function(res, error) {
-                            if (error) {
-                                debug("Could not create proxy on "+obj+":"+error);
-                                callback(null);
-                                return;
-                            }
-
-                            callback({ drive: driveProxy, ata: ataProxy });
-                        });
-                    });
-                }, function(proxies) {
-                    // filter out failed attempts == null values
-                    callback(proxies.filter(function(a) { return a != null; }));
-                });
-            } catch (e) {
-                debug("Could not find UDisks objects: "+e);
-            }
-        });
-    }
-};

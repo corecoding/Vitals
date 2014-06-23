@@ -71,8 +71,34 @@ const FreonPrefsWidget = new GObject.Class({
         //
 
 
-        this._addSwitch({key : 'show-hdd-temp', y : i, x : 0,
-            label : _('Show Drive Temperature')});
+        // HDD Temperature Utility ComboBox
+        let hddTempUtilModel = new Gtk.ListStore();
+        hddTempUtilModel.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING]);
+
+        let hddTempUtil = new Gtk.ComboBox({model: hddTempUtilModel});
+        let hddTempUtilRenderer = new Gtk.CellRendererText();
+        hddTempUtil.pack_start(hddTempUtilRenderer, true);
+        hddTempUtil.add_attribute(hddTempUtilRenderer, 'text', 1);
+
+        let hddTempUtilItems = ['none', 'hddtemp', 'udisks2'];
+
+        hddTempUtilModel.set(hddTempUtilModel.append(), [0, 1], [hddTempUtilItems[0], 'None']);
+        hddTempUtilModel.set(hddTempUtilModel.append(), [0, 1], [hddTempUtilItems[1], 'Hddtemp']);
+        hddTempUtilModel.set(hddTempUtilModel.append(), [0, 1], [hddTempUtilItems[2], 'UDisks2']);
+
+        hddTempUtil.set_active(hddTempUtilItems.indexOf(this._settings.get_string('drive-utility')));
+        
+        hddTempUtil.connect('changed', Lang.bind(this, function(entry) {
+            let [success, iter] = hddTempUtil.get_active_iter();
+            if (!success)
+                return;
+            this._settings.set_string('drive-utility', hddTempUtilModel.get_value(iter, 0))
+        }));
+
+        this.attach(new Gtk.Label({ label: _('Utility for HDD/SSD temperature'), halign : Gtk.Align.END}), 0, i, 1, 1);
+        this.attach(hddTempUtil, 1, i, 1, 1);
+
+        //
 
         this._addSwitch({key : 'show-fan-rpm', y : i++, x : 2,
             label : _('Show Fan Speed')});
@@ -80,10 +106,9 @@ const FreonPrefsWidget = new GObject.Class({
         this._addSwitch({key : 'show-voltage', y : i, x : 0,
             label : _('Show Power Supply Voltage')});
 
-        this._addSwitch({key : 'show-aticonfig-temp', y : i, x : 2,
+        this._addSwitch({key : 'show-aticonfig-temp', y : i++, x : 2,
             label : _('Use Catalyst'),
             help : _('Show AMD video card temperature, use aticonfig from Catalyst driver.')});
-
     },
 
     _addSwitch : function(params){
