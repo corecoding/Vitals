@@ -50,7 +50,7 @@ const UDisks2  = new Lang.Class({
         }).map(function(proxy) {
             return {
                 label: proxy.drive.Model,
-                temp: proxy.ata.SmartTemperature - 272.15
+                temp: proxy.ata.SmartTemperature - 273.15
             };
         });
     },
