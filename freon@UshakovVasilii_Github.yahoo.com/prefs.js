@@ -35,8 +35,8 @@ const FreonPrefsWidget = new GObject.Class({
         this.attach(updateTime, 1, i, 1, 1);
         this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        this._addSwitch({key : 'show-label', y : i++, x : 2,
-            label : _('Show Sensor Label')});
+        this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,
+            label : _('Show Icon on Panel')});
 
         this._addSwitch({key : 'show-decimal-value', y : i, x : 0,
             label : _('Show Decimal Value'),
@@ -95,7 +95,7 @@ const FreonPrefsWidget = new GObject.Class({
             this._settings.set_string('drive-utility', hddTempUtilModel.get_value(iter, 0))
         }));
 
-        this.attach(new Gtk.Label({ label: _('Utility for HDD/SSD temperature'), halign : Gtk.Align.END}), 0, i, 1, 1);
+        this.attach(new Gtk.Label({ label: _('Utility for HDD/SSD Temperature'), halign : Gtk.Align.END}), 0, i, 1, 1);
         this.attach(hddTempUtil, 1, i, 1, 1);
 
         //

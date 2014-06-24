@@ -23,6 +23,7 @@ const FreonItem = new Lang.Class({
         this.parent();
         this._hasMainDot = false;
         this._label = label;
+        this._gIcon = gIcon;
 
         this.actor.add(new St.Icon({ style_class: 'system-status-icon', gicon : gIcon}));
         this.actor.add(new St.Label({text: label}), {x_fill: true, expand: true});
@@ -48,6 +49,10 @@ const FreonItem = new Lang.Class({
         return this._label;
     },
 
+    getGIcon: function() {
+        return this._gIcon;
+    },
+
     setValue: function(value) {
         this._valueLabel.text = value;
     }
@@ -58,7 +63,7 @@ const FreonMenuButton = new Lang.Class({
     Extends: PanelMenu.Button,
 
     _init: function(){
-        this.parent(null, 'sensorMenu');
+        this.parent(St.Align.START);
 
         this._sensorMenuItems = {};
 
@@ -74,9 +79,16 @@ const FreonMenuButton = new Lang.Class({
             fan : Gio.icon_new_for_string(Me.path + '/icons/sensors-fan-symbolic.svg')
         }
 
-        this.statusLabel = new St.Label({ text: '\u2026', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+        this._menuLayout = new St.BoxLayout();
+        if(this._settings.get_boolean('show-icon-on-panel')){
+            this._icon = new St.Icon({ style_class: 'system-status-icon'});
+            this._menuLayout.add(this._icon);
+        }
 
-        this.actor.add_actor(this.statusLabel);
+        this.statusLabel = new St.Label({ text: '\u2026', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+	this._menuLayout.add(this.statusLabel);
+
+        this.actor.add_actor(this._menuLayout);
 
         this.sensorsArgv = Utilities.detectSensors();
         this._initDriveUtility();
@@ -86,7 +98,7 @@ const FreonMenuButton = new Lang.Class({
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
         this._addSettingChangedSignal('unit', Lang.bind(this, this._querySensors));
-        this._addSettingChangedSignal('show-label', Lang.bind(this, this._querySensors));
+        this._addSettingChangedSignal('show-icon-on-panel', Lang.bind(this, this._showIconOnPanelChanged));
         this._addSettingChangedSignal('main-sensor', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-decimal-value', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-fan-rpm', Lang.bind(this, this._querySensors));
@@ -100,6 +112,18 @@ const FreonMenuButton = new Lang.Class({
         this._querySensors();
 
         this._addTimer();
+    },
+
+    _showIconOnPanelChanged : function(){
+        if(this._settings.get_boolean('show-icon-on-panel')) {
+            this._icon = new St.Icon({ style_class: 'system-status-icon'});
+            if(this._lastActiveItem)
+                this._icon.gicon = this._lastActiveItem.getGIcon();
+            this._menuLayout.insert_child_at_index(this._icon, 0);
+        } else {
+            this._icon.destroy();
+            this._icon = null;
+        }
     },
 
     _driveUtilityChanged : function(){
@@ -255,19 +279,19 @@ const FreonMenuButton = new Lang.Class({
                 if(s.type != 'separator') {
                     sensorCount++;
                     if (mainSensor == s.label) {
-                        if(this._settings.get_boolean('show-label'))
-                            this.statusLabel.set_text('%s: %s'.format(s.label, s.value));
-                        else
-                            this.statusLabel.set_text(s.value);
+                        this.statusLabel.set_text(s.value);
 
                         let item = this._sensorMenuItems[s.label];
                         if(item) {
                             if(!item.hasMainDot()){
                                 global.log('[FREON] Change active sensor');
-                                for each (let i in this._sensorMenuItems){
-                                    i.removeMainDot();
+                                if(this._lastActiveItem) {
+                                    this._lastActiveItem.removeMainDot();
                                 }
+                                this._lastActiveItem = item;
                                 item.addMainDot();
+                                if(this._icon)
+                                    this._icon.gicon = item.getGIcon();
                             }
                         } else {
                             needAppendMenuItems = true;
@@ -324,8 +348,12 @@ const FreonMenuButton = new Lang.Class({
                 item.connect('activate', Lang.bind(this, function (self) {
                     this._settings.set_string('main-sensor', self.getLabel());
                 }));
-                if (mainSensor == s.label)
+                if (mainSensor == s.label) {
+                    this._lastActiveItem = item;
                     item.addMainDot();
+                    if(this._icon)
+                        this._icon.gicon = item.getGIcon();
+                }
                 this._sensorMenuItems[s.label] = item;
                 this.menu.addMenuItem(item);
             }

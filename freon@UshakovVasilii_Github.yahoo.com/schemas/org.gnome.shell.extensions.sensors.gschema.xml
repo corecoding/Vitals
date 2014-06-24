@@ -15,10 +15,10 @@
       <description>The unit ('centigrade' or 'fahrenheit') the extension should display the temperature in</description>
     </key>
 
-    <key type="b" name="show-label">
+    <key type="b" name="show-icon-on-panel">
       <default>false</default>
-      <summary>Display label</summary>
-      <description>Display also the label of the sensor in the panel</description>
+      <summary>Show Icon on Panel</summary>
+      <description>Show sensor icon on top panel</description>
     </key>
 
     <key type="s" name="main-sensor">
