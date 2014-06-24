@@ -16,7 +16,7 @@
     </key>
 
     <key type="b" name="show-icon-on-panel">
-      <default>false</default>
+      <default>true</default>
       <summary>Show Icon on Panel</summary>
       <description>Show sensor icon on top panel</description>
     </key>
@@ -52,7 +52,7 @@
     </key>
 
     <key type="s" name="drive-utility">
-      <default>'none'</default>
+      <default>'udisks2'</default>
       <summary>Utility for detect HDD/SSD temperature</summary>
       <description>Utility for detect HDD/SSD temperature ('none', 'hddtemp' or 'udisks2')</description>
     </key>
