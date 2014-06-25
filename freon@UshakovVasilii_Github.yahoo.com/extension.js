@@ -378,10 +378,7 @@ const FreonMenuButton = new Lang.Class({
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         let item = new PopupMenu.PopupBaseMenuItem();
-        // HACK: span and expand parameters don't work as expected on Label, so add an invisible
-        // Label to switch columns and not totally break the layout.
-        item.actor.add(new St.Label({ text: '' }));
-        item.actor.add(new St.Label({ text: _("Sensors Settings") }));
+        item.actor.add(new St.Label({ text: _("Sensors Settings") }), { expand: true, x_fill: false });
 
         item.connect('activate', function () {
             Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
