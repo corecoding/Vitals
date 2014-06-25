@@ -32,11 +32,8 @@ const FreonPrefsWidget = new GObject.Class({
 
         this.attach(new Gtk.Label({ label: _('Poll Sensors Every (sec)'), halign : Gtk.Align.END}), 0, i, 1, 1);
         let updateTime = Gtk.SpinButton.new_with_range (1, 60, 1);
-        this.attach(updateTime, 1, i, 1, 1);
+        this.attach(updateTime, 1, i++, 1, 1);
         this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
-
-        this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,
-            label : _('Show Icon on Panel')});
 
         this._addSwitch({key : 'show-decimal-value', y : i, x : 0,
             label : _('Show Decimal Value'),
@@ -47,6 +44,15 @@ const FreonPrefsWidget = new GObject.Class({
             key: 'unit', y : i++, x : 2,
             label: _('Temperature Unit')
         });
+
+        this._addComboBox({
+            items : {left : 'Left', center : 'Center', right : 'Right'},
+            key: 'position-in-panel', y : i, x : 0,
+            label: _('Position in Panel')
+        });
+
+        this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,
+            label : _('Show Icon on Panel')});
 
         this._addComboBox({
             items : {none : 'None', hddtemp : 'Hddtemp', udisks2 : 'UDisks2'},

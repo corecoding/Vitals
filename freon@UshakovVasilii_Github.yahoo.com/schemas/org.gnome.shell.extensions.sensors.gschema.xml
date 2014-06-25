@@ -57,5 +57,11 @@
       <description>Utility for detect HDD/SSD temperature ('none', 'hddtemp' or 'udisks2')</description>
     </key>
 
+    <key type="s" name="position-in-panel">
+      <default>'right'</default>
+      <summary>Position in Panel</summary>
+      <description>Position in Panel ('left', 'center', 'right')</description>
+    </key>
+
   </schema>
 </schemalist>

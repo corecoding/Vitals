@@ -105,6 +105,7 @@ const FreonMenuButton = new Lang.Class({
         this._addSettingChangedSignal('show-voltage', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-aticonfig-temp', Lang.bind(this, this._showAtiConfigChanged));
         this._addSettingChangedSignal('drive-utility', Lang.bind(this, this._driveUtilityChanged));
+        this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
 
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
@@ -112,6 +113,20 @@ const FreonMenuButton = new Lang.Class({
         this._querySensors();
 
         this._addTimer();
+    },
+
+    _positionInPanelChanged : function(){
+        this.container.get_parent().remove_actor(this.container);
+
+        // small HACK with private boxes :)
+        let boxes = {
+            left: Main.panel._leftBox,
+            center: Main.panel._centerBox,
+            right: Main.panel._rightBox
+        };
+
+        let p = this.positionInPanel;
+        boxes[p].insert_child_at_index(this.container, p == 'right' ? 0 : -1)
     },
 
     _showIconOnPanelChanged : function(){
@@ -391,6 +406,10 @@ const FreonMenuButton = new Lang.Class({
         }
         format += '%s';
         return format.format(value, (this._settings.get_string('unit')=='fahrenheit') ? "\u00b0F" : "\u00b0C");
+    },
+
+    get positionInPanel(){
+        return this._settings.get_string('position-in-panel');
     }
 });
 
@@ -402,7 +421,8 @@ function init(extensionMeta) {
 
 function enable() {
     freonMenu = new FreonMenuButton();
-    Main.panel.addToStatusArea('freonMenu', freonMenu);
+    let positionInPanel = freonMenu.positionInPanel;
+    Main.panel.addToStatusArea('freonMenu', freonMenu, positionInPanel == 'right' ? 0 : -1, positionInPanel);
 }
 
 function disable() {
