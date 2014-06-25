@@ -224,32 +224,38 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _updateDisplay: function(){
-        let tempInfo = [];
-        let fanInfo = [];
-        let voltageInfo = [];
+        let gpuTempInfo = [];
+        if(this._settings.get_boolean('show-aticonfig-temp') && this.aticonfigArgv)
+            gpuTempInfo = Utilities.parseAtiConfigOutput(this._aticonfigOutput);
 
-        tempInfo = Utilities.parseSensorsOutput(this._sensorsOutput,Utilities.parseSensorsTemperatureLine);
-        tempInfo = tempInfo.filter(Utilities.filterTemperature);
+        let sensorsTempInfo = [];
+        sensorsTempInfo = Utilities.parseSensorsOutput(this._sensorsOutput,Utilities.parseSensorsTemperatureLine);
+        sensorsTempInfo = sensorsTempInfo.filter(Utilities.filterTemperature);
+
+        let fanInfo = [];
         if (this._settings.get_boolean('show-fan-rpm')){
             fanInfo = Utilities.parseSensorsOutput(this._sensorsOutput,Utilities.parseFanRPMLine);
             fanInfo = fanInfo.filter(Utilities.filterFan);
         }
+
+        let voltageInfo = [];
         if (this._settings.get_boolean('show-voltage')){
             voltageInfo = Utilities.parseSensorsOutput(this._sensorsOutput,Utilities.parseVoltageLine);
         }
 
+        let driveTempInfo = [];
         if(this._settings.get_string('drive-utility') == 'hddtemp' && this.hddtempArgv) {
-            tempInfo = tempInfo.concat(Utilities.parseHddTempOutput(this._hddtempOutput, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|'));
+            driveTempInfo = Utilities.parseHddTempOutput(this._hddtempOutput, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|');
         } else if(this._settings.get_string('drive-utility') == 'udisks2'){
-            tempInfo = tempInfo.concat(this._udisks2.getHDDTemp());
+            driveTempInfo = this._udisks2.getHDDTemp();
         }
 
-        if(this._settings.get_boolean('show-aticonfig-temp') && this.aticonfigArgv)
-            tempInfo = tempInfo.concat(Utilities.parseAtiConfigOutput(this._aticonfigOutput));
+        sensorsTempInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
+        driveTempInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
+        fanInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
+        voltageInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
 
-        tempInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
-        fanInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
-        voltageInfo.sort(function(a,b) { return a['label'].localeCompare(b['label']) });
+        let tempInfo = gpuTempInfo.concat(sensorsTempInfo).concat(driveTempInfo);
 
         if (this.sensorsArgv && tempInfo.length > 0){
             let sum = 0; //sum
