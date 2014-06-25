@@ -42,61 +42,17 @@ const FreonPrefsWidget = new GObject.Class({
             label : _('Show Decimal Value'),
             help : _("Show one digit after decimal")});
 
-        // Temperature Unit ComboBox
-        let tUnitModel = new Gtk.ListStore();
-        tUnitModel.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING]);
+        this._addComboBox({
+            items : {centigrade : "\u00b0C", fahrenheit : "\u00b0F"},
+            key: 'unit', y : i++, x : 2,
+            label: _('Temperature Unit')
+        });
 
-        let tUnit = new Gtk.ComboBox({model: tUnitModel});
-        let tUnitRenderer = new Gtk.CellRendererText();
-        tUnit.pack_start(tUnitRenderer, true);
-        tUnit.add_attribute(tUnitRenderer, 'text', 1);
-
-        let tUnitItems = ["centigrade", "fahrenheit"];
-
-        tUnitModel.set(tUnitModel.append(), [0, 1], [tUnitItems[0], "\u00b0C"]);
-        tUnitModel.set(tUnitModel.append(), [0, 1], [tUnitItems[1], "\u00b0F"]);
-
-        tUnit.set_active(tUnitItems.indexOf(this._settings.get_string('unit')));
-        
-        tUnit.connect('changed', Lang.bind(this, function(entry) {
-            let [success, iter] = tUnit.get_active_iter();
-            if (!success)
-                return;
-            this._settings.set_string('unit', tUnitModel.get_value(iter, 0))
-        }));
-
-        this.attach(new Gtk.Label({ label: _('Temperature Unit'), halign : Gtk.Align.END}), 2, i, 1, 1);
-        this.attach(tUnit, 3, i++, 1, 1);
-
-        //
-
-
-        // HDD Temperature Utility ComboBox
-        let hddTempUtilModel = new Gtk.ListStore();
-        hddTempUtilModel.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING]);
-
-        let hddTempUtil = new Gtk.ComboBox({model: hddTempUtilModel});
-        let hddTempUtilRenderer = new Gtk.CellRendererText();
-        hddTempUtil.pack_start(hddTempUtilRenderer, true);
-        hddTempUtil.add_attribute(hddTempUtilRenderer, 'text', 1);
-
-        let hddTempUtilItems = ['none', 'hddtemp', 'udisks2'];
-
-        hddTempUtilModel.set(hddTempUtilModel.append(), [0, 1], [hddTempUtilItems[0], 'None']);
-        hddTempUtilModel.set(hddTempUtilModel.append(), [0, 1], [hddTempUtilItems[1], 'Hddtemp']);
-        hddTempUtilModel.set(hddTempUtilModel.append(), [0, 1], [hddTempUtilItems[2], 'UDisks2']);
-
-        hddTempUtil.set_active(hddTempUtilItems.indexOf(this._settings.get_string('drive-utility')));
-        
-        hddTempUtil.connect('changed', Lang.bind(this, function(entry) {
-            let [success, iter] = hddTempUtil.get_active_iter();
-            if (!success)
-                return;
-            this._settings.set_string('drive-utility', hddTempUtilModel.get_value(iter, 0))
-        }));
-
-        this.attach(new Gtk.Label({ label: _('Utility for HDD/SSD Temperature'), halign : Gtk.Align.END}), 0, i, 1, 1);
-        this.attach(hddTempUtil, 1, i, 1, 1);
+        this._addComboBox({
+            items : {none : 'None', hddtemp : 'Hddtemp', udisks2 : 'UDisks2'},
+            key: 'drive-utility', y : i, x : 0,
+            label: _('Utility for HDD/SSD Temperature')
+        });
 
         //
 
@@ -121,6 +77,32 @@ const FreonPrefsWidget = new GObject.Class({
             sw.set_tooltip_text(params.help);
         }
         this._settings.bind(params.key, sw, 'active', Gio.SettingsBindFlags.DEFAULT);
+    },
+
+    _addComboBox : function(params){
+        let model = new Gtk.ListStore();
+        model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING]);
+
+        let combobox = new Gtk.ComboBox({model: model});
+        let renderer = new Gtk.CellRendererText();
+        combobox.pack_start(renderer, true);
+        combobox.add_attribute(renderer, 'text', 1);
+
+        for(let k in params.items){
+            model.set(model.append(), [0, 1], [k, params.items[k]]);
+        }
+
+        combobox.set_active(Object.keys(params.items).indexOf(this._settings.get_string(params.key)));
+        
+        combobox.connect('changed', Lang.bind(this, function(entry) {
+            let [success, iter] = combobox.get_active_iter();
+            if (!success)
+                return;
+            this._settings.set_string(params.key, model.get_value(iter, 0))
+        }));
+
+        this.attach(new Gtk.Label({ label: params.label, halign : Gtk.Align.END}), params.x, params.y, 1, 1);
+        this.attach(combobox, params.x + 1, params.y, 1, 1);
     }
 
 });
