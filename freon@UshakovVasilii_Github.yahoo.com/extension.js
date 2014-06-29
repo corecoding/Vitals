@@ -67,9 +67,10 @@ const FreonMenuButton = new Lang.Class({
 
         this._sensorMenuItems = {};
 
-        this._sensorsOutput = '';
-        this._hddtempOutput = '';
-        this._aticonfigOutput = '';
+        this._output = {};
+        this._output.sensors = '';
+        this._output.hddtemp = '';
+        this._output.aticonfig = '';
 
         this._settings = Convenience.getSettings();
 
@@ -202,22 +203,22 @@ const FreonMenuButton = new Lang.Class({
     _querySensors: function(){
 
         if (this.sensorsArgv){
-            new Utilities.Future(this.sensorsArgv, Lang.bind(this,function(stdout){
-                this._sensorsOutput = stdout;
+            Utilities.spawnCmd(this.sensorsArgv, Lang.bind(this,function(stdout){
+                this._output.sensors = stdout;
                 this._updateDisplay();
             }));
         }
 
-        if (this._settings.get_string('drive-utility') == 'hddtemp' && this.hddtempArgv){
-            new Utilities.Future(this.hddtempArgv, Lang.bind(this,function(stdout){
-                this._hddtempOutput = stdout;
+        if (this.hddtempArgv){
+            Utilities.spawnCmd(this.hddtempArgv, Lang.bind(this,function(stdout){
+                this._output.hddtemp = stdout;
                 this._updateDisplay();
             }));
         }
 
-        if (this._settings.get_boolean('show-aticonfig-temp') && this.aticonfigArgv){
-            new Utilities.Future(this.aticonfigArgv, Lang.bind(this,function(stdout){
-                this._aticonfigOutput = stdout;
+        if (this.aticonfigArgv){
+            Utilities.spawnCmd(this.aticonfigArgv, Lang.bind(this,function(stdout){
+                this._output.aticonfig = stdout;
                 this._updateDisplay();
             }));
         }
@@ -225,27 +226,27 @@ const FreonMenuButton = new Lang.Class({
 
     _updateDisplay: function(){
         let gpuTempInfo = [];
-        if(this._settings.get_boolean('show-aticonfig-temp') && this.aticonfigArgv)
-            gpuTempInfo = Utilities.parseAtiConfigOutput(this._aticonfigOutput);
+        if(this.aticonfigArgv)
+            gpuTempInfo = Utilities.parseAtiConfigOutput(this._output.aticonfig);
 
         let sensorsTempInfo = [];
-        sensorsTempInfo = Utilities.parseSensorsOutput(this._sensorsOutput,Utilities.parseSensorsTemperatureLine);
+        sensorsTempInfo = Utilities.parseSensorsOutput(this._output.sensors,Utilities.parseSensorsTemperatureLine);
         sensorsTempInfo = sensorsTempInfo.filter(Utilities.filterTemperature);
 
         let fanInfo = [];
         if (this._settings.get_boolean('show-fan-rpm')){
-            fanInfo = Utilities.parseSensorsOutput(this._sensorsOutput,Utilities.parseFanRPMLine);
+            fanInfo = Utilities.parseSensorsOutput(this._output.sensors,Utilities.parseFanRPMLine);
             fanInfo = fanInfo.filter(Utilities.filterFan);
         }
 
         let voltageInfo = [];
         if (this._settings.get_boolean('show-voltage')){
-            voltageInfo = Utilities.parseSensorsOutput(this._sensorsOutput,Utilities.parseVoltageLine);
+            voltageInfo = Utilities.parseSensorsOutput(this._output.sensors,Utilities.parseVoltageLine);
         }
 
         let driveTempInfo = [];
-        if(this._settings.get_string('drive-utility') == 'hddtemp' && this.hddtempArgv) {
-            driveTempInfo = Utilities.parseHddTempOutput(this._hddtempOutput, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|');
+        if(this.hddtempArgv) {
+            driveTempInfo = Utilities.parseHddTempOutput(this._output.hddtemp, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|');
         } else if(this._settings.get_string('drive-utility') == 'udisks2'){
             driveTempInfo = this._udisks2.getHDDTemp();
         }

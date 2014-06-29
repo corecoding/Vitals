@@ -210,10 +210,7 @@ function filterVoltage(voltageInfo) {
     return true;
 }
 
-const Future = new Lang.Class({
-    Name: 'Future',
-
-    _init: function(argv, callback) {
+function spawnCmd(argv, callback) {
         try{
             this._callback = callback;
             let [exit, pid, stdinFd, stdoutFd, stderrFd] =
@@ -242,6 +239,5 @@ const Future = new Lang.Class({
         } catch(e){
             global.log(e.toString());
         }
-    }
-});
+}
 
