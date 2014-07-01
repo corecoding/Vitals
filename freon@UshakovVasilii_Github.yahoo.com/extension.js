@@ -14,52 +14,10 @@ const UDisks2 = Me.imports.udisks2;
 const AticonfigUtil = Me.imports.aticonfigUtil;
 const HddtempUtil = Me.imports.hddtempUtil;
 const SensorsUtil = Me.imports.sensorsUtil;
+const FreonItem = Me.imports.freonItem;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-
-const FreonItem = new Lang.Class({
-    Name: 'FreonItem',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(gIcon, label, value) {
-        this.parent();
-        this._hasMainDot = false;
-        this._label = label;
-        this._gIcon = gIcon;
-
-        this.actor.add(new St.Icon({ style_class: 'system-status-icon', gicon : gIcon}));
-        this.actor.add(new St.Label({text: label}), {x_fill: true, expand: true});
-        this._valueLabel = new St.Label({text: value});
-        this.actor.add(this._valueLabel);
-    },
-
-    addMainDot: function() {
-        this.setOrnament(PopupMenu.Ornament.DOT);
-        this._hasMainDot = true;
-    },
-
-    hasMainDot: function() {
-        return this._hasMainDot;
-    },
-
-    removeMainDot: function() {
-        this._hasMainDot = false;
-        this.setOrnament(PopupMenu.Ornament.NONE);
-    },
-
-    getLabel: function() {
-        return this._label;
-    },
-
-    getGIcon: function() {
-        return this._gIcon;
-    },
-
-    setValue: function(value) {
-        this._valueLabel.text = value;
-    }
-});
 
 const FreonMenuButton = new Lang.Class({
     Name: 'FreonMenuButton',
@@ -208,22 +166,12 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _querySensors: function(){
-        if (this._utils.sensors.available){
-            this._utils.sensors.execute(Lang.bind(this,function(){
-                this._updateDisplay();
-            }));
-        }
-
-        if (this._utils.hddtemp.available){
-            this._utils.hddtemp.execute(Lang.bind(this,function(){
-                this._updateDisplay();
-            }));
-        }
-
-        if (this._utils.aticonfig.available){
-            this._utils.aticonfig.execute(Lang.bind(this,function(){
-                this._updateDisplay();
-            }));
+        for each (let sensor in this._utils) {
+            if (sensor.available) {
+                sensor.execute(Lang.bind(this,function(){
+                    this._updateDisplay();
+                }));
+            }
         }
     },
 
@@ -303,15 +251,15 @@ const FreonMenuButton = new Lang.Class({
 
                         let item = this._sensorMenuItems[s.label];
                         if(item) {
-                            if(!item.hasMainDot()){
+                            if(!item.main){
                                 global.log('[FREON] Change active sensor');
                                 if(this._lastActiveItem) {
-                                    this._lastActiveItem.removeMainDot();
+                                    this._lastActiveItem.main = false;
                                 }
                                 this._lastActiveItem = item;
-                                item.addMainDot();
+                                item.main = true;
                                 if(this._icon)
-                                    this._icon.gicon = item.getGIcon();
+                                    this._icon.gicon = item.gicon;
                             }
                         } else {
                             needAppendMenuItems = true;
@@ -325,7 +273,7 @@ const FreonMenuButton = new Lang.Class({
                     if(s.type != 'separator') {
                         let item = this._sensorMenuItems[s.label];
                         if(item) {
-                            item.setValue(s.value);
+                            item.value = s.value;
                         } else {
                             needAppendMenuItems = true;
                         }
@@ -364,15 +312,15 @@ const FreonMenuButton = new Lang.Class({
             if(s.type == 'separator'){
                  this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             } else {
-                let item = new FreonItem(this._sensorIcons[s.type], s.label, s.value);
+                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], s.label, s.value);
                 item.connect('activate', Lang.bind(this, function (self) {
-                    this._settings.set_string('main-sensor', self.getLabel());
+                    this._settings.set_string('main-sensor', self.label);
                 }));
                 if (mainSensor == s.label) {
                     this._lastActiveItem = item;
-                    item.addMainDot();
+                    item.main = true;
                     if(this._icon)
-                        this._icon.gicon = item.getGIcon();
+                        this._icon.gicon = item.gicon;
                 }
                 this._sensorMenuItems[s.label] = item;
                 this.menu.addMenuItem(item);
