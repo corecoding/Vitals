@@ -207,16 +207,16 @@ const FreonMenuButton = new Lang.Class({
         if (tempInfo.length > 0){
             let sum = 0; //sum
             let max = 0; //max temp
-            for each (let temp in tempInfo){
-                sum += temp['temp'];
-                if (temp['temp'] > max)
-                    max = temp['temp'];
+            for each (let i in tempInfo){
+                sum += i.temp;
+                if (i.temp > max)
+                    max = i.temp;
             }
 
             let sensors = [];
 
-            for each (let temp in tempInfo){
-                sensors.push({type:'temperature', label:temp['label'], value:this._formatTemp(temp['temp'])});
+            for each (let i in tempInfo){
+                sensors.push({type:'temperature', label: i.label, value:this._formatTemp(i.temp)});
             }
 
             if (tempInfo.length > 0){
@@ -231,16 +231,16 @@ const FreonMenuButton = new Lang.Class({
             }
 
             for each (let fan in fanInfo){
-                sensors.push({type:'fan',label:fan['label'], value:_("%drpm").format(fan['rpm'])});
+                sensors.push({type:'fan',label:fan.label, value:_("%drpm").format(fan.rpm)});
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
                 sensors.push({type : 'separator'});
             }
             for each (let voltage in voltageInfo){
-                sensors.push({type : 'voltage', label:voltage['label'], value:_("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])});
+                sensors.push({type : 'voltage', label:voltage.label, value:_("%s%.2fV").format(((voltage.volt >= 0) ? '+' : '-'), voltage.volt)});
             }
 
-            let needAppendMenuItems = false;
+
             let mainSensor = this._settings.get_string('main-sensor');
             let sensorCount = 0;
             for each (let s in sensors) {
@@ -261,13 +261,12 @@ const FreonMenuButton = new Lang.Class({
                                 if(this._icon)
                                     this._icon.gicon = item.gicon;
                             }
-                        } else {
-                            needAppendMenuItems = true;
                         }
                     }
                 }
             }
 
+            let needAppendMenuItems = false;
             if(Object.keys(this._sensorMenuItems).length==sensorCount){
                 for each (let s in sensors) {
                     if(s.type != 'separator') {
