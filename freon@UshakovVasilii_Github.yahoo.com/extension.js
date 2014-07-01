@@ -10,8 +10,11 @@ const Gio = imports.gi.Gio;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Utilities = Me.imports.utilities;
 const UDisks2 = Me.imports.udisks2;
+const AticonfigUtil = Me.imports.aticonfigUtil;
+const HddtempUtil = Me.imports.hddtempUtil;
+const SensorsUtil = Me.imports.sensorsUtil;
+
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -67,10 +70,11 @@ const FreonMenuButton = new Lang.Class({
 
         this._sensorMenuItems = {};
 
-        this._output = {};
-        this._output.sensors = '';
-        this._output.hddtemp = '';
-        this._output.aticonfig = '';
+        this._utils = {
+            aticonfig: new AticonfigUtil.AticonfigUtil(),
+            hddtemp: new HddtempUtil.HddtempUtil(),
+            sensors: new SensorsUtil.SensorsUtil()
+        };
 
         this._settings = Convenience.getSettings();
 
@@ -91,10 +95,10 @@ const FreonMenuButton = new Lang.Class({
 
         this.actor.add_actor(this._menuLayout);
 
-        this.sensorsArgv = Utilities.detectSensors();
+        this._utils.sensors.detect();
         this._initDriveUtility();
         if(this._settings.get_boolean('show-aticonfig-temp'))
-            this.aticonfigArgv = Utilities.detectAtiConfig();
+            this._utils.aticonfig.detect();
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
@@ -151,7 +155,7 @@ const FreonMenuButton = new Lang.Class({
     _initDriveUtility : function(){
         switch(this._settings.get_string('drive-utility')){
             case 'hddtemp':
-                this.hddtempArgv = Utilities.detectHDDTemp();
+                this._utils.hddtemp.detect();
                 break;
             case 'udisks2':
                 this._udisks2 = new UDisks2.UDisks2(Lang.bind(this, function() {
@@ -166,7 +170,7 @@ const FreonMenuButton = new Lang.Class({
             this._udisks2.destroy();
             this._udisks2 = null;
         }
-        this.hddtempArgv = null;
+        this._utils.hddtemp.destroy();
     },
 
     _updateTimeChanged : function(){
@@ -175,7 +179,10 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _showAtiConfigChanged : function(){
-        this.aticonfigArgv = this._settings.get_boolean('show-aticonfig-temp') ? Utilities.detectAtiConfig() : undefined;
+        if(this._settings.get_boolean('show-aticonfig-temp'))
+            this._utils.aticonfig.detect();
+        else
+            this._utils.aticonfig.destroy();
         this._querySensors();
     },
 
@@ -201,24 +208,20 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _querySensors: function(){
-
-        if (this.sensorsArgv){
-            Utilities.spawnCmd(this.sensorsArgv, Lang.bind(this,function(stdout){
-                this._output.sensors = stdout;
+        if (this._utils.sensors.available){
+            this._utils.sensors.execute(Lang.bind(this,function(){
                 this._updateDisplay();
             }));
         }
 
-        if (this.hddtempArgv){
-            Utilities.spawnCmd(this.hddtempArgv, Lang.bind(this,function(stdout){
-                this._output.hddtemp = stdout;
+        if (this._utils.hddtemp.available){
+            this._utils.hddtemp.execute(Lang.bind(this,function(){
                 this._updateDisplay();
             }));
         }
 
-        if (this.aticonfigArgv){
-            Utilities.spawnCmd(this.aticonfigArgv, Lang.bind(this,function(stdout){
-                this._output.aticonfig = stdout;
+        if (this._utils.aticonfig.available){
+            this._utils.aticonfig.execute(Lang.bind(this,function(){
                 this._updateDisplay();
             }));
         }
@@ -226,27 +229,22 @@ const FreonMenuButton = new Lang.Class({
 
     _updateDisplay: function(){
         let gpuTempInfo = [];
-        if(this.aticonfigArgv)
-            gpuTempInfo = Utilities.parseAtiConfigOutput(this._output.aticonfig);
+        if (this._utils.aticonfig.available)
+            gpuTempInfo = this._utils.aticonfig.temp;
 
-        let sensorsTempInfo = [];
-        sensorsTempInfo = Utilities.parseSensorsOutput(this._output.sensors,Utilities.parseSensorsTemperatureLine);
-        sensorsTempInfo = sensorsTempInfo.filter(Utilities.filterTemperature);
+        let sensorsTempInfo = this._utils.sensors.temp;
 
         let fanInfo = [];
-        if (this._settings.get_boolean('show-fan-rpm')){
-            fanInfo = Utilities.parseSensorsOutput(this._output.sensors,Utilities.parseFanRPMLine);
-            fanInfo = fanInfo.filter(Utilities.filterFan);
-        }
+        if (this._settings.get_boolean('show-fan-rpm'))
+            fanInfo = this._utils.sensors.rpm;
 
         let voltageInfo = [];
-        if (this._settings.get_boolean('show-voltage')){
-            voltageInfo = Utilities.parseSensorsOutput(this._output.sensors,Utilities.parseVoltageLine);
-        }
+        if (this._settings.get_boolean('show-voltage'))
+            voltageInfo = this._utils.sensors.volt;
 
         let driveTempInfo = [];
-        if(this.hddtempArgv) {
-            driveTempInfo = Utilities.parseHddTempOutput(this._output.hddtemp, !(/nc$/.exec(this.hddtempArgv[0])) ? ': ' : '|');
+        if(this._utils.hddtemp.available) {
+            driveTempInfo = this._utils.hddtemp.temp;
         } else if(this._settings.get_string('drive-utility') == 'udisks2'){
             driveTempInfo = this._udisks2.getHDDTemp();
         }
@@ -258,7 +256,7 @@ const FreonMenuButton = new Lang.Class({
 
         let tempInfo = gpuTempInfo.concat(sensorsTempInfo).concat(driveTempInfo);
 
-        if (this.sensorsArgv && tempInfo.length > 0){
+        if (tempInfo.length > 0){
             let sum = 0; //sum
             let max = 0; //max temp
             for each (let temp in tempInfo){
@@ -267,37 +265,37 @@ const FreonMenuButton = new Lang.Class({
                     max = temp['temp'];
             }
 
-            let sensorsList = [];
+            let sensors = [];
 
             for each (let temp in tempInfo){
-                sensorsList.push({type:'temperature', label:temp['label'], value:this._formatTemp(temp['temp'])});
+                sensors.push({type:'temperature', label:temp['label'], value:this._formatTemp(temp['temp'])});
             }
 
             if (tempInfo.length > 0){
-                sensorsList.push({type : 'separator'});
+                sensors.push({type : 'separator'});
 
                 // Add average and maximum entries
-                sensorsList.push({type:'temperature', label:_("Average"), value:this._formatTemp(sum/tempInfo.length)});
-                sensorsList.push({type:'temperature', label:_("Maximum"), value:this._formatTemp(max)});
+                sensors.push({type:'temperature', label:_("Average"), value:this._formatTemp(sum/tempInfo.length)});
+                sensors.push({type:'temperature', label:_("Maximum"), value:this._formatTemp(max)});
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
-                    sensorsList.push({type : 'separator'});
+                    sensors.push({type : 'separator'});
             }
 
             for each (let fan in fanInfo){
-                sensorsList.push({type:'fan',label:fan['label'], value:_("%drpm").format(fan['rpm'])});
+                sensors.push({type:'fan',label:fan['label'], value:_("%drpm").format(fan['rpm'])});
             }
             if (fanInfo.length > 0 && voltageInfo.length > 0){
-                sensorsList.push({type : 'separator'});
+                sensors.push({type : 'separator'});
             }
             for each (let voltage in voltageInfo){
-                sensorsList.push({type : 'voltage', label:voltage['label'], value:_("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])});
+                sensors.push({type : 'voltage', label:voltage['label'], value:_("%s%.2fV").format(((voltage['volt'] >= 0) ? '+' : '-'), voltage['volt'])});
             }
 
             let needAppendMenuItems = false;
             let mainSensor = this._settings.get_string('main-sensor');
             let sensorCount = 0;
-            for each (let s in sensorsList) {
+            for each (let s in sensors) {
                 if(s.type != 'separator') {
                     sensorCount++;
                     if (mainSensor == s.label) {
@@ -323,7 +321,7 @@ const FreonMenuButton = new Lang.Class({
             }
 
             if(Object.keys(this._sensorMenuItems).length==sensorCount){
-                for each (let s in sensorsList) {
+                for each (let s in sensors) {
                     if(s.type != 'separator') {
                         let item = this._sensorMenuItems[s.label];
                         if(item) {
@@ -340,7 +338,7 @@ const FreonMenuButton = new Lang.Class({
             if(needAppendMenuItems){
                 global.log('[FREON] Render all MenuItems');
                 this.menu.removeAll();
-                this._appendMenuItems(sensorsList);
+                this._appendMenuItems(sensors);
             }
         } else {
             this._sensorMenuItems = {};
@@ -348,9 +346,9 @@ const FreonMenuButton = new Lang.Class({
             this.statusLabel.set_text(_("Error"));
 
             let item = new PopupMenu.PopupMenuItem(
-                (this.sensorsArgv
+                this._utils.sensors.available
                     ? _("Please run sensors-detect as root.")
-                    : _("Please install lm_sensors.")) + "\n" + _("If this doesn\'t help, click here to report with your sensors output!")
+                    : _("Please install lm_sensors.\nIf this doesn\'t help, click here to report with your sensors output!")
             );
             item.connect('activate',function() {
                 Util.spawn(["xdg-open", "https://github.com/UshakovVasilii/gnome-shell-extension-freon/issues"]);
@@ -359,10 +357,10 @@ const FreonMenuButton = new Lang.Class({
         }
     },
 
-    _appendMenuItems : function(sensorsList){
+    _appendMenuItems : function(sensors){
         this._sensorMenuItems = {};
         let mainSensor = this._settings.get_string('main-sensor');
-        for each (let s in sensorsList){
+        for each (let s in sensors){
             if(s.type == 'separator'){
                  this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             } else {
