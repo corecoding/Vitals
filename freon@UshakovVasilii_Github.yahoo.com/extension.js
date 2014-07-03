@@ -33,6 +33,7 @@ const FreonMenuButton = new Lang.Class({
             hddtemp: new HddtempUtil.HddtempUtil(),
             sensors: new SensorsUtil.SensorsUtil()
         };
+        this._udisks2 = new UDisks2.UDisks2();
 
         this._settings = Convenience.getSettings();
 
@@ -116,7 +117,7 @@ const FreonMenuButton = new Lang.Class({
                 this._utils.hddtemp.detect();
                 break;
             case 'udisks2':
-                this._udisks2 = new UDisks2.UDisks2(Lang.bind(this, function() {
+                this._udisks2.detect(Lang.bind(this, function() {
                     this._updateDisplay();
                 }));
                 break;
@@ -124,10 +125,7 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _destroyDriveUtility : function(){
-        if(this._udisks2){
-            this._udisks2.destroy();
-            this._udisks2 = null;
-        }
+        this._udisks2.destroy();
         this._utils.hddtemp.destroy();
     },
 
@@ -193,8 +191,8 @@ const FreonMenuButton = new Lang.Class({
         let driveTempInfo = [];
         if(this._utils.hddtemp.available) {
             driveTempInfo = this._utils.hddtemp.temp;
-        } else if(this._settings.get_string('drive-utility') == 'udisks2'){
-            driveTempInfo = this._udisks2.getHDDTemp();
+        } else if(this._udisks2.available){
+            driveTempInfo = this._udisks2.temp;
         }
 
         sensorsTempInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });

@@ -36,14 +36,21 @@ const UDisks2  = new Lang.Class({
 
     _init: function(callback) {
         this._udisksProxies = [];
+    },
+
+    detect: function(callback){
         this._get_drive_ata_proxies(Lang.bind(this, function(proxies) {
             this._udisksProxies = proxies;
             callback();
         }));
     },
 
+    get available(){
+        return this._udisksProxies.length > 0;
+    },
+
     // creates a list of sensor objects from the list of proxies given
-    getHDDTemp: function() {
+    get temp() {
         return this._udisksProxies.filter(function(proxy) {
             // 0K means no data available
             return proxy.ata.SmartTemperature > 0;
@@ -104,6 +111,7 @@ const UDisks2  = new Lang.Class({
                 proxy.ata.run_dispose();
             }
         }
+        this._udisksProxies = [];
     },
 
 });
