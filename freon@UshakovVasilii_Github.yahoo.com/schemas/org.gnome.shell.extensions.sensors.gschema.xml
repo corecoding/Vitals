@@ -51,6 +51,12 @@
       <description>Show AMD card temperature, use aticonfig from Catalyst driver</description>
     </key>
 
+    <key type="b" name="show-nvidia-temp">
+      <default>false</default>
+      <summary>Show NVIDIA Card Temperature</summary>
+      <description>Show NVIDIA card temperature, use nvidia-settings util</description>
+    </key>
+
     <key type="s" name="drive-utility">
       <default>'udisks2'</default>
       <summary>Utility for detect HDD/SSD temperature</summary>

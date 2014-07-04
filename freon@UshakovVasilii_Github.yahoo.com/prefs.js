@@ -70,7 +70,11 @@ const FreonPrefsWidget = new GObject.Class({
 
         this._addSwitch({key : 'show-aticonfig-temp', y : i++, x : 2,
             label : _('Use Catalyst'),
-            help : _('Show AMD video card temperature, use aticonfig from Catalyst driver.')});
+            help : _('Show AMD video card temperature, use aticonfig from Catalyst driver')});
+
+        this._addSwitch({key : 'show-nvidia-temp', y : i, x : 0,
+            label : _('Use NVIDIA'),
+            help : _('Show NVIDIA video card temperature, use nvidia-settings util')});
     },
 
     _addSwitch : function(params){

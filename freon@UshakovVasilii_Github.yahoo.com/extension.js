@@ -12,6 +12,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const UDisks2 = Me.imports.udisks2;
 const AticonfigUtil = Me.imports.aticonfigUtil;
+const NvidiaUtil = Me.imports.nvidiaUtil;
 const HddtempUtil = Me.imports.hddtempUtil;
 const SensorsUtil = Me.imports.sensorsUtil;
 const FreonItem = Me.imports.freonItem;
@@ -31,7 +32,8 @@ const FreonMenuButton = new Lang.Class({
         this._utils = {
             aticonfig: new AticonfigUtil.AticonfigUtil(),
             hddtemp: new HddtempUtil.HddtempUtil(),
-            sensors: new SensorsUtil.SensorsUtil()
+            sensors: new SensorsUtil.SensorsUtil(),
+            nvidia: new NvidiaUtil.NvidiaUtil()
         };
         this._udisks2 = new UDisks2.UDisks2();
 
@@ -58,6 +60,8 @@ const FreonMenuButton = new Lang.Class({
         this._initDriveUtility();
         if(this._settings.get_boolean('show-aticonfig-temp'))
             this._utils.aticonfig.detect();
+        if(this._settings.get_boolean('show-nvidia-temp'))
+            this._utils.nvidia.detect();
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
@@ -68,6 +72,7 @@ const FreonMenuButton = new Lang.Class({
         this._addSettingChangedSignal('show-fan-rpm', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-voltage', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-aticonfig-temp', Lang.bind(this, this._showAtiConfigChanged));
+        this._addSettingChangedSignal('show-nvidia-temp', Lang.bind(this, this._showNvidiaChanged));
         this._addSettingChangedSignal('drive-utility', Lang.bind(this, this._driveUtilityChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
 
@@ -142,6 +147,14 @@ const FreonMenuButton = new Lang.Class({
         this._querySensors();
     },
 
+    _showNvidiaChanged : function(){
+        if(this._settings.get_boolean('show-nvidia-temp'))
+            this._utils.nvidia.detect();
+        else
+            this._utils.nvidia.destroy();
+        this._querySensors();
+    },
+
     _addTimer : function(){
         this._timeoutId = Mainloop.timeout_add_seconds(this._settings.get_int('update-time'), Lang.bind(this, function (){
             this._querySensors();
@@ -176,7 +189,9 @@ const FreonMenuButton = new Lang.Class({
     _updateDisplay: function(){
         let gpuTempInfo = [];
         if (this._utils.aticonfig.available)
-            gpuTempInfo = this._utils.aticonfig.temp;
+            gpuTempInfo = gpuTempInfo.concat(this._utils.aticonfig.temp);
+        if (this._utils.nvidia.available)
+            gpuTempInfo = gpuTempInfo.concat(this._utils.nvidia.temp);
 
         let sensorsTempInfo = this._utils.sensors.temp;
 
