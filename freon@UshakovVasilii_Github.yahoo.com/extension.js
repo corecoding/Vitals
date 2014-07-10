@@ -40,9 +40,12 @@ const FreonMenuButton = new Lang.Class({
         this._settings = Convenience.getSettings();
 
         this._sensorIcons = {
-            temperature : Gio.icon_new_for_string(Me.path + '/icons/sensors-temperature-symbolic.svg'),
-            voltage : Gio.icon_new_for_string(Me.path + '/icons/sensors-voltage-symbolic.svg'),
-            fan : Gio.icon_new_for_string(Me.path + '/icons/sensors-fan-symbolic.svg')
+            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg'),
+            'gpu-temperature' : Gio.icon_new_for_string(Me.path + '/icons/freon-gpu-temperature-symbolic.svg'),
+            'drive-temperature' : Gio.icon_new_for_string('drive-harddisk-symbolic'),
+            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg'),
+            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/freon-voltage-symbolic.svg'),
+            'fan' : Gio.icon_new_for_string(Me.path + '/icons/freon-fan-symbolic.svg')
         }
 
         this._menuLayout = new St.BoxLayout();
@@ -230,8 +233,14 @@ const FreonMenuButton = new Lang.Class({
 
             let sensors = [];
 
-            for each (let i in tempInfo){
+            for each (let i in gpuTempInfo){
+                sensors.push({type:'gpu-temperature', label: i.label, value:this._formatTemp(i.temp)});
+            }
+            for each (let i in sensorsTempInfo){
                 sensors.push({type:'temperature', label: i.label, value:this._formatTemp(i.temp)});
+            }
+            for each (let i in driveTempInfo){
+                sensors.push({type:'drive-temperature', label: i.label, value:this._formatTemp(i.temp)});
             }
 
             if (tempInfo.length > 0){
