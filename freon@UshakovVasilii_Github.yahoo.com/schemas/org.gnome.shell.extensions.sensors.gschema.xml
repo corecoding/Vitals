@@ -45,22 +45,16 @@
       <description>Display voltage of various components</description>
     </key>
 
-    <key type="b" name="show-aticonfig-temp">
-      <default>false</default>
-      <summary>Show AMD Card Temperature (Catalyst)</summary>
-      <description>Show AMD card temperature, use aticonfig from Catalyst driver</description>
-    </key>
-
-    <key type="b" name="show-nvidia-temp">
-      <default>false</default>
-      <summary>Show NVIDIA Card Temperature</summary>
-      <description>Show NVIDIA card temperature, use nvidia-settings util</description>
-    </key>
-
     <key type="s" name="drive-utility">
       <default>'udisks2'</default>
       <summary>Utility for detect HDD/SSD temperature</summary>
       <description>Utility for detect HDD/SSD temperature ('none', 'hddtemp' or 'udisks2')</description>
+    </key>
+
+    <key type="s" name="gpu-utility">
+      <default>'none'</default>
+      <summary>Utility for detect video card temperature</summary>
+      <description>Utility for detect video card temperature ('none', 'nvidia-settings' or 'aticonfig')</description>
     </key>
 
     <key type="s" name="position-in-panel">

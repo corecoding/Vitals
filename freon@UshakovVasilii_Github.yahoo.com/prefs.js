@@ -54,27 +54,23 @@ const FreonPrefsWidget = new GObject.Class({
         this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,
             label : _('Show Icon on Panel')});
 
+        this._addSwitch({key : 'show-fan-rpm', y : i, x : 0,
+            label : _('Show Fan Speed')});
+
+        this._addSwitch({key : 'show-voltage', y : i++, x : 2,
+            label : _('Show Power Supply Voltage')});
+
         this._addComboBox({
             items : {none : 'None', hddtemp : 'Hddtemp', udisks2 : 'UDisks2'},
             key: 'drive-utility', y : i, x : 0,
-            label: _('Utility for HDD/SSD Temperature')
+            label: _('HDD/SSD Temperature Utility')
         });
 
-        //
-
-        this._addSwitch({key : 'show-fan-rpm', y : i++, x : 2,
-            label : _('Show Fan Speed')});
-
-        this._addSwitch({key : 'show-voltage', y : i, x : 0,
-            label : _('Show Power Supply Voltage')});
-
-        this._addSwitch({key : 'show-aticonfig-temp', y : i++, x : 2,
-            label : _('Use Catalyst'),
-            help : _('Show AMD video card temperature, use aticonfig from Catalyst driver')});
-
-        this._addSwitch({key : 'show-nvidia-temp', y : i, x : 0,
-            label : _('Use NVIDIA'),
-            help : _('Show NVIDIA video card temperature, use nvidia-settings util')});
+        this._addComboBox({
+            items : {none : 'None', 'nvidia-settings' : 'Nvidia', aticonfig : 'Catalyst'},
+            key: 'gpu-utility', y : i, x : 2,
+            label: _('Video Card Temperature Utility')
+        });
     },
 
     _addSwitch : function(params){

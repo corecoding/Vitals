@@ -58,10 +58,7 @@ const FreonMenuButton = new Lang.Class({
 
         this._utils.sensors.detect();
         this._initDriveUtility();
-        if(this._settings.get_boolean('show-aticonfig-temp'))
-            this._utils.aticonfig.detect();
-        if(this._settings.get_boolean('show-nvidia-temp'))
-            this._utils.nvidia.detect();
+        this._initGpuUtility();
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
@@ -71,9 +68,8 @@ const FreonMenuButton = new Lang.Class({
         this._addSettingChangedSignal('show-decimal-value', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-fan-rpm', Lang.bind(this, this._querySensors));
         this._addSettingChangedSignal('show-voltage', Lang.bind(this, this._querySensors));
-        this._addSettingChangedSignal('show-aticonfig-temp', Lang.bind(this, this._showAtiConfigChanged));
-        this._addSettingChangedSignal('show-nvidia-temp', Lang.bind(this, this._showNvidiaChanged));
         this._addSettingChangedSignal('drive-utility', Lang.bind(this, this._driveUtilityChanged));
+        this._addSettingChangedSignal('gpu-utility', Lang.bind(this, this._gpuUtilityChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
 
         this.connect('destroy', Lang.bind(this, this._onDestroy));
@@ -134,25 +130,31 @@ const FreonMenuButton = new Lang.Class({
         this._utils.hddtemp.destroy();
     },
 
+    _initGpuUtility : function(){
+        switch(this._settings.get_string('gpu-utility')){
+            case 'nvidia-settings':
+                this._utils.nvidia.detect();
+                break;
+            case 'aticonfig':
+                this._utils.aticonfig.detect();
+                break;
+        }
+    },
+
+    _destroyGpuUtility : function(){
+        this._utils.nvidia.destroy();
+        this._utils.aticonfig.destroy();
+    },
+
+    _gpuUtilityChanged : function(){
+        this._destroyGpuUtility();
+        this._initGpuUtility();
+        this._querySensors();
+    },
+
     _updateTimeChanged : function(){
         Mainloop.source_remove(this._timeoutId);
         this._addTimer();
-    },
-
-    _showAtiConfigChanged : function(){
-        if(this._settings.get_boolean('show-aticonfig-temp'))
-            this._utils.aticonfig.detect();
-        else
-            this._utils.aticonfig.destroy();
-        this._querySensors();
-    },
-
-    _showNvidiaChanged : function(){
-        if(this._settings.get_boolean('show-nvidia-temp'))
-            this._utils.nvidia.detect();
-        else
-            this._utils.nvidia.destroy();
-        this._querySensors();
     },
 
     _addTimer : function(){
