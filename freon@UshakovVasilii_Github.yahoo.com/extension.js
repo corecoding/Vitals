@@ -39,11 +39,13 @@ const FreonMenuButton = new Lang.Class({
 
         this._settings = Convenience.getSettings();
 
+        let temperatureIcon = Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg');
         this._sensorIcons = {
-            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg'),
+            'temperature' : temperatureIcon,
+            'temperature-average' : temperatureIcon,
+            'temperature-maximum' : temperatureIcon,
             'gpu-temperature' : Gio.icon_new_for_string(Me.path + '/icons/freon-gpu-temperature-symbolic.svg'),
             'drive-temperature' : Gio.icon_new_for_string('drive-harddisk-symbolic'),
-            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg'),
             'voltage' : Gio.icon_new_for_string(Me.path + '/icons/freon-voltage-symbolic.svg'),
             'fan' : Gio.icon_new_for_string(Me.path + '/icons/freon-fan-symbolic.svg')
         }
@@ -74,6 +76,8 @@ const FreonMenuButton = new Lang.Class({
         this._addSettingChangedSignal('drive-utility', Lang.bind(this, this._driveUtilityChanged));
         this._addSettingChangedSignal('gpu-utility', Lang.bind(this, this._gpuUtilityChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
+        this._addSettingChangedSignal('group-temperature', Lang.bind(this, this._querySensors))
+        this._addSettingChangedSignal('group-voltage', Lang.bind(this, this._rerender))
 
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
@@ -81,6 +85,11 @@ const FreonMenuButton = new Lang.Class({
         this._querySensors();
 
         this._addTimer();
+    },
+
+    _rerender : function(){
+        this._needRerender = true;
+        this._querySensors();
     },
 
     _positionInPanelChanged : function(){
@@ -223,8 +232,8 @@ const FreonMenuButton = new Lang.Class({
         let tempInfo = gpuTempInfo.concat(sensorsTempInfo).concat(driveTempInfo);
 
         if (tempInfo.length > 0){
-            let sum = 0; //sum
-            let max = 0; //max temp
+            let sum = 0;
+            let max = 0;
             for each (let i in tempInfo){
                 sum += i.temp;
                 if (i.temp > max)
@@ -247,11 +256,19 @@ const FreonMenuButton = new Lang.Class({
                 sensors.push({type : 'separator'});
 
                 // Add average and maximum entries
-                sensors.push({type:'temperature', label:_("Average"), value:this._formatTemp(sum/tempInfo.length)});
-                sensors.push({type:'temperature', label:_("Maximum"), value:this._formatTemp(max)});
+                sensors.push({type:'temperature-average', label:_("Average"), value:this._formatTemp(sum/tempInfo.length)});
+                sensors.push({type:'temperature-maximum', label:_("Maximum"), value:this._formatTemp(max)});
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
                     sensors.push({type : 'separator'});
+            }
+
+            if(this._settings.get_boolean('group-temperature')){
+                sum = 0;
+                for each (let i in sensorsTempInfo){
+                    sum += i.temp;
+                }
+                sensors.push({type:'temperature-group', label:'temperature-group', value: this._formatTemp(sum/sensorsTempInfo.length)});
             }
 
             for each (let fan in fanInfo){
@@ -266,47 +283,44 @@ const FreonMenuButton = new Lang.Class({
 
 
             let mainSensor = this._settings.get_string('main-sensor');
-            let sensorCount = 0;
             for each (let s in sensors) {
-                if(s.type != 'separator') {
-                    sensorCount++;
-                    if (mainSensor == s.label) {
-                        this.statusLabel.set_text(s.value);
+                if(s.type != 'separator' && mainSensor == s.label) {
+                    this.statusLabel.set_text(s.value);
 
-                        let item = this._sensorMenuItems[s.label];
-                        if(item) {
-                            if(!item.main){
-                                global.log('[FREON] Change active sensor');
-                                if(this._lastActiveItem) {
-                                    this._lastActiveItem.main = false;
-                                }
-                                this._lastActiveItem = item;
-                                item.main = true;
-                                if(this._icon)
-                                    this._icon.gicon = item.gicon;
-                            }
+                    let item = this._sensorMenuItems[s.label];
+                    if(item && !item.main) {
+                        global.log('[FREON] Change active sensor');
+                        if(this._lastActiveItem) {
+                            this._lastActiveItem.main = false;
                         }
+                        this._lastActiveItem = item;
+                        item.main = true;
+                        if(this._icon)
+                            this._icon.gicon = item.gicon;
                     }
                 }
             }
 
-            let needAppendMenuItems = false;
-            if(Object.keys(this._sensorMenuItems).length==sensorCount){
+            if(this._lastSensorsCount && this._lastSensorsCount==sensors.length){
                 for each (let s in sensors) {
                     if(s.type != 'separator') {
                         let item = this._sensorMenuItems[s.label];
                         if(item) {
-                            item.value = s.value;
+                            if(s.type == 'temperature-group')
+                                item.status.text = s.value;
+                            else
+                                item.value = s.value;
                         } else {
-                            needAppendMenuItems = true;
+                            this._needRerender = true;
                         }
                     }
                 }
             } else {
-                needAppendMenuItems = true;
+                this._needRerender = true;
             }
 
-            if(needAppendMenuItems){
+            if(this._needRerender){
+                this._needRerender = false;
                 global.log('[FREON] Render all MenuItems');
                 this.menu.removeAll();
                 this._appendMenuItems(sensors);
@@ -329,11 +343,41 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _appendMenuItems : function(sensors){
+        this._lastSensorsCount = sensors.length;
         this._sensorMenuItems = {};
         let mainSensor = this._settings.get_string('main-sensor');
+        let needGroupTemperature = this._settings.get_boolean('group-temperature');
+        let needGroupVoltage = this._settings.get_boolean('group-voltage');
+
+        if(needGroupTemperature){
+            let i = 0;
+            for each (let s in sensors)
+                if(s.type == 'temperature')
+                    i++;
+            if(i <= 3)
+                needGroupTemperature = false;
+        }
+
+        if(needGroupVoltage){
+            let i = 0;
+            for each (let s in sensors)
+                if(s.type == 'voltage')
+                    i++;
+            if(i <= 3)
+                needGroupVoltage = false;
+        }
+
+        let temperatureGroup = null;
+        let voltageGroup = null;
+
         for each (let s in sensors){
             if(s.type == 'separator'){
                  this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            } else if (s.type == 'temperature-group') {
+                if(temperatureGroup) {
+                    temperatureGroup.status.text = s.value;
+                    this._sensorMenuItems['temperature-group'] = temperatureGroup;
+                }
             } else {
                 let item = new FreonItem.FreonItem(this._sensorIcons[s.type], s.label, s.value);
                 item.connect('activate', Lang.bind(this, function (self) {
@@ -346,10 +390,26 @@ const FreonMenuButton = new Lang.Class({
                         this._icon.gicon = item.gicon;
                 }
                 this._sensorMenuItems[s.label] = item;
-                this.menu.addMenuItem(item);
+
+                if(needGroupTemperature && s.type == 'temperature') {
+                    if(!temperatureGroup) {
+                        temperatureGroup = new PopupMenu.PopupSubMenuMenuItem(_('Temperature Sensors'), true);
+                        temperatureGroup.icon.gicon = this._sensorIcons['temperature'];
+                        this.menu.addMenuItem(temperatureGroup);
+                    }
+                    temperatureGroup.menu.addMenuItem(item);
+                } else if(needGroupVoltage && s.type == 'voltage') {
+                    if(!voltageGroup) {
+                        voltageGroup = new PopupMenu.PopupSubMenuMenuItem(_('Voltage'), true);
+                        voltageGroup.icon.gicon = this._sensorIcons['voltage'];
+                        this.menu.addMenuItem(voltageGroup);
+                    }
+                    voltageGroup.menu.addMenuItem(item);
+                } else {
+                    this.menu.addMenuItem(item);
+                }
             }
         }
-
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 

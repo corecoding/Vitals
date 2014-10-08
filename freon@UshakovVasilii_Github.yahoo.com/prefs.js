@@ -60,6 +60,14 @@ const FreonPrefsWidget = new GObject.Class({
         this._addSwitch({key : 'show-voltage', y : i++, x : 2,
             label : _('Show Power Supply Voltage')});
 
+        this._addSwitch({key : 'group-temperature', y : i, x : 0,
+            label : _('Group Temperature Items'),
+            help : _("Works if you have more than three temperature sensors")});
+
+        this._addSwitch({key : 'group-voltage', y : i++, x : 2,
+            label : _('Group Voltage Items'),
+            help : _("Works if you have more than three voltage sensors")});
+
         this._addComboBox({
             items : {none : 'None', hddtemp : 'Hddtemp', udisks2 : 'UDisks2'},
             key: 'drive-utility', y : i, x : 0,
