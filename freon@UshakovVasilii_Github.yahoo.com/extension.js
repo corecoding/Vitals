@@ -110,7 +110,7 @@ const FreonMenuButton = new Lang.Class({
         if(this._settings.get_boolean('show-icon-on-panel')) {
             this._icon = new St.Icon({ style_class: 'system-status-icon'});
             if(this._lastActiveItem)
-                this._icon.gicon = this._lastActiveItem.getGIcon();
+                this._icon.gicon = this._lastActiveItem.gicon;
             this._menuLayout.insert_child_at_index(this._icon, 0);
         } else {
             this._icon.destroy();
