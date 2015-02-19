@@ -21,10 +21,10 @@
       <description>Show sensor icon on top panel</description>
     </key>
 
-    <key type="s" name="main-sensor">
-      <default>"Average"</default>
-      <summary>Sensor value to show in panel</summary>
-      <description>Select the sensor whose value has to be shown in the panel</description>
+    <key name="hot-sensors" type="as">
+      <default>[]</default>
+      <summary>Sensors to show in panel</summary>
+      <description>Select the sensord whose values has to be shown in the panel</description>
     </key>
 
     <key type="b" name="show-decimal-value">
