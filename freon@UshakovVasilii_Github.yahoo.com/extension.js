@@ -431,7 +431,20 @@ const FreonMenuButton = new Lang.Class({
                         this._createHotItem(self.label, showIcon, self.gicon);
                         self.main = true;
                     }
-                    
+
+                    for(let i = hotSensors.length -1; i >= 0 ; i--){
+                        let k = hotSensors[i];
+                        if(!this._sensorMenuItems[k]){
+                            hotSensors.splice(i, 1);
+                            this._hotLabels[k].destroy();
+                            delete this._hotLabels[k];
+                            if(this._hotIcons[k]){
+                                this._hotIcons[k].destroy();
+                                delete this._hotIcons[k];
+                            }
+                        }
+                    }
+
                     this._settings.set_strv('hot-sensors', hotSensors.filter(
                         function(item, pos) {
                             return hotSensors.indexOf(item) == pos;
