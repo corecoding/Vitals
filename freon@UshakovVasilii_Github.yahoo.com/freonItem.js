@@ -12,7 +12,7 @@ const FreonItem = new Lang.Class({
         this._label = label;
         this._gIcon = gIcon;
 
-        this.actor.add(new St.Icon({ style_class: 'system-status-icon', gicon : gIcon}));
+        this.actor.add(new St.Icon({ style_class: 'popup-menu-icon', gicon : gIcon}));
         this.actor.add(new St.Label({text: label}), {x_fill: true, expand: true});
         this._valueLabel = new St.Label({text: value});
         this.actor.add(this._valueLabel);
