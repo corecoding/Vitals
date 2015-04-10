@@ -8,18 +8,19 @@ const HddtempUtil = new Lang.Class({
     Name: 'HddtempUtil',
     Extends: CommandLineUtil.CommandLineUtil,
 
-    detect: function(){
+    _init: function() {
+        this.parent();
         let hddtempArgv = GLib.find_program_in_path('hddtemp');
         if(hddtempArgv) {
             // check if this user can run hddtemp directly.
             if(!GLib.spawn_command_line_sync(hddtempArgv)[3]){
                 this._argv = [hddtempArgv];
-                return true;
+                return;
             }
         }
 
         // doesn't seem to be the case… is it running as a daemon?
-	// Check first for systemd
+        // Check first for systemd
         let systemctl = GLib.find_program_in_path('systemctl');
         let pidof = GLib.find_program_in_path('pidof');
         let nc = GLib.find_program_in_path('nc');
@@ -50,11 +51,7 @@ const HddtempUtil = new Lang.Class({
             let port = match ? parseInt(match[2]) : 7634;
             // use net cat to get data
             this._argv = [nc, 'localhost', port.toString()];
-            return true;
         }
-
-        // not found
-        return false;
     },
 
     get temp() {

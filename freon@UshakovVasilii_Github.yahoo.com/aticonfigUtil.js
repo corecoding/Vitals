@@ -8,10 +8,10 @@ const AticonfigUtil = new Lang.Class({
     Name: 'AticonfigUtil',
     Extends: CommandLineUtil.CommandLineUtil,
 
-    detect: function(){
+    _init: function() {
+        this.parent();
         let path = GLib.find_program_in_path('aticonfig');
         this._argv = path ? [path, '--odgt'] : null;
-        return this._argv != null;
     },
 
     /*

@@ -8,10 +8,10 @@ const SensorsUtil = new Lang.Class({
     Name: 'SensorsUtil',
     Extends: CommandLineUtil.CommandLineUtil,
 
-    detect: function(){
+    _init: function() {
+        this.parent();
         let path = GLib.find_program_in_path('sensors');
         this._argv = path ? [path] : null;
-        return this._argv != null;
     },
 
     get temp() {

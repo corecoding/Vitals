@@ -35,10 +35,8 @@ const UDisks2  = new Lang.Class({
     Name: 'UDisks2',
 
     _init: function(callback) {
+        this.parent();
         this._udisksProxies = [];
-    },
-
-    detect: function(callback){
         this._get_drive_ata_proxies(Lang.bind(this, function(proxies) {
             this._udisksProxies = proxies;
             callback();
@@ -113,5 +111,7 @@ const UDisks2  = new Lang.Class({
         }
         this._udisksProxies = [];
     },
+
+    execute: function(callback) {},
 
 });

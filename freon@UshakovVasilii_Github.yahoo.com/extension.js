@@ -27,17 +27,15 @@ const FreonMenuButton = new Lang.Class({
     _init: function(){
         this.parent(St.Align.START);
 
+        this._settings = Convenience.getSettings();
+
         this._sensorMenuItems = {};
 
         this._utils = {
-            aticonfig: new AticonfigUtil.AticonfigUtil(),
-            hddtemp: new HddtempUtil.HddtempUtil(),
-            sensors: new SensorsUtil.SensorsUtil(),
-            nvidia: new NvidiaUtil.NvidiaUtil()
+            sensors: new SensorsUtil.SensorsUtil()
         };
-        this._udisks2 = new UDisks2.UDisks2();
-
-        this._settings = Convenience.getSettings();
+        this._initDriveUtility();
+        this._initGpuUtility();
 
         let temperatureIcon = Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg');
         this._sensorIcons = {
@@ -64,10 +62,6 @@ const FreonMenuButton = new Lang.Class({
         }
 
         this.actor.add_actor(this._menuLayout);
-
-        this._utils.sensors.detect();
-        this._initDriveUtility();
-        this._initGpuUtility();
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
@@ -158,10 +152,10 @@ const FreonMenuButton = new Lang.Class({
     _initDriveUtility : function(){
         switch(this._settings.get_string('drive-utility')){
             case 'hddtemp':
-                this._utils.hddtemp.detect();
+                this._utils.disks = new HddtempUtil.HddtempUtil();
                 break;
             case 'udisks2':
-                this._udisks2.detect(Lang.bind(this, function() {
+                this._utils.disks = new UDisks2.UDisks2(Lang.bind(this, function() {
                     this._updateDisplay();
                 }));
                 break;
@@ -169,24 +163,28 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _destroyDriveUtility : function(){
-        this._udisks2.destroy();
-        this._utils.hddtemp.destroy();
+        if(this._utils.disks){
+            this._utils.disks.destroy();
+            delete this._utils.disks;
+        }
     },
 
     _initGpuUtility : function(){
         switch(this._settings.get_string('gpu-utility')){
             case 'nvidia-settings':
-                this._utils.nvidia.detect();
+				this._utils.gpu = new NvidiaUtil.NvidiaUtil();
                 break;
             case 'aticonfig':
-                this._utils.aticonfig.detect();
+                this._utils.gpu = new AticonfigUtil.AticonfigUtil();
                 break;
         }
     },
 
     _destroyGpuUtility : function(){
-        this._utils.nvidia.destroy();
-        this._utils.aticonfig.destroy();
+        if(this._utils.gpu){
+            this._utils.gpu.destroy();
+            delete this._utils.gpu;
+        }
     },
 
     _gpuUtilityChanged : function(){
@@ -233,10 +231,8 @@ const FreonMenuButton = new Lang.Class({
 
     _updateDisplay: function(){
         let gpuTempInfo = [];
-        if (this._utils.aticonfig.available)
-            gpuTempInfo = gpuTempInfo.concat(this._utils.aticonfig.temp);
-        if (this._utils.nvidia.available)
-            gpuTempInfo = gpuTempInfo.concat(this._utils.nvidia.temp);
+        if (this._utils.gpu && this._utils.gpu.available)
+            gpuTempInfo = gpuTempInfo.concat(this._utils.gpu.temp);
 
         let sensorsTempInfo = this._utils.sensors.temp;
 
@@ -249,10 +245,8 @@ const FreonMenuButton = new Lang.Class({
             voltageInfo = this._utils.sensors.volt;
 
         let driveTempInfo = [];
-        if(this._utils.hddtemp.available) {
-            driveTempInfo = this._utils.hddtemp.temp;
-        } else if(this._udisks2.available){
-            driveTempInfo = this._udisks2.temp;
+        if(this._utils.disks && this._utils.disks.available) {
+            driveTempInfo = this._utils.disks.temp;
         }
 
         sensorsTempInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });

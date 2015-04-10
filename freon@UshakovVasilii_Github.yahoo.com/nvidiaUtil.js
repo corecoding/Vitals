@@ -8,7 +8,8 @@ const NvidiaUtil = new Lang.Class({
     Name: 'NvidiaUtil',
     Extends: CommandLineUtil.CommandLineUtil,
 
-    detect: function(){
+    _init: function() {
+        this.parent();
         let path = GLib.find_program_in_path('nvidia-settings');
         this._argv = path ? [path, '-q', 'gpucoretemp', '-t'] : null;
         this._label = 'NVIDIA';
@@ -22,7 +23,6 @@ const NvidiaUtil = new Lang.Class({
                 }
             }
         }
-        return this._argv != null;
     },
 
     get temp() {
