@@ -31,14 +31,12 @@ const BumblebeeNvidiaUtil = new Lang.Class({
             }
         }
         let lockFilePath = '/tmp/.X' + virtualDisplay + '-lock';
-        if(GLib.file_test(lockFilePath, GLib.FileTest.EXISTS)){
-            this._lockMonitor = Gio.File.new_for_path(
-                lockFilePath).monitor_file(Gio.FileMonitorFlags.NONE, null
-            );
-            this._lockMonitor.id = this._lockMonitor.connect(
-                'changed', Lang.bind(this, this._statusChanged)
-            );
-        }
+        this._lockMonitor = Gio.File.new_for_path(
+            lockFilePath).monitor_file(Gio.FileMonitorFlags.NONE, null
+        );
+        this._lockMonitor.id = this._lockMonitor.connect(
+            'changed', Lang.bind(this, this._statusChanged)
+        );
     },
 
     _detectLabel: function() {
@@ -95,8 +93,7 @@ const BumblebeeNvidiaUtil = new Lang.Class({
 
     destroy: function(){
         this.parent();
-        if(this._lockMonitor)
-            this._lockMonitor.disconnect(this._lockMonitor.id);
+        this._lockMonitor.disconnect(this._lockMonitor.id);
     }
 
 });
