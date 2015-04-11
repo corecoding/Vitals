@@ -75,7 +75,11 @@ const FreonPrefsWidget = new GObject.Class({
         });
 
         this._addComboBox({
-            items : {none : 'None', 'nvidia-settings' : 'Nvidia', aticonfig : 'Catalyst'},
+            items : {
+                'none' : _('None'),
+                'nvidia-settings' : _('NVIDIA'),
+                'aticonfig' : _('Catalyst'),
+                'bumblebee-nvidia-smi': _('Bumblebee + NVIDIA') },
             key: 'gpu-utility', y : i, x : 2,
             label: _('Video Card Temperature Utility')
         });

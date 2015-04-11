@@ -6,14 +6,15 @@ const FreonItem = new Lang.Class({
     Name: 'FreonItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
-    _init: function(gIcon, label, value) {
+    _init: function(gIcon, label, value, displayName) {
         this.parent();
         this._main = false;
         this._label = label;
         this._gIcon = gIcon;
 
+        this._labelActor = new St.Label({text: displayName ? displayName : label});
         this.actor.add(new St.Icon({ style_class: 'popup-menu-icon', gicon : gIcon}));
-        this.actor.add(new St.Label({text: label}), {x_fill: true, expand: true});
+        this.actor.add(this._labelActor, {x_fill: true, expand: true});
         this._valueLabel = new St.Label({text: value});
         this.actor.add(this._valueLabel);
     },
@@ -32,6 +33,10 @@ const FreonItem = new Lang.Class({
 
     get label() {
         return this._label;
+    },
+
+    set display_name(text) {
+        return this._labelActor.text = text;
     },
 
     get gicon() {

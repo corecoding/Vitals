@@ -15,6 +15,7 @@ const AticonfigUtil = Me.imports.aticonfigUtil;
 const NvidiaUtil = Me.imports.nvidiaUtil;
 const HddtempUtil = Me.imports.hddtempUtil;
 const SensorsUtil = Me.imports.sensorsUtil;
+const BumblebeeNvidiaUtil = Me.imports.bumblebeeNvidiaUtil;
 const FreonItem = Me.imports.freonItem;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
@@ -177,6 +178,9 @@ const FreonMenuButton = new Lang.Class({
             case 'aticonfig':
                 this._utils.gpu = new AticonfigUtil.AticonfigUtil();
                 break;
+            case 'bumblebee-nvidia-smi':
+                this._utils.gpu = new BumblebeeNvidiaUtil.BumblebeeNvidiaUtil();
+                break;
         }
     },
 
@@ -212,6 +216,7 @@ const FreonMenuButton = new Lang.Class({
 
     _onDestroy: function(){
         this._destroyDriveUtility();
+        this._destroyGpuUtility();
         Mainloop.source_remove(this._timeoutId);
 
         for each (let signal in this._settingChangedSignals){
@@ -257,18 +262,26 @@ const FreonMenuButton = new Lang.Class({
         let tempInfo = gpuTempInfo.concat(sensorsTempInfo).concat(driveTempInfo);
 
         if (tempInfo.length > 0){
+            let total = 0;
             let sum = 0;
             let max = 0;
             for each (let i in tempInfo){
-                sum += i.temp;
-                if (i.temp > max)
-                    max = i.temp;
+                if(i.temp !== 'N/A'){
+                    total++;
+    	            sum += i.temp;
+    	            if (i.temp > max)
+    	                max = i.temp;
+                }
             }
 
             let sensors = [];
 
             for each (let i in gpuTempInfo){
-                sensors.push({type:'gpu-temperature', label: i.label, value:this._formatTemp(i.temp)});
+                sensors.push({
+                    type: 'gpu-temperature',
+                    label: i.label,
+                    value: this._formatTemp(i.temp),
+                    displayName: i.displayName});
             }
             for each (let i in sensorsTempInfo){
                 sensors.push({type:'temperature', label: i.label, value:this._formatTemp(i.temp)});
@@ -281,7 +294,7 @@ const FreonMenuButton = new Lang.Class({
                 sensors.push({type : 'separator'});
 
                 // Add average and maximum entries
-                sensors.push({type:'temperature-average', label:_("Average"), value:this._formatTemp(sum/tempInfo.length)});
+                sensors.push({type:'temperature-average', label:_("Average"), value:this._formatTemp(sum/total)});
                 sensors.push({type:'temperature-maximum', label:_("Maximum"), value:this._formatTemp(max)});
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
@@ -330,8 +343,11 @@ const FreonMenuButton = new Lang.Class({
                         if(item) {
                             if(s.type == 'temperature-group')
                                 item.status.text = s.value;
-                            else
+                            else {
                                 item.value = s.value;
+                                if(s.displayName)
+                                    item.display_name = s.displayName;
+                            }
                         } else {
                             this._needRerender = true;
                         }
@@ -399,7 +415,7 @@ const FreonMenuButton = new Lang.Class({
                     this._sensorMenuItems['temperature-group'] = temperatureGroup;
                 }
             } else {
-                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], s.label, s.value);
+                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], s.label, s.value, s.displayName);
                 item.connect('activate', Lang.bind(this, function (self) {
                     let l = this._hotLabels[self.label];
                     let hotSensors = this._settings.get_strv('hot-sensors');
@@ -489,6 +505,8 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _formatTemp: function(value) {
+        if(value === null)
+            return 'N/A';
         if (this._settings.get_string('unit')=='fahrenheit'){
             value = this._toFahrenheit(value);
         }
