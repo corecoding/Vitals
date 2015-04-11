@@ -19,20 +19,26 @@ const BumblebeeNvidiaUtil = new Lang.Class({
         // https://github.com/meden/gse-bumblebee-indicator
         // thank meden!
         let virtualDisplay = ':8';
-		let configFile = Gio.File.new_for_path('/etc/bumblebee/bumblebee.conf');
-        let contents = configFile.load_contents(null);
-        if (contents[0]) {
-            let pattern = /^VirtualDisplay=.*$/m
-            let match = new String(pattern.exec(new String(contents)));
-            virtualDisplay = match.substr(16);
+
+        let bumblebeeConfPath = '/etc/bumblebee/bumblebee.conf';
+        if(GLib.file_test(bumblebeeConfPath, GLib.FileTest.EXISTS)){
+            let configFile = Gio.File.new_for_path(bumblebeeConfPath);
+            let contents = configFile.load_contents(null);
+            if (contents[0]) {
+                let pattern = /^VirtualDisplay=.*$/m
+                let match = new String(pattern.exec(new String(contents)));
+                virtualDisplay = match.substr(16);
+            }
         }
-        let lockFile = '/tmp/.X' + virtualDisplay + '-lock';
-        this._lockMonitor = Gio.File.new_for_path(
-            lockFile).monitor_file(Gio.FileMonitorFlags.NONE, null
-        );
-        this._lockMonitor.id = this._lockMonitor.connect(
-            'changed', Lang.bind(this, this._statusChanged)
-        );
+        let lockFilePath = '/tmp/.X' + virtualDisplay + '-lock';
+        if(GLib.file_test(lockFilePath, GLib.FileTest.EXISTS)){
+            this._lockMonitor = Gio.File.new_for_path(
+                lockFilePath).monitor_file(Gio.FileMonitorFlags.NONE, null
+            );
+            this._lockMonitor.id = this._lockMonitor.connect(
+                'changed', Lang.bind(this, this._statusChanged)
+            );
+        }
     },
 
     _detectLabel: function() {
@@ -89,7 +95,8 @@ const BumblebeeNvidiaUtil = new Lang.Class({
 
     destroy: function(){
         this.parent();
-        this._lockMonitor.disconnect(this._lockMonitor.id);
+        if(this._lockMonitor)
+            this._lockMonitor.disconnect(this._lockMonitor.id);
     }
 
 });
