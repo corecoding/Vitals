@@ -173,7 +173,7 @@ const FreonMenuButton = new Lang.Class({
     _initGpuUtility : function(){
         switch(this._settings.get_string('gpu-utility')){
             case 'nvidia-settings':
-				this._utils.gpu = new NvidiaUtil.NvidiaUtil();
+                this._utils.gpu = new NvidiaUtil.NvidiaUtil();
                 break;
             case 'aticonfig':
                 this._utils.gpu = new AticonfigUtil.AticonfigUtil();
@@ -428,8 +428,6 @@ const FreonMenuButton = new Lang.Class({
                             i.destroy();
                             delete this._hotIcons[self.label];
                         }
-                        if(Object.keys(this._hotLabels).length == 0)
-                            this._createInitialIcon();
                         self.main = false;
                     } else {
                         hotSensors.push(self.label);
@@ -454,6 +452,9 @@ const FreonMenuButton = new Lang.Class({
                             }
                         }
                     }
+
+                    if(Object.keys(this._hotLabels).length == 0)
+                        this._createInitialIcon();
 
                     this._settings.set_strv('hot-sensors', hotSensors.filter(
                         function(item, pos) {
