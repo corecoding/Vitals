@@ -73,22 +73,21 @@ const BumblebeeNvidiaUtil = new Lang.Class({
     get temp() {
         let key = 'bumblebee-nvidia'
         let label = this._label ? this._label : _('Bumblebee + NVIDIA');
-        if(!this._active || !this._output)
-            return [{label: key, temp: null, displayName: label}];
-        //         GPU Current Temp            : 37 C
-        for each(let line in this._output) {
-            if(!line)
-                continue;
-            let r;
-            if(line.indexOf('GPU Current Temp') > 0)
-                return [{
-                    label: key,
-                    temp: (r = /[\s]*GPU Current Temp[\s]*:[\s]*(\d{1,3}).*/.exec(line)) ? parseFloat(r[1]) : null,
-                    displayName: label
-                }];
+        if(this._active && this._output){
+            //         GPU Current Temp            : 37 C
+            for each(let line in this._output) {
+                if(!line)
+                    continue;
+                let r;
+                if(line.indexOf('GPU Current Temp') > 0)
+                    return [{
+                        label: key,
+                        temp: (r = /[\s]*GPU Current Temp[\s]*:[\s]*(\d{1,3}).*/.exec(line)) ? parseFloat(r[1]) : null,
+                        displayName: label
+                    }];
+            }
         }
-
-        return [];
+        return [{label: key, temp: null, displayName: label}];
     },
 
     destroy: function(){
