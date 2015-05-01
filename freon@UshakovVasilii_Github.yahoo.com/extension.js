@@ -301,7 +301,7 @@ const FreonMenuButton = new Lang.Class({
                     sensors.push({type : 'separator'});
             }
 
-            if(this._settings.get_boolean('group-temperature')){
+            if(sensorsTempInfo.length > 0 && this._settings.get_boolean('group-temperature')){
                 sum = 0;
                 for each (let i in sensorsTempInfo){
                     sum += i.temp;
@@ -309,7 +309,7 @@ const FreonMenuButton = new Lang.Class({
                 sensors.push({
                     type:'temperature-group',
                     label:'temperature-group',
-                    value: this._formatTemp(sum/sensorsTempInfo.length)});
+                    value: this._formatTemp(sum / sensorsTempInfo.length)});
             }
 
             for each (let fan in fanInfo){
@@ -385,21 +385,12 @@ const FreonMenuButton = new Lang.Class({
         let needGroupTemperature = this._settings.get_boolean('group-temperature');
         let needGroupVoltage = this._settings.get_boolean('group-voltage');
 
-        if(needGroupTemperature){
-            let i = 0;
-            for each (let s in sensors)
-                if(s.type == 'temperature')
-                    i++;
-            if(i <= 3)
-                needGroupTemperature = false;
-        }
-
         if(needGroupVoltage){
             let i = 0;
             for each (let s in sensors)
                 if(s.type == 'voltage')
                     i++;
-            if(i <= 3)
+            if(i < 2)
                 needGroupVoltage = false;
         }
 
