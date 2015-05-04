@@ -15,24 +15,39 @@ const SensorsUtil = new Lang.Class({
     },
 
     get temp() {
-        let s = this._parseSensorsOutput(this._parseSensorsTemperatureLine);
+        let s = this._parseGenericSensorsOutput(this._parseSensorsTemperatureLine);
+        return s.filter(function(e){
+            return e.temp > 0 && e.temp < 115;
+        });
+    },
+
+    get gpu() {
+        let s = this._parseGpuSensorsOutput(this._parseSensorsTemperatureLine);
         return s.filter(function(e){
             return e.temp > 0 && e.temp < 115;
         });
     },
 
     get rpm() {
-        let s = this._parseSensorsOutput(this._parseFanRPMLine);
+        let s = this._parseGenericSensorsOutput(this._parseFanRPMLine);
         return s.filter(function(e){
             return e.rpm > 0;
         });
     },
 
     get volt() {
-        return this._parseSensorsOutput(this._parseVoltageLine);
+        return this._parseGenericSensorsOutput(this._parseVoltageLine);
     },
 
-    _parseSensorsOutput: function(parser) {
+    _parseGenericSensorsOutput: function(parser) {
+        return this._parseSensorsOutput(parser, false);
+    },
+
+    _parseGpuSensorsOutput: function(parser) {
+        return this._parseSensorsOutput(parser, true);
+    },
+
+    _parseSensorsOutput: function(parser, gpuFlag) {
         if(!this._output)
             return [];
 
@@ -41,8 +56,18 @@ const SensorsUtil = new Lang.Class({
         let sensors = [];
         //iterate through each lines
         for(let i = 0; i < this._output.length; i++){
-            // ignore chipset driver name and 'Adapter:' line for now
+
+            let isGpuDriver = this._output[i].indexOf("radeon") != -1
+                                || this._output[i].indexOf("nouveau") != -1;
+
+            if (gpuFlag != isGpuDriver) {
+                // skip driver if gpu requested and driver is not a gpu or the opposite
+                continue;
+            }
+
+            // skip chipset driver name and 'Adapter:' lines
             i += 2;
+
             // get every feature of the chip
             while(this._output[i]){
                // if it is not a continutation of a feature line

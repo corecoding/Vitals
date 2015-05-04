@@ -235,7 +235,8 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _updateDisplay: function(){
-        let gpuTempInfo = [];
+        let gpuTempInfo = this._utils.sensors.gpu;
+
         if (this._utils.gpu && this._utils.gpu.available)
             gpuTempInfo = gpuTempInfo.concat(this._utils.gpu.temp);
 
