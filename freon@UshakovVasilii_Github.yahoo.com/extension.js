@@ -247,8 +247,10 @@ const FreonMenuButton = new Lang.Class({
             while(names.indexOf(name) >= 0){
                 name = s.label + '-' + i++;
             }
-            s.displayName = s.label;
-            s.label = name;
+            if(name != s.label){
+                s.displayName = s.label;
+                s.label = name;
+            }
             names.push(name);
         }
     },
