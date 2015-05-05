@@ -234,6 +234,25 @@ const FreonMenuButton = new Lang.Class({
         }
     },
 
+    _fixNames: function(sensors){
+        let names = [];
+        for each (let s in sensors){
+            if(s.type == 'separator' ||
+               s.type == 'temperature-group' ||
+               s.type == 'temperature-average' ||
+               s.type == 'temperature-maximum')
+                continue;
+            let name = s.label;
+            let i = 1;
+            while(names.indexOf(name) >= 0){
+                name = s.label + '-' + i++;
+            }
+            s.displayName = s.label;
+            s.label = name;
+            names.push(name);
+        }
+    },
+
     _updateDisplay: function(){
         let gpuTempInfo = this._utils.sensors.gpu;
 
@@ -329,6 +348,8 @@ const FreonMenuButton = new Lang.Class({
                     value:_("%s%.2fV").format(((voltage.volt >= 0) ? '+' : '-'),
                     voltage.volt)});
             }
+
+            this._fixNames(sensors);
 
             for each (let s in sensors)
                 if(s.type != 'separator') {
