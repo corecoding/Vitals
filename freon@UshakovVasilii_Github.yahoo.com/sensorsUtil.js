@@ -29,10 +29,8 @@ const SensorsUtil = new Lang.Class({
     },
 
     get rpm() {
-        let s = this._parseGenericSensorsOutput(this._parseFanRPMLine);
-        return s.filter(function(e){
-            return e.rpm > 0;
-        });
+        // 0 is normal value for turned off fan
+        return this._parseGenericSensorsOutput(this._parseFanRPMLine);
     },
 
     get volt() {
