@@ -487,6 +487,13 @@ const FreonMenuButton = new Lang.Class({
                     if(!temperatureGroup) {
                         temperatureGroup = new PopupMenu.PopupSubMenuMenuItem(_('Temperature Sensors'), true);
                         temperatureGroup.icon.gicon = this._sensorIcons['temperature'];
+			if(!temperatureGroup.status) { // gnome 3.18 and hight
+                            temperatureGroup.status = new St.Label({
+				     style_class: 'popup-status-menu-item',
+                                     y_expand: true,
+                                     y_align: Clutter.ActorAlign.CENTER });
+                            temperatureGroup.actor.insert_child_at_index(temperatureGroup.status, 4);
+			}
                         this.menu.addMenuItem(temperatureGroup);
                     }
                     temperatureGroup.menu.addMenuItem(item);
