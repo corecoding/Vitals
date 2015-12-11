@@ -21,7 +21,7 @@ const FreonItem = new Lang.Class({
 
     set main(main) {
         if(main)
-            this.setOrnament(PopupMenu.Ornament.DOT);
+            this.setOrnament(PopupMenu.Ornament.CHECK);
         else
             this.setOrnament(PopupMenu.Ornament.NONE);
         this._main = main;
