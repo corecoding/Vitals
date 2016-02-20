@@ -1,0 +1,133 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Dingzhong Chen <wsxy162@gmail.com>, 2016
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-02-20 19:18+0800\n"
+"PO-Revision-Date: 2016-02-20 19:32+0800\n"
+"Last-Translator: Dingzhong Chen <wsxy162@gmail.com>\n"
+"Language-Team: \n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.7\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: bumblebeeNvidiaUtil.js:75 prefs.js:82
+msgid "Bumblebee + NVIDIA"
+msgstr "Bumblebee + NVIDIA"
+
+#: extension.js:319
+msgid "Average"
+msgstr "平均值"
+
+#: extension.js:320
+msgid "Maximum"
+msgstr "最大值"
+
+#: extension.js:341
+#, javascript-format
+msgid "%drpm"
+msgstr "%drpm"
+
+#: extension.js:350
+#, javascript-format
+msgid "%s%.2fV"
+msgstr "%s%.2fV"
+
+#: extension.js:396
+msgid "Please run sensors-detect as root."
+msgstr "請以 root 運行 sensors-detect。"
+
+#: extension.js:397
+msgid ""
+"Please install lm_sensors.\n"
+"If this doesn't help, click here to report with your sensors output!"
+msgstr ""
+"請安裝 lm_sensors。\n"
+"如果這不管用，點擊這裡並報告你的傳感器輸出！"
+
+#: extension.js:488
+msgid "Temperature Sensors"
+msgstr "溫度傳感器"
+
+#: extension.js:495
+msgid "Voltage"
+msgstr "電壓"
+
+#: extension.js:509
+msgid "Sensors Settings"
+msgstr "傳感器設置"
+
+#: prefs.js:33
+msgid "Poll Sensors Every (sec)"
+msgstr "查詢傳感器每(秒)"
+
+#: prefs.js:39
+msgid "Show Decimal Value"
+msgstr "顯示小數部分"
+
+#: prefs.js:40
+msgid "Show one digit after decimal"
+msgstr "顯示小數點後一位數字"
+
+#: prefs.js:45
+msgid "Temperature Unit"
+msgstr "溫度單位"
+
+#: prefs.js:51
+msgid "Position in Panel"
+msgstr "面板位置"
+
+#: prefs.js:55
+msgid "Show Icon on Panel"
+msgstr "在面板顯示圖標"
+
+#: prefs.js:58
+msgid "Show Fan Speed"
+msgstr "顯示風扇轉速"
+
+#: prefs.js:61
+msgid "Show Power Supply Voltage"
+msgstr "顯示電源電壓"
+
+#: prefs.js:64
+msgid "Group Temperature Items"
+msgstr "編組溫度項"
+
+#: prefs.js:65
+msgid "Works if you have more than three temperature sensors"
+msgstr "如果你有超過三個溫度傳感器時可用"
+
+#: prefs.js:68
+msgid "Group Voltage Items"
+msgstr "編組電壓項"
+
+#: prefs.js:69
+msgid "Works if you have more than three voltage sensors"
+msgstr "如果你有超過三個電壓傳感器時可用"
+
+#: prefs.js:74
+msgid "HDD/SSD Temperature Utility"
+msgstr "HDD/SSD 溫度工具"
+
+#: prefs.js:79
+msgid "None"
+msgstr "無"
+
+#: prefs.js:80
+msgid "NVIDIA"
+msgstr "NVIDIA"
+
+#: prefs.js:81
+msgid "Catalyst"
+msgstr "Catalyst"
+
+#: prefs.js:84
+msgid "Video Card Temperature Utility"
+msgstr "顯卡溫度工具"
