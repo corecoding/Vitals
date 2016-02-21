@@ -3,19 +3,20 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-06 17:05-0300\n"
-"PO-Revision-Date: 2015-12-10 16:04+0300\n"
-"Last-Translator: alsoijw alsoijw@yandex.ru\n"
+"POT-Creation-Date: 2016-02-20 19:23+0200\n"
+"PO-Revision-Date: 2016-02-20 19:31+0200\n"
 "Language-Team: \n"
-"Language: ru_RU\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.6\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: ru\n"
 
 #: bumblebeeNvidiaUtil.js:75 prefs.js:82
 msgid "Bumblebee + NVIDIA"
@@ -23,11 +24,11 @@ msgstr "Bumblebee + NVIDIA"
 
 #: extension.js:319
 msgid "Average"
-msgstr "Средняя"
+msgstr "Средняя температура"
 
 #: extension.js:320
 msgid "Maximum"
-msgstr "Максимальня"
+msgstr "Максимальня температура"
 
 #: extension.js:341
 #, javascript-format
@@ -53,7 +54,7 @@ msgstr ""
 
 #: extension.js:488
 msgid "Temperature Sensors"
-msgstr "Датчики температуры"
+msgstr "Датчик температуры"
 
 #: extension.js:495
 msgid "Voltage"
@@ -113,7 +114,7 @@ msgstr "Работает если у вас более трёх датчиков
 
 #: prefs.js:74
 msgid "HDD/SSD Temperature Utility"
-msgstr "HDD/SSD утилита наблюдения"
+msgstr "HDD/SSD утилита мониторинга"
 
 #: prefs.js:79
 msgid "None"
@@ -129,4 +130,4 @@ msgstr "Catalyst"
 
 #: prefs.js:84
 msgid "Video Card Temperature Utility"
-msgstr "Утилита наблюдения видеокарт"
+msgstr "Утилита мониторинга видеокарт"
