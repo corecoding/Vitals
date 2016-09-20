@@ -15,17 +15,15 @@ const SensorsUtil = new Lang.Class({
     },
 
     get temp() {
-        let s = this._parseGenericSensorsOutput(this._parseSensorsTemperatureLine);
-        return s.filter(function(e){
-            return e.temp > 0 && e.temp < 115;
-        });
+        return this._parseGenericSensorsOutput(this._parseSensorsTemperatureLine);
+        // wrong lm_sensors not problem of this application #16
+        // return s.filter(function(e){
+        //     return e.temp > 0 && e.temp < 115;
+        // });
     },
 
     get gpu() {
-        let s = this._parseGpuSensorsOutput(this._parseSensorsTemperatureLine);
-        return s.filter(function(e){
-            return e.temp > 0 && e.temp < 115;
-        });
+        return this._parseGpuSensorsOutput(this._parseSensorsTemperatureLine);
     },
 
     get rpm() {
