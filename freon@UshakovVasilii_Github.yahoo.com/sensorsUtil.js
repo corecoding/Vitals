@@ -54,6 +54,7 @@ const SensorsUtil = new Lang.Class({
         for(let i = 0; i < this._output.length; i++){
 
             let isGpuDriver = this._output[i].indexOf("radeon") != -1
+                                || this._output[i].indexOf("amdgpu") != -1
                                 || this._output[i].indexOf("nouveau") != -1;
 
             if (gpuFlag != isGpuDriver) {
