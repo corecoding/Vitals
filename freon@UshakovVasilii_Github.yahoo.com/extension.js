@@ -430,7 +430,7 @@ const FreonMenuButton = new Lang.Class({
                     this._sensorMenuItems['temperature-group'] = temperatureGroup;
                 }
             } else {
-                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], s.label, s.value, s.displayName);
+                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], s.label, s.value, s.displayName || undefined);
                 item.connect('activate', Lang.bind(this, function (self) {
                     let l = this._hotLabels[self.label];
                     let hotSensors = this._settings.get_strv('hot-sensors');
