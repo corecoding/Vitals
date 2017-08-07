@@ -35,15 +35,21 @@ const NvidiaUtil = new Lang.Class({
         }
 
         let gpus = [];
-        for(let i = 0; i< temps.length; i++){
-            let label = null;
-            if(this._labels.length == temps.length)
-                label = this._lebels[i];
-            else if(temps.length > 1)
-                label = 'NVIDIA-' + (i + 1);
-            else
-                label = 'NVIDIA';
-            gpus.push({ label: label, temp: temps[i] })
+
+        if(this._labels.length > 0 && this._labels.length == temps.length - 1){
+			// usually we should skip first line (most popular case)
+			for(let i = 0; i < this._labels.length; i++){
+				gpus.push({ label: this._lebels[i], temp: temps[i + 1] })
+			}
+        } else if(temps.length == 1 || temps.length == 2){
+			// cannot parse GPU label, usually temp duplicated
+			gpus.push({ label: 'NVIDIA', temp: temps[0] })
+		} else {
+            // I think it is not possible
+		    for(let i = 0; i < temps.length; i++){
+		        let label = 'NVIDIA-' + (i + 1);
+		        gpus.push({ label: label, temp: temps[i] })
+		    }
         }
 
         return gpus;
