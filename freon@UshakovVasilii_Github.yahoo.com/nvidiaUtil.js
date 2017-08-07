@@ -39,7 +39,7 @@ const NvidiaUtil = new Lang.Class({
         if(this._labels.length > 0 && this._labels.length == temps.length - 1){
 			// usually we should skip first line (most popular case)
 			for(let i = 0; i < this._labels.length; i++){
-				gpus.push({ label: this._lebels[i], temp: temps[i + 1] })
+				gpus.push({ label: this._labels[i], temp: temps[i + 1] })
 			}
         } else if(temps.length == 1 || temps.length == 2){
 			// cannot parse GPU label, usually temp duplicated
