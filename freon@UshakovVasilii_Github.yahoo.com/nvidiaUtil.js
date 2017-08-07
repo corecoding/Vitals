@@ -12,14 +12,13 @@ const NvidiaUtil = new Lang.Class({
         this.parent();
         let path = GLib.find_program_in_path('nvidia-settings');
         this._argv = path ? [path, '-q', 'gpucoretemp', '-t'] : null;
-        this._label = 'NVIDIA';
+        this._labels = [];
         if(this._argv){
             //     [0] ushakov-pc:0[gpu:0] (GeForce GTX 770)
             for each(let line in GLib.spawn_command_line_sync(path + " -q gpus")){
                 let match = /.*\[gpu:[\d]\].*\(([\w\d\ ]+)\).*/.exec(line);
                 if(match){
-                    this._label = match[1];
-                    break;
+                    this._labels.push(match[1]);
                 }
             }
         }
@@ -28,13 +27,26 @@ const NvidiaUtil = new Lang.Class({
     get temp() {
         if(!this._output)
             return [];
+        let temps = [];
         for each(let line in this._output) {
             if(!line)
                 continue;
-            return [{label: this._label, temp: parseFloat(line)}];
+            temps.push(parseFloat(line));
         }
 
-        return [];
+        let gpus = [];
+        for(let i = 0; i< temps.length; i++){
+            let label = null;
+            if(this._labels.length == temps.length)
+                label = this._lebels[i];
+            else if(temps.length > 1)
+                label = 'NVIDIA-' + (i + 1);
+            else
+                label = 'NVIDIA';
+            gpus.push({ label: label, temp: temps[i] })
+        }
+
+        return gpus;
     }
 
 });
