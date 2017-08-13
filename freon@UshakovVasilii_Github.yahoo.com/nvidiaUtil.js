@@ -15,7 +15,8 @@ const NvidiaUtil = new Lang.Class({
         this._labels = [];
         if(this._argv){
             //     [0] ushakov-pc:0[gpu:0] (GeForce GTX 770)
-            for each(let line in GLib.spawn_command_line_sync(path + " -q gpus")){
+			let [res, out] = GLib.spawn_command_line_sync(path + " -q gpus")
+            for each(let line in out.toString().split('\n')){
                 let match = /.*\[gpu:[\d]\].*\(([\w\d\ ]+)\).*/.exec(line);
                 if(match){
                     this._labels.push(match[1]);
