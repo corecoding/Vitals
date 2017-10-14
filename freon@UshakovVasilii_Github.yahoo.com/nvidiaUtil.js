@@ -29,18 +29,19 @@ const NvidiaUtil = new Lang.Class({
             GLib.close(stdinFd);
             GLib.close(stderrFd);
             let childWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
-            let output = [];
-            let [line, size] = [null, 0];
+                  let output = [];
+                  let [line, size] = [null, 0];
 
-            while (([line, size] = outReader.read_line(null)) != null && line != null) {
-                let match = /.*\[gpu:[\d]\].*\(([\w\d\ ]+)\).*/.exec(line.toString());
-                if(match){
-                    this._labels.push(match[1]);
-                }
-            }
+                  while (([line, size] = outReader.read_line(null)) != null && line != null) {
+                      let match = /.*\[gpu:[\d]\].*\(([\w\d\ ]+)\).*/.exec(line.toString());
+                      if(match){
+                          this._labels.push(match[1]);
+                      }
+                  }
 
-            stdout.close(null);
-            GLib.source_remove(childWatch);
+                  stdout.close(null);
+                  GLib.source_remove(childWatch);
+            }));
         }
     },
 
