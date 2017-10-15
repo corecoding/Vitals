@@ -1,5 +1,6 @@
 const Lang = imports.lang;
 const GLib = imports.gi.GLib;
+const Gio = imports.gi.Gio;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const CommandLineUtil = Me.imports.commandLineUtil;
@@ -15,13 +16,32 @@ const NvidiaUtil = new Lang.Class({
         this._labels = [];
         if(this._argv){
             //     [0] ushakov-pc:0[gpu:0] (GeForce GTX 770)
-			let [res, out] = GLib.spawn_command_line_sync(path + " -q gpus")
-            for each(let line in out.toString().split('\n')){
-                let match = /.*\[gpu:[\d]\].*\(([\w\d\ ]+)\).*/.exec(line);
-                if(match){
-                    this._labels.push(match[1]);
-                }
-            }
+            let [exit, pid, stdinFd, stdoutFd, stderrFd] =
+                GLib.spawn_async_with_pipes(null, /* cwd */
+                                            [path, '-q', 'gpus'], /* args */
+                                            null, /* env */
+                                            GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+                                            null /* child_setup */);
+
+            let stdout = new Gio.UnixInputStream({fd: stdoutFd, close_fd: true});
+            let outReader = new Gio.DataInputStream({base_stream: stdout});
+
+            GLib.close(stdinFd);
+            GLib.close(stderrFd);
+            let childWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
+                  let output = [];
+                  let [line, size] = [null, 0];
+
+                  while (([line, size] = outReader.read_line(null)) != null && line != null) {
+                      let match = /.*\[gpu:[\d]\].*\(([\w\d\ ]+)\).*/.exec(line.toString());
+                      if(match){
+                          this._labels.push(match[1]);
+                      }
+                  }
+
+                  stdout.close(null);
+                  GLib.source_remove(childWatch);
+            }));
         }
     },
 
