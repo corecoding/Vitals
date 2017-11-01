@@ -93,7 +93,7 @@ msgstr "Напряжение питания"
 
 #: prefs.js:64
 msgid "Group Temperature Items"
-msgstr "Объеденить показания температуры"
+msgstr "Объединить показания температуры"
 
 #: prefs.js:65
 msgid "Works if you have more than three temperature sensors"
@@ -101,7 +101,7 @@ msgstr "Работает если у вас более трёх датчиков
 
 #: prefs.js:68
 msgid "Group Voltage Items"
-msgstr "Объеденить показания напряжения"
+msgstr "Объединить показания напряжения"
 
 #: prefs.js:69
 msgid "Works if you have more than three voltage sensors"
