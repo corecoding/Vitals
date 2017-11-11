@@ -122,3 +122,15 @@ msgstr ""
 #: prefs.js:84
 msgid "Video Card Temperature Utility"
 msgstr ""
+
+#: prefs.js:49
+msgid "Left"
+msgstr ""
+
+#: prefs.js:49
+msgid "Center"
+msgstr ""
+
+#: prefs.js:49
+msgid "Right"
+msgstr ""

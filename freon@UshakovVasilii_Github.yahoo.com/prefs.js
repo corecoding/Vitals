@@ -46,7 +46,7 @@ const FreonPrefsWidget = new GObject.Class({
         });
 
         this._addComboBox({
-            items : {left : 'Left', center : 'Center', right : 'Right'},
+            items : {left : _('Left'), center : _('Center'), right : _('Right')},
             key: 'position-in-panel', y : i, x : 0,
             label: _('Position in Panel')
         });
