@@ -436,8 +436,8 @@ const FreonMenuButton = new Lang.Class({
                     let hotSensors = this._settings.get_strv('hot-sensors');
                     if(l){
                         hotSensors.splice(hotSensors.indexOf(self.label), 1);
-                        l.destroy();
                         delete this._hotLabels[self.label];
+                        l.destroy(); // destroy is called after dict cleanup to prevert set_label on not exist actor
                         let i = this._hotIcons[self.label];
                         if(i){
                             i.destroy();
@@ -459,8 +459,9 @@ const FreonMenuButton = new Lang.Class({
                         let k = hotSensors[i];
                         if(!this._sensorMenuItems[k]){
                             hotSensors.splice(i, 1);
-                            this._hotLabels[k].destroy();
+                            let ll = this._hotLabels[k]
                             delete this._hotLabels[k];
+                            ll.destroy(); // destroy is called after dict cleanup to prevert set_label on not exist actor
                             if(this._hotIcons[k]){
                                 this._hotIcons[k].destroy();
                                 delete this._hotIcons[k];
