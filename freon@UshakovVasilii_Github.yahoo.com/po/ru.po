@@ -23,7 +23,7 @@ msgstr "Средняя температура"
 
 #: extension.js:320
 msgid "Maximum"
-msgstr "Максимальня температура"
+msgstr "Максимальная температура"
 
 #: extension.js:341
 #, javascript-format
@@ -37,14 +37,14 @@ msgstr "%s%.2f В"
 
 #: extension.js:396
 msgid "Please run sensors-detect as root."
-msgstr "Пожалуйста запустите sensors-detect как суперпользователь"
+msgstr "Пожалуйста, запустите sensors-detect как суперпользователь"
 
 #: extension.js:397
 msgid ""
 "Please install lm_sensors.\n"
 "If this doesn't help, click here to report with your sensors output!"
 msgstr ""
-"Пожалуйста установите lm_sensors.\n"
+"Пожалуйста, установите lm_sensors.\n"
 "Если это не поможет, нажмите здесь, чтобы сообщить с выходом датчиков!"
 
 #: extension.js:488
