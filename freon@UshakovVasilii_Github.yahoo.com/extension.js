@@ -157,7 +157,7 @@ const FreonMenuButton = new Lang.Class({
                 break;
             case 'udisks2':
                 this._utils.disks = new UDisks2.UDisks2(Lang.bind(this, function() {
-                    this._updateDisplay();
+                    // this._updateDisplay(); we cannot change actor in background thread #74
                 }));
                 break;
         }
@@ -228,10 +228,11 @@ const FreonMenuButton = new Lang.Class({
         for each (let sensor in this._utils) {
             if (sensor.available) {
                 sensor.execute(Lang.bind(this,function(){
-                    this._updateDisplay();
+                    // we cannot change actor in background thread #74
                 }));
             }
         }
+        this._updateDisplay(); // #74
     },
 
     _fixNames: function(sensors){
