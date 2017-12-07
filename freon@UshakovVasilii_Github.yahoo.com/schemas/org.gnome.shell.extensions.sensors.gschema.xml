@@ -22,7 +22,7 @@
     </key>
 
     <key name="hot-sensors" type="as">
-      <default>[]</default>
+      <default>["__average__", "__max__"]</default>
       <summary>Sensors to show in panel</summary>
       <description>Select the sensord whose values has to be shown in the panel</description>
     </key>

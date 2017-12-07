@@ -408,6 +408,17 @@ const FreonMenuButton = new Lang.Class({
             });
             this.menu.addMenuItem(item);
         }
+        // separator
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        let item = new PopupMenu.PopupBaseMenuItem();
+        item.actor.add(new St.Label({ text: _("Sensors Settings") }), { expand: true, x_fill: false });
+
+        item.connect('activate', function () {
+            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+        });
+
+        this.menu.addMenuItem(item);
     },
 
     _appendMenuItems : function(sensors){
@@ -518,17 +529,6 @@ const FreonMenuButton = new Lang.Class({
                 }
             }
         }
-        // separator
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-        let item = new PopupMenu.PopupBaseMenuItem();
-        item.actor.add(new St.Label({ text: _("Sensors Settings") }), { expand: true, x_fill: false });
-
-        item.connect('activate', function () {
-            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
-        });
-
-        this.menu.addMenuItem(item);
     },
 
 
