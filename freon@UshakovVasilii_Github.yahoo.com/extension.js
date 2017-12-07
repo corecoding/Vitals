@@ -407,7 +407,11 @@ const FreonMenuButton = new Lang.Class({
                 Util.spawn(["xdg-open", "https://github.com/UshakovVasilii/gnome-shell-extension-freon/wiki/Dependency"]);
             });
             this.menu.addMenuItem(item);
+            this._appendSettingsMenuItem();
         }
+    },
+
+    _appendSettingsMenuItem : function(){
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
@@ -529,6 +533,7 @@ const FreonMenuButton = new Lang.Class({
                 }
             }
         }
+        this._appendSettingsMenuItem();
     },
 
 
