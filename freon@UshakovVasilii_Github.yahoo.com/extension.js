@@ -317,8 +317,14 @@ const FreonMenuButton = new Lang.Class({
                 sensors.push({type : 'separator'});
 
                 // Add average and maximum entries
-                sensors.push({type:'temperature-average', label:_("Average"), value:this._formatTemp(sum/total)});
-                sensors.push({type:'temperature-maximum', label:_("Maximum"), value:this._formatTemp(max)});
+                sensors.push({type: 'temperature-average',
+                              key: '__average__',
+                              label: _("Average"),
+                              value: this._formatTemp(sum/total)});
+                sensors.push({type: 'temperature-maximum',
+                              key: '__max__',
+                              label: _("Maximum"),
+                              value: this._formatTemp(max)});
 
                 if(fanInfo.length > 0 || voltageInfo.length > 0)
                     sensors.push({type : 'separator'});
@@ -356,7 +362,7 @@ const FreonMenuButton = new Lang.Class({
 
             for each (let s in sensors)
                 if(s.type != 'separator') {
-                    let l = this._hotLabels[s.label];
+                    let l = this._hotLabels[s.key || s.label];
                     if(l)
                         l.set_text(s.value);
                 }
@@ -364,7 +370,7 @@ const FreonMenuButton = new Lang.Class({
             if(this._lastSensorsCount && this._lastSensorsCount==sensors.length){
                 for each (let s in sensors) {
                     if(s.type != 'separator') {
-                        let item = this._sensorMenuItems[s.label];
+                        let item = this._sensorMenuItems[s.key || s.label];
                         if(item) {
                             if(s.type == 'temperature-group')
                                 item.status.text = s.value;
@@ -431,28 +437,29 @@ const FreonMenuButton = new Lang.Class({
                     this._sensorMenuItems['temperature-group'] = temperatureGroup;
                 }
             } else {
-                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], s.label, s.value, s.displayName || undefined);
+                let key = s.key || s.label;
+                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], key, s.label, s.value, s.displayName || undefined);
                 item.connect('activate', Lang.bind(this, function (self) {
-                    let l = this._hotLabels[self.label];
+                    let l = this._hotLabels[self.key];
                     let hotSensors = this._settings.get_strv('hot-sensors');
                     if(l){
-                        hotSensors.splice(hotSensors.indexOf(self.label), 1);
-                        delete this._hotLabels[self.label];
+                        hotSensors.splice(hotSensors.indexOf(self.key), 1);
+                        delete this._hotLabels[self.key];
                         l.destroy(); // destroy is called after dict cleanup to prevert set_label on not exist actor
-                        let i = this._hotIcons[self.label];
+                        let i = this._hotIcons[self.key];
                         if(i){
                             i.destroy();
-                            delete this._hotIcons[self.label];
+                            delete this._hotIcons[self.key];
                         }
                         self.main = false;
                     } else {
-                        hotSensors.push(self.label);
+                        hotSensors.push(self.key);
                         if(Object.keys(this._hotLabels).length == 0){
                             this._initialIcon.destroy();
                             this._initialIcon = null;
                         }
                         let showIcon = this._settings.get_boolean('show-icon-on-panel');
-                        this._createHotItem(self.label, showIcon, self.gicon);
+                        this._createHotItem(self.key, showIcon, self.gicon);
                         self.main = true;
                     }
 
@@ -478,12 +485,12 @@ const FreonMenuButton = new Lang.Class({
                             return hotSensors.indexOf(item) == pos;
                         }));
                 }));
-                if (this._hotLabels[s.label]) {
+                if (this._hotLabels[key]) {
                     item.main = true;
-                    if(this._hotIcons[s.label])
-                        this._hotIcons[s.label].gicon = item.gicon;
+                    if(this._hotIcons[key])
+                        this._hotIcons[key].gicon = item.gicon;
                 }
-                this._sensorMenuItems[s.label] = item;
+                this._sensorMenuItems[key] = item;
 
                 if(needGroupTemperature && s.type == 'temperature') {
                     if(!temperatureGroup) {

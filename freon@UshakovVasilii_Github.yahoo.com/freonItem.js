@@ -6,10 +6,10 @@ const FreonItem = new Lang.Class({
     Name: 'FreonItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
-    _init: function(gIcon, label, value, displayName) {
+    _init: function(gIcon, key, label, value, displayName) {
         this.parent();
         this._main = false;
-        this._label = label;
+        this._key = key;
         this._gIcon = gIcon;
 
         this._labelActor = new St.Label({text: displayName ? displayName : label});
@@ -31,8 +31,8 @@ const FreonItem = new Lang.Class({
         return this._main;
     },
 
-    get label() {
-        return this._label;
+    get key() {
+        return this._key;
     },
 
     set display_name(text) {
