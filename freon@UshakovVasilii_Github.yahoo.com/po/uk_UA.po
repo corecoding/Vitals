@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-10-06 17:05-0300\n"
-"PO-Revision-Date: 2017-11-12 00:09+0200\n"
+"PO-Revision-Date: 2018-01-15 09:36+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: uk_UA\n"
@@ -110,7 +110,7 @@ msgstr "Працює, якщо у вас більше трьох сенсорі�
 
 #: prefs.js:74
 msgid "HDD/SSD Temperature Utility"
-msgstr "Утіліта для визначення температури HDD/SSD"
+msgstr "Утиліта для визначення температури HDD/SSD"
 
 #: prefs.js:79
 msgid "None"
