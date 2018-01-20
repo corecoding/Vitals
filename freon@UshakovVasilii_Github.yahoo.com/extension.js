@@ -84,6 +84,11 @@ const FreonMenuButton = new Lang.Class({
         this._querySensors();
 
         this._addTimer();
+        this._updateUITimeoutId = Mainloop.timeout_add(250, Lang.bind(this, function (){
+            this._updateUI();
+            // readd to update queue
+            return true;
+        }));
     },
 
     _createHotItem: function(s, showIcon, gicon){
@@ -218,6 +223,7 @@ const FreonMenuButton = new Lang.Class({
         this._destroyDriveUtility();
         this._destroyGpuUtility();
         Mainloop.source_remove(this._timeoutId);
+        Mainloop.source_remove(this._updateUITimeoutId);
 
         for each (let signal in this._settingChangedSignals){
             this._settings.disconnect(signal);
@@ -232,7 +238,21 @@ const FreonMenuButton = new Lang.Class({
                 }));
             }
         }
-        this._updateDisplay(); // #74
+    },
+
+    _updateUI: function(){
+        let needUpdate = false;
+        for each (let sensor in this._utils) {
+            if (sensor.available && sensor.updated) {
+                // global.log(sensor + ' updated');
+                sensor.updated = false;
+                needUpdate = true;
+            }
+        }
+        if(needUpdate) {
+            this._updateDisplay(); // #74
+            // global.log('update display');
+        }
     },
 
     _fixNames: function(sensors){

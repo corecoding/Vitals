@@ -7,6 +7,7 @@ const CommandLineUtil = new Lang.Class({
 
     _init: function(){
         this._argv = null;
+        this._updated = false;
     },
 
     execute: function(callback) {
@@ -35,6 +36,7 @@ const CommandLineUtil = new Lang.Class({
                 stdout.close(null);
                 GLib.source_remove(childWatch);
                 this._output = output;
+                this._updated = true;
                 callback();
             }));
         } catch(e){
@@ -44,6 +46,14 @@ const CommandLineUtil = new Lang.Class({
 
     get available(){
         return this._argv != null;
+    },
+
+    get updated (){
+       return this._updated;
+    },
+ 
+    set updated (updated){
+        this._updated = updated;
     },
 
     destroy: function(){

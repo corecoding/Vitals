@@ -41,10 +41,19 @@ const UDisks2  = new Lang.Class({
             this._udisksProxies = proxies;
             callback();
         }));
+        this._updated = true;
     },
 
     get available(){
         return this._udisksProxies.length > 0;
+    },
+
+    get updated (){
+       return this._updated;
+    },
+ 
+    set updated (updated){
+        this._updated = updated;
     },
 
     // creates a list of sensor objects from the list of proxies given
@@ -112,6 +121,8 @@ const UDisks2  = new Lang.Class({
         this._udisksProxies = [];
     },
 
-    execute: function(callback) {},
+    execute: function(callback) {
+        this._updated = true;
+    },
 
 });
