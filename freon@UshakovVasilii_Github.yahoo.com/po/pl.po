@@ -1,19 +1,14 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# Jakub Żywiec <jakub.zywiec@gmail.com>, 2017.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-26 21:32+0200\n"
-"PO-Revision-Date: 2017-03-12 04:38+0100\n"
+"POT-Creation-Date: 2015-10-06 17:05-0300\n"
+"PO-Revision-Date: 2018-02-03 01:30+0100\n"
 "Language-Team: POLISH <jakub.zywiec@gmail.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Last-Translator: Jakub Żywiec <jakub.zywiec@gmail.com>\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Language: pl\n"
@@ -63,11 +58,11 @@ msgstr "Napięcie"
 
 #: extension.js:509
 msgid "Sensors Settings"
-msgstr "Ustawienia czujnika"
+msgstr "Ustawienia czujników"
 
 #: prefs.js:33
 msgid "Poll Sensors Every (sec)"
-msgstr "Aktualizuj czujnik co (sek)"
+msgstr "Aktualizuj czujniki co (sek)"
 
 #: prefs.js:39
 msgid "Show Decimal Value"
@@ -103,7 +98,7 @@ msgstr "Grupuj temperatury"
 
 #: prefs.js:65
 msgid "Works if you have more than three temperature sensors"
-msgstr "Zadziała, jeśli dostępne są co najmniej trzy czujniki temperatury"
+msgstr "Zadziała, jeśli funkcjonują co najmniej trzy czujniki temperatury"
 
 #: prefs.js:68
 msgid "Group Voltage Items"
@@ -111,7 +106,7 @@ msgstr "Grupuj napięcia"
 
 #: prefs.js:69
 msgid "Works if you have more than three voltage sensors"
-msgstr "Zadziała, jeśli dostępne są co najmniej trzy czujniki napięcia"
+msgstr "Zadziała, jeśli funkcjonują co najmniej trzy czujniki napięcia"
 
 #: prefs.js:74
 msgid "HDD/SSD Temperature Utility"
