@@ -126,3 +126,15 @@ msgstr "Catalyst"
 #: prefs.js:84
 msgid "Video Card Temperature Utility"
 msgstr "Utilidad de temperatura de la placa de video"
+
+#: prefs.js:49
+msgid "Left"
+msgstr "Izquierda"
+
+#: prefs.js:49
+msgid "Center"
+msgstr "Centro"
+
+#: prefs.js:49
+msgid "Right"
+msgstr "Derecha"
