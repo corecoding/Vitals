@@ -22,18 +22,27 @@ const CommandLineUtil = new Lang.Class({
             let stdout = new Gio.UnixInputStream({fd: stdoutFd, close_fd: true});
             let outReader = new Gio.DataInputStream({base_stream: stdout});
 
+            let stderr = new Gio.UnixInputStream({fd: stderrFd, close_fd: true});
+            let errReader = new Gio.DataInputStream({base_stream: stderr});
+
             GLib.close(stdinFd);
-            GLib.close(stderrFd);
 
             let childWatch = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, Lang.bind(this, function(pid, status, requestObj) {
                 let output = [];
                 let [line, size] = [null, 0];
+
                 while (([line, size] = outReader.read_line(null)) != null && line != null) {
                     if(line)
                         output.push(line.toString());
                 }
-
                 stdout.close(null);
+
+                while (([line, size] = errReader.read_line(null)) != null && line != null) {
+                    if(line)
+                        output.push(line.toString());
+                }
+                stderr.close(null);
+
                 GLib.source_remove(childWatch);
                 this._output = output;
                 this._updated = true;
