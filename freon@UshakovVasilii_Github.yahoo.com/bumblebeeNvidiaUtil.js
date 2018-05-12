@@ -37,6 +37,13 @@ const BumblebeeNvidiaUtil = new Lang.Class({
         this._lockMonitor.id = this._lockMonitor.connect(
             'changed', Lang.bind(this, this._statusChanged)
         );
+
+        // Check if the lock file already exists
+        // (needed when NVIDIA card is already in use at that point)
+        if(GLib.file_test(lockFilePath, GLib.FileTest.EXISTS)){
+            this._detectLabel();
+            this._active = true;
+        }
     },
 
     _detectLabel: function() {
