@@ -27,7 +27,7 @@
       <description>Select the sensord whose values has to be shown in the panel</description>
     </key>
 
-    <key type="b" name="show-decimal-value">
+    <key type="b" name="use-higher-precision">
       <default>false</default>
       <summary>Show decimal value</summary>
       <description>Show one digit after decimal</description>
@@ -45,34 +45,16 @@
       <description>Display voltage of various components</description>
     </key>
 
-    <key type="s" name="drive-utility">
-      <default>'udisks2'</default>
-      <summary>Utility for detect HDD/SSD temperature</summary>
-      <description>Utility for detect HDD/SSD temperature ('none', 'hddtemp' or 'udisks2')</description>
-    </key>
-
-    <key type="s" name="gpu-utility">
-      <default>'none'</default>
-      <summary>Utility for detect video card temperature</summary>
-      <description>Utility for detect video card temperature ('none', 'nvidia-settings' or 'aticonfig')</description>
-    </key>
-
     <key type="s" name="position-in-panel">
       <default>'right'</default>
       <summary>Position in Panel</summary>
       <description>Position in Panel ('left', 'center', 'right')</description>
     </key>
 
-    <key type="b" name="group-temperature">
+    <key type="b" name="group-metrics">
       <default>true</default>
-      <summary>Group temperature menu items</summary>
+      <summary>Group Similar Metrics</summary>
       <description>Group more than three sensors temperature menu items</description>
-    </key>
-
-    <key type="b" name="group-voltage">
-      <default>true</default>
-      <summary>Group voltage menu items</summary>
-      <description>Group more than three voltage menu items</description>
     </key>
 
   </schema>

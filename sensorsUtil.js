@@ -22,10 +22,6 @@ const SensorsUtil = new Lang.Class({
         // });
     },
 
-    get gpu() {
-        return this._parseGpuSensorsOutput(this._parseSensorsTemperatureLine);
-    },
-
     get rpm() {
         // 0 is normal value for turned off fan
         return this._parseGenericSensorsOutput(this._parseFanRPMLine);
@@ -36,14 +32,10 @@ const SensorsUtil = new Lang.Class({
     },
 
     _parseGenericSensorsOutput: function(parser) {
-        return this._parseSensorsOutput(parser, false);
+        return this._parseSensorsOutput(parser);
     },
 
-    _parseGpuSensorsOutput: function(parser) {
-        return this._parseSensorsOutput(parser, true);
-    },
-
-    _parseSensorsOutput: function(parser, gpuFlag) {
+    _parseSensorsOutput: function(parser) {
         if(!this._output)
             return [];
 
@@ -52,16 +44,6 @@ const SensorsUtil = new Lang.Class({
         let sensors = [];
         //iterate through each lines
         for(let i = 0; i < this._output.length; i++){
-
-            let isGpuDriver = this._output[i].indexOf("radeon") != -1
-                                || this._output[i].indexOf("amdgpu") != -1
-                                || this._output[i].indexOf("nouveau") != -1;
-
-            if (gpuFlag != isGpuDriver) {
-                // skip driver if gpu requested and driver is not a gpu or the opposite
-                continue;
-            }
-
             // skip chipset driver name and 'Adapter:' lines
             i += 2;
 
@@ -142,5 +124,4 @@ const SensorsUtil = new Lang.Class({
         }
         return undefined;
     }
-
 });

@@ -32,12 +32,18 @@ const FreonPrefsWidget = new GObject.Class({
 
         this.attach(new Gtk.Label({ label: _('Poll Sensors Every (sec)'), halign : Gtk.Align.END}), 0, i, 1, 1);
         let updateTime = Gtk.SpinButton.new_with_range (1, 60, 1);
-        this.attach(updateTime, 1, i++, 1, 1);
+        this.attach(updateTime, 1, i, 1, 1);
         this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        this._addSwitch({key : 'show-decimal-value', y : i, x : 0,
-            label : _('Show Decimal Value'),
-            help : _("Show one digit after decimal")});
+        this._addComboBox({
+            items : {left : _('Left'), center : _('Center'), right : _('Right')},
+            key: 'position-in-panel', y : i++, x : 2,
+            label: _('Position in Panel')
+        });
+
+        this._addSwitch({key : 'use-higher-precision', y : i, x : 0,
+            label : _('Use Higher Precision'),
+            help : _("Show one or more digits after decimal")});
 
         this._addComboBox({
             items : {centigrade : "\u00b0C", fahrenheit : "\u00b0F"},
@@ -45,11 +51,9 @@ const FreonPrefsWidget = new GObject.Class({
             label: _('Temperature Unit')
         });
 
-        this._addComboBox({
-            items : {left : _('Left'), center : _('Center'), right : _('Right')},
-            key: 'position-in-panel', y : i, x : 0,
-            label: _('Position in Panel')
-        });
+        this._addSwitch({key : 'group-metrics', y : i, x : 0,
+            label : _('Group Similar Metrics'),
+            help : _("Works if you have more than three temperature sensors")});
 
         this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,
             label : _('Show Icon on Panel')});
@@ -59,30 +63,6 @@ const FreonPrefsWidget = new GObject.Class({
 
         this._addSwitch({key : 'show-voltage', y : i++, x : 2,
             label : _('Show Power Supply Voltage')});
-
-        this._addSwitch({key : 'group-temperature', y : i, x : 0,
-            label : _('Group Temperature Items'),
-            help : _("Works if you have more than three temperature sensors")});
-
-        this._addSwitch({key : 'group-voltage', y : i++, x : 2,
-            label : _('Group Voltage Items'),
-            help : _("Works if you have more than three voltage sensors")});
-
-        this._addComboBox({
-            items : {none : 'None', hddtemp : 'Hddtemp', udisks2 : 'UDisks2'},
-            key: 'drive-utility', y : i, x : 0,
-            label: _('HDD/SSD Temperature Utility')
-        });
-
-        this._addComboBox({
-            items : {
-                'none' : _('None'),
-                'nvidia-settings' : _('NVIDIA'),
-                'aticonfig' : _('Catalyst'),
-                'bumblebee-nvidia-smi': _('Bumblebee + NVIDIA') },
-            key: 'gpu-utility', y : i, x : 2,
-            label: _('Video Card Temperature Utility')
-        });
     },
 
     _addSwitch : function(params){
@@ -111,7 +91,7 @@ const FreonPrefsWidget = new GObject.Class({
         }
 
         combobox.set_active(Object.keys(params.items).indexOf(this._settings.get_string(params.key)));
-        
+
         combobox.connect('changed', Lang.bind(this, function(entry) {
             let [success, iter] = combobox.get_active_iter();
             if (!success)
