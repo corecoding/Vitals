@@ -52,7 +52,7 @@ const FreonPrefsWidget = new GObject.Class({
         });
 
         this._addSwitch({key : 'group-metrics', y : i, x : 0,
-            label : _('Group Similar Metrics'),
+            label : _('Group Metrics'),
             help : _("Works if you have more than three temperature sensors")});
 
         this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,

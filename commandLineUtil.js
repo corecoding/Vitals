@@ -5,7 +5,7 @@ const Gio = imports.gi.Gio;
 const CommandLineUtil = new Lang.Class({
     Name: 'CommandLineUtil',
 
-    _init: function(){
+    _init: function() {
         this._argv = null;
         this._updated = false;
     },
@@ -19,6 +19,7 @@ const CommandLineUtil = new Lang.Class({
                                             null, /* env */
                                             GLib.SpawnFlags.DO_NOT_REAP_CHILD,
                                             null /* child_setup */);
+
             let stdout = new Gio.UnixInputStream({fd: stdoutFd, close_fd: true});
             let outReader = new Gio.DataInputStream({base_stream: stdout});
 
@@ -32,13 +33,13 @@ const CommandLineUtil = new Lang.Class({
                 let [line, size] = [null, 0];
 
                 while (([line, size] = outReader.read_line(null)) != null && line != null) {
-                    if(line)
+                    if (line)
                         output.push(line.toString());
                 }
                 stdout.close(null);
 
                 while (([line, size] = errReader.read_line(null)) != null && line != null) {
-                    if(line)
+                    if (line)
                         output.push(line.toString());
                 }
                 stderr.close(null);
@@ -48,25 +49,24 @@ const CommandLineUtil = new Lang.Class({
                 this._updated = true;
                 callback();
             }));
-        } catch(e){
+        } catch(e) {
             global.log(e.toString());
         }
     },
 
-    get available(){
+    get available() {
         return this._argv != null;
     },
 
-    get updated (){
+    get updated () {
        return this._updated;
     },
- 
-    set updated (updated){
+
+    set updated (updated) {
         this._updated = updated;
     },
 
-    destroy: function(){
+    destroy: function() {
         this._argv = null;
     }
-
 });

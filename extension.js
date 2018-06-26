@@ -6,7 +6,6 @@ const Main = imports.ui.main;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
-const GTop = imports.gi.GTop;
 const Gio = imports.gi.Gio;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -33,20 +32,6 @@ const FreonMenuButton = new Lang.Class({
         };
 
         this.update_time = this._settings.get_int('update-time');
-
-        this.mem = new GTop.glibtop_mem;
-        this.cpu = new GTop.glibtop_cpu;
-
-        this.last_total = [0, 0, 0, 0];
-
-        // get number of cores
-        this.ncpu = 1;
-
-        try {
-            this.ncpu = GTop.glibtop_get_sysinfo().ncpu;
-        } catch(e) {
-            global.logError(e);
-        }
 
         let temperatureIcon = Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg');
         this._sensorIcons = {
@@ -243,9 +228,17 @@ const FreonMenuButton = new Lang.Class({
         if (this._settings.get_boolean('show-voltage'))
             voltageInfo = this._utils.sensors.volt;
 
-        sensorsInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
-        fanInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
-        voltageInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
+        let memoryInfo = [];
+        if (this._settings.get_boolean('show-voltage')) // TODO FIX ME
+            memoryInfo = this._utils.sensors.memory;
+
+        let processorInfo = [];
+        if (this._settings.get_boolean('show-voltage')) // TODO FIX ME
+            processorInfo = this._utils.sensors.processor;
+
+        //sensorsInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
+        //fanInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
+        //voltageInfo.sort(function(a,b) { return a.label.localeCompare(b.label) });
 
         if (sensorsInfo.length > 0) {
             let total = 0;
@@ -299,7 +292,7 @@ const FreonMenuButton = new Lang.Class({
                 sensors.push({
                     type:'fan',
                     label:fan.label,
-                    value:_("%drpm").format(fan.rpm)});
+                    value:_("%d rpm").format(fan.rpm)});
             }
 
             if (fanInfo.length > 0 && voltageInfo.length > 0) {
@@ -321,54 +314,45 @@ const FreonMenuButton = new Lang.Class({
                 sensors.push({type : 'separator'});
             }
 
-            GTop.glibtop_get_mem(this.mem);
-
-            let mem_used = this.mem.user;
-            if (this.mem.slab !== undefined) mem_used -= this.mem.slab;
-            let ratio = mem_used / this.mem.total * 100;
-            let mem_free = this.mem.total - mem_used;
-
-            sensors.push({type: 'memory',
-                          label: _("Ratio"),
-                          value: this._formatPercent(ratio)});
-
-            sensors.push({type: 'memory',
-                          label: _("Physical"),
-                          value: this._formatMemory(this.mem.total / 1024 / 1024 / 1024)});
-
-            sensors.push({type: 'memory',
-                          label: _("Allocated"),
-                          value: this._formatMemory(mem_used / 1024 / 1024 / 1024)});
-
-            sensors.push({type: 'memory',
-                          label: _("Free"),
-                          value: this._formatMemory(mem_free / 1024 / 1024 / 1024)});
 
 
+
+            for (let memory of Object.values(memoryInfo)) {
+                let value = memory.value;
+
+                if (memory.format == 'percent') {
+                    value = this._formatPercent(value);
+                } else if (memory.format == 'storage') {
+                    value = value / 1024 / 1024 / 1024;
+                    value = this._formatMemory(value);
+                }
+
+                sensors.push({
+                    type : 'memory',
+                    label:memory.label,
+                    value: value});
+            }
 
             if (this._settings.get_boolean('group-metrics')) {
                 // assign memory value next to group header
                 sensors.push({
                     type:'mem-group',
                     label:'mem-group',
-                    value: this._formatPercent(ratio)});
+                    value: this._formatPercent(utilized)});
             } else {
                 sensors.push({type : 'separator'});
             }
 
-            GTop.glibtop_get_cpu(this.cpu);
 
-            for (var i=0; i<this.ncpu; ++i) {
-                let total = this.cpu.xcpu_user[i];
 
-                let delta = (total - this.last_total[i]) / this.update_time;
 
-                sensors.push({type: 'processor',
-                              label: _("Core %s".format(i)),
-                              value: _("%.0f%").format(delta)});
-
-                this.last_total[i] = total;
+            for (let cpu of Object.values(processorInfo)) {
+                sensors.push({
+                    type: 'processor',
+                    label: cpu.label,
+                    value: _("%.0f%").format(cpu.value)});
             }
+
 
             this._fixNames(sensors);
 
