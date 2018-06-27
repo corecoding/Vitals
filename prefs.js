@@ -56,13 +56,22 @@ const FreonPrefsWidget = new GObject.Class({
             help : _("Works if you have more than three temperature sensors")});
 
         this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,
-            label : _('Show Icon on Panel')});
+            label : _('Show Icon(s) on Panel')});
 
-        this._addSwitch({key : 'show-fan-rpm', y : i, x : 0,
-            label : _('Show Fan Speed')});
+        this._addSwitch({key : 'show-temperature', y : i, x : 0,
+            label : _('Show Temperatures')});
+
+        this._addSwitch({key : 'show-memory', y : i++, x : 2,
+            label : _('Show Memory Usage')});
+
+        this._addSwitch({key : 'show-processor', y : i, x : 0,
+            label : _('Show Processor')});
 
         this._addSwitch({key : 'show-voltage', y : i++, x : 2,
             label : _('Show Power Supply Voltage')});
+
+        this._addSwitch({key : 'show-fan-rpm', y : i, x : 0,
+            label : _('Show Fan Speed')});
     },
 
     _addSwitch : function(params){

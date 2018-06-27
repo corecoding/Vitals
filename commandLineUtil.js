@@ -11,7 +11,7 @@ const CommandLineUtil = new Lang.Class({
     },
 
     execute: function(callback) {
-        try{
+        try {
             this._callback = callback;
             let [exit, pid, stdinFd, stdoutFd, stderrFd] =
                 GLib.spawn_async_with_pipes(null, /* cwd */
@@ -33,14 +33,12 @@ const CommandLineUtil = new Lang.Class({
                 let [line, size] = [null, 0];
 
                 while (([line, size] = outReader.read_line(null)) != null && line != null) {
-                    if (line)
-                        output.push(line.toString());
+                    if (line) output.push(line.toString());
                 }
                 stdout.close(null);
 
                 while (([line, size] = errReader.read_line(null)) != null && line != null) {
-                    if (line)
-                        output.push(line.toString());
+                    if (line) output.push(line.toString());
                 }
                 stderr.close(null);
 

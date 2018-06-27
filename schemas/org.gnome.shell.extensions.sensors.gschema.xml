@@ -57,5 +57,23 @@
       <description>Group more than three sensors temperature menu items</description>
     </key>
 
+    <key type="b" name="show-temperature">
+      <default>true</default>
+      <summary>Display temperature</summary>
+      <description>Display temperature of various components</description>
+    </key>
+
+    <key type="b" name="show-memory">
+      <default>true</default>
+      <summary>Display memory</summary>
+      <description>Display memory usage of various components</description>
+    </key>
+
+    <key type="b" name="show-processor">
+      <default>true</default>
+      <summary>Display processor</summary>
+      <description>Display processor usage of various components</description>
+    </key>
+
   </schema>
 </schemalist>

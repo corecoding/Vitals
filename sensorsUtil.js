@@ -14,15 +14,21 @@ const SensorsUtil = new Lang.Class({
         this._argv = path ? [path, '-A'] : null;
         this.mem = new GTop.glibtop_mem;
         this.cpu = new GTop.glibtop_cpu;
-        this.last_total = [0, 0, 0, 0];
+        this._update_time = 10;
 
         // get number of cores
-        this.ncpu = 1;
+        this.cores = 1;
 
         try {
-            this.ncpu = GTop.glibtop_get_sysinfo().ncpu;
+            this.cores = GTop.glibtop_get_sysinfo().ncpu;
         } catch(e) {
             global.logError(e);
+        }
+
+        //this.last_total = new Array(this.cores);
+        this.last_total = [];
+        for (var i=0; i<this.cores; ++i) {
+            this.last_total[i] = 0;
         }
     },
 
@@ -60,14 +66,18 @@ const SensorsUtil = new Lang.Class({
         return sensors;
     },
 
+    set update_time(update_time) {
+        this._update_time = update_time;
+    },
+
     get processor() {
         let sensors = [];
         GTop.glibtop_get_cpu(this.cpu);
 
-        for (var i=0; i<this.ncpu; ++i) {
+        for (var i=0; i<this.cores; ++i) {
             let total = this.cpu.xcpu_user[i];
 
-            let delta = (total - this.last_total[i]) / 5;
+            let delta = (total - this.last_total[i]) / this._update_time;
 
             sensors.push({ label: "Core %s".format(i), value: delta });
 
