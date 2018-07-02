@@ -72,6 +72,12 @@ const FreonPrefsWidget = new GObject.Class({
 
         this._addSwitch({key : 'show-fan-rpm', y : i, x : 0,
             label : _('Show Fan Speed')});
+
+        this._addSwitch({key : 'hide-zeros', y : i++, x : 2,
+            label : _('Hide sensors with zero values')});
+
+        this._addSwitch({key : 'alphabetize', y : i, x : 0,
+            label : _('Alphabetize Sensors')});
     },
 
     _addSwitch : function(params){

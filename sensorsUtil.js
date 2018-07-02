@@ -34,6 +34,7 @@ const SensorsUtil = new Lang.Class({
 
     get temp() {
         return this._parseSensorsOutput(this._parseSensorsTemperatureLine);
+
         // wrong lm_sensors not problem of this application #16
         // return s.filter(function(e) {
         //     return e.temp > 0 && e.temp < 115;
@@ -50,7 +51,7 @@ const SensorsUtil = new Lang.Class({
     },
 
     get memory() {
-        let sensors = [];
+        let sensors = {'data': [], 'avg': 0, 'max': 0};
         GTop.glibtop_get_mem(this.mem);
 
         let mem_used = this.mem.user;
@@ -58,10 +59,10 @@ const SensorsUtil = new Lang.Class({
         let utilized = mem_used / this.mem.total * 100;
         let mem_free = this.mem.total - mem_used;
 
-        sensors.push({ label: 'Usage', value: utilized, format: 'percent' });
-        sensors.push({ label: 'Physical', value: this.mem.total, format: 'storage' });
-        sensors.push({ label: 'Allocated', value: mem_used, format: 'storage' });
-        sensors.push({ label: 'Available', value: mem_free, format: 'storage' });
+        sensors['data'].push({ label: 'Usage', value: utilized, format: 'percent' });
+        sensors['data'].push({ label: 'Physical', value: this.mem.total, format: 'storage' });
+        sensors['data'].push({ label: 'Allocated', value: mem_used, format: 'storage' });
+        sensors['data'].push({ label: 'Available', value: mem_free, format: 'storage' });
 
         return sensors;
     },
@@ -71,17 +72,30 @@ const SensorsUtil = new Lang.Class({
     },
 
     get processor() {
-        let sensors = [];
+        let sensors = {'data': [], 'avg': 0, 'max': 0};
         GTop.glibtop_get_cpu(this.cpu);
 
+        let sum = 0, max = 0;
         for (var i=0; i<this.cores; ++i) {
             let total = this.cpu.xcpu_user[i];
-
             let delta = (total - this.last_total[i]) / this._update_time;
 
-            sensors.push({ label: "Core %s".format(i), value: delta });
+            // first time poll runs risk of invalid numbers unless previous data exists
+            if (this.last_total[i]) {
+                sensors['data'].push({ label: "Core %s".format(i), value: delta });
+            }
 
             this.last_total[i] = total;
+
+            // used for avg and max below
+            sum += delta;
+            if (delta > max) max = delta;
+        }
+
+        // don't output avg/max unless we have sensors
+        if (sensors['data'].length > 0) {
+            sensors['avg'] = sum / this.cores;
+            sensors['max'] = max;
         }
 
         return sensors;
@@ -93,8 +107,10 @@ const SensorsUtil = new Lang.Class({
 
         let feature_label = undefined;
         let feature_value = undefined;
-        let sensors = [];
+        let sensors = {'data': [], 'avg': 0, 'max': 0};
         let header;
+
+        let sum = 0, max = 0;
 
         // iterate through each lines
         for (let line of this._output) {
@@ -109,7 +125,14 @@ const SensorsUtil = new Lang.Class({
 
                 let feature = parser(header + ' ' + feature_label, feature_value);
                 if (feature) {
-                    sensors.push(feature);
+                    sensors['data'].push(feature);
+
+                    // used for avg and max below
+                    if (feature.value !== null) {
+                        sum += feature.value;
+                        if (feature.value > max) max = feature.value;
+                    }
+
                     feature = undefined;
                 }
             } else {
@@ -118,18 +141,22 @@ const SensorsUtil = new Lang.Class({
             }
         }
 
+        sensors['avg'] = sum / sensors['data'].length;
+        sensors['max'] = max;
+
         return sensors;
     },
 
     _parseSensorsTemperatureLine: function(label, value) {
         if (label == undefined || value == undefined)
             return undefined;
+
         let curValue = value.trim().split('  ')[0];
         // does the current value look like a temperature unit (°C)?
         if (curValue.indexOf("C", curValue.length - "C".length) !== -1) {
             return {
                 label: label.trim(),
-                temp: parseFloat(curValue.split(' ')[0])
+                value: parseFloat(curValue.split(' ')[0])
             };
             // let r;
             // sensor['low']  = (r = /low=\+(\d{1,3}.\d)/.exec(value))  ? parseFloat(r[1]) : undefined;
@@ -149,7 +176,7 @@ const SensorsUtil = new Lang.Class({
         if (curValue.indexOf("RPM", curValue.length - "RPM".length) !== -1) {
             return {
                 label: label.trim(),
-                rpm: parseFloat(curValue.split(' ')[0])
+                value: parseFloat(curValue.split(' ')[0])
             };
             // let r;
             // sensor['min'] = (r = /min=(\d{1,5})/.exec(value)) ? parseFloat(r[1]) : undefined;
@@ -166,7 +193,7 @@ const SensorsUtil = new Lang.Class({
         if (curValue.indexOf("V", curValue.length - "V".length) !== -1) {
             return {
                 label: label.trim(),
-                volt: parseFloat(curValue.split(' ')[0])
+                value: parseFloat(curValue.split(' ')[0])
             };
             // let r;
             // sensor['min'] = (r = /min=(\d{1,3}.\d)/.exec(value)) ? parseFloat(r[1]) : undefined;

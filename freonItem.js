@@ -12,10 +12,10 @@ const FreonItem = new Lang.Class({
         this._key = key;
         this._gIcon = gIcon;
 
-        this._labelActor = new St.Label({text: displayName ? displayName : label});
-        this.actor.add(new St.Icon({ style_class: 'popup-menu-icon', gicon : gIcon}));
-        this.actor.add(this._labelActor, {x_fill: true, expand: true});
-        this._valueLabel = new St.Label({text: value});
+        this._labelActor = new St.Label({ text: displayName ? displayName : label });
+        this.actor.add(new St.Icon({ style_class: 'popup-menu-icon', gicon : gIcon }));
+        this.actor.add(this._labelActor, { x_fill: true, expand: true });
+        this._valueLabel = new St.Label({ text: value });
         this.actor.add(this._valueLabel);
     },
 
