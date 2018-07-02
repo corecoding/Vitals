@@ -19,3 +19,10 @@ lm-sensors
 ### Installation from extensions.gnome.org
 
 https://extensions.gnome.org/extension/841/freon/
+
+
+### memory and cpu icons by Abderraouf omara from iconfinder.com in the Computer and Technologies
+https://www.iconfinder.com/iconsets/computer-and-technologies-1
+Icons changed to white
+
+Icons from Freon project: fan.svg  gpu.svg   temperature.svg  voltage.svg

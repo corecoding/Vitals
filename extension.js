@@ -33,11 +33,11 @@ const FreonMenuButton = new Lang.Class({
 
         this.update_time = this._settings.get_int('update-time');
 
-        let temperatureIcon = Gio.icon_new_for_string(Me.path + '/icons/freon-temperature-symbolic.svg');
+        let temperatureIcon = Gio.icon_new_for_string(Me.path + '/icons/temperature.svg');
         this._sensorIcons = {
             'temperature' : temperatureIcon,
-            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/freon-voltage-symbolic.svg'),
-            'fan' : Gio.icon_new_for_string(Me.path + '/icons/freon-fan-symbolic.svg'),
+            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage.svg'),
+            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'),
             'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'),
             'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg')
         }
@@ -386,6 +386,13 @@ const FreonMenuButton = new Lang.Class({
         });
 
         let prefsButton = Main.panel.statusArea.aggregateMenu._system._createActionButton('preferences-system-symbolic', _("Settings"));
+
+/*
+        prefsButton.connect('clicked', Lang.bind(this, function (self) {
+            self.menu.actor.hide();
+            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+        });
+*/
 
         prefsButton.connect('clicked', function () {
             Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
