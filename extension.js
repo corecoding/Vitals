@@ -385,28 +385,26 @@ const FreonMenuButton = new Lang.Class({
             reactive: false
         });
 
-        let prefsButton = Main.panel.statusArea.aggregateMenu._system._createActionButton('preferences-system-symbolic', _("Settings"));
+        let panelSystem = Main.panel.statusArea.aggregateMenu._system;
 
-/*
-        prefsButton.connect('clicked', Lang.bind(this, function (self) {
-            self.menu.actor.hide();
-            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
-        });
-*/
-
+        let prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Settings"));
         prefsButton.connect('clicked', function () {
             Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
         });
-
         item.actor.add(prefsButton);
 
-        let monitorButton = Main.panel.statusArea.aggregateMenu._system._createActionButton('utilities-system-monitor-symbolic', _("Settings"));
-
+        let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("Settings"));
         monitorButton.connect('clicked', function () {
             Util.spawn(["gnome-system-monitor"]);
         });
-
         item.actor.add(monitorButton);
+
+        let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Settings"));
+        refreshButton.connect('clicked', Lang.bind(this, function (self) {
+            this._updateTimeChanged();
+            this._querySensors();
+        }));
+        item.actor.add(refreshButton);
 
         this.menu.addMenuItem(item);
     },
