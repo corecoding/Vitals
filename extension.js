@@ -196,6 +196,7 @@ const FreonMenuButton = new Lang.Class({
     },
 
     _updateDisplay: function() {
+        // TODO condense this code
         let tempInfo = [];
         if (this._settings.get_boolean('show-temperature'))
             tempInfo = this._utils.sensors.temp;
@@ -250,8 +251,8 @@ const FreonMenuButton = new Lang.Class({
 
             // add group for temperature sensors
             if (this._settings.get_boolean('group-metrics')) {
-                sensors.push({type: 'temp-group',
-                             label: 'temp-group',
+                sensors.push({type: 'temperature-group',
+                             label: 'temperature-group',
                              value: this._formatTemp(tempInfo['avg']) });
             }
         }
@@ -277,6 +278,7 @@ const FreonMenuButton = new Lang.Class({
 
         if (memoryInfo['data'].length > 0) {
             let utilized = 0;
+
             for (let memory of Object.values(memoryInfo['data'])) {
                 let value = memory.value;
 
@@ -289,16 +291,16 @@ const FreonMenuButton = new Lang.Class({
                 }
 
                 sensors.push({
-                    type : 'memory',
-                    label:memory.label,
+                     type: 'memory',
+                    label: memory.label,
                     value: value});
             }
 
             if (this._settings.get_boolean('group-metrics')) {
                 // assign memory value next to group header
                 sensors.push({
-                    type:'mem-group',
-                    label:'mem-group',
+                     type: 'memory-group',
+                    label: 'memory-group',
                     value: this._formatPercent(utilized)});
             }
         }
@@ -311,15 +313,15 @@ const FreonMenuButton = new Lang.Class({
 
             for (let cpu of Object.values(processorInfo['data'])) {
                 sensors.push({
-                    type: 'processor',
+                     type: 'processor',
                     label: cpu.label,
                     value: this._formatPercent(cpu.value)});
             }
 
             // add group for processor usage
             if (this._settings.get_boolean('group-metrics')) {
-                sensors.push({type: 'cpu-group',
-                             label: 'cpu-group',
+                sensors.push({type: 'processor-group',
+                             label: 'processor-group',
                              value: this._formatPercent(processorInfo['avg']) });
             }
         }
@@ -334,11 +336,7 @@ const FreonMenuButton = new Lang.Class({
                 for (let s of Object.values(sensors)) {
                     let item = this._sensorMenuItems[s.key || s.label];
                     if (item) {
-                        if (s.type == 'temp-group'
-                         || s.type == 'mem-group'
-                         || s.type == 'cpu-group'
-                         || s.type == 'fan-group'
-                         ) {
+                        if (s.type.includes('-group')) {
                             item.status.text = s.value;
                         } else {
                             item.value = s.value;
@@ -387,19 +385,19 @@ const FreonMenuButton = new Lang.Class({
 
         let panelSystem = Main.panel.statusArea.aggregateMenu._system;
 
-        let prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Settings"));
+        let prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
         prefsButton.connect('clicked', function () {
             Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
         });
         item.actor.add(prefsButton);
 
-        let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("Settings"));
+        let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
         monitorButton.connect('clicked', function () {
             Util.spawn(["gnome-system-monitor"]);
         });
         item.actor.add(monitorButton);
 
-        let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Settings"));
+        let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
         refreshButton.connect('clicked', Lang.bind(this, function (self) {
             this._updateTimeChanged();
             this._querySensors();
@@ -413,126 +411,101 @@ const FreonMenuButton = new Lang.Class({
         this._lastSensorsCount = sensors.length;
         this._sensorMenuItems = {};
 
-        let needGroupTemperature = this._settings.get_boolean('group-metrics');
-        let needGroupVoltage = this._settings.get_boolean('group-metrics');
-        let needGroupMemory = this._settings.get_boolean('group-metrics');
-        let needGroupProcessor = this._settings.get_boolean('group-metrics');
-        let needGroupFan = this._settings.get_boolean('group-metrics');
-
-        // TODO set booleans to false when < 2
-        if (needGroupVoltage) {
-            let i = 0;
-            for (let s of Object.values(sensors))
-                if (s.type == 'voltage') i++;
-
-            //if (i < 2) needGroupVoltage = false;
-        }
-
         let groups = {};
         let lastType = '';
 
         for (let s of Object.values(sensors)) {
-            if (s.type == 'temp-group' && groups['temperature']) {
-                groups['temperature'].status.text = s.value;
-                this._sensorMenuItems['temp-group'] = groups['temperature'];
-            } else if (s.type == 'mem-group' && groups['memory']) {
-                groups['memory'].status.text = s.value;
-                this._sensorMenuItems['mem-group'] = groups['memory'];
-            } else if (s.type == 'cpu-group' && groups['processor']) {
-                groups['processor'].status.text = s.value;
-                this._sensorMenuItems['cpu-group'] = groups['processor'];
-            } else if (s.type == 'fan-group' && groups['fan']) {
-                groups['fan'].status.text = s.value;
-                this._sensorMenuItems['fan-group'] = groups['fan'];
-            } else if (s.type == 'voltage-group' && groups['voltage']) {
-                groups['voltage'].status.text = s.value;
-                this._sensorMenuItems['voltage-group'] = groups['voltage'];
-            } else {
-                let key = s.key || s.label;
-                let item = new FreonItem.FreonItem(this._sensorIcons[s.type], key, s.label, s.value, s.displayName || undefined);
-                item.connect('activate', Lang.bind(this, function (self) {
-                    let l = this._hotLabels[self.key];
-                    let hotSensors = this._settings.get_strv('hot-sensors');
-                    if (l) {
-                        hotSensors.splice(hotSensors.indexOf(self.key), 1);
-                        delete this._hotLabels[self.key];
-                        l.destroy(); // destroy is called after dict cleanup to prevent set_label on not exist actor
-                        let i = this._hotIcons[self.key];
-                        if (i) {
-                            i.destroy();
-                            delete this._hotIcons[self.key];
-                        }
-                        self.main = false;
-                    } else {
-                        hotSensors.push(self.key);
-                        if (Object.keys(this._hotLabels).length == 0) {
-                            this._initialIcon.destroy();
-                            this._initialIcon = null;
-                        }
-                        let showIcon = this._settings.get_boolean('show-icon-on-panel');
-                        this._createHotItem(self.key, showIcon, self.gicon);
-                        self.main = true;
-                    }
-
-                    for (let i = hotSensors.length -1; i >= 0 ; i--) {
-                        let k = hotSensors[i];
-                        if (!this._sensorMenuItems[k]) {
-                            hotSensors.splice(i, 1);
-                            let ll = this._hotLabels[k]
-                            delete this._hotLabels[k];
-                            ll.destroy(); // destroy is called after dict cleanup to prevert set_label on not exist actor
-                            if (this._hotIcons[k]) {
-                                this._hotIcons[k].destroy();
-                                delete this._hotIcons[k];
-                            }
-                        }
-                    }
-
-                    if (Object.keys(this._hotLabels).length == 0)
-                        this._createInitialIcon();
-
-                    this._settings.set_strv('hot-sensors', hotSensors.filter(
-                        function(item, pos) {
-                            return hotSensors.indexOf(item) == pos;
-                        }));
-                }));
-
-                if (this._hotLabels[key]) {
-                    item.main = true;
-                    if (this._hotIcons[key])
-                        this._hotIcons[key].gicon = item.gicon;
+            // displays text next to group
+            if (s.type.includes('-group')) {
+                let parts = s.type.split('-');
+                if (groups[parts[0]]) {
+                    groups[parts[0]].status.text = s.value;
+                    this._sensorMenuItems[s.type] = groups[parts[0]];
                 }
 
-                this._sensorMenuItems[key] = item;
+                continue;
+            }
 
-                if ((needGroupProcessor && s.type == 'processor')
-                        || (needGroupFan && s.type == 'fan')
-                        || (needGroupMemory && s.type == 'memory')
-                        || (needGroupVoltage && s.type == 'voltage')
-                        || (needGroupTemperature && s.type == 'temperature')
-                        ) {
-
-                    // groups associated sensors under accordion menu
-                    if (typeof groups[s.type] == 'undefined') {
-                        groups[s.type] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(s.type)), true);
-                        groups[s.type].icon.gicon = this._sensorIcons[s.type];
-
-                        if (!groups[s.type].status) { // gnome 3.18 and hight
-                            groups[s.type].status = this._defaultLabel();
-                            groups[s.type].actor.insert_child_at_index(groups[s.type].status, 4);
-                        }
-
-                        this.menu.addMenuItem(groups[s.type]);
+            let key = s.key || s.label;
+            let item = new FreonItem.FreonItem(this._sensorIcons[s.type], key, s.label, s.value, s.displayName || undefined);
+            item.connect('activate', Lang.bind(this, function (self) {
+                let l = this._hotLabels[self.key];
+                let hotSensors = this._settings.get_strv('hot-sensors');
+                if (l) {
+                    hotSensors.splice(hotSensors.indexOf(self.key), 1);
+                    delete this._hotLabels[self.key];
+                    l.destroy(); // destroy is called after dict cleanup to prevent set_label on not exist actor
+                    let i = this._hotIcons[self.key];
+                    if (i) {
+                        i.destroy();
+                        delete this._hotIcons[self.key];
                     }
-
-                    groups[s.type].menu.addMenuItem(item);
+                    self.main = false;
                 } else {
-                    // add separator when not grouping metrics
-                    if (lastType != s.type && !this._settings.get_boolean('group-metrics'))
-                        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-                    this.menu.addMenuItem(item);
+                    hotSensors.push(self.key);
+                    if (Object.keys(this._hotLabels).length == 0) {
+                        this._initialIcon.destroy();
+                        this._initialIcon = null;
+                    }
+                    let showIcon = this._settings.get_boolean('show-icon-on-panel');
+                    this._createHotItem(self.key, showIcon, self.gicon);
+                    self.main = true;
                 }
+
+                for (let i = hotSensors.length -1; i >= 0 ; i--) {
+                    let k = hotSensors[i];
+                    if (!this._sensorMenuItems[k]) {
+                        hotSensors.splice(i, 1);
+                        let ll = this._hotLabels[k]
+                        delete this._hotLabels[k];
+                        ll.destroy(); // destroy is called after dict cleanup to prevert set_label on not exist actor
+                        if (this._hotIcons[k]) {
+                            this._hotIcons[k].destroy();
+                            delete this._hotIcons[k];
+                        }
+                    }
+                }
+
+                if (Object.keys(this._hotLabels).length == 0)
+                    this._createInitialIcon();
+
+                this._settings.set_strv('hot-sensors', hotSensors.filter(
+                    function(item, pos) {
+                        return hotSensors.indexOf(item) == pos;
+                    }
+                ));
+            }));
+
+            if (this._hotLabels[key]) {
+                item.main = true;
+                if (this._hotIcons[key])
+                    this._hotIcons[key].gicon = item.gicon;
+            }
+
+            this._sensorMenuItems[key] = item;
+
+            // only group items if we have more than one
+            if (this._settings.get_boolean('group-metrics') && typeof this._sensorIcons[s.type] != 'undefined') {
+                // groups associated sensors under accordion menu
+                if (typeof groups[s.type] == 'undefined') {
+                    groups[s.type] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(s.type)), true);
+                    groups[s.type].icon.gicon = this._sensorIcons[s.type];
+
+                    if (!groups[s.type].status) { // gnome 3.18 and higher
+                        groups[s.type].status = this._defaultLabel();
+                        groups[s.type].actor.insert_child_at_index(groups[s.type].status, 4);
+                    }
+
+                    this.menu.addMenuItem(groups[s.type]);
+                }
+
+                groups[s.type].menu.addMenuItem(item);
+            } else {
+                // add separator when not grouping metrics
+                if (lastType != s.type && !this._settings.get_boolean('group-metrics'))
+                    this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+                this.menu.addMenuItem(item);
             }
 
             lastType = s.type;
