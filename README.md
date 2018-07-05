@@ -11,7 +11,7 @@ You can use **apt install <package>** or **yum install <package>**
     libgtop2-dev
     lm-sensors
 
-### 2a) Installation from git
+### 2a) Installation using git
 
     mkdir -p ~/.local/share/gnome-shell/extensions
     git clone https://github.com/corecoding/CoreStats.git ~/.local/share/gnome-shell/extensions/CoreStats@CoreCoding
@@ -25,8 +25,8 @@ https://extensions.gnome.org/extension/841/freon/
 Restart GNOME Shell (`Alt+F2`, `r`, `Enter`) and enable the extension through gnome-tweak-tool.
 
 ## Credits
+Core Stats is forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon).
 
-### Core Stats is forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon).
+Memory and cpu icons by Abderraouf omara from iconfinder.com in the [Computer and Technologies](https://www.iconfinder.com/iconsets/computer-and-technologies-1). Icons changed to white.
 
-### Memory and cpu icons by Abderraouf omara from iconfinder.com in the [Computer and Technologies](https://www.iconfinder.com/iconsets/computer-and-technologies-1). Icons changed to white.
-### Icons inherited from Freon project: fan.svg, gpu.svg, temperature.svg, voltage.svg
+Icons inherited from Freon project: fan.svg, gpu.svg, temperature.svg, voltage.svg
