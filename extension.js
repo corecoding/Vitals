@@ -11,13 +11,13 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const SensorsUtil = Me.imports.sensorsUtil;
-const FreonItem = Me.imports.freonItem;
+const CoreStatsItem = Me.imports.coreStatsItem;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
-const FreonMenuButton = new Lang.Class({
-    Name: 'FreonMenuButton',
+const CoreStatsMenuButton = new Lang.Class({
+    Name: 'CoreStatsMenuButton',
     Extends: PanelMenu.Button,
 
     _init: function() {
@@ -367,7 +367,7 @@ const FreonMenuButton = new Lang.Class({
             );
 
             item.connect('activate',function() {
-                Util.spawn(["xdg-open", "https://github.com/UshakovVasilii/gnome-shell-extension-freon/wiki/Dependency"]);
+                Util.spawn(["xdg-open", "https://github.com/corecoding/CoreStats"]);
             });
 
             this.menu.addMenuItem(item);
@@ -427,7 +427,7 @@ const FreonMenuButton = new Lang.Class({
             }
 
             let key = s.key || s.label;
-            let item = new FreonItem.FreonItem(this._sensorIcons[s.type], key, s.label, s.value, s.displayName || undefined);
+            let item = new CoreStatsItem.CoreStatsItem(this._sensorIcons[s.type], key, s.label, s.value, s.displayName || undefined);
             item.connect('activate', Lang.bind(this, function (self) {
                 let l = this._hotLabels[self.key];
                 let hotSensors = this._settings.get_strv('hot-sensors');
@@ -559,19 +559,19 @@ const FreonMenuButton = new Lang.Class({
     }
 });
 
-let freonMenu;
+let coreStatsMenu;
 
 function init(extensionMeta) {
     Convenience.initTranslations();
 }
 
 function enable() {
-    freonMenu = new FreonMenuButton();
-    let positionInPanel = freonMenu.positionInPanel;
-    Main.panel.addToStatusArea('freonMenu', freonMenu, positionInPanel == 'right' ? 0 : -1, positionInPanel);
+    coreStatsMenu = new CoreStatsMenuButton();
+    let positionInPanel = coreStatsMenu.positionInPanel;
+    Main.panel.addToStatusArea('coreStatsMenu', coreStatsMenu, positionInPanel == 'right' ? 0 : -1, positionInPanel);
 }
 
 function disable() {
-    freonMenu.destroy();
-    freonMenu = null;
+    coreStatsMenu.destroy();
+    coreStatsMenu = null;
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="gse-sensors">
 
-  <schema id="org.gnome.shell.extensions.freon" path="/org/gnome/shell/extensions/freon/">
+  <schema id="org.gnome.shell.extensions.corestats" path="/org/gnome/shell/extensions/corestats/">
 
     <key type="i" name="update-time">
       <default>5</default>

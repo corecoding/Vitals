@@ -1,8 +1,8 @@
 {
-  "description": "A glimpse into your computer's temperature, memory usage and CPU load.",
-  "gettext-domain": "freon",
+  "description": "A glimpse into your computer's temperature, voltage, fan speed, memory usage and CPU load.",
+  "gettext-domain": "corestats",
   "name": "CoreStats",
-  "settings-schema": "org.gnome.shell.extensions.freon",
+  "settings-schema": "org.gnome.shell.extensions.corestats",
   "shell-version": [
     "3.12",
     "3.14",

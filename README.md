@@ -1,28 +1,31 @@
-gnome-shell-extension-freon
+gnome-shell-extension-corestats
 ====================================
 
-Freon is forked from [gnome-shell-extension-sensors](https://github.com/xtranophilist/gnome-shell-extension-sensors). Freon is an extension for displaying CPU temperature, disk temperature, video card temperature (NVIDIA/Catalyst/Bumblebee&NVIDIA), voltage and fan RPM in GNOME Shell.
+Core Stats is forked from [gnome-shell-extension-sensors](https://github.com/UshakovVasilii/gnome-shell-extension-freon). Core Stats is an extension for displaying system temperature, voltage, fan speed, memory usage and CPU load in GNOME Shell's menu bar.
 
-More info in [wiki](https://github.com/UshakovVasilii/gnome-shell-extension-freon/wiki)
+More info in [wiki](https://github.com/corecoding/CoreStats/wiki)
 
-### Installation from git
+### 1) Install these packages
 
-    git clone https://github.com/UshakovVasilii/gnome-shell-extension-freon.git
-    cd gnome-shell-extension-freon
+    libgtop2-dev
+    lm-sensors
+
+### 2a) Installation from git
+
     mkdir -p ~/.local/share/gnome-shell/extensions
-    cp -r freon@UshakovVasilii_Github.yahoo.com ~/.local/share/gnome-shell/extensions/.
-restart GNOME Shell (`Alt+F2`, `r`, `Enter`) and enable the extension through gnome-tweak-tool.
+    git clone https://github.com/corecoding/CoreStats.git ~/.local/share/gnome-shell/extensions/CoreStats@CoreCoding
 
-libgtop2-dev
-lm-sensors
 
-### Installation from extensions.gnome.org
+### 2b) Installation from extensions.gnome.org
 
 https://extensions.gnome.org/extension/841/freon/
 
+### 3) Activate after installation
+
+Restart GNOME Shell (`Alt+F2`, `r`, `Enter`) and enable the extension through gnome-tweak-tool.
 
 ### memory and cpu icons by Abderraouf omara from iconfinder.com in the Computer and Technologies
 https://www.iconfinder.com/iconsets/computer-and-technologies-1
 Icons changed to white
 
-Icons from Freon project: fan.svg  gpu.svg   temperature.svg  voltage.svg
+Icons from Core Stats project: fan.svg  gpu.svg   temperature.svg  voltage.svg

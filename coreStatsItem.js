@@ -2,8 +2,8 @@ const Lang = imports.lang;
 const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 
-const FreonItem = new Lang.Class({
-    Name: 'FreonItem',
+const CoreStatsItem = new Lang.Class({
+    Name: 'CoreStatsItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
     _init: function(gIcon, key, label, value, displayName) {
