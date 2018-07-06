@@ -31,11 +31,8 @@ const CoreStatsMenuButton = new Lang.Class({
             sensors: new SensorsUtil.SensorsUtil()
         };
 
-        this.update_time = this._settings.get_int('update-time');
-
-        let temperatureIcon = Gio.icon_new_for_string(Me.path + '/icons/temperature.svg');
         this._sensorIcons = {
-            'temperature' : temperatureIcon,
+            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature.svg');
             'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage.svg'),
             'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'),
             'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'),
@@ -45,15 +42,16 @@ const CoreStatsMenuButton = new Lang.Class({
         this._menuLayout = new St.BoxLayout();
         this._hotLabels = {};
         this._hotIcons = {};
+
+        // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
-
-        let showIcon = this._settings.get_boolean('show-icon-on-panel');
-        for (let s of Object.values(hotSensors)) {
-            this._createHotItem(s, showIcon);
-        }
-
         if (hotSensors.length == 0) {
             this._createInitialIcon();
+        } else {
+          let showIcon = this._settings.get_boolean('show-icon-on-panel');
+          for (let s of Object.values(hotSensors)) {
+              this._createHotItem(s, showIcon);
+          }
         }
 
         // adds drop down arrow in menubar
@@ -73,7 +71,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        // don't postprone the first call by update-time.
+        // don't postprone the first call by update-time
         this._querySensors();
 
         this._querySensorsTimer();
@@ -90,14 +88,16 @@ const CoreStatsMenuButton = new Lang.Class({
         if (showIcon) {
             let i = new St.Icon({ style_class: 'system-status-icon'});
             this._hotIcons[s] = i;
-            if (gicon)
-                i.gicon = gicon;
+            if (gicon) i.gicon = gicon;
             this._menuLayout.add(i);
         }
+
         let l = new St.Label({
             text: '\u2026', /* ... */
             y_expand: true,
-            y_align: Clutter.ActorAlign.CENTER});
+            y_align: Clutter.ActorAlign.CENTER
+        });
+
         this._hotLabels[s] = l;
         this._menuLayout.add(l);
     },
@@ -144,13 +144,13 @@ const CoreStatsMenuButton = new Lang.Class({
     },
 
     _updateTimeChanged : function() {
-        this.update_time = this._settings.get_int('update-time');
         Mainloop.source_remove(this._timeoutId);
         this._querySensorsTimer();
     },
 
     _querySensorsTimer : function() {
-        this._timeoutId = Mainloop.timeout_add_seconds(this.update_time, Lang.bind(this, function () {
+        let update_time = this._settings.get_int('update-time');
+        this._timeoutId = Mainloop.timeout_add_seconds(update_time, Lang.bind(this, function () {
             this._querySensors();
 
             // read to update queue
@@ -215,7 +215,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
         let processorInfo = [];
         if (this._settings.get_boolean('show-processor')) {
-            this._utils.sensors.update_time = this.update_time;
+            this._utils.sensors.update_time = this._settings.get_int('update-time');
             processorInfo = this._utils.sensors.processor;
         }
 
@@ -336,6 +336,7 @@ const CoreStatsMenuButton = new Lang.Class({
                 for (let s of Object.values(sensors)) {
                     let item = this._sensorMenuItems[s.key || s.label];
                     if (item) {
+                        /*
                         if (s.type.includes('-group')) {
                             item.status.text = s.value;
                         } else {
@@ -343,6 +344,7 @@ const CoreStatsMenuButton = new Lang.Class({
                             if (s.displayName)
                                 item.display_name = s.displayName;
                         }
+                        */
                     } else {
                         this._needRerender = true;
                     }
@@ -413,6 +415,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
         let groups = {};
         let lastType = '';
+        let showIcon = this._settings.get_boolean('show-icon-on-panel');
 
         for (let s of Object.values(sensors)) {
             // displays text next to group
@@ -447,7 +450,7 @@ const CoreStatsMenuButton = new Lang.Class({
                         this._initialIcon.destroy();
                         this._initialIcon = null;
                     }
-                    let showIcon = this._settings.get_boolean('show-icon-on-panel');
+
                     this._createHotItem(self.key, showIcon, self.gicon);
                     self.main = true;
                 }
