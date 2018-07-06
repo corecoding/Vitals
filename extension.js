@@ -54,6 +54,7 @@ const CoreStatsMenuButton = new Lang.Class({
           }
         }
 
+        // TODO Fix bug that causes dropdown to be scooted left when juggling sensors
         // adds drop down arrow in menubar
         this._menuLayout.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
@@ -414,6 +415,7 @@ const CoreStatsMenuButton = new Lang.Class({
         let groups = {};
         let lastType = '';
         let showIcon = this._settings.get_boolean('show-icon-on-panel');
+        let hotSensors = this._settings.get_strv('hot-sensors');
 
         for (let s of Object.values(sensors)) {
             // displays text next to group
@@ -431,7 +433,6 @@ const CoreStatsMenuButton = new Lang.Class({
             let item = new CoreStatsItem.CoreStatsItem(this._sensorIcons[s.type], key, s.label, s.value, s.displayName || undefined);
             item.connect('activate', Lang.bind(this, function (self) {
                 let l = this._hotLabels[self.key];
-                let hotSensors = this._settings.get_strv('hot-sensors');
                 if (l) {
                     hotSensors.splice(hotSensors.indexOf(self.key), 1);
                     delete this._hotLabels[self.key];
@@ -470,11 +471,6 @@ const CoreStatsMenuButton = new Lang.Class({
                 if (Object.keys(this._hotLabels).length == 0)
                     this._createInitialIcon();
 
-                this._settings.set_strv('hot-sensors', hotSensors.filter(
-                    function(item, pos) {
-                        return hotSensors.indexOf(item) == pos;
-                    }
-                ));
             }));
 
             if (this._hotLabels[key]) {
@@ -511,6 +507,13 @@ const CoreStatsMenuButton = new Lang.Class({
 
             lastType = s.type;
         }
+
+        // hotSensors was likely modified, save it as new preferences
+        this._settings.set_strv('hot-sensors', hotSensors.filter(
+            function(item, pos) {
+                return hotSensors.indexOf(item) == pos;
+            }
+        ));
 
         this._appendSettingsMenuItem();
     },
