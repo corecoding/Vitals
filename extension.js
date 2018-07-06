@@ -32,7 +32,7 @@ const CoreStatsMenuButton = new Lang.Class({
         };
 
         this._sensorIcons = {
-            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature.svg');
+            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature.svg'),
             'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage.svg'),
             'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'),
             'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'),
@@ -336,7 +336,6 @@ const CoreStatsMenuButton = new Lang.Class({
                 for (let s of Object.values(sensors)) {
                     let item = this._sensorMenuItems[s.key || s.label];
                     if (item) {
-                        /*
                         if (s.type.includes('-group')) {
                             item.status.text = s.value;
                         } else {
@@ -344,7 +343,6 @@ const CoreStatsMenuButton = new Lang.Class({
                             if (s.displayName)
                                 item.display_name = s.displayName;
                         }
-                        */
                     } else {
                         this._needRerender = true;
                     }
