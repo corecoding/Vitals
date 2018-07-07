@@ -48,10 +48,10 @@ const CoreStatsMenuButton = new Lang.Class({
         if (hotSensors.length == 0) {
             this._createInitialIcon();
         } else {
-          let showIcon = this._settings.get_boolean('show-icon-on-panel');
-          for (let s of Object.values(hotSensors)) {
-              this._createHotItem(s, showIcon);
-          }
+            let showIcon = this._settings.get_boolean('show-icon-on-panel');
+            for (let s of Object.values(hotSensors)) {
+                this._createHotItem(s, showIcon);
+            }
         }
 
         // TODO Fix bug that causes dropdown to be scooted left when juggling sensors
@@ -436,7 +436,8 @@ const CoreStatsMenuButton = new Lang.Class({
                 if (l) {
                     hotSensors.splice(hotSensors.indexOf(self.key), 1);
                     delete this._hotLabels[self.key];
-                    l.destroy(); // destroy is called after dict cleanup to prevent set_label on not exist actor
+                    // make sure set_label is not called on non existant actor
+                    l.destroy();
                     let i = this._hotIcons[self.key];
                     if (i) {
                         i.destroy();
@@ -460,7 +461,8 @@ const CoreStatsMenuButton = new Lang.Class({
                         hotSensors.splice(i, 1);
                         let ll = this._hotLabels[k]
                         delete this._hotLabels[k];
-                        ll.destroy(); // destroy is called after dict cleanup to prevert set_label on not exist actor
+                        // make sure set_label is not called on non existant actor
+                        ll.destroy();
                         if (this._hotIcons[k]) {
                             this._hotIcons[k].destroy();
                             delete this._hotIcons[k];
