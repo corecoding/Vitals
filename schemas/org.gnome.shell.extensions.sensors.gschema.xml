@@ -22,7 +22,7 @@
     </key>
 
     <key name="hot-sensors" type="as">
-      <default>["__average__", "__max__"]</default>
+      <default>["__load__"]</default>
       <summary>Sensors to show in panel</summary>
       <description>Select the sensord whose values has to be shown in the panel</description>
     </key>
@@ -33,7 +33,7 @@
       <description>Show one digit after decimal</description>
     </key>
 
-    <key type="b" name="show-fan-rpm">
+    <key type="b" name="show-fan">
       <default>true</default>
       <summary>Display Fan RPM</summary>
       <description>Display fan rotation per minute</description>

@@ -8,7 +8,7 @@ const CoreStatsItem = new Lang.Class({
 
     _init: function(gIcon, key, label, value, displayName) {
         this.parent();
-        this._main = false;
+        this._checked = false;
         this._key = key;
         this._gIcon = gIcon;
 
@@ -19,16 +19,17 @@ const CoreStatsItem = new Lang.Class({
         this.actor.add(this._valueLabel);
     },
 
-    set main(main) {
-        if(main)
+    set checked(checked) {
+        if (checked)
             this.setOrnament(PopupMenu.Ornament.CHECK);
         else
             this.setOrnament(PopupMenu.Ornament.NONE);
-        this._main = main;
+
+        this._checked = checked;
     },
 
-    get main() {
-        return this._main;
+    get checked() {
+        return this._checked;
     },
 
     get key() {

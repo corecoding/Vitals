@@ -70,7 +70,7 @@ const FreonPrefsWidget = new GObject.Class({
         this._addSwitch({key : 'show-voltage', y : i++, x : 2,
             label : _('Show Power Supply Voltage')});
 
-        this._addSwitch({key : 'show-fan-rpm', y : i, x : 0,
+        this._addSwitch({key : 'show-fan', y : i, x : 0,
             label : _('Show Fan Speed')});
 
         this._addSwitch({key : 'hide-zeros', y : i++, x : 2,
