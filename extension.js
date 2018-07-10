@@ -27,8 +27,10 @@ const CoreStatsMenuButton = new Lang.Class({
 
         this._sensorMenuItems = {};
 
+        this._update_time = this._settings.get_int('update-time');
+
         this._utils = {
-            sensors: new SensorsUtil.SensorsUtil()
+            sensors: new SensorsUtil.SensorsUtil(this._update_time)
         };
 
         this._sensorIcons = {
@@ -68,13 +70,17 @@ const CoreStatsMenuButton = new Lang.Class({
 
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        // don't postprone the first call by update-time
+        // start off with fresh sensors
         this._querySensors();
 
-        this._querySensorsTimer();
+        // used to query sensors and update display
+        this._refreshTimeoutId = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
+            this._userInterfaceRefresh++;
+            if (this._userInterfaceRefresh >= this._update_time) {
+                this._querySensors();
+            }
 
-        this._updateUITimeoutId = Mainloop.timeout_add(1000, Lang.bind(this, function() {
-            this._updateUI();
+            this._updateDisplayIfNeeded();
 
             // read to update queue
             return true;
@@ -135,18 +141,8 @@ const CoreStatsMenuButton = new Lang.Class({
     },
 
     _updateTimeChanged : function() {
-        Mainloop.source_remove(this._timeoutId);
-        this._querySensorsTimer();
-    },
-
-    _querySensorsTimer : function() {
-        let update_time = this._settings.get_int('update-time');
-        this._timeoutId = Mainloop.timeout_add_seconds(update_time, Lang.bind(this, function() {
-            this._querySensors();
-
-            // read to update queue
-            return true;
-        }));
+        this._update_time = this._settings.get_int('update-time');
+        this._utils.sensors.update_time = this._update_time;
     },
 
     _addSettingChangedSignal : function(key, callback) {
@@ -154,16 +150,18 @@ const CoreStatsMenuButton = new Lang.Class({
     },
 
     _querySensors: function() {
+        this._userInterfaceRefresh = 0;
+
         for (let sensor of Object.values(this._utils)) {
             if (sensor.available) {
                 sensor.execute(Lang.bind(this, function() {
-                    // we cannot change actor in background thread #74
+                    // we cannot change actor in background thread
                 }));
             }
         }
     },
 
-    _updateUI: function() {
+    _updateDisplayIfNeeded: function() {
         let needUpdate = false;
         for (let sensor of Object.values(this._utils)) {
             if (sensor.available && sensor.updated) {
@@ -173,7 +171,7 @@ const CoreStatsMenuButton = new Lang.Class({
         }
 
         if (needUpdate) {
-            this._updateDisplay(); // #74
+            this._updateDisplay();
         }
     },
 
@@ -189,10 +187,9 @@ const CoreStatsMenuButton = new Lang.Class({
 
             let sensorInfo = this._utils.sensors[sensorClass];
             if (sensorInfo['data'].length > 0) {
-                let firstValue = 0;
                 if (alphabetize) {
                     sensorInfo['data'].sort(function(a, b) {
-                        return a.label.localeCompare(b.label)
+                        return a.label.localeCompare(b.label);
                     });
                 }
 
@@ -224,6 +221,7 @@ const CoreStatsMenuButton = new Lang.Class({
         }
 
         if (sensors.length > 0) {
+            // apply text to menubar icons
             for (let sensor of Object.values(sensors)) {
                 let label = this._hotLabels[sensor.key || sensor.label];
                 if (label) label.set_text(sensor.value + ' ');
@@ -263,7 +261,7 @@ const CoreStatsMenuButton = new Lang.Class({
                     : _("Please install lm_sensors.\nIf this doesn\'t help, click here to report with your sensors output!")
             );
 
-            item.connect('activate',function() {
+            item.connect('activate', function() {
                 Util.spawn(["xdg-open", "https://github.com/corecoding/CoreStats"]);
             });
 
@@ -293,7 +291,6 @@ const CoreStatsMenuButton = new Lang.Class({
         // round refresh button
         let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
         refreshButton.connect('clicked', Lang.bind(this, function(self) {
-            this._updateTimeChanged();
             this._querySensors();
         }));
         item.actor.add(refreshButton);
@@ -343,11 +340,9 @@ const CoreStatsMenuButton = new Lang.Class({
                     // make sure set_label is not called on non existant actor
                     label.destroy();
 
-                    let icon = this._hotIcons[self.key];
-                    if (icon) {
-                        icon.destroy();
-                        delete this._hotIcons[self.key];
-                    }
+                    this._hotIcons[self.key].destroy();
+                    delete this._hotIcons[self.key];
+
                     self.checked = false;
                 } else {
                     // add sensor to menubar
@@ -356,20 +351,18 @@ const CoreStatsMenuButton = new Lang.Class({
                     self.checked = true;
                 }
 
-                for (let i = hotSensors.length -1; i >= 0 ; i--) {
+                for (let i = hotSensors.length - 1; i >= 0; i--) {
                     let k = hotSensors[i];
                     if (!this._sensorMenuItems[k]) {
                         hotSensors.splice(i, 1);
-                        let ll = this._hotLabels[k]
+                        let label = this._hotLabels[k]
                         delete this._hotLabels[k];
 
                         // make sure set_label is not called on non existant actor
-                        ll.destroy();
+                        label.destroy();
 
-                        if (this._hotIcons[k]) {
-                            this._hotIcons[k].destroy();
-                            delete this._hotIcons[k];
-                        }
+                        this._hotIcons[k].destroy();
+                        delete this._hotIcons[k];
                     }
                 }
 
@@ -407,7 +400,7 @@ const CoreStatsMenuButton = new Lang.Class({
                 groups[sensor.type].menu.addMenuItem(item);
             } else {
                 // add separator when not grouping metrics
-                if (lastType != sensor.type && !this._settings.get_boolean('group-metrics'))
+                if (lastType && lastType != sensor.type && !this._settings.get_boolean('group-metrics'))
                     this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
                 this.menu.addMenuItem(item);
@@ -427,8 +420,6 @@ const CoreStatsMenuButton = new Lang.Class({
     },
 
     _defaultIcon: function(gicon) {
-        //let icon = new St.Icon({ style_class: 'system-status-icon' });
-
         let icon = new St.Icon( {
             icon_name: "utilities-system-monitor-symbolic",
             icon_size: 16
@@ -458,7 +449,6 @@ const CoreStatsMenuButton = new Lang.Class({
             case 'temp':
                 let fahrenheit = (this._settings.get_string('unit') == 'fahrenheit');
                 if (fahrenheit) value = this._toFahrenheit(value);
-
                 format = (useHigherPrecision)?'%.1f%s':'%d%s';
                 ending = (fahrenheit) ? "\u00b0F" : "\u00b0C";
                 break;
@@ -471,9 +461,9 @@ const CoreStatsMenuButton = new Lang.Class({
                 format = '%d rpm';
                 break;
             case 'volt':
-                ending = value;
-                value = (value >= 0) ? '+' : '-';
-                format = '%s%.2fV';
+                value = ((value >= 0) ? '+' : '-') + value;
+                format = '%s%.2f';
+                ending = 'V';
                 break;
             default:
                 format = '%s';
@@ -492,8 +482,7 @@ const CoreStatsMenuButton = new Lang.Class({
     },
 
     _onDestroy: function() {
-        Mainloop.source_remove(this._timeoutId);
-        Mainloop.source_remove(this._updateUITimeoutId);
+        Mainloop.source_remove(this._refreshTimeoutId);
 
         for (let signal of Object.values(this._settingChangedSignals)) {
             this._settings.disconnect(signal);

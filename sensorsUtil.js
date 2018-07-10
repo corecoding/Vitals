@@ -8,13 +8,13 @@ const SensorsUtil = new Lang.Class({
     Name: 'SensorsUtil',
     Extends: CommandLineUtil.CommandLineUtil,
 
-    _init: function() {
+    _init: function(update_time) {
         this.parent();
         let path = GLib.find_program_in_path('sensors');
         this._argv = path ? [path, '-A'] : null;
         this.mem = new GTop.glibtop_mem;
         this.cpu = new GTop.glibtop_cpu;
-        this._update_time = 10;
+        this._update_time = update_time;
 
         // get number of cores
         this.cores = 1;
@@ -33,7 +33,10 @@ const SensorsUtil = new Lang.Class({
     },
 
     get temperature() {
-        return this._parseSensorsOutput(this._parseSensorsTemperatureLine);
+        let output = this._parseSensorsOutput(this._parseSensorsTemperatureLine);
+        output['avg']['format'] = 'temp';
+        output['max']['format'] = 'temp';
+        return output;
 
         // wrong lm_sensors not problem of this application #16
         // return s.filter(function(e) {
@@ -43,11 +46,17 @@ const SensorsUtil = new Lang.Class({
 
     get fan() {
         // 0 is normal value for turned off fan
-        return this._parseSensorsOutput(this._parseFanRPMLine);
+        let output = this._parseSensorsOutput(this._parseFanRPMLine);
+        output['avg']['format'] = 'rpm';
+        delete output['data']['max'];
+        return output;
     },
 
     get voltage() {
-        return this._parseSensorsOutput(this._parseVoltageLine);
+        let output = this._parseSensorsOutput(this._parseVoltageLine);
+        delete output['avg'];
+        delete output['max'];
+        return output;
     },
 
     get memory() {
@@ -143,8 +152,8 @@ const SensorsUtil = new Lang.Class({
             }
         }
 
-        sensors['avg'] = { 'value': sum / sensors['data'].length, 'format': 'percent' };
-        sensors['max'] = { 'value': max, 'format': 'percent' };
+        sensors['avg'] = { 'value': sum / sensors['data'].length, 'format': '' };
+        sensors['max'] = { 'value': max, 'format': '' };
 
         return sensors;
     },
