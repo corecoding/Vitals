@@ -204,7 +204,10 @@ const CoreStatsMenuButton = new Lang.Class({
 
                 // loop over sensors and create single list
                 for (let obj of Object.values(sensorInfo['data'])) {
-                    if (hideZeros && obj.value == 0) continue;
+                    if (hideZeros && obj.value == 0) {
+                        global.log('************** skipping ' + obj.label);
+                        continue;
+                    }
 
                     sensors.push({ type: sensorClass,
                                   label: obj.label,
@@ -461,8 +464,7 @@ const CoreStatsMenuButton = new Lang.Class({
                 format = '%d rpm';
                 break;
             case 'volt':
-                value = ((value >= 0) ? '+' : '-') + value;
-                format = '%s%.2f';
+                format = ((value >= 0) ? '+' : '-') + '%.2f%s';
                 ending = 'V';
                 break;
             default:

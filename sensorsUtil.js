@@ -48,7 +48,7 @@ const SensorsUtil = new Lang.Class({
         // 0 is normal value for turned off fan
         let output = this._parseSensorsOutput(this._parseFanRPMLine);
         output['avg']['format'] = 'rpm';
-        delete output['data']['max'];
+        delete output['max'];
         return output;
     },
 
@@ -103,6 +103,31 @@ const SensorsUtil = new Lang.Class({
             sum += delta;
             if (delta > max) max = delta;
         }
+
+    let loadString = GLib.file_get_contents('/proc/loadavg')[1].toString();
+    let loadArray = loadString.split(' ');
+    let proc = loadArray[3].split('/');
+
+    sensors['data'].push({ label: "Load 1m",
+                           value: loadArray[0],
+                          format: '' });
+
+    sensors['data'].push({ label: "Load 5m",
+                           value: loadArray[1],
+                          format: '' });
+
+    sensors['data'].push({ label: "Load 10m",
+                           value: loadArray[2],
+                          format: '' });
+
+    sensors['data'].push({ label: "Active",
+                           value: proc[0],
+                          format: '' });
+
+    sensors['data'].push({ label: "Total",
+                           value: proc[1],
+                          format: '' });
+
 
         // don't output avg/max unless we have sensors
         if (sensors['data'].length > 0) {
