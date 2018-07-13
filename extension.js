@@ -157,7 +157,8 @@ const CoreStatsMenuButton = new Lang.Class({
         for (let sensor of Object.values(this._utils)) {
             if (sensor.available) {
                 sensor.execute(Lang.bind(this, function() {
-                    // we cannot change actor in background thread
+                    // freon had a bug report that reverted from updating UI in background
+                    // so far so good in core stats
                     this._updateDisplayIfNeeded();
                 }));
             }
@@ -275,7 +276,10 @@ const CoreStatsMenuButton = new Lang.Class({
 
     _appendSettingsMenuItem : function() {
         let panelSystem = Main.panel.statusArea.aggregateMenu._system;
-        let item = new PopupMenu.PopupBaseMenuItem({ reactive: false });
+        let item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            style_class: 'corestats-menu-button-container'
+        });
 
         // round preferences button
         let prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
@@ -417,7 +421,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
     _defaultLabel: function() {
         return new St.Label({
-            style_class: 'popup-status-menu-item',
+            style_class: 'corestats-status-menu-item',
             y_expand: true,
             y_align: Clutter.ActorAlign.CENTER });
     },

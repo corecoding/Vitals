@@ -55,7 +55,7 @@ const SensorsUtil = new Lang.Class({
                 let label = GLib.file_get_contents(sensor + '/name')[1].toString().trim();
                 let value = GLib.file_get_contents(test)[1].toString().trim() / 1000;
 
-                sensors['data'].push({ label: label + ' ' + inputs[k].split('_')[0],
+                sensors['data'].push({ label: label + '_' + inputs[k].split('_')[0],
                                       value: value, format: sensor_type });
             }
         }
@@ -81,6 +81,7 @@ const SensorsUtil = new Lang.Class({
     get fan() {
         // 0 is normal value for turned off fan
         let output = this._parseSensorsOutput(this._parseFanRPMLine);
+        output = this._checkSensors('fan', output);
         output['avg']['format'] = 'rpm';
         delete output['max'];
         return output;
@@ -88,6 +89,7 @@ const SensorsUtil = new Lang.Class({
 
     get voltage() {
         let output = this._parseSensorsOutput(this._parseVoltageLine);
+        output = this._checkSensors('in', output);
         delete output['avg'];
         delete output['max'];
         return output;
