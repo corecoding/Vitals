@@ -87,5 +87,11 @@
       <description>Display sensors in alphabetical order</description>
     </key>
 
+    <key type="b" name="show-system">
+      <default>true</default>
+      <summary>Display system information</summary>
+      <description>Display system load stats</description>
+    </key>
+
   </schema>
 </schemalist>

@@ -27,10 +27,8 @@ const CoreStatsMenuButton = new Lang.Class({
 
         this._sensorMenuItems = {};
 
-        this._update_time = this._settings.get_int('update-time');
-
         this._utils = {
-            sensors: new SensorsUtil.SensorsUtil(this._update_time)
+            sensors: new SensorsUtil.SensorsUtil(this._settings.get_int('update-time'))
         };
 
         this._sensorIcons = {
@@ -38,7 +36,8 @@ const CoreStatsMenuButton = new Lang.Class({
             'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'),
             'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg'),
             'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage.svg'),
-            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg')
+            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'),
+            'system' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg')
         }
 
         this._menuLayout = new St.BoxLayout();
@@ -70,17 +69,17 @@ const CoreStatsMenuButton = new Lang.Class({
 
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
+        this._initializeTimer();
+    },
+
+    _initializeTimer: function() {
         // start off with fresh sensors
         this._querySensors();
 
         // used to query sensors and update display
-        this._refreshTimeoutId = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
-            this._userInterfaceRefresh++;
-            if (this._userInterfaceRefresh >= this._update_time) {
-                this._querySensors();
-            }
-
-            this._updateDisplayIfNeeded();
+        let update_time = this._settings.get_int('update-time');
+        this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, Lang.bind(this, function() {
+            this._querySensors();
 
             // read to update queue
             return true;
@@ -141,8 +140,11 @@ const CoreStatsMenuButton = new Lang.Class({
     },
 
     _updateTimeChanged : function() {
-        this._update_time = this._settings.get_int('update-time');
-        this._utils.sensors.update_time = this._update_time;
+        this._utils.sensors.update_time = this._settings.get_int('update-time');
+
+        // invalidate and reinitialize timer
+        Mainloop.source_remove(this._refreshTimeoutId);
+        this._initializeTimer();
     },
 
     _addSettingChangedSignal : function(key, callback) {
@@ -156,6 +158,7 @@ const CoreStatsMenuButton = new Lang.Class({
             if (sensor.available) {
                 sensor.execute(Lang.bind(this, function() {
                     // we cannot change actor in background thread
+                    this._updateDisplayIfNeeded();
                 }));
             }
         }
@@ -204,10 +207,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
                 // loop over sensors and create single list
                 for (let obj of Object.values(sensorInfo['data'])) {
-                    if (hideZeros && obj.value == 0) {
-                        global.log('************** skipping ' + obj.label);
-                        continue;
-                    }
+                    if (hideZeros && obj.value == 0) continue;
 
                     sensors.push({ type: sensorClass,
                                   label: obj.label,

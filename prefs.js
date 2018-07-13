@@ -78,6 +78,9 @@ const FreonPrefsWidget = new GObject.Class({
 
         this._addSwitch({key : 'alphabetize', y : i, x : 0,
             label : _('Alphabetize Sensors')});
+
+        this._addSwitch({key : 'show-system', y : i++, x : 2,
+            label : _('Show Power Supply Voltage')});
     },
 
     _addSwitch : function(params){

@@ -32,8 +32,42 @@ const SensorsUtil = new Lang.Class({
         }
     },
 
+    _checkSensors: function(sensor_type, sensors = []) {
+        let inputs = [sensor_type + '1_input', sensor_type + '2_input', sensor_type + '3_input'];
+        let sensor_path = '/sys/class/hwmon/';
+        let sensor_list = [];
+        let string_list = [];
+        let test;
+
+        for (let j = 0; j < 6; j++) {
+            for (let k = 0; k < inputs.length; k++) {
+                test = sensor_path + 'hwmon' + j + '/' + inputs[k];
+
+                if (!GLib.file_test(test, 1 << 4)) {
+                    test = sensor_path + 'hwmon' + j + '/device/' + inputs[k];
+                    if (!GLib.file_test(test, 1 << 4)) {
+                        continue;
+                    }
+                }
+
+
+                let sensor = test.substr(0, test.lastIndexOf('/'));
+                let label = GLib.file_get_contents(sensor + '/name')[1].toString().trim();
+                let value = GLib.file_get_contents(test)[1].toString().trim() / 1000;
+
+                sensors['data'].push({ label: label + ' ' + inputs[k].split('_')[0],
+                                      value: value, format: sensor_type });
+            }
+        }
+
+        return sensors;
+    },
+
     get temperature() {
         let output = this._parseSensorsOutput(this._parseSensorsTemperatureLine);
+
+        output = this._checkSensors('temp', output);
+
         output['avg']['format'] = 'temp';
         output['max']['format'] = 'temp';
         return output;
@@ -81,6 +115,36 @@ const SensorsUtil = new Lang.Class({
         this._update_time = update_time;
     },
 
+    get system() {
+        let sensors = { 'data': [] };
+
+        let loadString = GLib.file_get_contents('/proc/loadavg')[1].toString();
+        let loadArray = loadString.split(' ');
+        let proc = loadArray[3].split('/');
+
+        sensors['data'].push({ label: "Load 1m",
+                               value: loadArray[0],
+                              format: '' });
+
+        sensors['data'].push({ label: "Load 5m",
+                               value: loadArray[1],
+                              format: '' });
+
+        sensors['data'].push({ label: "Load 10m",
+                               value: loadArray[2],
+                              format: '' });
+
+        sensors['data'].push({ label: "Active",
+                               value: proc[0],
+                              format: '' });
+
+        sensors['data'].push({ label: "Total",
+                               value: proc[1],
+                              format: '' });
+
+        return sensors;
+    },
+
     get processor() {
         let sensors = { 'data': [] };
         GTop.glibtop_get_cpu(this.cpu);
@@ -103,31 +167,6 @@ const SensorsUtil = new Lang.Class({
             sum += delta;
             if (delta > max) max = delta;
         }
-
-    let loadString = GLib.file_get_contents('/proc/loadavg')[1].toString();
-    let loadArray = loadString.split(' ');
-    let proc = loadArray[3].split('/');
-
-    sensors['data'].push({ label: "Load 1m",
-                           value: loadArray[0],
-                          format: '' });
-
-    sensors['data'].push({ label: "Load 5m",
-                           value: loadArray[1],
-                          format: '' });
-
-    sensors['data'].push({ label: "Load 10m",
-                           value: loadArray[2],
-                          format: '' });
-
-    sensors['data'].push({ label: "Active",
-                           value: proc[0],
-                          format: '' });
-
-    sensors['data'].push({ label: "Total",
-                           value: proc[1],
-                          format: '' });
-
 
         // don't output avg/max unless we have sensors
         if (sensors['data'].length > 0) {
