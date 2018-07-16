@@ -51,14 +51,13 @@ const FreonPrefsWidget = new GObject.Class({
             label: _('Temperature Unit')
         });
 
-        this._addSwitch({key : 'group-metrics', y : i, x : 0,
-            label : _('Group Metrics'),
-            help : _("Works if you have more than three temperature sensors")});
+        this._addSwitch({key : 'show-system', y : i, x : 0,
+            label : _('Show Power Supply Voltage')});
 
         this._addSwitch({key : 'show-icon-on-panel', y : i++, x : 2,
             label : _('Show Icon(s) on Panel')});
 
-        this._addSwitch({key : 'show-temperature', y : i, x : 0,
+        this._addSwitch({key : 'show-temp', y : i, x : 0,
             label : _('Show Temperatures')});
 
         this._addSwitch({key : 'show-memory', y : i++, x : 2,
@@ -78,9 +77,6 @@ const FreonPrefsWidget = new GObject.Class({
 
         this._addSwitch({key : 'alphabetize', y : i, x : 0,
             label : _('Alphabetize Sensors')});
-
-        this._addSwitch({key : 'show-system', y : i++, x : 2,
-            label : _('Show Power Supply Voltage')});
     },
 
     _addSwitch : function(params){
