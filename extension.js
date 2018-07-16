@@ -48,9 +48,11 @@ const CoreStatsMenuButton = new Lang.Class({
 
         this._update_time = this._settings.get_int('update-time');
         this.mem = new GTop.glibtop_mem;
+
         // get number of cores
         this.cpu = new GTop.glibtop_cpu;
         this.cores = GTop.glibtop_get_sysinfo().ncpu;
+        this.last_cpu_query = 0;
 
         this.last_total = [];
         for (var i=0; i<this.cores; ++i) {
@@ -452,7 +454,7 @@ const CoreStatsMenuButton = new Lang.Class({
         value = this._formatValue(value, format);
 
         if (typeof this._sensors[label] != 'undefined' && this._sensors[label]['value'] != value) {
-            global.log('previous value ' + this._sensors[label]['value']);
+            //global.log('previous value ' + this._sensors[label]['value']);
         }
 
         if (typeof this._sensors[label] == 'undefined' || this._sensors[label]['value'] != value) {
@@ -461,7 +463,7 @@ const CoreStatsMenuButton = new Lang.Class({
             this._updateDisplay(sensor);
         }
 
-        global.log('********************* label=' + label + ', value=' + value);
+        //global.log('********************* label=' + label + ', value=' + value);
     },
 
     _querySensors: function() {
@@ -552,12 +554,23 @@ const CoreStatsMenuButton = new Lang.Class({
         // ********************************
         // ***** check processor load *****
         // ********************************
+
+        let diff = this._update_time;
+        let now = new Date().getTime();
+        if (this.last_cpu_query) {
+            let diff = (now - this.last_cpu_query) / 1000;
+            global.log('now=' + now);
+            global.log('diff=' + diff);
+        }
+
+        this.last_cpu_query = now;
+
         GTop.glibtop_get_cpu(this.cpu);
 
         let sum = 0, max = 0;
         for (var i=0; i<this.cores; ++i) {
             let total = this.cpu.xcpu_user[i];
-            let delta = (total - this.last_total[i]) / this._update_time;
+            let delta = (total - this.last_total[i]) / diff;
 
             // first time poll runs risk of invalid numbers unless previous data exists
             if (this.last_total[i]) {
