@@ -27,20 +27,18 @@ const Sensors = new Lang.Class({
     },
 
     execute: function(callback) {
-        // ************************************
-        // ***** figure out last run time *****
-        // ************************************
+        // figure out last run time
         let diff = this._update_time;
         let now = new Date().getTime();
         if (this._last_sensor_query) {
             diff = (now - this._last_sensor_query) / 1000;
-            global.log('sensor query diff=' + diff);
+            global.log('_____ Sensors last queried ' + diff + ' seconds ago _____');
         }
 
         this._last_sensor_query = now;
 
         // ****************************************
-        // ***** temperature, fan and voltage *****
+        // ***** temperature, voltage and fan *****
         // ****************************************
 
         // check temp, fan and voltage sensors
@@ -99,6 +97,23 @@ const Sensors = new Lang.Class({
         }).catch(err => {
             global.log(err);
         });
+
+        // ******************
+        // ***** memory *****
+        // ******************
+
+        // check memory usage
+        GTop.glibtop_get_mem(this._mem);
+
+        let mem_used = this._mem.user;
+        if (this._mem.slab !== undefined) mem_used -= this._mem.slab;
+        let utilized = mem_used / this._mem.total * 100;
+        let mem_free = this._mem.total - mem_used;
+
+        callback('Usage', utilized, 'memory', 'percent');
+        callback('Physical', this._mem.total, 'memory', 'storage');
+        callback('Allocated', mem_used, 'memory', 'storage');
+        callback('Available', mem_free, 'memory', 'storage');
 
         // *********************
         // ***** processor *****
@@ -167,23 +182,6 @@ const Sensors = new Lang.Class({
             global.log(err);
         });
 
-        // ******************
-        // ***** memory *****
-        // ******************
-
-        // check memory usage
-        GTop.glibtop_get_mem(this._mem);
-
-        let mem_used = this._mem.user;
-        if (this._mem.slab !== undefined) mem_used -= this._mem.slab;
-        let utilized = mem_used / this._mem.total * 100;
-        let mem_free = this._mem.total - mem_used;
-
-        callback('Usage', utilized, 'memory', 'percent');
-        callback('Physical', this._mem.total, 'memory', 'storage');
-        callback('Allocated', mem_used, 'memory', 'storage');
-        callback('Available', mem_free, 'memory', 'storage');
-
         // *******************
         // ***** network *****
         // *******************
@@ -236,6 +234,11 @@ const Sensors = new Lang.Class({
             global.log(err);
         });
 
+        // *******************
+        // ***** storage *****
+        // *******************
+
+        // TBD
     },
 
     set update_time(update_time) {
