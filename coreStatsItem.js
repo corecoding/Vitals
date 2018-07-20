@@ -46,5 +46,9 @@ const CoreStatsItem = new Lang.Class({
 
     set value(value) {
         this._valueLabel.text = value;
+    },
+
+    get value() {
+        return this._valueLabel.text;
     }
 });

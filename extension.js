@@ -11,13 +11,10 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const CoreStatsItem = Me.imports.coreStatsItem;
+const Sensors = Me.imports.sensors;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-
-const GLib = imports.gi.GLib;
-const GTop = imports.gi.GTop;
-const FileModule = Me.imports.helpers.file;
 
 const CoreStatsMenuButton = new Lang.Class({
     Name: 'CoreStatsMenuButton',
@@ -49,18 +46,8 @@ const CoreStatsMenuButton = new Lang.Class({
         this._groups = {};
 
         this._update_time = this._settings.get_int('update-time');
-        this.mem = new GTop.glibtop_mem;
 
-        // get number of cores
-        this.cpu = new GTop.glibtop_cpu;
-        this.cores = GTop.glibtop_get_sysinfo().ncpu;
-        this._last_sensor_query = 0;
-        this._network = { 'avg': 0 };
-
-        this.last_total = [];
-        for (var i=0; i<this.cores; ++i) {
-            this.last_total[i] = 0;
-        }
+        this._sensorz = new Sensors.Sensors(this._update_time);
 
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
@@ -154,15 +141,19 @@ const CoreStatsMenuButton = new Lang.Class({
         }));
     },
 
-    _createHotItem: function(key, showIcon, gicon) {
+    _createHotItem: function(key, showIcon, gicon, value) {
         if (showIcon) {
             let icon = this._defaultIcon(gicon);
             this._hotIcons[key] = icon;
             this._menuLayout.add(icon);
         }
 
+        if (!value) {
+            value = '\u2026'; /* ... */
+        }
+
         let label = new St.Label({
-            text: '\u2026', /* ... */
+            text: value,
             y_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
@@ -211,6 +202,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
     _updateTimeChanged: function() {
         this._update_time = this._settings.get_int('update-time');
+        this._sensorz.update_time = this._update_time;
 
         // invalidate and reinitialize timer
         Mainloop.source_remove(this._refreshTimeoutId);
@@ -332,7 +324,7 @@ const CoreStatsMenuButton = new Lang.Class({
             } else {
                 // add sensor to menubar
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, showIcon, self.gicon);
+                this._createHotItem(self.key, showIcon, self.gicon, self.value);
                 self.checked = true;
             }
 
@@ -406,7 +398,7 @@ const CoreStatsMenuButton = new Lang.Class({
         let ending = '';
         let useHigherPrecision = this._settings.get_boolean('use-higher-precision');
 
-        let kilo = 1000;
+        let kilo = 1024;
         var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
         switch (sensorClass) {
@@ -444,6 +436,27 @@ const CoreStatsMenuButton = new Lang.Class({
                 if (sensorClass == 'speed')
                     ending = ending + '/s';
                 break;
+            case 'duration':
+                let levels = {
+                    scale: [24, 60, 60],//, 1],
+                    units: ['d ', 'h ', 'm ']//, 's ']
+                };
+
+                const cbFun = (d, c) => {
+                    let bb = d[1] % c[0],
+                        aa = (d[1] - bb) / c[0];
+                    aa = aa > 0 ? aa + c[1] : '';
+
+                    return [d[0] + aa, bb];
+                };
+
+                let rslt = levels.scale.map((d, i, a) => a.slice(i).reduce((d, c) => d * c))
+                    .map((d, i) => ([d, levels.units[i]]))
+                    .reduce(cbFun, ['', value]);
+                value = rslt[0].trim();
+
+                format = '%s';
+                break;
             default:
                 format = '%s';
                 break;
@@ -471,254 +484,21 @@ const CoreStatsMenuButton = new Lang.Class({
     _addSensor: function(label, value, type, format) {
         value = this._formatValue(value, format);
 
-        global.log('label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-
         // only store sensor and update UI when new or value has changed
         if (typeof this._sensors[label] == 'undefined' || this._sensors[label]['value'] != value) {
             let key = '__' + type + '_' + label + '__';
             let sensor = { 'value': value, 'type': type, 'label': label, 'key': key }
             this._sensors[label] = sensor;
+         //   global.log('...updating!!');
+        global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
             this._updateDisplay(sensor);
         }
     },
 
     _querySensors: function() {
-        // ************************************
-        // ***** figure out last run time *****
-        // ************************************
-        let diff = this._update_time;
-        let now = new Date().getTime();
-        if (this._last_sensor_query) {
-            diff = (now - this._last_sensor_query) / 1000;
-            global.log('sensor query diff=' + diff);
-        }
-
-        this._last_sensor_query = now;
-
-        // ***********************************************
-        // ***** check temp, fan and voltage sensors *****
-        // ***********************************************
-        let sensor_types = { 'temp': 'temperature',
-                               'in': 'voltage',
-                              'fan': 'fan' };
-
-        let hwbase = '/sys/class/hwmon/';
-
-
-
-
-        new FileModule.File(hwbase).list().then(files => {
-            for (let file of Object.values(files)) {
-//                global.log('***** ' + hwbase + file);
-
-                new FileModule.File(hwbase + file).list().then(files2 => {
-                    for (let file2 of Object.values(files2)) {
-                        global.log('***** ' + hwbase + file + '/' + file2);
-                    }
-                });
-
-
-/*
-                if (typeof this._network[file] == 'undefined')
-                    this._network[file] = {};
-
-                new FileModule.File(hwbase + file + '/statistics/tx_bytes').read().then(contents => {
-                    if (typeof this._network[file]['tx'] != 'undefined') {
-                        let speed = (contents - this._network[file]['tx']) / diff;
-                        this._addSensor(file + ' tx', speed, 'network', 'speed');
-                    }
-
-                    this._network[file]['tx'] = contents;
-                }).catch(err => {
-                    global.log(err);
-                });
-
-
-                new FileModule.File(hwbase + file + '/statistics/rx_bytes').read().then(contents => {
-                    if (typeof this._network[file]['rx'] != 'undefined') {
-                        let speed = (contents - this._network[file]['rx']) / diff;
-                        this._addSensor(file + ' rx', speed, 'network', 'speed');
-                    }
-
-                    this._network[file]['rx'] = contents;
-                }).catch(err => {
-                    global.log(err);
-                });
-*/
-            }
-        }).catch(err => {
-            global.log(err);
-        });
-
-
-
-
-
-
-
-
-
-
-
-        for (let s = 0; s < 15; s++) {
-            let path = hwbase + 'hwmon' + s + '/';
-
-            if (!GLib.file_test(path + 'name', 1 << 4))
-                break;
-
-            for (let sensor_type of Object.keys(sensor_types)) {
-                for (let k = 0; k < 8; k++) {
-                    let input = sensor_type + k + '_input';
-
-                    let value = path + input;
-                    if (!GLib.file_test(value, 1 << 4)) {
-                        value = path + 'device/' + input;
-                        if (!GLib.file_test(value, 1 << 4)) {
-                            continue;
-                        }
-                    }
-
-                    let usedLabel = true;
-                    let label = path + sensor_type + k + '_label';
-                    if (!GLib.file_test(label, 1 << 4)) {
-                        usedLabel = false;
-                        label = path + 'name';
-                    }
-
-                    let file = Gio.File.new_for_path(label);
-                    file.load_contents_async(null, Lang.bind(this, function(file, result) {
-                        //global.log('zzzzzzzzzzzzz reading ' + label);
-                        let zabel = file.load_contents_finish(result)[1].toString().trim();
-                        zabel = zabel + ((usedLabel)?'':' ' + input.split('_')[0]);
-
-                        let file2 = Gio.File.new_for_path(value);
-                        file2.load_contents_async(null, Lang.bind(this, function(file, result) {
-                            let value = file.load_contents_finish(result)[1];
-                            //global.log('!!!!!!!!!!!!!!! label=' + zabel + ', value=' + value);
-                            this._addSensor(zabel, value, sensor_types[sensor_type], sensor_type);
-                        }));
-                    }));
-                }
-            }
-        }
-
-        // ******************************
-        // ***** check load average *****
-        // ******************************
-        //if (GLib.file_test('/proc/loadavg', 1 << 4)) {
-        let file = Gio.File.new_for_path('/proc/loadavg');
-        if (file.query_exists(null)) {
-            file.load_contents_async(null, Lang.bind(this, function(source, result) {
-                let loadString = source.load_contents_finish(result)[1].toString().trim();
-                let loadArray = loadString.split(' ');
-                let proc = loadArray[3].split('/');
-
-                this._addSensor('Load 1m', loadArray[0], 'system', 'string');
-                this._addSensor('Load 5m', loadArray[1], 'system', 'string');
-                this._addSensor('Load 10m', loadArray[2], 'system', 'string');
-                this._addSensor('Active', proc[0], 'system', 'string');
-                this._addSensor('Total', proc[1], 'system', 'string');
-            }));
-        }
-
-        // ******************************
-        // ***** check memory usage *****
-        // ******************************
-        GTop.glibtop_get_mem(this.mem);
-
-        let mem_used = this.mem.user;
-        if (this.mem.slab !== undefined) mem_used -= this.mem.slab;
-        let utilized = mem_used / this.mem.total * 100;
-        let mem_free = this.mem.total - mem_used;
-
-        this._addSensor('Usage', utilized, 'memory', 'percent');
-        this._addSensor('Physical', this.mem.total, 'memory', 'storage');
-        this._addSensor('Allocated', mem_used, 'memory', 'storage');
-        this._addSensor('Available', mem_free, 'memory', 'storage');
-
-        // ********************************
-        // ***** check processor load *****
-        // ********************************
-        GTop.glibtop_get_cpu(this.cpu);
-
-        let sum = 0, max = 0;
-        for (var i=0; i<this.cores; ++i) {
-            let total = this.cpu.xcpu_user[i];
-            let delta = (total - this.last_total[i]) / diff;
-
-            // first time poll runs risk of invalid numbers unless previous data exists
-            if (this.last_total[i]) {
-                this._addSensor('Core %s'.format(i), delta, 'processor', 'percent');
-            }
-
-            this.last_total[i] = total;
-
-            // used for avg and max below
-            sum += delta;
-            if (delta > max) max = delta;
-        }
-
-        // don't output avg/max unless we have sensors
-        //sensors['avg'] = { 'value': sum / this.cores, 'format': 'percent' };
-        this._addSensor('Average', sum / this.cores, 'processor', 'percent');
-
-/*
-        file = Gio.File.new_for_uri('http://corecoding.com/utilities/what-is-my-ip.php?ipOnly=true');
-        if (file.query_exists(null)) {
-            file.load_contents_async(null, Lang.bind(this, function(source, result) {
-                let ip = source.load_contents_finish(result)[1].toString().trim();
-                this._addSensor('Public IP', ip, 'network', 'string');
-            }));
-        }
-*/
-
-        // *******************************
-        // ***** check network speed *****
-        // *******************************
-
-        let netbase = '/sys/class/net/';
-        new FileModule.File(netbase).list().then(files => {
-            let avg_rx = avg_tx = 0;
-            for (let file of Object.values(files)) {
-                if (typeof this._network[file] == 'undefined')
-                    this._network[file] = {};
-
-                new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(contents => {
-                    if (typeof this._network[file]['tx'] != 'undefined') {
-                        avg_tx += contents;
-                        let speed = (contents - this._network[file]['tx']) / diff;
-                        this._addSensor(file + ' tx', speed, 'network', 'speed');
-                    }
-
-                    this._network[file]['tx'] = contents;
-                }).catch(err => {
-                    global.log(err);
-                });
-
-                new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(contents => {
-                    if (typeof this._network[file]['rx'] != 'undefined') {
-                        avg_rx += contents;
-                        let speed = (contents - this._network[file]['rx']) / diff;
-                        this._addSensor(file + ' rx', speed, 'network', 'speed');
-                    }
-
-                    this._network[file]['rx'] = contents;
-                }).catch(err => {
-                    global.log(err);
-                });
-            }
-
-            let speed = (avg_tx - this._network['avg']['tx']) / diff;
-            this._addSensor('avg tx', speed, 'network', 'speed');
-            this._network['avg']['tx'] = avg_tx;
-
-            speed = (avg_rx - this._network['avg']['rx']) / diff;
-            this._addSensor('avg rx', speed, 'network', 'speed');
-            this._network['avg']['tx'] = avg_rx;
-
-        }).catch(err => {
-            global.log(err);
-        });
+        this._sensorz.execute(Lang.bind(this, function(label, value, type, format) {
+            this._addSensor(label, value, type, format);
+        }));
     }
 });
 
