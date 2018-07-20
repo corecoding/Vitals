@@ -2,7 +2,7 @@ const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const GTop = imports.gi.GTop;
-//const GLib = imports.gi.GLib;
+const Gio = imports.gi.Gio;
 
 const Sensors = new Lang.Class({
     Name: 'Sensors',
@@ -10,18 +10,20 @@ const Sensors = new Lang.Class({
     _init: function(update_time) {
         this._update_time = update_time;
 
-        this.mem = new GTop.glibtop_mem;
+        this._mem = new GTop.glibtop_mem;
 
         // get number of cores
-        this.cpu = new GTop.glibtop_cpu;
-        this.cores = GTop.glibtop_get_sysinfo().ncpu;
+        this._cpu = new GTop.glibtop_cpu;
+        this._cores = GTop.glibtop_get_sysinfo().ncpu;
         this._last_sensor_query = 0;
         this._network = { 'avg': { 'tx': 0, 'rx': 0 }};
 
-        this.last_total = [];
-        for (var i=0; i<this.cores; ++i) {
-            this.last_total[i] = 0;
+        this._last_total = [];
+        for (var i=0; i<this._cores; ++i) {
+            this._last_total[i] = 0;
         }
+
+        this._last_public_ip_check = 100;
     },
 
     execute: function(callback) {
@@ -80,10 +82,6 @@ const Sensors = new Lang.Class({
                     }
 
                     for (let obj of Object.values(trisensors)) {
-                        //global.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-                        //global.log('label=' + obj['label']);
-                        //global.log('input=' + obj['input']);
-
                         new FileModule.File(obj['label']).read().then(label => {
                             new FileModule.File(obj['input']).read().then(value => {
                                 let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
@@ -102,91 +100,24 @@ const Sensors = new Lang.Class({
             global.log(err);
         });
 
-/*
-        for (let s = 0; s < 15; s++) {
-            let path = hwbase + 'hwmon' + s + '/';
-            new FileModule.File(path + 'name').read().then(label => {
-                for (let sensor_type of Object.keys(sensor_types)) {
-                    for (let k = 0; k < 8; k++) {
-                        let input = sensor_type + k + '_input';
-                        new FileModule.File(path + input).read().then(value => {
-                            let zabel = label + ' ' + input.split('_')[0];
-                            global.log('!!!!!!!!!!!!!!! label=' + label + ', value=' + value);
-                            callback(zabel, value, sensor_types[sensor_type], sensor_type);
-                        }).catch(err => {
-                            global.log(err);
-                        });
-                    }
-                }
-            }).catch(err => {
-                global.log(err);
-            });
-        }
-*/
-
-/*
-        for (let s = 0; s < 15; s++) {
-            let path = hwbase + 'hwmon' + s + '/';
-
-            if (!GLib.file_test(path + 'name', 1 << 4))
-                break;
-
-            for (let sensor_type of Object.keys(sensor_types)) {
-                for (let k = 0; k < 8; k++) {
-                    let input = sensor_type + k + '_input';
-
-                    let value = path + input;
-                    if (!GLib.file_test(value, 1 << 4)) {
-                        value = path + 'device/' + input;
-                        if (!GLib.file_test(value, 1 << 4)) {
-                            continue;
-                        }
-                    }
-
-                    let usedLabel = true;
-                    let label = path + sensor_type + k + '_label';
-                    if (!GLib.file_test(label, 1 << 4)) {
-                        usedLabel = false;
-                        label = path + 'name';
-                    }
-
-                    let file = Gio.File.new_for_path(label);
-                    file.load_contents_async(null, Lang.bind(this, function(file, result) {
-                        //global.log('zzzzzzzzzzzzz reading ' + label);
-                        let zabel = file.load_contents_finish(result)[1].toString().trim();
-                        zabel = zabel + ((usedLabel)?'':' ' + input.split('_')[0]);
-
-                        let file2 = Gio.File.new_for_path(value);
-                        file2.load_contents_async(null, Lang.bind(this, function(file, result) {
-                            let value = file.load_contents_finish(result)[1];
-                            //global.log('!!!!!!!!!!!!!!! label=' + zabel + ', value=' + value);
-                            callback(zabel, value, sensor_types[sensor_type], sensor_type);
-                        }));
-                    }));
-                }
-            }
-        }
-*/
-
-
         // *********************
         // ***** processor *****
         // *********************
 
         // check processor load
-        GTop.glibtop_get_cpu(this.cpu);
+        GTop.glibtop_get_cpu(this._cpu);
 
         let sum = 0, max = 0;
-        for (var i=0; i<this.cores; ++i) {
-            let total = this.cpu.xcpu_user[i];
-            let delta = (total - this.last_total[i]) / diff;
+        for (var i=0; i<this._cores; ++i) {
+            let total = this._cpu.xcpu_user[i];
+            let delta = (total - this._last_total[i]) / diff;
 
             // first time poll runs risk of invalid numbers unless previous data exists
-            if (this.last_total[i]) {
+            if (this._last_total[i]) {
                 callback('Core %s'.format(i), delta, 'processor', 'percent');
             }
 
-            this.last_total[i] = total;
+            this._last_total[i] = total;
 
             // used for avg and max below
             sum += delta;
@@ -194,18 +125,21 @@ const Sensors = new Lang.Class({
         }
 
         // don't output avg/max unless we have sensors
-        //sensors['avg'] = { 'value': sum / this.cores, 'format': 'percent' };
-        callback('Average', sum / this.cores, 'processor', 'percent');
+        //sensors['avg'] = { 'value': sum / this._cores, 'format': 'percent' };
+        callback('Average', sum / this._cores, 'processor', 'percent');
 
-/*
-        file = Gio.File.new_for_uri('http://corecoding.com/utilities/what-is-my-ip.php?ipOnly=true');
-        if (file.query_exists(null)) {
-            file.load_contents_async(null, Lang.bind(this, function(source, result) {
-                let ip = source.load_contents_finish(result)[1].toString().trim();
-                callback('Public IP', ip, 'network', 'string');
-            }));
+        // check the public ip
+        if (this._last_public_ip_check++ >= 100) {
+            this._last_public_ip_check = 0;
+
+            file = Gio.File.new_for_uri('http://corecoding.com/utilities/what-is-my-ip.php?ipOnly=true');
+            if (file.query_exists(null)) {
+                file.load_contents_async(null, Lang.bind(this, function(source, result) {
+                    let ip = source.load_contents_finish(result)[1].toString().trim();
+                    callback('Public IP', ip, 'network', 'string');
+                }));
+            }
         }
-*/
 
         // ******************
         // ***** system *****
@@ -238,15 +172,15 @@ const Sensors = new Lang.Class({
         // ******************
 
         // check memory usage
-        GTop.glibtop_get_mem(this.mem);
+        GTop.glibtop_get_mem(this._mem);
 
-        let mem_used = this.mem.user;
-        if (this.mem.slab !== undefined) mem_used -= this.mem.slab;
-        let utilized = mem_used / this.mem.total * 100;
-        let mem_free = this.mem.total - mem_used;
+        let mem_used = this._mem.user;
+        if (this._mem.slab !== undefined) mem_used -= this._mem.slab;
+        let utilized = mem_used / this._mem.total * 100;
+        let mem_free = this._mem.total - mem_used;
 
         callback('Usage', utilized, 'memory', 'percent');
-        callback('Physical', this.mem.total, 'memory', 'storage');
+        callback('Physical', this._mem.total, 'memory', 'storage');
         callback('Allocated', mem_used, 'memory', 'storage');
         callback('Available', mem_free, 'memory', 'storage');
 

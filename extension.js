@@ -234,56 +234,6 @@ const CoreStatsMenuButton = new Lang.Class({
         }
     },
 
-/*
-    _pullSensorData: function() {
-        let sensors = [];
-        let alphabetize = this._settings.get_boolean('alphabetize');
-        let hideZeros = this._settings.get_boolean('hide-zeros');
-        let headers = { 'avg': _('Average'), 'max': _('Maximum') };
-
-        // grab lazy load desired sensors
-        for (let sensorClass of Object.keys(this._sensorIcons)) {
-            if (!this._settings.get_boolean('show-' + sensorClass)) continue;
-
-            let sensorInfo = this._utils.sensors[sensorClass];
-            if (sensorInfo['data'].length > 0) {
-                if (alphabetize) {
-                    sensorInfo['data'].sort(function(a, b) {
-                        return a.label.localeCompare(b.label);
-                    });
-                }
-
-                for (let header of Object.keys(headers)) {
-                    if (typeof sensorInfo[header] != 'undefined' && sensorInfo[header]['value']) {
-                        sensors.push({ type: sensorClass,
-                                        key: '__' + sensorClass + '_' + header + '__',
-                                      label: headers[header],
-                                      value: this._formatValue(sensorInfo[header]['value'], sensorInfo[header]['format']) });
-                    }
-                }
-
-                // loop over sensors and create single list
-                for (let obj of Object.values(sensorInfo['data'])) {
-                    if (hideZeros && obj.value == 0) continue;
-
-                    sensors.push({ type: sensorClass,
-                                  label: obj.label,
-                                  value: this._formatValue(obj.value, obj.format) });
-                }
-
-                // add group value
-                if (typeof sensorInfo['avg'] != 'undefined' && sensorInfo['avg']['value']) {
-                    sensors.push({ type: sensorClass + '-group',
-                                  label: sensorClass + '-group',
-                                  value: this._formatValue(sensorInfo['avg']['value'], sensorInfo['avg']['format']) });
-                }
-            }
-        }
-
-        this._updateDisplay(sensors);
-    },
-*/
-
     _appendMenuItems: function(sensor) {
         let showIcon = this._settings.get_boolean('show-icon-on-panel');
         let key = sensor.key || sensor.label;
