@@ -10,18 +10,19 @@ const Gio = imports.gi.Gio;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const CoreStatsItem = Me.imports.coreStatsItem;
+const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
-const CoreStatsMenuButton = new Lang.Class({
-    Name: 'CoreStatsMenuButton',
+const VitalsMenuButton = new Lang.Class({
+    Name: 'VitalsMenuButton',
     Extends: PanelMenu.Button,
 
     _init: function() {
         this.parent(St.Align.START);
+        this.connect('destroy', Lang.bind(this, this._onDestroy));
 
         this._settings = Convenience.getSettings();
 
@@ -42,12 +43,11 @@ const CoreStatsMenuButton = new Lang.Class({
         this._hotLabels = {};
         this._hotIcons = {};
 
-        this._sensors = {};
         this._groups = {};
 
         this._update_time = this._settings.get_int('update-time');
 
-        this._sensorz = new Sensors.Sensors(this._update_time);
+        this._sensors = new Sensors.Sensors(this._update_time);
 
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
@@ -67,15 +67,17 @@ const CoreStatsMenuButton = new Lang.Class({
         this._addSettingChangedSignal('show-icon-on-panel', Lang.bind(this, this._showIconOnPanelChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
 
-        let settings = ['unit', 'hot-sensors', 'use-higher-precision', 'show-fan', 'show-voltage', 'show-temp', 'show-memory', 'show-processor', 'hide-zeros', 'alphabetize'];
+        let settings = ['unit', 'hot-sensors', 'use-higher-precision', 'hide-zeros', 'alphabetize'];
         for (let setting of Object.values(settings)) {
             this._addSettingChangedSignal(setting, Lang.bind(this, this._querySensors));
         }
 
-        this.connect('destroy', Lang.bind(this, this._onDestroy));
+        // add signals for show- preference based categories
+        for (let sensor of Object.keys(this._sensorIcons)) {
+            this._addSettingChangedSignal('show-' + sensor, Lang.bind(this, this._showHideSensors));
+        }
 
         this._initializeMenu();
-
         this._initializeTimer();
     },
 
@@ -86,6 +88,11 @@ const CoreStatsMenuButton = new Lang.Class({
             if (typeof this._groups[sensor] == 'undefined') {
                 this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
                 this._groups[sensor].icon.gicon = this._sensorIcons[sensor];
+
+                // hide menu items that user has requested to not include
+                if (!this._settings.get_boolean('show-' + sensor)) {
+                    this._groups[sensor].actor.hide();
+                }
 
                 if (!this._groups[sensor].status) { // gnome 3.18 and higher
                     this._groups[sensor].status = this._defaultLabel();
@@ -99,7 +106,7 @@ const CoreStatsMenuButton = new Lang.Class({
         let panelSystem = Main.panel.statusArea.aggregateMenu._system;
         let item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
-            style_class: 'corestats-menu-button-container'
+            style_class: 'vitals-menu-button-container'
         });
 
         // round preferences button
@@ -141,6 +148,16 @@ const CoreStatsMenuButton = new Lang.Class({
         }));
     },
 
+    _showHideSensors: function() {
+        for (let sensor of Object.keys(this._sensorIcons)) {
+            if (this._settings.get_boolean('show-' + sensor)) {
+                this._groups[sensor].actor.show();
+            } else {
+                this._groups[sensor].actor.hide();
+            }
+        }
+    },
+
     _createHotItem: function(key, showIcon, gicon, value) {
         if (showIcon) {
             let icon = this._defaultIcon(gicon);
@@ -160,13 +177,6 @@ const CoreStatsMenuButton = new Lang.Class({
 
         this._hotLabels[key] = label;
         this._menuLayout.add(label);
-    },
-
-    _rerender: function() {
-        this._sensorMenuItems = {};
-        this._groups = {};
-        this.menu.removeAll();
-        this._querySensors();
     },
 
     _positionInPanelChanged: function() {
@@ -202,7 +212,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
     _updateTimeChanged: function() {
         this._update_time = this._settings.get_int('update-time');
-        this._sensorz.update_time = this._update_time;
+        this._sensors.update_time = this._update_time;
 
         // invalidate and reinitialize timer
         Mainloop.source_remove(this._refreshTimeoutId);
@@ -249,7 +259,7 @@ const CoreStatsMenuButton = new Lang.Class({
             return;
         }
 
-        let item = new CoreStatsItem.CoreStatsItem(this._sensorIcons[sensor.type], key, sensor.label, sensor.value);
+        let item = new VitalsItem.VitalsItem(this._sensorIcons[sensor.type], key, sensor.label, sensor.value);
         item.connect('activate', Lang.bind(this, function(self) {
             let hotSensors = this._settings.get_strv('hot-sensors');
 
@@ -319,7 +329,7 @@ const CoreStatsMenuButton = new Lang.Class({
 
     _defaultLabel: function() {
         return new St.Label({
-            style_class: 'corestats-status-menu-item',
+            style_class: 'vitals-status-menu-item',
                y_expand: true,
                 y_align: Clutter.ActorAlign.CENTER
         });
@@ -423,48 +433,39 @@ const CoreStatsMenuButton = new Lang.Class({
         return this._settings.get_string('position-in-panel');
     },
 
+    _querySensors: function() {
+        this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
+            value = this._formatValue(value, format);
+
+            global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
+            let sensor = { 'value': value, 'type': type, 'label': label, 'key': key }
+
+            this._updateDisplay(sensor);
+        }));
+    },
+
     _onDestroy: function() {
         Mainloop.source_remove(this._refreshTimeoutId);
 
         for (let signal of Object.values(this._settingChangedSignals)) {
             this._settings.disconnect(signal);
         };
-    },
-
-    _addSensor: function(label, value, type, format) {
-        value = this._formatValue(value, format);
-
-        // only store sensor and update UI when new or value has changed
-        if (typeof this._sensors[label] == 'undefined' || this._sensors[label]['value'] != value) {
-            let key = '__' + type + '_' + label + '__';
-            let sensor = { 'value': value, 'type': type, 'label': label, 'key': key }
-            this._sensors[label] = sensor;
-         //   global.log('...updating!!');
-        global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-            this._updateDisplay(sensor);
-        }
-    },
-
-    _querySensors: function() {
-        this._sensorz.execute(Lang.bind(this, function(label, value, type, format) {
-            this._addSensor(label, value, type, format);
-        }));
     }
 });
 
-let coreStatsMenu;
+let vitalsMenu;
 
 function init(extensionMeta) {
     Convenience.initTranslations();
 }
 
 function enable() {
-    coreStatsMenu = new CoreStatsMenuButton();
-    let positionInPanel = coreStatsMenu.positionInPanel;
-    Main.panel.addToStatusArea('coreStatsMenu', coreStatsMenu, positionInPanel == 'right' ? 0 : -1, positionInPanel);
+    vitalsMenu = new VitalsMenuButton();
+    let positionInPanel = vitalsMenu.positionInPanel;
+    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, positionInPanel == 'right' ? 0 : -1, positionInPanel);
 }
 
 function disable() {
-    coreStatsMenu.destroy();
-    coreStatsMenu = null;
+    vitalsMenu.destroy();
+    vitalsMenu = null;
 }

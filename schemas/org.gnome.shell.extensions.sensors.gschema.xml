@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="gse-sensors">
 
-  <schema id="org.gnome.shell.extensions.corestats" path="/org/gnome/shell/extensions/corestats/">
+  <schema id="org.gnome.shell.extensions.vitals" path="/org/gnome/shell/extensions/vitals/">
 
     <key type="i" name="update-time">
       <default>5</default>
@@ -33,6 +33,18 @@
       <description>Show one digit after decimal</description>
     </key>
 
+    <key type="b" name="hide-zeros">
+      <default>false</default>
+      <summary>Hide zerod sensors</summary>
+      <description>Hide data from sensors that are invalid</description>
+    </key>
+
+    <key type="b" name="alphabetize">
+      <default>false</default>
+      <summary>Alphabetize Sensors</summary>
+      <description>Display sensors in alphabetical order</description>
+    </key>
+
     <key type="b" name="show-fan">
       <default>true</default>
       <summary>Display Fan RPM</summary>
@@ -51,7 +63,7 @@
       <description>Position in Panel ('left', 'center', 'right')</description>
     </key>
 
-    <key type="b" name="show-temp">
+    <key type="b" name="show-temperature">
       <default>true</default>
       <summary>Display temperature</summary>
       <description>Display temperature of various components</description>
@@ -69,23 +81,31 @@
       <description>Display processor usage of various components</description>
     </key>
 
-    <key type="b" name="hide-zeros">
-      <default>false</default>
-      <summary>Hide zerod sensors</summary>
-      <description>Hide data from sensors that are invalid</description>
-    </key>
-
-    <key type="b" name="alphabetize">
-      <default>false</default>
-      <summary>Alphabetize Sensors</summary>
-      <description>Display sensors in alphabetical order</description>
-    </key>
-
     <key type="b" name="show-system">
       <default>true</default>
       <summary>Display system information</summary>
       <description>Display system load stats</description>
     </key>
 
+
+
+    <key type="b" name="show-network">
+      <default>true</default>
+      <summary>Display system information</summary>
+      <description>Display system load stats</description>
+    </key>
+
+
+    <key type="b" name="show-storage">
+      <default>true</default>
+      <summary>Display system information</summary>
+      <description>Display system load stats</description>
+    </key>
+
+
   </schema>
 </schemalist>
+
+
+
+
