@@ -6,7 +6,11 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Promise = Me.imports.helpers.promise.Promise;
 
 function File(path) {
-    this.file = Gio.File.new_for_path(path);
+    if (path.indexOf('http://') == -1) {
+        this.file = Gio.File.new_for_path(path);
+    } else {
+        this.file = Gio.File.new_for_uri(path);
+    }
 }
 
 File.prototype.exists = function() {

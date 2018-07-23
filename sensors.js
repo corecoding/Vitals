@@ -2,7 +2,6 @@ const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const GTop = imports.gi.GTop;
-const Gio = imports.gi.Gio;
 
 const Sensors = new Lang.Class({
     Name: 'Sensors',
@@ -12,20 +11,10 @@ const Sensors = new Lang.Class({
 
         this._history = {};
         this._last_query = 0;
-
-        this._mem = new GTop.glibtop_mem;
-
-        // get number of cores
-        this._cpu = new GTop.glibtop_cpu;
-        this._cores = GTop.glibtop_get_sysinfo().ncpu;
-
-        this._last_total = [];
-        for (var i=0; i<this._cores; ++i) {
-            this._last_total[i] = 0;
-        }
-
+        this._last_cpu_user = {};
         this._network = { 'avg': { 'tx': 0, 'rx': 0 }};
         this._last_public_ip_check = 100;
+        this.storage = new GTop.glibtop_fsusage();
     },
 
     query: function(callback) {
@@ -72,7 +61,7 @@ const Sensors = new Lang.Class({
                         let path = hwbase + file + '/' + file2;
 
                         for (let key of Object.values(sensor_files)) {
-                            for (let sensor_type of Object.keys(sensor_types)) {
+                            for (let sensor_type in sensor_types) {
                                 if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-6) == '_' + key) {
                                     let key2 = file + file2.substr(0, file2.indexOf('_'));
 
@@ -108,44 +97,75 @@ const Sensors = new Lang.Class({
     },
 
     _queryMemory: function(callback) {
-        // check memory usage
-        GTop.glibtop_get_mem(this._mem);
+        // check memory info
+        new FileModule.File('/proc/meminfo').read().then(lines => {
+            let total = 0, avail = 0, swap = 0;
+            let values;
 
-        let mem_used = this._mem.user;
-        if (this._mem.slab !== undefined) mem_used -= this._mem.slab;
-        let utilized = mem_used / this._mem.total * 100;
-        let mem_free = this._mem.total - mem_used;
+            if (values = lines.match(/MemTotal:(\s+)(\d+) kB/))
+                total = values[2] * 1024;
 
-        this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
-        this._returnValue(callback, 'Physical', this._mem.total, 'memory', 'storage');
-        this._returnValue(callback, 'Allocated', mem_used, 'memory', 'storage');
-        this._returnValue(callback, 'Available', mem_free, 'memory', 'storage');
+            if (values = lines.match(/MemAvailable:(\s+)(\d+) kB/))
+                avail = values[2] * 1024;
+
+            if (values = lines.match(/SwapCached:(\s+)(\d+) kB/))
+                swap = values[2] * 1024;
+
+            let used = total - avail
+            let utilized = used / total * 100;
+
+            this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
+            this._returnValue(callback, 'Physical', total, 'memory', 'storage');
+            this._returnValue(callback, 'Available', avail, 'memory', 'storage');
+            this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
+            this._returnValue(callback, 'Swap Used', swap, 'memory', 'storage');
+        }).catch(err => {
+            global.log(err);
+        });
     },
 
     _queryProcessor: function(callback, diff) {
-        // check processor load
-        GTop.glibtop_get_cpu(this._cpu);
+        let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
-        let sum = 0, max = 0;
-        for (var i=0; i<this._cores; ++i) {
-            let total = this._cpu.xcpu_user[i];
-            let delta = (total - this._last_total[i]) / diff;
+        // check processor usage
+        new FileModule.File('/proc/stat').read().then(lines => {
+            lines = lines.split("\n");
+            let statistics = {};
+            let reverse_data;
 
-            // first time poll runs risk of invalid numbers unless previous data exists
-            if (this._last_total[i]) {
-                this._returnValue(callback, 'Core %s'.format(i), delta, 'processor', 'percent');
+            for (let line of Object.values(lines)) {
+                if (reverse_data = line.match(/^(cpu\d*\s)(.+)/)) {
+                    let cpu = reverse_data[1].trim();
+                    if (typeof statistics[cpu] == 'undefined')
+                        statistics[cpu] = {};
+
+                    let stats = reverse_data[2].trim().split(' ').reverse();
+                    for (let index in columns) {
+                        statistics[cpu][columns[index]] = stats.pop();
+                    }
+                }
             }
 
-            this._last_total[i] = total;
+            for (let cpu in statistics) {
+                let delta = (statistics[cpu]['user'] - this._last_cpu_user[cpu]) / diff;
 
-            // used for avg and max below
-            sum += delta;
-            if (delta > max) max = delta;
-        }
+                let label = cpu;
+                if (cpu == 'cpu') {
+                    delta = delta / (Object.keys(statistics).length - 1);
+                    label = 'Average';
+                } else {
+                    label = 'Core %s'.format(cpu.substr(3));
+                }
 
-        // don't output avg/max unless we have sensors
-        //sensors['avg'] = { 'value': sum / this._cores, 'format': 'percent' };
-        this._returnValue(callback, 'Average', sum / this._cores, 'processor', 'percent');
+                if (typeof this._last_cpu_user[cpu] != 'undefined') {
+                    this._returnValue(callback, label, delta, 'processor', 'percent');
+                }
+
+                this._last_cpu_user[cpu] = statistics[cpu]['user'];
+            }
+        }).catch(err => {
+            global.log(err);
+        });
     },
 
     _querySystem: function(callback) {
@@ -157,8 +177,8 @@ const Sensors = new Lang.Class({
             this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'string');
             this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'string');
             this._returnValue(callback, 'Load 10m', loadArray[2], 'system', 'string');
-            this._returnValue(callback, 'Active', proc[0], 'system', 'string');
-            this._returnValue(callback, 'Total', proc[1], 'system', 'string');
+            this._returnValue(callback, 'Active Threads', proc[0], 'system', 'string');
+            this._returnValue(callback, 'Total Threads', proc[1], 'system', 'string');
         }).catch(err => {
             global.log(err);
         });
@@ -167,6 +187,11 @@ const Sensors = new Lang.Class({
         new FileModule.File('/proc/uptime').read().then(contents => {
             let upArray = contents.split(' ');
             this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
+
+            let cores = Object.keys(this._last_cpu_user).length - 1;
+            if (cores > 0) {
+                this._returnValue(callback, 'Idle', upArray[1] / cores, 'system', 'duration');
+            }
         }).catch(err => {
             global.log(err);
         });
@@ -208,8 +233,6 @@ const Sensors = new Lang.Class({
                 });
             }
 
-            //global.log('***** * * * * * * ' + avg_tx);
-
             let speed = (avg_tx - this._network['avg']['tx']) / diff;
             this._returnValue(callback, 'avg tx', speed, 'network', 'speed');
             this._network['avg']['tx'] = avg_tx;
@@ -225,18 +248,28 @@ const Sensors = new Lang.Class({
         if (this._last_public_ip_check++ >= 100) {
             this._last_public_ip_check = 0;
 
-            let file = Gio.File.new_for_uri('http://corecoding.com/utilities/what-is-my-ip.php?ipOnly=true');
-            if (file.query_exists(null)) {
-                file.load_contents_async(null, Lang.bind(this, function(source, result) {
-                    let ip = source.load_contents_finish(result)[1].toString().trim();
-                    this._returnValue(callback, 'Public IP', ip, 'network', 'string');
-                }));
-            }
+            // check uptime
+            new FileModule.File('http://corecoding.com/utilities/what-is-my-ip.php?ipOnly=true').read().then(ip => {
+                this._returnValue(callback, 'Public IP', ip, 'network', 'string');
+            }).catch(err => {
+                global.log(err);
+            });
         }
     },
 
     _queryStorage: function(callback) {
-        // TBD
+        GTop.glibtop_get_fsusage(this.storage, '/');
+
+        let total = this.storage.blocks * this.storage.block_size;
+        let avail = this.storage.bavail * this.storage.block_size;
+        let free = this.storage.bfree * this.storage.block_size;
+        let used = total - free;
+        let reserved = (total - avail) - used;
+
+        this._returnValue(callback, 'Total', total, 'storage', 'storage');
+        this._returnValue(callback, 'Used', used, 'storage', 'storage');
+        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
+        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
     },
 
     _returnValue: function(callback, label, value, type, format) {
@@ -251,4 +284,8 @@ const Sensors = new Lang.Class({
     set update_time(update_time) {
         this._update_time = update_time;
     },
+
+    clearHistory: function() {
+        this._history = {};
+    }
 });

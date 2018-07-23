@@ -7,12 +7,10 @@ const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
-
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
-
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -34,9 +32,9 @@ const VitalsMenuButton = new Lang.Class({
             'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'),
             'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'),
             'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg'),
-            'system' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg'),
-            'network' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg'),
-            'storage' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg')
+            'system' : Gio.icon_new_for_string(Me.path + '/icons/system.svg'),
+            'network' : Gio.icon_new_for_string(Me.path + '/icons/download.svg'),
+            'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage.svg')
         }
 
         this._menuLayout = new St.BoxLayout();
@@ -66,14 +64,15 @@ const VitalsMenuButton = new Lang.Class({
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
         this._addSettingChangedSignal('show-icon-on-panel', Lang.bind(this, this._showIconOnPanelChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
+        this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionToggle));
 
-        let settings = ['unit', 'hot-sensors', 'use-higher-precision', 'hide-zeros', 'alphabetize'];
+        let settings = ['unit', 'hot-sensors', 'hide-zeros', 'alphabetize'];
         for (let setting of Object.values(settings)) {
             this._addSettingChangedSignal(setting, Lang.bind(this, this._querySensors));
         }
 
         // add signals for show- preference based categories
-        for (let sensor of Object.keys(this._sensorIcons)) {
+        for (let sensor in this._sensorIcons) {
             this._addSettingChangedSignal('show-' + sensor, Lang.bind(this, this._showHideSensors));
         }
 
@@ -83,7 +82,7 @@ const VitalsMenuButton = new Lang.Class({
 
     _initializeMenu: function() {
         // display sensor categories
-        for (let sensor of Object.keys(this._sensorIcons)) {
+        for (let sensor in this._sensorIcons) {
             // groups associated sensors under accordion menu
             if (typeof this._groups[sensor] == 'undefined') {
                 this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
@@ -126,7 +125,7 @@ const VitalsMenuButton = new Lang.Class({
         // round refresh button
         let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
         refreshButton.connect('clicked', Lang.bind(this, function(self) {
-            this._querySensors();
+            this._updateTimeChanged();
         }));
         item.actor.add(refreshButton);
 
@@ -148,16 +147,6 @@ const VitalsMenuButton = new Lang.Class({
         }));
     },
 
-    _showHideSensors: function() {
-        for (let sensor of Object.keys(this._sensorIcons)) {
-            if (this._settings.get_boolean('show-' + sensor)) {
-                this._groups[sensor].actor.show();
-            } else {
-                this._groups[sensor].actor.hide();
-            }
-        }
-    },
-
     _createHotItem: function(key, showIcon, gicon, value) {
         if (showIcon) {
             let icon = this._defaultIcon(gicon);
@@ -177,6 +166,21 @@ const VitalsMenuButton = new Lang.Class({
 
         this._hotLabels[key] = label;
         this._menuLayout.add(label);
+    },
+
+    _higherPrecisionToggle: function() {
+        this._sensors.clearHistory();
+        this._querySensors();
+    },
+
+    _showHideSensors: function() {
+        for (let sensor in this._sensorIcons) {
+            if (this._settings.get_boolean('show-' + sensor)) {
+                this._groups[sensor].actor.show();
+            } else {
+                this._groups[sensor].actor.hide();
+            }
+        }
     },
 
     _positionInPanelChanged: function() {
@@ -223,30 +227,29 @@ const VitalsMenuButton = new Lang.Class({
         this._settingChangedSignals.push(this._settings.connect('changed::' + key, callback));
     },
 
-    _updateDisplay: function(sensor) {
+    _updateDisplay: function(label, value, type, key) {
         // update sensor value in menubar
-        let key = sensor.key || sensor.label;
-        let label = this._hotLabels[key];
-        if (label) label.set_text(sensor.value + ' ');
+        if (this._hotLabels[key])
+            this._hotLabels[key].set_text(value + ' ');
 
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
         if (item) {
             // update sensor value next to group header
-            if (sensor.type.includes('-group')) {
-                item.status.text = sensor.value;
+            if (type.includes('-group')) {
+                item.status.text = value;
             } else {
                 // update sensor value in the group
-                item.value = sensor.value;
+                item.value = value;
             }
         } else {
-            this._appendMenuItems(sensor);
+            let sensor = { 'value': value, 'type': type, 'label': label }
+            this._appendMenuItems(sensor, key);
         }
     },
 
-    _appendMenuItems: function(sensor) {
+    _appendMenuItems: function(sensor, key) {
         let showIcon = this._settings.get_boolean('show-icon-on-panel');
-        let key = sensor.key || sensor.label;
 
         // displays text next to group
         if (sensor.type.includes('-group')) {
@@ -398,9 +401,14 @@ const VitalsMenuButton = new Lang.Class({
                 break;
             case 'duration':
                 let levels = {
-                    scale: [24, 60, 60],//, 1],
-                    units: ['d ', 'h ', 'm ']//, 's ']
+                    scale: [24, 60, 60],
+                    units: ['d ', 'h ', 'm ']
                 };
+
+                if (useHigherPrecision) {
+                    levels.scale.push(1);
+                    levels.units.push('s ');
+                }
 
                 const cbFun = (d, c) => {
                     let bb = d[1] % c[0],
@@ -437,10 +445,8 @@ const VitalsMenuButton = new Lang.Class({
         this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
             value = this._formatValue(value, format);
 
-            global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-            let sensor = { 'value': value, 'type': type, 'label': label, 'key': key }
-
-            this._updateDisplay(sensor);
+            //global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
+            this._updateDisplay(label, value, type, key);
         }));
     },
 
