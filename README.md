@@ -16,7 +16,7 @@ You can use **apt install <package>** or **yum install <package>**
 ### 2a) Installation using git
 
     mkdir -p ~/.local/share/gnome-shell/extensions
-    git clone https://github.com/corecoding/Vitals.git ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding
+    git clone https://github.com/corecoding/Vitals.git ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
 
 ### 2b) Installation from extensions.gnome.org
 

@@ -22,6 +22,8 @@ const VitalsMenuButton = new Lang.Class({
         this.parent(St.Align.START);
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
+        this._debug = false;
+
         this._settings = Convenience.getSettings();
 
         this._sensorMenuItems = {};
@@ -44,8 +46,9 @@ const VitalsMenuButton = new Lang.Class({
         this._groups = {};
 
         this._update_time = this._settings.get_int('update-time');
+        this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
 
-        this._sensors = new Sensors.Sensors(this._update_time);
+        this._sensors = new Sensors.Sensors(this._settings, this._debug, this._update_time);
 
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
@@ -169,6 +172,7 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _higherPrecisionToggle: function() {
+        this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
         this._sensors.clearHistory();
         this._querySensors();
     },
@@ -359,21 +363,20 @@ const VitalsMenuButton = new Lang.Class({
 
         let format = '';
         let ending = '';
-        let useHigherPrecision = this._settings.get_boolean('use-higher-precision');
 
         let kilo = 1024;
         var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
         switch (sensorClass) {
             case 'percent':
-                format = (useHigherPrecision)?'%.1f%s':'%d%s';
+                format = (this._use_higher_precision)?'%.1f%s':'%d%s';
                 ending = '%';
                 break;
             case 'temp':
                 value = value / 1000;
                 let fahrenheit = (this._settings.get_string('unit') == 'fahrenheit');
                 if (fahrenheit) value = this._toFahrenheit(value);
-                format = (useHigherPrecision)?'%.1f%s':'%d%s';
+                format = (this._use_higher_precision)?'%.1f%s':'%d%s';
                 ending = (fahrenheit) ? "\u00b0F" : "\u00b0C";
                 break;
             case 'fan':
@@ -385,9 +388,9 @@ const VitalsMenuButton = new Lang.Class({
                 ending = 'V';
                 break;
             case 'storage':
-                format = (useHigherPrecision)?'%.2f%s':'%.1f%s';
+                format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
             case 'speed':
-                if (!format) format = (useHigherPrecision)?'%.1f%s':'%.0f%s';
+                if (!format) format = (this._use_higher_precision)?'%.1f%s':'%.0f%s';
                 let i = 0;
 
                 if (value > 0) {
@@ -405,7 +408,7 @@ const VitalsMenuButton = new Lang.Class({
                     units: ['d ', 'h ', 'm ']
                 };
 
-                if (useHigherPrecision) {
+                if (this._use_higher_precision) {
                     levels.scale.push(1);
                     levels.units.push('s ');
                 }
@@ -445,7 +448,9 @@ const VitalsMenuButton = new Lang.Class({
         this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
             value = this._formatValue(value, format);
 
-            //global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
+            if (this._debug)
+                global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
+
             this._updateDisplay(label, value, type, key);
         }));
     },

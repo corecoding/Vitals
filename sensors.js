@@ -6,7 +6,9 @@ const GTop = imports.gi.GTop;
 const Sensors = new Lang.Class({
     Name: 'Sensors',
 
-    _init: function(update_time) {
+    _init: function(settings, debug, update_time) {
+        this._settings = settings;
+        this._debug = debug;
         this._update_time = update_time;
 
         this._history = {};
@@ -23,28 +25,36 @@ const Sensors = new Lang.Class({
         let now = new Date().getTime();
         if (this._last_query) {
             diff = (now - this._last_query) / 1000;
-            global.log('_____ Sensors last queried ' + diff + ' seconds ago _____');
+            if (this._debug)
+                global.log('_____ Sensors last queried ' + diff + ' seconds ago _____');
         }
 
         this._last_query = now;
 
-
         let sensor_types = {};
-        sensor_types['temp'] = 'temperature';
-        sensor_types['in'] = 'voltage';
-        sensor_types['fan'] = 'fan';
+        if (this._settings.get_boolean('show-temperature'))
+            sensor_types['temp'] = 'temperature';
+        if (this._settings.get_boolean('show-voltage'))
+            sensor_types['in'] = 'voltage';
+        if (this._settings.get_boolean('show-fan'))
+            sensor_types['fan'] = 'fan';
 
         this._queryTempVoltFan(callback, sensor_types);
 
-        this._queryMemory(callback);
+        if (this._settings.get_boolean('show-memory'))
+            this._queryMemory(callback);
 
-        this._queryProcessor(callback, diff);
+        if (this._settings.get_boolean('show-processor'))
+            this._queryProcessor(callback, diff);
 
-        this._querySystem(callback);
+        if (this._settings.get_boolean('show-system'))
+            this._querySystem(callback);
 
-        this._queryNetwork(callback, diff);
+        if (this._settings.get_boolean('show-network'))
+            this._queryNetwork(callback, diff);
 
-        this._queryStorage(callback);
+        if (this._settings.get_boolean('show-storage'))
+            this._queryStorage(callback);
     },
 
     _queryTempVoltFan: function(callback, sensor_types) {
