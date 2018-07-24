@@ -316,7 +316,23 @@ const VitalsMenuButton = new Lang.Class({
         }
 
         this._sensorMenuItems[key] = item;
-        this._groups[sensor.type].menu.addMenuItem(item);
+
+
+        let i = 0;
+        let alpha = [ 'temperature', 'voltage', 'fan', 'system', 'network' ];
+        if (alpha.indexOf(sensor.type) > -1 ) {
+            global.log('running sort on ' + sensor.type);
+            let menuItems = this._groups[sensor.type].menu._getMenuItems();
+            for (i = 0; i < menuItems.length; i++) {
+                if (menuItems[i].display_name.localeCompare(sensor.label) > 0)
+                    break;
+            }
+        } else {
+            i = Object.keys(this._sensorMenuItems[key]).length;
+        }
+
+
+        this._groups[sensor.type].menu.addMenuItem(item, i);
     },
 
     _defaultLabel: function() {

@@ -186,8 +186,8 @@ const Sensors = new Lang.Class({
             this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'string');
             this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'string');
             this._returnValue(callback, 'Load 10m', loadArray[2], 'system', 'string');
-            this._returnValue(callback, 'Active Threads', proc[0], 'system', 'string');
-            this._returnValue(callback, 'Total Threads', proc[1], 'system', 'string');
+            this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
+            this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
         }).catch(err => {
             global.log(err);
         });
@@ -199,7 +199,8 @@ const Sensors = new Lang.Class({
 
             let cores = Object.keys(this._last_cpu_user).length - 1;
             if (cores > 0) {
-                this._returnValue(callback, 'Idle', upArray[1] / cores, 'system', 'duration');
+                //this._returnValue(callback, 'Idle', upArray[1] / cores, 'system', 'duration');
+                this._returnValue(callback, 'Busy', upArray[0] - upArray[1] / cores, 'system', 'duration');
             }
         }).catch(err => {
             global.log(err);
