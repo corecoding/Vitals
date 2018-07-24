@@ -239,32 +239,23 @@ const VitalsMenuButton = new Lang.Class({
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
         if (item) {
-            // update sensor value next to group header
-            if (type.includes('-group')) {
-                item.status.text = value;
-            } else {
-                // update sensor value in the group
-                item.value = value;
+            // update sensor value in the group
+            item.value = value;
+        } else if (type.includes('-group')) {
+            // update text next to group header
+            let parts = type.split('-');
+            if (this._groups[parts[0]]) {
+                this._groups[parts[0]].status.text = value;
+                this._sensorMenuItems[type] = this._groups[parts[0]];
             }
         } else {
-            let sensor = { 'value': value, 'type': type, 'label': label }
-            this._appendMenuItems(sensor, key);
+            let sensor = { 'label': label, 'value': value, 'type': type }
+            this._appendMenuItem(sensor, key);
         }
     },
 
-    _appendMenuItems: function(sensor, key) {
+    _appendMenuItem: function(sensor, key) {
         let showIcon = this._settings.get_boolean('show-icon-on-panel');
-
-        // displays text next to group
-        if (sensor.type.includes('-group')) {
-            let parts = sensor.type.split('-');
-            if (this._groups[parts[0]]) {
-                this._groups[parts[0]].status.text = sensor.value;
-                this._sensorMenuItems[sensor.type] = this._groups[parts[0]];
-            }
-
-            return;
-        }
 
         let item = new VitalsItem.VitalsItem(this._sensorIcons[sensor.type], key, sensor.label, sensor.value);
         item.connect('activate', Lang.bind(this, function(self) {
@@ -325,13 +316,7 @@ const VitalsMenuButton = new Lang.Class({
         }
 
         this._sensorMenuItems[key] = item;
-
-        // only group items if we have more than one
-        if (typeof this._sensorIcons[sensor.type] != 'undefined') {
-            this._groups[sensor.type].menu.addMenuItem(item);
-        } else {
-            this.menu.addMenuItem(item);
-        }
+        this._groups[sensor.type].menu.addMenuItem(item);
     },
 
     _defaultLabel: function() {

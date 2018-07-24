@@ -59,7 +59,6 @@ const Sensors = new Lang.Class({
 
     _queryTempVoltFan: function(callback, sensor_types) {
         let sensor_files = [ 'input', 'label' ];
-
         let hwbase = '/sys/class/hwmon/';
 
         // a little informal, but this code has zero I/O block
@@ -284,10 +283,12 @@ const Sensors = new Lang.Class({
 
     _returnValue: function(callback, label, value, type, format) {
         // only return sensors that are new or that need updating
-        let key = '_' + type + '_' + label.replace(' ','_').toLowerCase() + '_';
+        let key = '_' + type + '_' + label.replace(' ', '_').toLowerCase() + '_';
         if (typeof this._history[key] == 'undefined' || this._history[key] != value) {
-          this._history[key] = value;
-          callback(label, value, type, format, key);
+            this._history[key] = value;
+            callback(label, value, type, format, key);
+
+            //callback('memory', '10', 'memory-group', '');
         }
     },
 
