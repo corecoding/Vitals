@@ -15,7 +15,7 @@ const Sensors = new Lang.Class({
         this._last_query = 0;
         this._last_cpu_user = {};
         this._network = { 'avg': { 'tx': 0, 'rx': 0 }};
-        this._last_public_ip_check = 100;
+        this._last_public_ip_check = 900;
         this.storage = new GTop.glibtop_fsusage();
     },
 
@@ -175,6 +175,25 @@ const Sensors = new Lang.Class({
         }).catch(err => {
             global.log(err);
         });
+
+        // grab cpu frequency
+        new FileModule.File('/proc/cpuinfo').read().then(lines => {
+            lines = lines.split("\n");
+
+            let freqs = [];
+            for (let line of Object.values(lines)) {
+                if (value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/)) {
+                    freqs.push(parseFloat(value[2]));
+                    global.log(parseFloat(value[2]));
+                }
+            }
+
+            let sum = freqs.reduce(function(a, b) { return a + b; });
+            let avg = sum / freqs.length;
+            this._returnValue(callback, 'Frequency', avg, 'processor', 'mhz');
+        }).catch(err => {
+            global.log(err);
+        });
     },
 
     _querySystem: function(callback) {
@@ -199,8 +218,7 @@ const Sensors = new Lang.Class({
 
             let cores = Object.keys(this._last_cpu_user).length - 1;
             if (cores > 0) {
-                //this._returnValue(callback, 'Idle', upArray[1] / cores, 'system', 'duration');
-                this._returnValue(callback, 'Busy', upArray[0] - upArray[1] / cores, 'system', 'duration');
+                this._returnValue(callback, 'Used Cycles', upArray[0] - upArray[1] / cores, 'system', 'duration');
             }
         }).catch(err => {
             global.log(err);
@@ -244,27 +262,30 @@ const Sensors = new Lang.Class({
             }
 
             let speed = (avg_tx - this._network['avg']['tx']) / diff;
-            this._returnValue(callback, 'avg tx', speed, 'network', 'speed');
+            //this._returnValue(callback, 'avg tx', speed, 'network', 'speed');
             this._network['avg']['tx'] = avg_tx;
 
             speed = (avg_rx - this._network['avg']['rx']) / diff;
-            this._returnValue(callback, 'avg rx', speed, 'network', 'speed');
+            //this._returnValue(callback, 'avg rx', speed, 'network', 'speed');
             this._network['avg']['tx'] = avg_rx;
         }).catch(err => {
             global.log(err);
         });
 
-        // check the public ip
-        if (this._last_public_ip_check++ >= 100) {
+        // check the public ip every 15 minutes
+        if (this._last_public_ip_check >= 900) {
             this._last_public_ip_check = 0;
 
             // check uptime
-            new FileModule.File('http://corecoding.com/utilities/what-is-my-ip.php?ipOnly=true').read().then(ip => {
-                this._returnValue(callback, 'Public IP', ip, 'network', 'string');
+            new FileModule.File('http://corecoding.com/vitals.php').read().then(contents => {
+                let obj = JSON.parse(contents);
+                this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
             }).catch(err => {
                 global.log(err);
             });
         }
+
+        this._last_public_ip_check += diff;
     },
 
     _queryStorage: function(callback) {

@@ -8,7 +8,7 @@ const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
+const Convenience = Me.imports.helpers.convenience;
 const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
@@ -317,11 +317,11 @@ const VitalsMenuButton = new Lang.Class({
 
         this._sensorMenuItems[key] = item;
 
-
+        // alphabetize the sensors for these categories
+        // TODO: Refactor _sensorMenuItems to [category][] so we can sort and use indexOf for i
         let i = 0;
         let alpha = [ 'temperature', 'voltage', 'fan', 'system', 'network' ];
-        if (alpha.indexOf(sensor.type) > -1 ) {
-            global.log('running sort on ' + sensor.type);
+        if (alpha.indexOf(sensor.type) > -1) {
             let menuItems = this._groups[sensor.type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++) {
                 if (menuItems[i].display_name.localeCompare(sensor.label) > 0)
@@ -330,7 +330,6 @@ const VitalsMenuButton = new Lang.Class({
         } else {
             i = Object.keys(this._sensorMenuItems[key]).length;
         }
-
 
         this._groups[sensor.type].menu.addMenuItem(item, i);
     },
@@ -387,6 +386,10 @@ const VitalsMenuButton = new Lang.Class({
                 value = value / 1000;
                 format = ((value >= 0) ? '+' : '-') + '%.2f%s';
                 ending = 'V';
+                break;
+            case 'mhz':
+                format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
+                ending = ' MHz';
                 break;
             case 'storage':
                 format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';

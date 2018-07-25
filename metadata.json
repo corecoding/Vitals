@@ -1,5 +1,5 @@
 {
-  "description": "A glimpse into your computer's temperature, voltage, fan speed, memory usage and CPU load.",
+  "description": "A glimpse into your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats. This is a one stop shop to monitor all of your vital sensors. Uses asynchronous polling to provide a smooth user experience.",
   "gettext-domain": "vitals",
   "name": "Vitals",
   "settings-schema": "org.gnome.shell.extensions.vitals",
