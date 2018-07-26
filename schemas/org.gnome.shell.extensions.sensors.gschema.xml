@@ -34,13 +34,13 @@
     </key>
 
     <key type="b" name="hide-zeros">
-      <default>false</default>
+      <default>true</default>
       <summary>Hide zerod sensors</summary>
       <description>Hide data from sensors that are invalid</description>
     </key>
 
     <key type="b" name="alphabetize">
-      <default>false</default>
+      <default>true</default>
       <summary>Alphabetize Sensors</summary>
       <description>Display sensors in alphabetical order</description>
     </key>

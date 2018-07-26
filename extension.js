@@ -320,13 +320,13 @@ const VitalsMenuButton = new Lang.Class({
         // alphabetize the sensors for these categories
         // TODO: Refactor _sensorMenuItems to [category][] so we can sort and use indexOf for i
         let i = 0;
+
         let alpha = [ 'temperature', 'voltage', 'fan', 'system', 'network' ];
-        if (alpha.indexOf(sensor.type) > -1) {
+        if (alpha.indexOf(sensor.type) > -1 && this._settings.get_boolean('alphabetize')) {
             let menuItems = this._groups[sensor.type].menu._getMenuItems();
-            for (i = 0; i < menuItems.length; i++) {
-                if (menuItems[i].display_name.localeCompare(sensor.label) > 0)
+            for (i = 0; i < menuItems.length; i++)
+                if (menuItems[i].key.localeCompare(key) > 0)
                     break;
-            }
         } else {
             i = Object.keys(this._sensorMenuItems[key]).length;
         }

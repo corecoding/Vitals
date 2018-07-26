@@ -40,10 +40,6 @@ const VitalsItem = new Lang.Class({
         return this._labelActor.text = text;
     },
 
-    get display_name() {
-        return this._labelActor.text;
-    },
-
     get gicon() {
         return this._gIcon;
     },

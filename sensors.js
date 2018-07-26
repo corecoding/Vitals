@@ -12,6 +12,15 @@ const Sensors = new Lang.Class({
         this._update_time = update_time;
 
         this._history = {};
+        this._history['temperature'] = {};
+        this._history['voltage'] = {};
+        this._history['fan'] = {};
+        this._history['memory'] = {};
+        this._history['processor'] = {};
+        this._history['system'] = {};
+        this._history['network'] = {};
+        this._history['storage'] = {};
+
         this._last_query = 0;
         this._last_cpu_user = {};
         this._network = { 'avg': { 'tx': 0, 'rx': 0 }};
@@ -184,7 +193,6 @@ const Sensors = new Lang.Class({
             for (let line of Object.values(lines)) {
                 if (value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/)) {
                     freqs.push(parseFloat(value[2]));
-                    global.log(parseFloat(value[2]));
                 }
             }
 
@@ -304,13 +312,29 @@ const Sensors = new Lang.Class({
     },
 
     _returnValue: function(callback, label, value, type, format) {
+        // hide fan/network sensors if they are a zero
+        if (value == 0 && ['fan', 'network'].indexOf(type) > -1 && this._settings.get_boolean('hide-zeros')) {
+            return;
+        }
+
         // only return sensors that are new or that need updating
         let key = '_' + type + '_' + label.replace(' ', '_').toLowerCase() + '_';
-        if (typeof this._history[key] == 'undefined' || this._history[key] != value) {
-            this._history[key] = value;
+        if (typeof this._history[type][key] == 'undefined' || this._history[type][key] != value) {
+            this._history[type][key] = value;
             callback(label, value, type, format, key);
 
             //callback('memory', '10', 'memory-group', '');
+
+            // process average values
+            if (type == 'temperature') {
+                let vals = [];
+                for (let key2 in this._history[type])
+                    vals.push(parseInt(this._history[type][key2]));
+
+                let sum = vals.reduce(function(a, b) { return a + b; });
+                let avg = sum / vals.length;
+                callback('Average', avg, type, format, '__' + type + '_avg__');
+            }
         }
     },
 
