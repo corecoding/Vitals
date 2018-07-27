@@ -29,14 +29,14 @@ const VitalsMenuButton = new Lang.Class({
         this._sensorMenuItems = {};
 
         this._sensorIcons = {
-            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature.svg'),
-            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage.svg'),
-            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'),
-            'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'),
-            'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg'),
-            'system' : Gio.icon_new_for_string(Me.path + '/icons/system.svg'),
-            'network' : Gio.icon_new_for_string(Me.path + '/icons/download.svg'),
-            'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage.svg')
+            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature.svg'), // Freon
+            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage.svg'), // Freon
+            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'), // Freon
+            'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'), // Icon
+            'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg'), // Icon
+            'system' : Gio.icon_new_for_string(Me.path + '/icons/system.svg'), // Pop
+            'network' : Gio.icon_new_for_string(Me.path + '/icons/network.svg'), // Pop
+            'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage.svg') // Pop
         }
 
         this._menuLayout = new St.BoxLayout();
@@ -48,7 +48,7 @@ const VitalsMenuButton = new Lang.Class({
         this._update_time = this._settings.get_int('update-time');
         this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
 
-        this._sensors = new Sensors.Sensors(this._settings, this._debug, this._update_time);
+        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._debug, this._update_time);
 
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
@@ -173,7 +173,7 @@ const VitalsMenuButton = new Lang.Class({
 
     _higherPrecisionToggle: function() {
         this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
-        this._sensors.clearHistory();
+        this._sensors.resetHistory();
         this._querySensors();
     },
 
@@ -318,17 +318,14 @@ const VitalsMenuButton = new Lang.Class({
         this._sensorMenuItems[key] = item;
 
         // alphabetize the sensors for these categories
-        // TODO: Refactor _sensorMenuItems to [category][] so we can sort and use indexOf for i
-        let i = 0;
+        let i = Object.keys(this._sensorMenuItems[key]).length;
 
-        let alpha = [ 'temperature', 'voltage', 'fan', 'system', 'network' ];
+        let alpha = [ 'temperature', 'voltage', 'fan', 'system', 'network', 'processor' ];
         if (alpha.indexOf(sensor.type) > -1 && this._settings.get_boolean('alphabetize')) {
             let menuItems = this._groups[sensor.type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 if (menuItems[i].key.localeCompare(key) > 0)
                     break;
-        } else {
-            i = Object.keys(this._sensorMenuItems[key]).length;
         }
 
         this._groups[sensor.type].menu.addMenuItem(item, i);
@@ -359,7 +356,7 @@ const VitalsMenuButton = new Lang.Class({
 
     _formatValue: function(value, sensorClass) {
         if (value === null) return 'N/A';
-        value = value.toString().trim();
+        if (value == 0) return '.';
 
         let format = '';
         let ending = '';

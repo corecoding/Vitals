@@ -6,20 +6,13 @@ const GTop = imports.gi.GTop;
 const Sensors = new Lang.Class({
     Name: 'Sensors',
 
-    _init: function(settings, debug, update_time) {
+    _init: function(settings, sensorIcons, debug, update_time) {
         this._settings = settings;
         this._debug = debug;
         this._update_time = update_time;
+        this._sensorIcons = sensorIcons;
 
-        this._history = {};
-        this._history['temperature'] = {};
-        this._history['voltage'] = {};
-        this._history['fan'] = {};
-        this._history['memory'] = {};
-        this._history['processor'] = {};
-        this._history['system'] = {};
-        this._history['network'] = {};
-        this._history['storage'] = {};
+        this.resetHistory();
 
         this._last_query = 0;
         this._last_cpu_user = {};
@@ -313,7 +306,7 @@ const Sensors = new Lang.Class({
 
     _returnValue: function(callback, label, value, type, format) {
         // hide fan/network sensors if they are a zero
-        if (value == 0 && ['fan', 'network'].indexOf(type) > -1 && this._settings.get_boolean('hide-zeros')) {
+        if (value == 0 && ['fan'].indexOf(type) > -1 && this._settings.get_boolean('hide-zeros')) {
             return;
         }
 
@@ -323,10 +316,8 @@ const Sensors = new Lang.Class({
             this._history[type][key] = value;
             callback(label, value, type, format, key);
 
-            //callback('memory', '10', 'memory-group', '');
-
             // process average values
-            if (type == 'temperature') {
+            if (type == 'temperature' || type == 'voltage' || type == 'fan') {
                 let vals = [];
                 for (let key2 in this._history[type])
                     vals.push(parseInt(this._history[type][key2]));
@@ -334,6 +325,7 @@ const Sensors = new Lang.Class({
                 let sum = vals.reduce(function(a, b) { return a + b; });
                 let avg = sum / vals.length;
                 callback('Average', avg, type, format, '__' + type + '_avg__');
+                callback(type, avg, type + '-group', format);
             }
         }
     },
@@ -342,7 +334,9 @@ const Sensors = new Lang.Class({
         this._update_time = update_time;
     },
 
-    clearHistory: function() {
+    resetHistory: function() {
         this._history = {};
+        for (let sensor in this._sensorIcons)
+            this._history[sensor] = {};
     }
 });
