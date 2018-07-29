@@ -371,7 +371,7 @@ const VitalsMenuButton = new Lang.Class({
                 break;
             case 'temp':
                 value = value / 1000;
-                let fahrenheit = (this._settings.get_string('unit') == 'fahrenheit');
+                let fahrenheit = (this._settings.get_int('unit') == 1);
                 if (fahrenheit) value = this._toFahrenheit(value);
                 format = (this._use_higher_precision)?'%.1f%s':'%d%s';
                 ending = (fahrenheit) ? "\u00b0F" : "\u00b0C";
@@ -442,7 +442,8 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     get positionInPanel() {
-        return this._settings.get_string('position-in-panel');
+        let positions = [ 'left', 'center', 'right' ];
+        return positions[this._settings.get_int('position-in-panel')];
     },
 
     _querySensors: function() {

@@ -9,8 +9,8 @@
       <description>This is the seconds after CPU temperature extension updates the data from the syetem</description>
     </key>
 
-    <key type="s" name="unit">
-      <default>'centigrade'</default>
+    <key type="i" name="unit">
+      <default>0</default>
       <summary>Unit</summary>
       <description>The unit ('centigrade' or 'fahrenheit') the extension should display the temperature in</description>
     </key>
@@ -57,8 +57,8 @@
       <description>Display voltage of various components</description>
     </key>
 
-    <key type="s" name="position-in-panel">
-      <default>'right'</default>
+    <key type="i" name="position-in-panel">
+      <default>2</default>
       <summary>Position in Panel</summary>
       <description>Position in Panel ('left', 'center', 'right')</description>
     </key>

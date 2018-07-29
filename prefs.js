@@ -1,127 +1,80 @@
-const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
-
+const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.helpers.convenience;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
 
-function init() {
-    Convenience.initTranslations();
-}
+const Gettext = imports.gettext;
+Gettext.bindtextdomain(Me.metadata['gettext-domain'], Me.path + '/locale');
+const _ = Gettext.domain(Me.metadata['gettext-domain']).gettext;
 
-const FreonPrefsWidget = new GObject.Class({
-    Name: 'Freon.Prefs.Widget',
-    GTypeName: 'FreonPrefsWidget',
-    Extends: Gtk.Grid,
+const Settings = new Lang.Class({
+    Name: 'Vitals.Settings',
 
-    _init: function(params) {
-        this.parent(params);
-        this.margin = this.row_spacing = this.column_spacing = 20;
-
-        this._settings = Convenience.getSettings();
-
-        let i = 0;
-
-        this.attach(new Gtk.Label({ label: _('Poll Sensors Every (sec)'), halign : Gtk.Align.END}), 0, i, 1, 1);
-        let updateTime = Gtk.SpinButton.new_with_range (1, 60, 1);
-        this.attach(updateTime, 1, i, 1, 1);
-        this._settings.bind('update-time', updateTime, 'value', Gio.SettingsBindFlags.DEFAULT);
-
-        this._addComboBox({
-            items : {left : _('Left'), center : _('Center'), right : _('Right')},
-            key: 'position-in-panel', y : i++, x : 2,
-            label: _('Position in Panel')
-        });
-
-        this._addSwitch({key : 'use-higher-precision', y : i, x : 0,
-            label : _('Use Higher Precision'),
-            help : _("Show one or more digits after decimal")});
-
-        this._addComboBox({
-            items : {centigrade : "\u00b0C", fahrenheit : "\u00b0F"},
-            key: 'unit', y : i++, x : 2,
-            label: _('Temperature Unit')
-        });
-
-        this._addSwitch({key : 'alphabetize', y : i, x : 0,
-            label : _('Alphabetize Sensors')});
-
-        this._addSwitch({key : 'hide-zeros', y : i++, x : 2,
-            label : _('Hide sensors with zero values')});
-
-        this._addSwitch({key : 'show-icon-on-panel', y : i, x : 0,
-            label : _('Show Icon(s) on Panel')});
-
-        this._addSwitch({key : 'show-temperature', y : i++, x : 2,
-            label : _('Show Temperatures')});
-
-        this._addSwitch({key : 'show-voltage', y : i, x : 0,
-            label : _('Show Input Voltage')});
-
-        this._addSwitch({key : 'show-fan', y : i++, x : 2,
-            label : _('Show Fan Speed')});
-
-        this._addSwitch({key : 'show-memory', y : i, x : 0,
-            label : _('Show Memory Usage')});
-
-        this._addSwitch({key : 'show-processor', y : i++, x : 2,
-            label : _('Show Processor')});
-
-        this._addSwitch({key : 'show-system', y : i, x : 0,
-            label : _('Show System Load')});
-
-        this._addSwitch({key : 'show-network', y : i++, x : 2,
-            label : _('Show Network Stats')});
-
-        this._addSwitch({key : 'show-storage', y : i, x : 0,
-            label : _('Show Storage Usage')});
-    },
-
-    _addSwitch : function(params) {
-        let lbl = new Gtk.Label({label: params.label,halign : Gtk.Align.END});
-        this.attach(lbl, params.x, params.y, 1, 1);
-        let sw = new Gtk.Switch({halign : Gtk.Align.END, valign : Gtk.Align.CENTER});
-        this.attach(sw, params.x + 1, params.y, 1, 1);
-        if (params.help) {
-            lbl.set_tooltip_text(params.help);
-            sw.set_tooltip_text(params.help);
-        }
-        this._settings.bind(params.key, sw, 'active', Gio.SettingsBindFlags.DEFAULT);
-    },
-
-    _addComboBox : function(params) {
-        let model = new Gtk.ListStore();
-        model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_STRING]);
-
-        let combobox = new Gtk.ComboBox({model: model});
-        let renderer = new Gtk.CellRendererText();
-        combobox.pack_start(renderer, true);
-        combobox.add_attribute(renderer, 'text', 1);
-
-        for (let k in params.items) {
-            model.set(model.append(), [0, 1], [k, params.items[k]]);
+    _init: function () {
+        {
+            let GioSSS = Gio.SettingsSchemaSource;
+            let schema = GioSSS.new_from_directory(Me.path + '/schemas', GioSSS.get_default(), false);
+            schema = schema.lookup('org.gnome.shell.extensions.vitals', false);
+            this.settings = new Gio.Settings({ settings_schema: schema });
         }
 
-        combobox.set_active(Object.keys(params.items).indexOf(this._settings.get_string(params.key)));
+        this.builder = new Gtk.Builder();
+        this.builder.set_translation_domain(Me.metadata['gettext-domain']);
+        this.builder.add_from_file(Me.path + '/schemas/prefs.ui');
 
-        combobox.connect('changed', Lang.bind(this, function(entry) {
-            let [success, iter] = combobox.get_active_iter();
-            if (!success)
-                return;
-            this._settings.set_string(params.key, model.get_value(iter, 0))
-        }));
+        this.widget = this.builder.get_object('prefs-container');
 
-        this.attach(new Gtk.Label({ label: params.label, halign : Gtk.Align.END}), params.x, params.y, 1, 1);
-        this.attach(combobox, params.x + 1, params.y, 1, 1);
-    }
+        this._bind_settings();
+    },
 
+    // Bind the gtk window to the schema settings
+    _bind_settings: function () {
+        let widget;
+
+        let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
+                        'show-memory', 'show-processor', 'show-system',
+                        'show-network', 'show-storage', 'use-higher-precision',
+                        'alphabetize', 'hide-zeros', 'show-icon-on-panel' ];
+
+        for (let sensor of Object.values(sensors)) {
+            widget = this.builder.get_object(sensor);
+            widget.set_active(this.settings.get_boolean(sensor));
+            widget.connect('state-set', (_, val) => {
+                this.settings.set_boolean(sensor, val);
+            });
+        }
+
+        sensors = [ 'position-in-panel', 'unit' ];
+
+        for (let sensor of Object.values(sensors)) {
+            widget = this.builder.get_object(sensor);
+            widget.set_active(this.settings.get_int(sensor));
+            widget.connect('changed', (widget) => {
+                this.settings.set_int(sensor, widget.get_active());
+            });
+        }
+
+        widget = this.builder.get_object('update-time');
+        widget.set_value(this.settings.get_int('update-time'));
+        widget.connect('changed', (widget) => {
+            this.settings.set_int('update-time', widget.get_value());
+        });
+    },
 });
 
-function buildPrefsWidget() {
-    let w = new FreonPrefsWidget();
-    w.show_all();
-    return w;
+function init () {}
+
+function buildPrefsWidget () {
+    let settings = new Settings();
+    let widget = settings.widget;
+
+    Mainloop.timeout_add(0, () => {
+        let header_bar = widget.get_toplevel().get_titlebar();
+        header_bar.custom_title = settings.switcher;
+        return false;
+    });
+
+    widget.show_all();
+    return widget;
 }

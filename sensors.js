@@ -126,6 +126,7 @@ const Sensors = new Lang.Class({
             let utilized = used / total * 100;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
+            this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
             this._returnValue(callback, 'Physical', total, 'memory', 'storage');
             this._returnValue(callback, 'Available', avail, 'memory', 'storage');
             this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
@@ -164,6 +165,7 @@ const Sensors = new Lang.Class({
                 if (cpu == 'cpu') {
                     delta = delta / (Object.keys(statistics).length - 1);
                     label = 'Average';
+                    this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
                 } else {
                     label = 'Core %s'.format(cpu.substr(3));
                 }
@@ -336,7 +338,9 @@ const Sensors = new Lang.Class({
 
     resetHistory: function() {
         this._history = {};
-        for (let sensor in this._sensorIcons)
+        for (let sensor in this._sensorIcons) {
             this._history[sensor] = {};
+            this._history[sensor + '-group'] = {};
+        }
     }
 });
