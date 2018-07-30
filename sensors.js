@@ -16,7 +16,7 @@ const Sensors = new Lang.Class({
 
         this._last_query = 0;
         this._last_cpu_user = {};
-        this._network = { 'avg': { 'tx': 0, 'rx': 0 }};
+        this._network = {};
         this._last_public_ip_check = 900;
         this.storage = new GTop.glibtop_fsusage();
     },
@@ -192,8 +192,7 @@ const Sensors = new Lang.Class({
             }
 
             let sum = freqs.reduce(function(a, b) { return a + b; });
-            let avg = sum / freqs.length;
-            this._returnValue(callback, 'Frequency', avg, 'processor', 'mhz');
+            this._returnValue(callback, 'Frequency', sum / freqs.length, 'processor', 'mhz');
         }).catch(err => {
             global.log(err);
         });
@@ -232,16 +231,12 @@ const Sensors = new Lang.Class({
         // check network speed
         let netbase = '/sys/class/net/';
         new FileModule.File(netbase).list().then(files => {
-            let avg_rx = 0;
-            let avg_tx = 0;
-
             for (let file of Object.values(files)) {
                 if (typeof this._network[file] == 'undefined')
                     this._network[file] = {};
 
                 new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(contents => {
                     if (typeof this._network[file]['tx'] != 'undefined') {
-                        avg_tx = contents;
                         let speed = (contents - this._network[file]['tx']) / diff;
                         this._returnValue(callback, file + ' tx', speed, 'network', 'speed');
                     }
@@ -253,7 +248,6 @@ const Sensors = new Lang.Class({
 
                 new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(contents => {
                     if (typeof this._network[file]['rx'] != 'undefined') {
-                        avg_rx = contents;
                         let speed = (contents - this._network[file]['rx']) / diff;
                         this._returnValue(callback, file + ' rx', speed, 'network', 'speed');
                     }
@@ -263,14 +257,6 @@ const Sensors = new Lang.Class({
                     global.log(err);
                 });
             }
-
-            let speed = (avg_tx - this._network['avg']['tx']) / diff;
-            //this._returnValue(callback, 'avg tx', speed, 'network', 'speed');
-            this._network['avg']['tx'] = avg_tx;
-
-            speed = (avg_rx - this._network['avg']['rx']) / diff;
-            //this._returnValue(callback, 'avg rx', speed, 'network', 'speed');
-            this._network['avg']['tx'] = avg_rx;
         }).catch(err => {
             global.log(err);
         });

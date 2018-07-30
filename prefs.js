@@ -55,11 +55,11 @@ const Settings = new Lang.Class({
             });
         }
 
-        widget = this.builder.get_object('update-time');
-        widget.set_value(this.settings.get_int('update-time'));
-        widget.connect('changed', (widget) => {
-            this.settings.set_int('update-time', widget.get_value());
-        });
+        this.settings.bind(
+            'update-time',
+            this.builder.get_object('update-time'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
     },
 });
 

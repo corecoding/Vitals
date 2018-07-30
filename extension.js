@@ -8,7 +8,6 @@ const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.helpers.convenience;
 const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
@@ -24,7 +23,12 @@ const VitalsMenuButton = new Lang.Class({
 
         this._debug = false;
 
-        this._settings = Convenience.getSettings();
+        {
+            let GioSSS = Gio.SettingsSchemaSource;
+            let schema = GioSSS.new_from_directory(Me.path + '/schemas', GioSSS.get_default(), false);
+            schema = schema.lookup('org.gnome.shell.extensions.vitals', false);
+            this._settings = new Gio.Settings({ settings_schema: schema });
+        }
 
         this._sensorMenuItems = {};
 
@@ -39,7 +43,8 @@ const VitalsMenuButton = new Lang.Class({
             'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage.svg') // Pop
         }
 
-        this._menuLayout = new St.BoxLayout();
+        this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box timepp-custom-css-root' });
+
         this._hotLabels = {};
         this._hotIcons = {};
 
@@ -350,16 +355,13 @@ const VitalsMenuButton = new Lang.Class({
         return icon;
     },
 
-    _toFahrenheit: function(c) {
-        return ((9 / 5) * c + 32);
-    },
-
     _formatValue: function(value, sensorClass) {
         if (value === null) return 'N/A';
-        if (value == 0) return '.';
+        //if (value == 0) return '.';
 
         let format = '';
         let ending = '';
+        let i = 0;
 
         let kilo = 1024;
         var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -371,10 +373,15 @@ const VitalsMenuButton = new Lang.Class({
                 break;
             case 'temp':
                 value = value / 1000;
-                let fahrenheit = (this._settings.get_int('unit') == 1);
-                if (fahrenheit) value = this._toFahrenheit(value);
+                ending = "\u00b0C";
+
+                // are we converting to fahrenheit?
+                if (this._settings.get_int('unit') == 1) {
+                    value = ((9 / 5) * value + 32);
+                    ending = "\u00b0F";
+                }
+
                 format = (this._use_higher_precision)?'%.1f%s':'%d%s';
-                ending = (fahrenheit) ? "\u00b0F" : "\u00b0C";
                 break;
             case 'fan':
                 format = '%d rpm';
@@ -389,29 +396,30 @@ const VitalsMenuButton = new Lang.Class({
                 ending = ' MHz';
                 break;
             case 'storage':
-                format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
-            case 'speed':
-                if (!format) format = (this._use_higher_precision)?'%.1f%s':'%.0f%s';
-                let i = 0;
-
                 if (value > 0) {
                     i = Math.floor(Math.log(value) / Math.log(kilo));
                     value = parseFloat((value / Math.pow(kilo, i)));
                 }
 
+                format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
                 ending = sizes[i];
-                if (sensorClass == 'speed')
-                    ending = ending + '/s';
+                break;
+            case 'speed':
+                if (value > 0) {
+                    i = Math.floor(Math.log(value) / Math.log(kilo));
+                    value = parseFloat((value / Math.pow(kilo, i)));
+                }
+
+                format = (this._use_higher_precision)?'%.1f%s':'%.0f%s';
+                ending = sizes[i] + '/s';
                 break;
             case 'duration':
-                let levels = {
-                    scale: [24, 60, 60],
-                    units: ['d ', 'h ', 'm ']
-                };
+                let scale = [24, 60, 60];
+                let units = ['d ', 'h ', 'm '];
 
                 if (this._use_higher_precision) {
-                    levels.scale.push(1);
-                    levels.units.push('s ');
+                    scale.push(1);
+                    units.push('s ');
                 }
 
                 const cbFun = (d, c) => {
@@ -422,9 +430,10 @@ const VitalsMenuButton = new Lang.Class({
                     return [d[0] + aa, bb];
                 };
 
-                let rslt = levels.scale.map((d, i, a) => a.slice(i).reduce((d, c) => d * c))
-                    .map((d, i) => ([d, levels.units[i]]))
+                let rslt = scale.map((d, i, a) => a.slice(i).reduce((d, c) => d * c))
+                    .map((d, i) => ([d, units[i]]))
                     .reduce(cbFun, ['', value]);
+
                 value = rslt[0].trim();
 
                 format = '%s';
@@ -469,7 +478,6 @@ const VitalsMenuButton = new Lang.Class({
 let vitalsMenu;
 
 function init(extensionMeta) {
-    Convenience.initTranslations();
 }
 
 function enable() {

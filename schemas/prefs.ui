@@ -117,6 +117,8 @@
                                 <property name="margin_left">5</property>
                                 <property name="margin_right">5</property>
                                 <property name="max_length">2</property>
+                                <property name="max_width_chars">2</property>
+                                <property name="completion">entrycompletion1</property>
                                 <property name="input_purpose">number</property>
                                 <property name="adjustment">spin1params</property>
                                 <property name="climb_rate">1</property>
