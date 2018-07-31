@@ -43,7 +43,7 @@ const VitalsMenuButton = new Lang.Class({
             'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage.svg') // Pop
         }
 
-        this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box timepp-custom-css-root' });
+        this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
 
         this._hotLabels = {};
         this._hotIcons = {};
@@ -239,7 +239,7 @@ const VitalsMenuButton = new Lang.Class({
     _updateDisplay: function(label, value, type, key) {
         // update sensor value in menubar
         if (this._hotLabels[key])
-            this._hotLabels[key].set_text(value + ' ');
+            this._hotLabels[key].set_text(value);
 
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
@@ -316,8 +316,9 @@ const VitalsMenuButton = new Lang.Class({
 
         if (this._hotLabels[key]) {
             item.checked = true;
-            if (this._hotIcons[key])
+            if (this._hotIcons[key]) {
                 this._hotIcons[key].gicon = item.gicon;
+            }
         }
 
         this._sensorMenuItems[key] = item;
@@ -345,10 +346,12 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _defaultIcon: function(gicon) {
-        let icon = new St.Icon( {
+        let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
-            icon_size: 16
+          style_class: 'vitals-icon'
         });
+
+        icon.style = this._setProgress(0.1);
 
         if (gicon) icon.gicon = gicon;
 
@@ -466,6 +469,21 @@ const VitalsMenuButton = new Lang.Class({
         }));
     },
 
+    _setProgress: function(amount) {
+        let a = '00FF00';
+        let b = 'FF0000';
+
+        var ah = parseInt(a, 16),
+            ar = ah >> 16, ag = ah >> 8 & 0xff, ab = ah & 0xff,
+            bh = parseInt(b, 16),
+            br = bh >> 16, bg = bh >> 8 & 0xff, bb = bh & 0xff,
+            rr = ar + amount * (br - ar),
+            rg = ag + amount * (bg - ag),
+            rb = ab + amount * (bb - ab);
+
+        return 'color:#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
+    },
+
     _onDestroy: function() {
         Mainloop.source_remove(this._refreshTimeoutId);
 
@@ -477,7 +495,7 @@ const VitalsMenuButton = new Lang.Class({
 
 let vitalsMenu;
 
-function init(extensionMeta) {
+function init() {
 }
 
 function enable() {

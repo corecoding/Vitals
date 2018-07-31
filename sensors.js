@@ -205,6 +205,7 @@ const Sensors = new Lang.Class({
             let proc = loadArray[3].split('/');
 
             this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'string');
+            this._returnValue(callback, 'system', loadArray[0], 'system-group', 'string');
             this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'string');
             this._returnValue(callback, 'Load 10m', loadArray[2], 'system', 'string');
             this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
@@ -290,6 +291,7 @@ const Sensors = new Lang.Class({
         this._returnValue(callback, 'Used', used, 'storage', 'storage');
         this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
         this._returnValue(callback, 'Free', avail, 'storage', 'storage');
+        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     },
 
     _returnValue: function(callback, label, value, type, format) {
