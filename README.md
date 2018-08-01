@@ -1,9 +1,10 @@
 gnome-shell-extension-vitals
 ====================================
 
-Vitals is a GNOME extension for displaying system temperature, voltage, fan speed, memory usage and CPU load in GNOME Shell's menu bar. I was having trouble finding an up to date, resource friendly and fully featured monitoring tool. Going above and beyond, I decided to add history charts and warning colors - green, yellow and red to signal when there are issues.
+Vitals is a GNOME extension for displaying your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats in your GNOME Shell's menu bar. This is a one stop shop to monitor all of your vital sensors. Vitals uses asynchronous polling to provide a smooth user experience.
 
-More info in [wiki](https://github.com/corecoding/Vitals/wiki)
+
+More info in [wiki](https://github.com/corecoding/Vitals/wiki).
 
 ## Installation
 
@@ -27,11 +28,13 @@ https://extensions.gnome.org/extension/841/freon/
 Restart GNOME Shell (`Alt+F2`, `r`, `Enter`) and enable the extension through gnome-tweak-tool.
 
 ## Credits
-Vitals is forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon).
+Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured monitoring tool, and thus, Vitals was born!
 
-Memory and cpu icons by Abderraouf omara from iconfinder.com in the [Computer and Technologies](https://www.iconfinder.com/iconsets/computer-and-technologies-1). Icons changed to white.
+### Icons
+* Memory and cpu icons by Abderraouf omara from iconfinder.com in the [Computer and Technologies](https://www.iconfinder.com/iconsets/computer-and-technologies-1). Icons changed to white.
+* Icons inherited from Freon project: temperature.svg, voltage.svg and fan.svg.
+* system.svg, network.svg and storage.svg from Pop! OS theme.
 
-Icons inherited from Freon project: fan.svg, gpu.svg, temperature.svg, voltage.svg
 
 ## Disclaimer
-Sensor data is grabbed from the system using hwmon and GTop. Core Coding and Vitals author is not responsible for improperly represented data.
+Sensor data is grabbed from the system using hwmon and GTop. Core Coding and Vitals author is not responsible for improperly represented data. No warranty expressed or implied.

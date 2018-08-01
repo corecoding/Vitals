@@ -30,34 +30,31 @@ const VitalsMenuButton = new Lang.Class({
             this._settings = new Gio.Settings({ settings_schema: schema });
         }
 
-        this._sensorMenuItems = {};
-
         this._sensorIcons = {
-            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature.svg'), // Freon
-            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage.svg'), // Freon
-            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan.svg'), // Freon
-            'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory.svg'), // Icon
-            'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu.svg'), // Icon
-            'system' : Gio.icon_new_for_string(Me.path + '/icons/system.svg'), // Pop
-            'network' : Gio.icon_new_for_string(Me.path + '/icons/network.svg'), // Pop
-            'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage.svg') // Pop
+            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature-symbolic.svg'),
+            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage-symbolic.svg'),
+            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan-symbolic.svg'),
+            'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory-symbolic.svg'),
+            'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu-symbolic.svg'),
+            'system' : Gio.icon_new_for_string(Me.path + '/icons/system-symbolic.svg'),
+            'network' : Gio.icon_new_for_string(Me.path + '/icons/network-symbolic.svg'),
+            'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage-symbolic.svg')
         }
 
-        this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
-
+        this._sensorMenuItems = {};
         this._hotLabels = {};
         this._hotIcons = {};
-
         this._groups = {};
 
         this._update_time = this._settings.get_int('update-time');
         this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
-
-        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._debug, this._update_time);
-
-        // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
         let showIcon = this._settings.get_boolean('show-icon-on-panel');
+
+        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._debug, this._update_time);
+        this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
+
+        // grab list of selected menubar icons
         for (let key of Object.values(hotSensors)) {
             this._createHotItem(key, showIcon);
         }
@@ -316,9 +313,8 @@ const VitalsMenuButton = new Lang.Class({
 
         if (this._hotLabels[key]) {
             item.checked = true;
-            if (this._hotIcons[key]) {
+            if (this._hotIcons[key])
                 this._hotIcons[key].gicon = item.gicon;
-            }
         }
 
         this._sensorMenuItems[key] = item;
@@ -348,10 +344,11 @@ const VitalsMenuButton = new Lang.Class({
     _defaultIcon: function(gicon) {
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
-          style_class: 'vitals-icon'
+          //style_class: 'vitals-icon'
+          style_class: 'system-status-icon'
         });
 
-        icon.style = this._setProgress(0.1);
+        //icon.style = this._setProgress(0.1);
 
         if (gicon) icon.gicon = gicon;
 

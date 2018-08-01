@@ -1,4 +1,7 @@
-.vitals-icon { icon-size: 16px; }
-.vitals-menu-button-container { /* border: 1px solid green; margin: 0 auto; */ }
+.vitals-icon { icon-size: 16px; color:white; }
+.vitals-menu-button-container {  }
 .vitals-status-menu-item { color: white; font-weight:bold; }
+/*
 .vitals-panel-box StIcon { color: grey; margin-right: 2px; margin-left: 8px; }
+.vitals-panel-box StIcon:hover { color: white;  }
+*/
