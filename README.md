@@ -25,13 +25,14 @@ https://extensions.gnome.org/extension/841/freon/
 Restart GNOME Shell (`Alt+F2`, `r`, `Enter`) and enable the extension through gnome-tweak-tool.
 
 ## Credits
-Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured system monitoring tool. My biggest pet peeve was random system delays becaus of I/O blocking polls, and thus, Vitals was born!
+Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured system monitoring tool. My biggest pet peeve was random system delays becaus of I/O blocking polls, and thus, the idea for Vitals was born!
 
 ### Icons
-* voltage-symbolic.svg and fan-symbolic.svg - inherited from Freon project.
-* system-symbolic.svg, network-symbolic.svg and storage-symbolic.svg - from Pop! OS theme.
+* (voltage|fan)-symbolic.svg - inherited from Freon project.
+* (system|storage)-symbolic.svg - from Pop! OS theme.
 * temperature-symbolic.svg - [iconnice studio](https://www.iconfinder.com/iconnice).
-* cpu-symbolic.svg and memory-symbolic.svg - [DinosoftLabs](https://www.iconfinder.com/dinosoftlabs).
+* (cpu|memory)-symbolic.svg - [DinosoftLabs](https://www.iconfinder.com/dinosoftlabs).
+* network*.svg - [Yannick Lung](https://www.iconfinder.com/yanlu).
 
 ## Disclaimer
 Sensor data is grabbed from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.

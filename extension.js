@@ -31,14 +31,24 @@ const VitalsMenuButton = new Lang.Class({
         }
 
         this._sensorIcons = {
-            'temperature' : Gio.icon_new_for_string(Me.path + '/icons/temperature-symbolic.svg'),
-            'voltage' : Gio.icon_new_for_string(Me.path + '/icons/voltage-symbolic.svg'),
-            'fan' : Gio.icon_new_for_string(Me.path + '/icons/fan-symbolic.svg'),
-            'memory' : Gio.icon_new_for_string(Me.path + '/icons/memory-symbolic.svg'),
-            'processor' : Gio.icon_new_for_string(Me.path + '/icons/cpu-symbolic.svg'),
-            'system' : Gio.icon_new_for_string(Me.path + '/icons/system-symbolic.svg'),
-            'network' : Gio.icon_new_for_string(Me.path + '/icons/network-symbolic.svg'),
-            'storage' : Gio.icon_new_for_string(Me.path + '/icons/storage-symbolic.svg')
+            'temperature' : { 'icon': 'temperature-symbolic.svg',
+                       'alphabetize': true },
+                'voltage' : { 'icon': 'voltage-symbolic.svg',
+                       'alphabetize': true },
+                    'fan' : { 'icon': 'fan-symbolic.svg',
+                       'alphabetize': true },
+                 'memory' : { 'icon': 'memory-symbolic.svg',
+                       'alphabetize': false },
+              'processor' : { 'icon': 'cpu-symbolic.svg',
+                       'alphabetize': true },
+                 'system' : { 'icon': 'system-symbolic.svg',
+                       'alphabetize': true },
+                'network' : { 'icon': 'network-symbolic.svg',
+                       'alphabetize': true,
+                     'icon-download': 'network-download-symbolic.svg',
+                       'icon-upload': 'network-upload-symbolic.svg' },
+                'storage' : { 'icon': 'storage-symbolic.svg',
+                       'alphabetize': false }
         }
 
         this._sensorMenuItems = {};
@@ -59,17 +69,13 @@ const VitalsMenuButton = new Lang.Class({
             this._createHotItem(key, showIcon);
         }
 
-        // TODO Fix bug that causes dropdown to be scooted left when juggling sensors
-        // adds drop down arrow in menubar
-        //this._menuLayout.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
-
         this.actor.add_actor(this._menuLayout);
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
         this._addSettingChangedSignal('show-icon-on-panel', Lang.bind(this, this._showIconOnPanelChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
-        this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionToggle));
+        this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
         let settings = ['unit', 'hot-sensors', 'hide-zeros', 'alphabetize'];
         for (let setting of Object.values(settings)) {
@@ -78,7 +84,7 @@ const VitalsMenuButton = new Lang.Class({
 
         // add signals for show- preference based categories
         for (let sensor in this._sensorIcons) {
-            this._addSettingChangedSignal('show-' + sensor, Lang.bind(this, this._showHideSensors));
+            this._addSettingChangedSignal('show-' + sensor, Lang.bind(this, this._showHideSensorsChanged));
         }
 
         this._initializeMenu();
@@ -91,14 +97,14 @@ const VitalsMenuButton = new Lang.Class({
             // groups associated sensors under accordion menu
             if (typeof this._groups[sensor] == 'undefined') {
                 this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
-                this._groups[sensor].icon.gicon = this._sensorIcons[sensor];
+                this._groups[sensor].icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[sensor]['icon']);
 
                 // hide menu items that user has requested to not include
                 if (!this._settings.get_boolean('show-' + sensor)) {
                     this._groups[sensor].actor.hide();
                 }
 
-                if (!this._groups[sensor].status) { // gnome 3.18 and higher
+                if (!this._groups[sensor].status) {
                     this._groups[sensor].status = this._defaultLabel();
                     this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
                 }
@@ -173,13 +179,13 @@ const VitalsMenuButton = new Lang.Class({
         this._menuLayout.add(label);
     },
 
-    _higherPrecisionToggle: function() {
+    _higherPrecisionChanged: function() {
         this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
         this._sensors.resetHistory();
         this._querySensors();
     },
 
-    _showHideSensors: function() {
+    _showHideSensorsChanged: function() {
         for (let sensor in this._sensorIcons) {
             if (this._settings.get_boolean('show-' + sensor)) {
                 this._groups[sensor].actor.show();
@@ -245,10 +251,10 @@ const VitalsMenuButton = new Lang.Class({
             item.value = value;
         } else if (type.includes('-group')) {
             // update text next to group header
-            let parts = type.split('-');
-            if (this._groups[parts[0]]) {
-                this._groups[parts[0]].status.text = value;
-                this._sensorMenuItems[type] = this._groups[parts[0]];
+            let group = type.split('-')[0];
+            if (this._groups[group]) {
+                this._groups[group].status.text = value;
+                this._sensorMenuItems[type] = this._groups[group];
             }
         } else {
             let sensor = { 'label': label, 'value': value, 'type': type }
@@ -259,7 +265,12 @@ const VitalsMenuButton = new Lang.Class({
     _appendMenuItem: function(sensor, key) {
         let showIcon = this._settings.get_boolean('show-icon-on-panel');
 
-        let item = new VitalsItem.VitalsItem(this._sensorIcons[sensor.type], key, sensor.label, sensor.value);
+        let split = sensor.type.split('-');
+        let type = split[0];
+        let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+        let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
+
+        let item = new VitalsItem.VitalsItem(gicon, key, sensor.label, sensor.value);
         item.connect('activate', Lang.bind(this, function(self) {
             let hotSensors = this._settings.get_strv('hot-sensors');
 
@@ -319,18 +330,17 @@ const VitalsMenuButton = new Lang.Class({
 
         this._sensorMenuItems[key] = item;
 
-        // alphabetize the sensors for these categories
         let i = Object.keys(this._sensorMenuItems[key]).length;
 
-        let alpha = [ 'temperature', 'voltage', 'fan', 'system', 'network', 'processor' ];
-        if (alpha.indexOf(sensor.type) > -1 && this._settings.get_boolean('alphabetize')) {
-            let menuItems = this._groups[sensor.type].menu._getMenuItems();
+        // alphabetize the sensors for these categories
+        if (this._sensorIcons[type]['alphabetize'] && this._settings.get_boolean('alphabetize')) {
+            let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 if (menuItems[i].key.localeCompare(key) > 0)
                     break;
         }
 
-        this._groups[sensor.type].menu.addMenuItem(item, i);
+        this._groups[type].menu.addMenuItem(item, i);
     },
 
     _defaultLabel: function() {
@@ -344,7 +354,6 @@ const VitalsMenuButton = new Lang.Class({
     _defaultIcon: function(gicon) {
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
-          //style_class: 'vitals-icon'
           style_class: 'system-status-icon'
         });
 
@@ -357,7 +366,6 @@ const VitalsMenuButton = new Lang.Class({
 
     _formatValue: function(value, sensorClass) {
         if (value === null) return 'N/A';
-        //if (value == 0) return '.';
 
         let format = '';
         let ending = '';
@@ -484,9 +492,8 @@ const VitalsMenuButton = new Lang.Class({
     _onDestroy: function() {
         Mainloop.source_remove(this._refreshTimeoutId);
 
-        for (let signal of Object.values(this._settingChangedSignals)) {
+        for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
-        };
     }
 });
 

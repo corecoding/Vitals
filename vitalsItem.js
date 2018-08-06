@@ -6,14 +6,14 @@ const VitalsItem = new Lang.Class({
     Name: 'VitalsItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
-    _init: function(gIcon, key, label, value) {
+    _init: function(icon, key, label, value) {
         this.parent();
         this._checked = false;
         this._key = key;
-        this._gIcon = gIcon;
+        this._gIcon = icon;
 
         this._labelActor = new St.Label({ text: label });
-        this.actor.add(new St.Icon({ style_class: 'popup-menu-icon', gicon : gIcon }));
+        this.actor.add(new St.Icon({ style_class: 'popup-menu-icon', gicon : this._gIcon }));
         this.actor.add(this._labelActor, { x_fill: true, expand: true });
         this._valueLabel = new St.Label({ text: value });
         this.actor.add(this._valueLabel);

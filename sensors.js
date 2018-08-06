@@ -25,6 +25,7 @@ const Sensors = new Lang.Class({
         // figure out last run time
         let diff = this._update_time;
         let now = new Date().getTime();
+
         if (this._last_query) {
             diff = (now - this._last_query) / 1000;
             if (this._debug)
@@ -41,22 +42,18 @@ const Sensors = new Lang.Class({
         if (this._settings.get_boolean('show-fan'))
             sensor_types['fan'] = 'fan';
 
-        this._queryTempVoltFan(callback, sensor_types);
+        if (Object.keys(sensor_types).length > 0)
+            this._queryTempVoltFan(callback, sensor_types);
 
-        if (this._settings.get_boolean('show-memory'))
-            this._queryMemory(callback);
+        for (let sensor in this._sensorIcons) {
+            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan')
+                continue;
 
-        if (this._settings.get_boolean('show-processor'))
-            this._queryProcessor(callback, diff);
-
-        if (this._settings.get_boolean('show-system'))
-            this._querySystem(callback);
-
-        if (this._settings.get_boolean('show-network'))
-            this._queryNetwork(callback, diff);
-
-        if (this._settings.get_boolean('show-storage'))
-            this._queryStorage(callback);
+            if (this._settings.get_boolean('show-' + sensor)) {
+                let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+                this[method](callback, diff);
+            }
+        }
     },
 
     _queryTempVoltFan: function(callback, sensor_types) {
@@ -92,7 +89,9 @@ const Sensors = new Lang.Class({
                         new FileModule.File(obj['label']).read().then(label => {
                             new FileModule.File(obj['input']).read().then(value => {
                                 let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
-                                this._returnValue(callback, label + extra, value, obj['type'], obj['format']);
+
+                                if (value > 0 || obj['type'] != 'fan' || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                                    this._returnValue(callback, label + extra, value, obj['type'], obj['format']);
                             }).catch(err => {
                                 global.log(err);
                             });
@@ -236,24 +235,26 @@ const Sensors = new Lang.Class({
                 if (typeof this._network[file] == 'undefined')
                     this._network[file] = {};
 
-                new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(contents => {
+                new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(value => {
                     if (typeof this._network[file]['tx'] != 'undefined') {
-                        let speed = (contents - this._network[file]['tx']) / diff;
-                        this._returnValue(callback, file + ' tx', speed, 'network', 'speed');
+                        let speed = (value - this._network[file]['tx']) / diff;
+                        this._returnValue(callback, file + ' tx', speed, 'network-upload', 'speed');
                     }
 
-                    this._network[file]['tx'] = contents;
+                    if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                        this._network[file]['tx'] = value;
                 }).catch(err => {
                     global.log(err);
                 });
 
-                new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(contents => {
+                new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
                     if (typeof this._network[file]['rx'] != 'undefined') {
-                        let speed = (contents - this._network[file]['rx']) / diff;
-                        this._returnValue(callback, file + ' rx', speed, 'network', 'speed');
+                        let speed = (value - this._network[file]['rx']) / diff;
+                        this._returnValue(callback, file + ' rx', speed, 'network-download', 'speed');
                     }
 
-                    this._network[file]['rx'] = contents;
+                    if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                        this._network[file]['rx'] = value;
                 }).catch(err => {
                     global.log(err);
                 });
@@ -295,27 +296,26 @@ const Sensors = new Lang.Class({
     },
 
     _returnValue: function(callback, label, value, type, format) {
-        // hide fan/network sensors if they are a zero
-        if (value == 0 && ['fan'].indexOf(type) > -1 && this._settings.get_boolean('hide-zeros')) {
-            return;
-        }
-
         // only return sensors that are new or that need updating
-        let key = '_' + type + '_' + label.replace(' ', '_').toLowerCase() + '_';
+        let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
         if (typeof this._history[type][key] == 'undefined' || this._history[type][key] != value) {
             this._history[type][key] = value;
             callback(label, value, type, format, key);
 
             // process average values
             if (type == 'temperature' || type == 'voltage' || type == 'fan') {
-                let vals = [];
-                for (let key2 in this._history[type])
-                    vals.push(parseInt(this._history[type][key2]));
-
+                let vals = Object.values(this._history[type]).map(x => x);
                 let sum = vals.reduce(function(a, b) { return a + b; });
                 let avg = sum / vals.length;
                 callback('Average', avg, type, format, '__' + type + '_avg__');
                 callback(type, avg, type + '-group', format);
+            } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
+                let vals = Object.values(this._history[type]).map(x => x);
+                let max = Math.max(...vals);
+                callback('Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, format, '__max_' + type + '__');
+
+                if (type == 'network-download')
+                    callback(type, max, type + '-group', format);
             }
         }
     },
@@ -329,6 +329,11 @@ const Sensors = new Lang.Class({
         for (let sensor in this._sensorIcons) {
             this._history[sensor] = {};
             this._history[sensor + '-group'] = {};
+
+            if (sensor == 'network') {
+                this._history[sensor + '-download'] = {};
+                this._history[sensor + '-upload'] = {};
+            }
         }
     }
 });
