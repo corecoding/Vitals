@@ -304,13 +304,13 @@ const Sensors = new Lang.Class({
 
             // process average values
             if (type == 'temperature' || type == 'voltage' || type == 'fan') {
-                let vals = Object.values(this._history[type]).map(x => x);
+                let vals = Object.values(this._history[type]).map(x => parseFloat(x));
                 let sum = vals.reduce(function(a, b) { return a + b; });
                 let avg = sum / vals.length;
                 callback('Average', avg, type, format, '__' + type + '_avg__');
                 callback(type, avg, type + '-group', format);
             } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
-                let vals = Object.values(this._history[type]).map(x => x);
+                let vals = Object.values(this._history[type]).map(x => parseFloat(x));
                 let max = Math.max(...vals);
                 callback('Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, format, '__max_' + type + '__');
 

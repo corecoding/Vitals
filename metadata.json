@@ -1,5 +1,5 @@
 {
-  "description": "A glimpse into your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats. This is a one stop shop to monitor all of your vital sensors. Uses asynchronous polling to provide a smooth user experience.",
+  "description": "A glimpse into your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats. This is a one stop shop to monitor all of your vital sensors. Uses asynchronous polling to provide a smooth user experience. Feature requests or bugs? Please use GitHub.",
   "gettext-domain": "vitals",
   "name": "Vitals",
   "settings-schema": "org.gnome.shell.extensions.vitals",
@@ -12,5 +12,5 @@
   ],
   "url": "https://github.com/corecoding/Vitals",
   "uuid": "Vitals@CoreCoding.com",
-  "version": 2
+  "version": 3
 }
