@@ -3,7 +3,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const GTop = imports.gi.GTop;
 
-const Sensors = new Lang.Class({
+var Sensors = new Lang.Class({
     Name: 'Sensors',
 
     _init: function(settings, sensorIcons, debug, update_time) {
@@ -110,16 +110,15 @@ const Sensors = new Lang.Class({
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
             let total = 0, avail = 0, swap = 0;
-            let values;
 
-            if (values = lines.match(/MemTotal:(\s+)(\d+) kB/))
-                total = values[2] * 1024;
+            let values = lines.match(/MemTotal:(\s+)(\d+) kB/);
+            if (values) total = values[2] * 1024;
 
-            if (values = lines.match(/MemAvailable:(\s+)(\d+) kB/))
-                avail = values[2] * 1024;
+            values = lines.match(/MemAvailable:(\s+)(\d+) kB/);
+            if (values) avail = values[2] * 1024;
 
-            if (values = lines.match(/SwapCached:(\s+)(\d+) kB/))
-                swap = values[2] * 1024;
+            values = lines.match(/SwapCached:(\s+)(\d+) kB/)
+            if (values) swap = values[2] * 1024;
 
             let used = total - avail
             let utilized = used / total * 100;
@@ -145,15 +144,18 @@ const Sensors = new Lang.Class({
             let reverse_data;
 
             for (let line of Object.values(lines)) {
-                if (reverse_data = line.match(/^(cpu\d*\s)(.+)/)) {
+                let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
+                if (reverse_data) {
                     let cpu = reverse_data[1].trim();
                     if (typeof statistics[cpu] == 'undefined')
                         statistics[cpu] = {};
 
+                    if (typeof this._last_cpu_user[cpu] == 'undefined')
+                        this._last_cpu_user[cpu] = {};
+
                     let stats = reverse_data[2].trim().split(' ').reverse();
-                    for (let index in columns) {
+                    for (let index in columns)
                         statistics[cpu][columns[index]] = stats.pop();
-                    }
                 }
             }
 
@@ -185,7 +187,8 @@ const Sensors = new Lang.Class({
 
             let freqs = [];
             for (let line of Object.values(lines)) {
-                if (value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/)) {
+                let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
+                if (value) {
                     freqs.push(parseFloat(value[2]));
                 }
             }

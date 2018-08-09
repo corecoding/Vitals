@@ -13,6 +13,14 @@ const Sensors = Me.imports.sensors;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
+const cbFun = (d, c) => {
+    let bb = d[1] % c[0],
+        aa = (d[1] - bb) / c[0];
+    aa = aa > 0 ? aa + c[1] : '';
+
+    return [d[0] + aa, bb];
+};
+
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
     Extends: PanelMenu.Button,
@@ -392,12 +400,13 @@ const VitalsMenuButton = new Lang.Class({
                 format = (this._use_higher_precision)?'%.1f%s':'%d%s';
                 break;
             case 'fan':
-                format = '%d rpm';
+                format = '%d';
+                ending = ' RPM';
                 break;
             case 'in':
                 value = value / 1000;
                 format = ((value >= 0) ? '+' : '-') + '%.2f%s';
-                ending = 'V';
+                ending = ' V';
                 break;
             case 'mhz':
                 format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
@@ -410,7 +419,7 @@ const VitalsMenuButton = new Lang.Class({
                 }
 
                 format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
-                ending = sizes[i];
+                ending = ' ' + sizes[i];
                 break;
             case 'speed':
                 if (value > 0) {
@@ -419,7 +428,7 @@ const VitalsMenuButton = new Lang.Class({
                 }
 
                 format = (this._use_higher_precision)?'%.1f%s':'%.0f%s';
-                ending = sizes[i] + '/s';
+                ending = ' ' + sizes[i] + '/s';
                 break;
             case 'duration':
                 let scale = [24, 60, 60];
@@ -429,14 +438,6 @@ const VitalsMenuButton = new Lang.Class({
                     scale.push(1);
                     units.push('s ');
                 }
-
-                const cbFun = (d, c) => {
-                    let bb = d[1] % c[0],
-                        aa = (d[1] - bb) / c[0];
-                    aa = aa > 0 ? aa + c[1] : '';
-
-                    return [d[0] + aa, bb];
-                };
 
                 let rslt = scale.map((d, i, a) => a.slice(i).reduce((d, c) => d * c))
                     .map((d, i) => ([d, units[i]]))
