@@ -18,7 +18,7 @@ You can use **apt install <package>** or **yum install <package>**
 
 ### 2b) Download from extensions.gnome.org
 
-https://extensions.gnome.org/extension/841/freon/
+https://extensions.gnome.org/extension/1460/vitals/
 
 ### 3) Activate after installation
 
@@ -35,4 +35,4 @@ Vitals was originally forked from [gnome-shell-extension-freon](https://github.c
 * network*.svg - [Yannick Lung](https://www.iconfinder.com/yanlu).
 
 ## Disclaimer
-Sensor data is grabbed from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
+Sensor data is obtained from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
