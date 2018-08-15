@@ -11,7 +11,7 @@ const _ = Gettext.domain(Me.metadata['gettext-domain']).gettext;
 const Settings = new Lang.Class({
     Name: 'Vitals.Settings',
 
-    _init: function () {
+    _init: function() {
         {
             let GioSSS = Gio.SettingsSchemaSource;
             let schema = GioSSS.new_from_directory(Me.path + '/schemas', GioSSS.get_default(), false);
@@ -29,7 +29,7 @@ const Settings = new Lang.Class({
     },
 
     // Bind the gtk window to the schema settings
-    _bind_settings: function () {
+    _bind_settings: function() {
         let widget;
 
         let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
@@ -63,9 +63,9 @@ const Settings = new Lang.Class({
     },
 });
 
-function init () {}
+function init() {}
 
-function buildPrefsWidget () {
+function buildPrefsWidget() {
     let settings = new Settings();
     let widget = settings.widget;
 

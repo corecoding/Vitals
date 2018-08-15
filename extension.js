@@ -380,37 +380,46 @@ const VitalsMenuButton = new Lang.Class({
         let i = 0;
 
         let kilo = 1024;
-        var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        var sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+        var hertz = [ 'Hz', 'KHz', '\u3392', '\u3393', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
         switch (sensorClass) {
             case 'percent':
                 format = (this._use_higher_precision)?'%.1f%s':'%d%s';
-                ending = '%';
+                //ending = '%';
+                ending = '\u0025';
                 break;
             case 'temp':
                 value = value / 1000;
-                ending = "\u00b0C";
+                //ending = "\u00b0C";
+                ending = '\u2103';
 
                 // are we converting to fahrenheit?
                 if (this._settings.get_int('unit') == 1) {
                     value = ((9 / 5) * value + 32);
-                    ending = "\u00b0F";
+                    //ending = "\u00b0F";
+                    ending = '\u2109';
                 }
 
                 format = (this._use_higher_precision)?'%.1f%s':'%d%s';
                 break;
             case 'fan':
-                format = '%d';
-                ending = ' RPM';
+                format = '%d %s';
+                ending = 'RPM';
                 break;
             case 'in':
                 value = value / 1000;
-                format = ((value >= 0) ? '+' : '-') + '%.2f%s';
-                ending = ' V';
+                format = ((value >= 0) ? '+' : '-') + '%.2f %s';
+                ending = 'V';
                 break;
-            case 'mhz':
-                format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
-                ending = ' MHz';
+            case 'hertz':
+                if (value > 0) {
+                    i = Math.floor(Math.log(value) / Math.log(1000));
+                    value = parseFloat((value / Math.pow(1000, i)));
+                }
+
+                format = (this._use_higher_precision)?'%.2f %s':'%.1f %s';
+                ending = hertz[i];
                 break;
             case 'storage':
                 if (value > 0) {
@@ -418,8 +427,8 @@ const VitalsMenuButton = new Lang.Class({
                     value = parseFloat((value / Math.pow(kilo, i)));
                 }
 
-                format = (this._use_higher_precision)?'%.2f%s':'%.1f%s';
-                ending = ' ' + sizes[i];
+                format = (this._use_higher_precision)?'%.2f %s':'%.1f %s';
+                ending = sizes[i];
                 break;
             case 'speed':
                 if (value > 0) {
@@ -427,8 +436,8 @@ const VitalsMenuButton = new Lang.Class({
                     value = parseFloat((value / Math.pow(kilo, i)));
                 }
 
-                format = (this._use_higher_precision)?'%.1f%s':'%.0f%s';
-                ending = ' ' + sizes[i] + '/s';
+                format = (this._use_higher_precision)?'%.1f %s':'%.0f %s';
+                ending = sizes[i] + '/s';
                 break;
             case 'duration':
                 let scale = [24, 60, 60];
