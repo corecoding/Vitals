@@ -133,7 +133,7 @@ var Sensors = new Lang.Class({
     _queryMemory: function(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
-            let total = 0, avail = 0, swap = 0;
+            let total = 0, avail = 0, swapTotal = 0, swapFree = 0;
 
             let values = lines.match(/MemTotal:(\s+)(\d+) kB/);
             if (values) total = values[2] * 1024;
@@ -141,8 +141,11 @@ var Sensors = new Lang.Class({
             values = lines.match(/MemAvailable:(\s+)(\d+) kB/);
             if (values) avail = values[2] * 1024;
 
-            values = lines.match(/SwapCached:(\s+)(\d+) kB/)
-            if (values) swap = values[2] * 1024;
+            values = lines.match(/SwapTotal:(\s+)(\d+) kB/)
+            if (values) swapTotal = values[2] * 1024;
+
+            values = lines.match(/SwapFree:(\s+)(\d+) kB/)
+            if (values) swapFree = values[2] * 1024;
 
             let used = total - avail
             let utilized = used / total * 100;
@@ -152,7 +155,7 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Physical', total, 'memory', 'storage');
             this._returnValue(callback, 'Available', avail, 'memory', 'storage');
             this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
-            this._returnValue(callback, 'Swap Used', swap, 'memory', 'storage');
+            this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'storage');
         }).catch(err => {
             global.log(err);
         });
