@@ -40,8 +40,8 @@ var Sensors = new Lang.Class({
         this.resetHistory();
 
         this._last_query = 0;
-        this._last_cpu_user = {};
-        this._network = {};
+        this._last_processor = {};
+        this._last_network = {};
         this.storage = new GTop.glibtop_fsusage();
     },
 
@@ -50,10 +50,8 @@ var Sensors = new Lang.Class({
         let diff = this._update_time;
         let now = new Date().getTime();
 
-        if (this._last_query) {
+        if (this._last_query)
             diff = (now - this._last_query) / 1000;
-            //global.log('_____ Sensors last queried ' + diff + ' seconds ago _____');
-        }
 
         this._last_query = now;
 
@@ -172,11 +170,12 @@ var Sensors = new Lang.Class({
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
                 if (reverse_data) {
                     let cpu = reverse_data[1].trim();
+
                     if (typeof statistics[cpu] == 'undefined')
                         statistics[cpu] = {};
 
-                    if (typeof this._last_cpu_user[cpu] == 'undefined')
-                        this._last_cpu_user[cpu] = {};
+                    if (typeof this._last_processor[cpu] == 'undefined')
+                        this._last_processor[cpu] = 0;
 
                     let stats = reverse_data[2].trim().split(' ').reverse();
                     for (let index in columns)
@@ -185,22 +184,22 @@ var Sensors = new Lang.Class({
             }
 
             for (let cpu in statistics) {
-                let delta = (statistics[cpu]['user'] - this._last_cpu_user[cpu]) / diff;
+                // make sure we have data to report
+                if (this._last_processor[cpu] > 0) {
+                    let delta = (statistics[cpu]['user'] - this._last_processor[cpu]) / diff;
 
-                let label = cpu;
-                if (cpu == 'cpu') {
-                    delta = delta / (Object.keys(statistics).length - 1);
-                    label = 'Average';
-                    this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
-                } else {
-                    label = 'Core %s'.format(cpu.substr(3));
-                }
+                    let label = cpu;
+                    if (cpu == 'cpu') {
+                        delta = delta / (Object.keys(statistics).length - 1);
+                        label = 'Average';
+                        this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
+                    } else
+                        label = 'Core %s'.format(cpu.substr(3));
 
-                if (typeof this._last_cpu_user[cpu] != 'undefined') {
                     this._returnValue(callback, label, delta, 'processor', 'percent');
                 }
 
-                this._last_cpu_user[cpu] = statistics[cpu]['user'];
+                this._last_processor[cpu] = statistics[cpu]['user'];
             }
         }).catch(err => {
             global.log(err);
@@ -245,7 +244,7 @@ var Sensors = new Lang.Class({
             let upArray = contents.split(' ');
             this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
 
-            let cores = Object.keys(this._last_cpu_user).length - 1;
+            let cores = Object.keys(this._last_processor).length - 1;
             if (cores > 0)
                 this._returnValue(callback, 'Used Cycles', upArray[0] - upArray[1] / cores, 'system', 'duration');
         }).catch(err => {
@@ -258,29 +257,29 @@ var Sensors = new Lang.Class({
         let netbase = '/sys/class/net/';
         new FileModule.File(netbase).list().then(files => {
             for (let file of Object.values(files)) {
-                if (typeof this._network[file] == 'undefined')
-                    this._network[file] = {};
+                if (typeof this._last_network[file] == 'undefined')
+                    this._last_network[file] = {};
 
                 new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(value => {
-                    if (typeof this._network[file]['tx'] != 'undefined') {
-                        let speed = (value - this._network[file]['tx']) / diff;
+                    if (typeof this._last_network[file]['tx'] != 'undefined') {
+                        let speed = (value - this._last_network[file]['tx']) / diff;
                         this._returnValue(callback, file + ' tx', speed, 'network-upload', 'speed');
                     }
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                        this._network[file]['tx'] = value;
+                        this._last_network[file]['tx'] = value;
                 }).catch(err => {
                     global.log(err);
                 });
 
                 new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
-                    if (typeof this._network[file]['rx'] != 'undefined') {
-                        let speed = (value - this._network[file]['rx']) / diff;
+                    if (typeof this._last_network[file]['rx'] != 'undefined') {
+                        let speed = (value - this._last_network[file]['rx']) / diff;
                         this._returnValue(callback, file + ' rx', speed, 'network-download', 'speed');
                     }
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                        this._network[file]['rx'] = value;
+                        this._last_network[file]['rx'] = value;
                 }).catch(err => {
                     global.log(err);
                 });

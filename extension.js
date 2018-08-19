@@ -461,7 +461,8 @@ const VitalsMenuButton = new Lang.Class({
                 let scale = [24, 60, 60];
                 let units = ['d ', 'h ', 'm '];
 
-                if (this._use_higher_precision) {
+                // show seconds on higher precision or if value under a minute
+                if (this._use_higher_precision || value < 60) {
                     scale.push(1);
                     units.push('s ');
                 }
