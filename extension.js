@@ -496,7 +496,7 @@ const VitalsMenuButton = new Lang.Class({
         this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
             value = this._formatValue(value, format);
             //global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-            this._updateDisplay(label, value, type, key);
+            this._updateDisplay(_(label), value, type, key);
         }));
     },
 
