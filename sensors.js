@@ -32,9 +32,8 @@ const GTop = imports.gi.GTop;
 var Sensors = new Lang.Class({
     Name: 'Sensors',
 
-    _init: function(settings, sensorIcons, debug, update_time) {
+    _init: function(settings, sensorIcons, update_time) {
         this._settings = settings;
-        this._debug = debug;
         this._update_time = update_time;
         this._sensorIcons = sensorIcons;
 
@@ -53,8 +52,7 @@ var Sensors = new Lang.Class({
 
         if (this._last_query) {
             diff = (now - this._last_query) / 1000;
-            if (this._debug)
-                global.log('_____ Sensors last queried ' + diff + ' seconds ago _____');
+            //global.log('_____ Sensors last queried ' + diff + ' seconds ago _____');
         }
 
         this._last_query = now;
@@ -248,9 +246,8 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
 
             let cores = Object.keys(this._last_cpu_user).length - 1;
-            if (cores > 0) {
+            if (cores > 0)
                 this._returnValue(callback, 'Used Cycles', upArray[0] - upArray[1] / cores, 'system', 'duration');
-            }
         }).catch(err => {
             global.log(err);
         });
@@ -292,20 +289,23 @@ var Sensors = new Lang.Class({
             global.log(err);
         });
 
-        // check the public ip every hour or when waking from sleep
-        if (this._next_public_ip_check <= 0) {
-            this._next_public_ip_check = 3600;
+        // some may not want public ip checking
+        if (this._settings.get_boolean('include-public-ip')) {
+            // check the public ip every hour or when waking from sleep
+            if (this._next_public_ip_check <= 0) {
+                this._next_public_ip_check = 3600;
 
-            // check uptime
-            new FileModule.File('http://corecoding.com/vitals.php').read().then(contents => {
-                let obj = JSON.parse(contents);
-                this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
-            }).catch(err => {
-                global.log(err);
-            });
+                // check uptime
+                new FileModule.File('http://corecoding.com/vitals.php').read().then(contents => {
+                    let obj = JSON.parse(contents);
+                    this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
+                }).catch(err => {
+                    global.log(err);
+                });
+            }
+
+            this._next_public_ip_check -= diff;
         }
-
-        this._next_public_ip_check -= diff;
     },
 
     _queryStorage: function(callback) {

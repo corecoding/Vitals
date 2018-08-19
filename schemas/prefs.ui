@@ -481,7 +481,7 @@ No warranty expressed or implied. Bugs? Feature requests? Please visit our &lt;a
                                     <property name="can_focus">False</property>
                                     <property name="halign">start</property>
                                     <property name="margin_left">5</property>
-                                    <property name="label" translatable="yes">Monitor temperatures</property>
+                                    <property name="label" translatable="yes">Monitor temperature</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -525,7 +525,7 @@ No warranty expressed or implied. Bugs? Feature requests? Please visit our &lt;a
                                     <property name="can_focus">False</property>
                                     <property name="halign">start</property>
                                     <property name="margin_left">5</property>
-                                    <property name="label" translatable="yes">Temperature unit</property>
+                                    <property name="label" translatable="yes"> ↳ Temperature unit</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -574,7 +574,7 @@ No warranty expressed or implied. Bugs? Feature requests? Please visit our &lt;a
                                     <property name="can_focus">False</property>
                                     <property name="halign">start</property>
                                     <property name="margin_left">5</property>
-                                    <property name="label" translatable="yes">Monitor voltages</property>
+                                    <property name="label" translatable="yes">Monitor voltage</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -617,7 +617,7 @@ No warranty expressed or implied. Bugs? Feature requests? Please visit our &lt;a
                                     <property name="can_focus">False</property>
                                     <property name="halign">start</property>
                                     <property name="margin_left">5</property>
-                                    <property name="label" translatable="yes">Monitor fans</property>
+                                    <property name="label" translatable="yes">Monitor fan</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -799,6 +799,49 @@ No warranty expressed or implied. Bugs? Feature requests? Please visit our &lt;a
                                 </child>
                                 <child>
                                   <object class="GtkSwitch" id="show-network">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="halign">end</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkListBoxRow">
+                            <property name="width_request">100</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="selectable">False</property>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="valign">center</property>
+                                <property name="margin_top">6</property>
+                                <property name="margin_bottom">6</property>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="halign">start</property>
+                                    <property name="margin_left">5</property>
+                                    <property name="label" translatable="yes"> ↳ Include public IP address</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkSwitch" id="include-public-ip">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="halign">end</property>
