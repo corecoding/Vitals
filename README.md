@@ -32,7 +32,8 @@ Vitals was originally forked from [gnome-shell-extension-freon](https://github.c
 * (system|storage)-symbolic.svg - from Pop! OS theme.
 * temperature-symbolic.svg - [iconnice studio](https://www.iconfinder.com/iconnice).
 * (cpu|memory)-symbolic.svg - [DinosoftLabs](https://www.iconfinder.com/dinosoftlabs).
-* network*.svg - [Yannick Lung](https://www.iconfinder.com/yanlu).
+* network\*.svg - [Yannick Lung](https://www.iconfinder.com/yanlu).
+* Health icon - [Dod Cosmin](https://www.iconfinder.com/icons/458267/cross_doctor_drug_health_healthcare_hospital_icon).
 
 ## Disclaimer
 Sensor data is obtained from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
