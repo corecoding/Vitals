@@ -1,0 +1,98 @@
+# Brazilian Portuguese translation for gnome-shell-extension-clipboard-indicator.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Diego R Lima <contact@diegoribeiro.net>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-11-09 03:00-0300\n"
+"PO-Revision-Date: 2017-11-09 03:01-0300\n"
+"Last-Translator: Diego R Lima <contact@diegoribeiro.net>\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.3\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SearchPath-0: prefs.js\n"
+"X-Poedit-SearchPath-1: extension.js\n"
+
+#: extension.js:78
+msgid "Text will be here"
+msgstr "O texto estará aqui"
+
+#: extension.js:119
+msgid "Type here to search..."
+msgstr "Digite aqui para pesquisar..."
+
+#: extension.js:166
+msgid "Private mode"
+msgstr "Modo privado"
+
+#: extension.js:173 prefs.js:102
+msgid "Clear history"
+msgstr "Apagar histórico"
+
+#: extension.js:178
+msgid "Settings"
+msgstr "Configurações"
+
+#: extension.js:285
+msgid "Clipboard history cleared"
+msgstr "Histórico da área de transferência apagado"
+
+#: extension.js:364
+msgid "Copied to clipboard"
+msgstr "Copiado para a área de transferência"
+
+#: prefs.js:100
+msgid "Toggle the menu"
+msgstr "Abrir menu"
+
+#: prefs.js:104
+msgid "Previous entry"
+msgstr "Entrada anterior"
+
+#: prefs.js:106
+msgid "Next entry"
+msgstr "Próxima entrada"
+
+#: prefs.js:119
+msgid "History Size"
+msgstr "Tamanho do histórico"
+
+#: prefs.js:124
+msgid "Refresh Interval (ms)"
+msgstr "Intervalo de atualização (ms)"
+
+#: prefs.js:129
+msgid "Preview Size (characters)"
+msgstr "Tamanho da visualização (caracteres)"
+
+#: prefs.js:134
+msgid "Max cache file size (kb)"
+msgstr "Tamanho máximo do arquivo de cache (kb)"
+
+#: prefs.js:139
+msgid "Disable cache file"
+msgstr "Desabilitar arquivo de cache"
+
+#: prefs.js:144
+msgid "Show notification on copy"
+msgstr "Mostrar notificação sobre cópia"
+
+#: prefs.js:149
+msgid "Keyboard shortcuts"
+msgstr "Atalhos do teclado"
+
+#: prefs.js:154
+msgid "Number of characters in top bar"
+msgstr "Número de caracteres na barra superior"
+
+#: prefs.js:159
+msgid "What to show in top bar"
+msgstr "O que mostrar na barra superior"

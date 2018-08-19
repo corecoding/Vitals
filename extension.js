@@ -10,8 +10,8 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
+const Gettext = imports.gettext;
+const _ = Gettext.domain('vitals').gettext;
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
@@ -526,6 +526,9 @@ const VitalsMenuButton = new Lang.Class({
 let vitalsMenu;
 
 function init() {
+    let localeDir = Me.dir.get_child('locale');
+    if (localeDir.query_exists(null))
+        Gettext.bindtextdomain('vitals', localeDir.get_path());
 }
 
 function enable() {

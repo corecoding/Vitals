@@ -1,0 +1,76 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Jiri Grönroos <jiri.gronroos+l10n@iki.fi>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-17 19:20+0200\n"
+"PO-Revision-Date: 2017-09-06 09:53+0300\n"
+"Last-Translator: Jiri Grönroos <jiri.gronroos+l10n@iki.fi>\n"
+"Language-Team: suomi <lokalisointi-lista@googlegroups.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 2.91.7\n"
+
+#: extension.js:113
+msgid "Private mode"
+msgstr "Yksityistila"
+
+#: extension.js:120 prefs.js:86
+msgid "Clear history"
+msgstr "Tyhjennä historia"
+
+#: extension.js:125
+msgid "Settings"
+msgstr "Asetukset"
+
+#: extension.js:202
+msgid "Clipboard history cleared"
+msgstr "Leikepöydän sisältö tyhjennetty"
+
+#: extension.js:275
+msgid "Copied to clipboard"
+msgstr "Kopioitu leikepöydälle"
+
+#: prefs.js:84
+msgid "Toggle the menu"
+msgstr "Näytä/piilota valikko"
+
+#: prefs.js:88
+msgid "Previous entry"
+msgstr "Edellinen tietue"
+
+#: prefs.js:90
+msgid "Next entry"
+msgstr "Seuraava tietue"
+
+#: prefs.js:103
+msgid "History Size"
+msgstr "Historian koko"
+
+#: prefs.js:108
+msgid "Refresh Interval (ms)"
+msgstr "Päivitysväli (ms)"
+
+#: prefs.js:113
+msgid "Preview Size (characters)"
+msgstr "Esikatselun koko (merkkejä)"
+
+#: prefs.js:118
+msgid "Max Cache File Size (kb)"
+msgstr "Välimuistin enimmäiskoko (kt)"
+
+#: prefs.js:123
+msgid "Show notification on copy"
+msgstr "Näytä ilmoitus kopioitaessa"
+
+#: prefs.js:128
+msgid "Keyboard shortcuts"
+msgstr "Pikanäppäimet"

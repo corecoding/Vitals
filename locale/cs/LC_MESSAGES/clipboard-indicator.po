@@ -1,0 +1,106 @@
+# Czech translation for gnome-shell-extension-clipboard-indicator.
+# Copyright (C) 2014-2017, Yotam Bar-On
+# This file is distributed under the same license as the gnome-shell-extension-clipboard-indicator package.
+# Daniel Rusek <mail@asciiwolf.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-17 19:20+0200\n"
+"PO-Revision-Date: 2017-11-03 21:22+0100\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
+"Language-Team: \n"
+"X-Generator: Poedit 2.0.3\n"
+
+#: extension.js:78
+msgid "Text will be here"
+msgstr "Zde bude text"
+
+#: extension.js:119
+msgid "Type here to search..."
+msgstr "Vyhledávejte psaním sem..."
+
+#: extension.js:166
+msgid "Private mode"
+msgstr "Soukromý mód"
+
+#: extension.js:173 prefs.js:102
+msgid "Clear history"
+msgstr "Vyčistit historii"
+
+#: extension.js:178
+msgid "Settings"
+msgstr "Nastavení"
+
+#: extension.js:285
+msgid "Clipboard history cleared"
+msgstr "Historie schránky vyčištěna"
+
+#: extension.js:360
+msgid "Copied to clipboard"
+msgstr "Zkopírováno do schránky"
+
+#: prefs.js:100
+msgid "Toggle the menu"
+msgstr "Přepnout menu"
+
+#: prefs.js:104
+msgid "Previous entry"
+msgstr "Předchozí položka"
+
+#: prefs.js:106
+msgid "Next entry"
+msgstr "Následující položka"
+
+#: prefs.js:119
+msgid "History Size"
+msgstr "Velikost historie"
+
+#: prefs.js:124
+msgid "Refresh Interval (ms)"
+msgstr "Interval obnovení (ms)"
+
+#: prefs.js:129
+msgid "Preview Size (characters)"
+msgstr "Velikost náhledu (znaky)"
+
+#: prefs.js:134
+msgid "Max cache file size (kb)"
+msgstr "Maximální velikost mezipaměti (kb)"
+
+#: prefs.js:139
+msgid "Disable cache file"
+msgstr "Zakázat soubor mezipaměti"
+
+#: prefs.js:144
+msgid "Show notification on copy"
+msgstr "Zobrazit oznámení při kopírování"
+
+#: prefs.js:149
+msgid "Keyboard shortcuts"
+msgstr "Klávesové zkratky"
+
+#: prefs.js:154
+msgid "Number of characters in top bar"
+msgstr "Počet znaků v horní liště"
+
+#: prefs.js:159
+msgid "What to show in top bar"
+msgstr "Co zobrazit v horní liště"
+
+#: prefs.js:205
+msgid "Icon"
+msgstr "Ikonu"
+
+#: prefs.js:206
+msgid "Clipboard Content"
+msgstr "Obsah schránky"
+
+#: prefs.js:207
+msgid "Both"
+msgstr "Obojí"

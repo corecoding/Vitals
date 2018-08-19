@@ -1,0 +1,113 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-12-02 08:42+0100\n"
+"PO-Revision-Date: 2017-12-02 09:23+0100\n"
+"Last-Translator: Piotr Komur <pkomur@gmail.com>\n"
+"Language-Team: \n"
+"Language: pl_PL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.4\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+
+#: extension.js:78
+msgid "Text will be here"
+msgstr ""
+
+#: extension.js:119
+msgid "Type here to search..."
+msgstr "Szukaj..."
+
+#: extension.js:166
+msgid "Private mode"
+msgstr "Tryb prywatny"
+
+#: extension.js:173 prefs.js:102
+msgid "Clear history"
+msgstr "Wyczyść historię"
+
+#: extension.js:178
+msgid "Settings"
+msgstr "Ustawienia"
+
+#: extension.js:285
+msgid "Clipboard history cleared"
+msgstr "Wyczyszczono historię schowka"
+
+#: extension.js:364
+msgid "Copied to clipboard"
+msgstr "Skopiowano do schowka"
+
+#: prefs.js:100
+msgid "Toggle the menu"
+msgstr "Przełącz menu"
+
+#: prefs.js:104
+msgid "Previous entry"
+msgstr "Poprzednia pozycja"
+
+#: prefs.js:106
+msgid "Next entry"
+msgstr "Następna pozycja"
+
+#: prefs.js:119
+msgid "History Size"
+msgstr "Rozmiar historii (liczba elementów)"
+
+#: prefs.js:124
+msgid "Refresh Interval (ms)"
+msgstr "Interwał odświeżania (ms)"
+
+#: prefs.js:129
+msgid "Preview Size (characters)"
+msgstr "Rozmiar podglądu (znaki)"
+
+#: prefs.js:134
+msgid "Max cache file size (kb)"
+msgstr "Maksymalny rozmiar pliku pamięci podręcznej (kB)"
+
+#: prefs.js:139
+msgid "Disable cache file"
+msgstr "Nie zapisuj do pliku pamięci podręcznej "
+
+#: prefs.js:144
+msgid "Show notification on copy"
+msgstr "Pokaż powiadomienie po skopiowaniu"
+
+#: prefs.js:149
+msgid "Keyboard shortcuts"
+msgstr "Skróty klawiszowe"
+
+#: prefs.js:154
+msgid "Number of characters in top bar"
+msgstr "Liczba znaków na panelu"
+
+#: prefs.js:159
+msgid "What to show in top bar"
+msgstr "Pokazuj na panelu"
+
+#: prefs.js:205
+msgid "Icon"
+msgstr "Ikona"
+
+#: prefs.js:206
+msgid "Clipboard Content"
+msgstr "Zawartość schowka"
+
+#: prefs.js:207
+msgid "Both"
+msgstr "Ikona oraz zawartość schowka"
+
+#, fuzzy
+#~| msgid "Clipboard Content"
+#~ msgid "Icon + Clipboard Content"
+#~ msgstr "Zawartość schowka"

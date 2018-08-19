@@ -1,0 +1,63 @@
+# Spanish translation for gnome-shell-extension-clipboard-indicator.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gnome-shell-extension-clipboard-indicator package.
+# Javier Junquera <javier.junquera.sanchez@gmail.com>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-10-12 16:08+0100\n"
+"PO-Revision-Date: 2016-10-12 16:16+0200\n"
+"Last-Translator: Javier Junquera <javier.junquera.sanchez@gmail.com>\n"
+"Language-Team: Español; Castellano <>\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: \n"
+
+#: prefs.js:81
+msgid "Toggle the menu"
+msgstr "Abrir menú"
+
+#: prefs.js:83 extension.js:106
+msgid "Clear history"
+msgstr "Borrar historial"
+
+#: prefs.js:85
+msgid "Previous entry"
+msgstr "Entrada anterior"
+
+#: prefs.js:87
+msgid "Next entry"
+msgstr "Siguiente entrada"
+
+#: prefs.js:100
+msgid "History Size"
+msgstr "Tamaño del historial"
+
+#: prefs.js:105
+msgid "Refresh Interval (ms)"
+msgstr "Intervalo de actualización (ms)"
+
+#: prefs.js:110
+msgid "Preview Size (characters)"
+msgstr "Tamaño de la vista previa (caracteres)"
+
+#: prefs.js:115
+msgid "Max Cache File Size (kb)"
+msgstr "Tamaño máximo de la caché (kb)"
+
+#: prefs.js:120
+msgid "Keyboard shortcuts"
+msgstr "Atajos de teclado"
+
+#: extension.js:111
+msgid "Settings"
+msgstr "Configuración"
+
+#: extension.js:187
+msgid "Clipboard history cleared"
+msgstr "Historial del portapapeles borrado"

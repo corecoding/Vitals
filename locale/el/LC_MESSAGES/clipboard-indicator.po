@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-17 19:20+0200\n"
+"PO-Revision-Date: 2017-05-04 17:27+0300\n"
+"Last-Translator: Raphael Rochet <raphael@rri.fr>\n"
+"Language-Team: \n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: extension.js:113
+msgid "Private mode"
+msgstr "Ιδιωτική λειτουργία"
+
+#: extension.js:120 prefs.js:86
+msgid "Clear history"
+msgstr "Εκκάθαρση ιστορικού"
+
+#: extension.js:125
+msgid "Settings"
+msgstr "Ρυθμίσεις"
+
+#: extension.js:202
+msgid "Clipboard history cleared"
+msgstr "Κενό ιστορικό"
+
+#: extension.js:275
+msgid "Copied to clipboard"
+msgstr "Αντεγραμμένο στο πρόχειρο"
+
+#: prefs.js:84
+msgid "Toggle the menu"
+msgstr "Εμφάνιση/Απόκρυψη μενού"
+
+#: prefs.js:88
+msgid "Previous entry"
+msgstr "Προηγούμενη καταχώρηση"
+
+#: prefs.js:90
+msgid "Next entry"
+msgstr "Επόμενη καταχώρηση"
+
+#: prefs.js:103
+msgid "History Size"
+msgstr "Μέγεθος ιστορικού"
+
+#: prefs.js:108
+msgid "Refresh Interval (ms)"
+msgstr "Διάστημα επαναφόρτωσης (ms)"
+
+#: prefs.js:113
+msgid "Preview Size (characters)"
+msgstr "Μέγεθος προεπισκόπησης (χαρακτήρες)"
+
+#: prefs.js:118
+msgid "Max Cache File Size (kb)"
+msgstr "Μέγιστο μέγεθος αρχείων κρυφής μνήμης (kb)"
+
+#: prefs.js:123
+msgid "Show notification on copy"
+msgstr "Εμφάνιση ειδοποίησης με την αντιγραφή"
+
+#: prefs.js:128
+msgid "Keyboard shortcuts"
+msgstr "Συντομεύσεις πληκτρολογίου"

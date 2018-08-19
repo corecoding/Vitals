@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-17 19:20+0200\n"
+"PO-Revision-Date: 2016-09-17 19:24+0200\n"
+"Last-Translator: Raphael Rochet <raphael@rri.fr>\n"
+"Language-Team: \n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.9\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: extension.js:113
+msgid "Private mode"
+msgstr "Mode privé"
+
+#: extension.js:120 prefs.js:86
+msgid "Clear history"
+msgstr "Vider l'historique"
+
+#: extension.js:125
+msgid "Settings"
+msgstr "Paramètres"
+
+#: extension.js:202
+msgid "Clipboard history cleared"
+msgstr "Historique vidé"
+
+#: extension.js:275
+msgid "Copied to clipboard"
+msgstr "Copié dans le presse-papier"
+
+#: prefs.js:84
+msgid "Toggle the menu"
+msgstr "Afficher/cacher le menu"
+
+#: prefs.js:88
+msgid "Previous entry"
+msgstr "Entrée précédente"
+
+#: prefs.js:90
+msgid "Next entry"
+msgstr "Entrée suivante"
+
+#: prefs.js:103
+msgid "History Size"
+msgstr "Taille de l'historique"
+
+#: prefs.js:108
+msgid "Refresh Interval (ms)"
+msgstr "Intervalle d'actualisation (ms)"
+
+#: prefs.js:113
+msgid "Preview Size (characters)"
+msgstr "Longueur de l'aperçu (caractères)"
+
+#: prefs.js:118
+msgid "Max Cache File Size (kb)"
+msgstr "Taille max du cache (Kio)"
+
+#: prefs.js:123
+msgid "Show notification on copy"
+msgstr "Afficher une notification à chaque copie"
+
+#: prefs.js:128
+msgid "Keyboard shortcuts"
+msgstr "Raccourcis clavier"
