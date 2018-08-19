@@ -35,7 +35,8 @@ const Settings = new Lang.Class({
         let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
-                        'alphabetize', 'hide-zeros', 'show-icon-on-panel' ];
+                        'alphabetize', 'hide-zeros', 'show-icon-on-panel',
+                        'include-public-ip' ];
 
         for (let sensor of Object.values(sensors)) {
             widget = this.builder.get_object(sensor);

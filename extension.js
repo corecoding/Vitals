@@ -29,8 +29,6 @@ const VitalsMenuButton = new Lang.Class({
         this.parent(St.Align.START);
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        this._debug = false;
-
         {
             let GioSSS = Gio.SettingsSchemaSource;
             let schema = GioSSS.new_from_directory(Me.path + '/schemas', GioSSS.get_default(), false);
@@ -66,16 +64,11 @@ const VitalsMenuButton = new Lang.Class({
 
         this._update_time = this._settings.get_int('update-time');
         this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
-        let hotSensors = this._settings.get_strv('hot-sensors');
-        let showIcon = this._settings.get_boolean('show-icon-on-panel');
 
-        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._debug, this._update_time);
+        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._update_time);
         this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
 
-        // grab list of selected menubar icons
-        for (let key of Object.values(hotSensors)) {
-            this._createHotItem(key, showIcon);
-        }
+        this._drawMenu();
 
         this.actor.add_actor(this._menuLayout);
 
@@ -85,15 +78,13 @@ const VitalsMenuButton = new Lang.Class({
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
-        let settings = ['unit', 'hot-sensors', 'hide-zeros', 'alphabetize'];
-        for (let setting of Object.values(settings)) {
-            this._addSettingChangedSignal(setting, Lang.bind(this, this._querySensors));
-        }
+        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit' ];
+        for (let setting of Object.values(settings))
+            this._addSettingChangedSignal(setting, Lang.bind(this, this._redrawMenu));
 
         // add signals for show- preference based categories
-        for (let sensor in this._sensorIcons) {
+        for (let sensor in this._sensorIcons)
             this._addSettingChangedSignal('show-' + sensor, Lang.bind(this, this._showHideSensorsChanged));
-        }
 
         this._initializeMenu();
         this._initializeTimer();
@@ -108,9 +99,8 @@ const VitalsMenuButton = new Lang.Class({
                 this._groups[sensor].icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[sensor]['icon']);
 
                 // hide menu items that user has requested to not include
-                if (!this._settings.get_boolean('show-' + sensor)) {
+                if (!this._settings.get_boolean('show-' + sensor))
                     this._groups[sensor].actor.hide();
-                }
 
                 if (!this._groups[sensor].status) {
                     this._groups[sensor].status = this._defaultLabel();
@@ -144,6 +134,7 @@ const VitalsMenuButton = new Lang.Class({
         // round refresh button
         let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
         refreshButton.connect('clicked', Lang.bind(this, function(self) {
+            this._sensors.resetHistory();
             this._updateTimeChanged();
         }));
         item.actor.add(refreshButton);
@@ -173,9 +164,8 @@ const VitalsMenuButton = new Lang.Class({
             this._menuLayout.add(icon);
         }
 
-        if (!value) {
+        if (!value)
             value = '\u2026'; /* ... */
-        }
 
         let label = new St.Label({
             text: value,
@@ -194,13 +184,11 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _showHideSensorsChanged: function() {
-        for (let sensor in this._sensorIcons) {
-            if (this._settings.get_boolean('show-' + sensor)) {
+        for (let sensor in this._sensorIcons)
+            if (this._settings.get_boolean('show-' + sensor))
                 this._groups[sensor].actor.show();
-            } else {
+            else
                 this._groups[sensor].actor.hide();
-            }
-        }
     },
 
     _positionInPanelChanged: function() {
@@ -226,12 +214,54 @@ const VitalsMenuButton = new Lang.Class({
                 this._menuLayout.insert_child_at_index(icon, index);
                 index += 2;
             }
-        } else {
-            for (let key in this._hotIcons)
-                this._hotIcons[key].destroy();
+        } else
+            this._removeHotIcons();
+    },
 
-            this._hotIcons = {};
+    _removeHotLabel: function(key) {
+        let label = this._hotLabels[key];
+        delete this._hotLabels[key];
+        // make sure set_label is not called on non existant actor
+        label.destroy();
+    },
+
+    _removeHotLabels: function() {
+        for (let key in this._hotLabels)
+            this._removeHotLabel(key);
+    },
+
+    _removeHotIcon: function(key) {
+        this._hotIcons[key].destroy();
+        delete this._hotIcons[key];
+    },
+
+    _removeHotIcons: function() {
+        for (let key in this._hotIcons)
+            this._removeHotIcon(key);
+    },
+
+    _redrawMenu: function() {
+        this._removeHotIcons();
+        this._removeHotLabels();
+
+        for (let key in this._sensorMenuItems) {
+            if (key.includes('-group')) continue;
+            this._sensorMenuItems[key].destroy();
+            delete this._sensorMenuItems[key];
         }
+
+        this._drawMenu();
+
+        this._sensors.resetHistory();
+        this._querySensors();
+    },
+
+    _drawMenu: function() {
+        // grab list of selected menubar icons
+        let hotSensors = this._settings.get_strv('hot-sensors');
+        let showIcon = this._settings.get_boolean('show-icon-on-panel');
+        for (let key of Object.values(hotSensors))
+            this._createHotItem(key, showIcon);
     },
 
     _updateTimeChanged: function() {
@@ -283,42 +313,31 @@ const VitalsMenuButton = new Lang.Class({
             let hotSensors = this._settings.get_strv('hot-sensors');
 
             if (self.checked) {
+                self.checked = false;
+
                 // require that one checkbox is always visible
                 if (hotSensors.length <= 1) {
                     // don't close dropdown menu
                     return true;
                 }
 
-                let label = this._hotLabels[self.key];
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
-                delete this._hotLabels[self.key];
-
-                // make sure set_label is not called on non existant actor
-                label.destroy();
-
-                this._hotIcons[self.key].destroy();
-                delete this._hotIcons[self.key];
-
-                self.checked = false;
+                this._removeHotLabel(self.key);
+                this._removeHotIcon(self.key);
             } else {
+                self.checked = true;
+
                 // add sensor to menubar
                 hotSensors.push(self.key);
                 this._createHotItem(self.key, showIcon, self.gicon, self.value);
-                self.checked = true;
             }
 
             for (let i = hotSensors.length - 1; i >= 0; i--) {
                 let k = hotSensors[i];
                 if (!this._sensorMenuItems[k]) {
                     hotSensors.splice(i, 1);
-                    let label = this._hotLabels[k]
-                    delete this._hotLabels[k];
-
-                    // make sure set_label is not called on non existant actor
-                    label.destroy();
-
-                    this._hotIcons[k].destroy();
-                    delete this._hotIcons[k];
+                    this._removeHotLabel(k);
+                    this._removeHotIcon(k);
                 }
             }
 
@@ -337,7 +356,6 @@ const VitalsMenuButton = new Lang.Class({
         }
 
         this._sensorMenuItems[key] = item;
-
         let i = Object.keys(this._sensorMenuItems[key]).length;
 
         // alphabetize the sensors for these categories
@@ -476,10 +494,7 @@ const VitalsMenuButton = new Lang.Class({
     _querySensors: function() {
         this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
             value = this._formatValue(value, format);
-
-            if (this._debug)
-                global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-
+            //global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
             this._updateDisplay(label, value, type, key);
         }));
     },
