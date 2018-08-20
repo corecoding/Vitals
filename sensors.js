@@ -319,7 +319,7 @@ var Sensors = new Lang.Class({
         this._returnValue(callback, 'Total', total, 'storage', 'storage');
         this._returnValue(callback, 'Used', used, 'storage', 'storage');
         this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
-        this._returnValue(callback, 'Settings', avail, 'storage', 'storage');
+        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     },
 
