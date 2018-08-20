@@ -10,9 +10,10 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
+const Convenience = Me.imports.helpers.convenience;
 
 const Gettext = imports.gettext;
-Gettext.bindtextdomain(Me.metadata['gettext-domain'], Me.path + '/locale');
+//Gettext.bindtextdomain(Me.metadata['gettext-domain'], Me.path + '/locale');
 const _ = Gettext.domain(Me.metadata['gettext-domain']).gettext;
 
 const cbFun = (d, c) => {
@@ -31,12 +32,7 @@ const VitalsMenuButton = new Lang.Class({
         this.parent(St.Align.START);
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        {
-            let GioSSS = Gio.SettingsSchemaSource;
-            let schema = GioSSS.new_from_directory(Me.path + '/schemas', GioSSS.get_default(), false);
-            schema = schema.lookup('org.gnome.shell.extensions.vitals', false);
-            this._settings = new Gio.Settings({ settings_schema: schema });
-        }
+        this._settings = Convenience.getSettings();
 
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg',
@@ -528,7 +524,9 @@ const VitalsMenuButton = new Lang.Class({
 
 let vitalsMenu;
 
-function init() {}
+function init() {
+    Convenience.initTranslations();
+}
 
 function enable() {
     vitalsMenu = new VitalsMenuButton();
