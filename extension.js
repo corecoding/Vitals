@@ -10,8 +10,10 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
+
 const Gettext = imports.gettext;
-const _ = Gettext.domain('vitals').gettext;
+Gettext.bindtextdomain(Me.metadata['gettext-domain'], Me.path + '/locale');
+const _ = Gettext.domain(Me.metadata['gettext-domain']).gettext;
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
@@ -495,8 +497,9 @@ const VitalsMenuButton = new Lang.Class({
     _querySensors: function() {
         this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
             value = this._formatValue(value, format);
-            //global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-            this._updateDisplay(_(label), value, type, key);
+            global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
+            label = _(label);
+            this._updateDisplay(label, value, type, key);
         }));
     },
 
@@ -525,11 +528,7 @@ const VitalsMenuButton = new Lang.Class({
 
 let vitalsMenu;
 
-function init() {
-    let localeDir = Me.dir.get_child('locale');
-    if (localeDir.query_exists(null))
-        Gettext.bindtextdomain('vitals', localeDir.get_path());
-}
+function init() {}
 
 function enable() {
     vitalsMenu = new VitalsMenuButton();
