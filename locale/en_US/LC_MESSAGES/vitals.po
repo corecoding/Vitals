@@ -143,3 +143,108 @@ msgstr "Swap Used2"
 #: processor
 msgid "Frequency"
 msgstr "Frequency2"
+
+#: system
+msgid "Load 1m"
+msgstr "Load 1m2"
+
+msgid "Load 5m"
+msgstr "Load 5m2"
+
+msgid "Load 15m"
+msgstr "Load 15m2"
+
+msgid "Threads Active"
+msgstr "Threads Active2"
+
+msgid "Threads Total"
+msgstr "Threads Total2"
+
+msgid "Last PID"
+msgstr "Last PID2"
+
+#: network
+msgid "Maximum rx"
+msgstr "Maximum rx2"
+
+msgid "Maximum tx"
+msgstr "Maximum tx2"
+
+msgid "Public IP"
+msgstr "Public IP2"
+
+#: storage
+msgid "Total"
+msgstr "Total2"
+
+msgid "Used"
+msgstr "Used2"
+
+msgid "Reserved"
+msgstr "Reserved2"
+
+msgid "Free"
+msgstr "Free2"
+
+#: prefs general
+msgid "Seconds between updates"
+msgstr "Seconds between updates2"
+
+msgid "Position in panel"
+msgstr "Position in panel2"
+
+msgid "Right"
+msgstr "Right2"
+
+msgid "Center"
+msgstr "Center2"
+
+msgid "Left"
+msgstr "Left2"
+
+msgid "Use higher precision"
+msgstr "Use higher precision2"
+
+msgid "Alphabetize sensors"
+msgstr "Alphabetize sensors2"
+
+msgid "Hide zero values"
+msgstr "Hide zero values2"
+
+msgid "Show icons in panel"
+msgstr "Show icons in panel2"
+
+#: prefs about
+msgid "Like what you see? Support the development of this extension via <a href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\nNo warranty, expressed or implied. Feature requests or bugs? Please visit our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgstr "Like what you see? Support the development of this extension via <a href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\nNo warranty, expressed or implied. Feature requests or bugs? Please visit our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project.2"
+
+#: prefs sensors
+msgid "Monitor temperature"
+msgstr "Monitor temperature2"
+
+msgid " ↳ Temperature unit"
+msgstr " ↳ Temperature unit2"
+
+msgid "Monitor voltage"
+msgstr "Monitor voltage2"
+
+msgid "Monitor fan"
+msgstr "Monitor fan2"
+
+msgid "Monitor memory"
+msgstr "Monitor memory2"
+
+msgid "Monitor processor"
+msgstr "Monitor processor2"
+
+msgid "Monitor system"
+msgstr "Monitor system2"
+
+msgid "Monitor network"
+msgstr "Monitor network2"
+
+msgid " ↳ Include public IP address"
+msgstr " ↳ Include public IP address2"
+
+msgid "Monitor storage"
+msgstr "Monitor storage2"
