@@ -232,9 +232,10 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'string');
             this._returnValue(callback, 'system', loadArray[0], 'system-group', 'string');
             this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'string');
-            this._returnValue(callback, 'Load 10m', loadArray[2], 'system', 'string');
+            this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'string');
             this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
             this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
+            this._returnValue(callback, 'Last PID', loadArray[4], 'system', 'string');
         }).catch(err => {
             global.log(err);
         });

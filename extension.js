@@ -10,6 +10,7 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const VitalsItem = Me.imports.vitalsItem;
 const Sensors = Me.imports.sensors;
+const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -29,12 +30,7 @@ const VitalsMenuButton = new Lang.Class({
         this.parent(St.Align.START);
         this.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        {
-            let GioSSS = Gio.SettingsSchemaSource;
-            let schema = GioSSS.new_from_directory(Me.path + '/schemas', GioSSS.get_default(), false);
-            schema = schema.lookup('org.gnome.shell.extensions.vitals', false);
-            this._settings = new Gio.Settings({ settings_schema: schema });
-        }
+        this._settings = Convenience.getSettings();
 
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg',
@@ -495,8 +491,9 @@ const VitalsMenuButton = new Lang.Class({
     _querySensors: function() {
         this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
             value = this._formatValue(value, format);
+            // for storage, blocks can change but have same rounded number - which is updated every time
             //global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-            this._updateDisplay(label, value, type, key);
+            this._updateDisplay(_(label), value, type, key);
         }));
     },
 
@@ -526,6 +523,7 @@ const VitalsMenuButton = new Lang.Class({
 let vitalsMenu;
 
 function init() {
+    Convenience.initTranslations();
 }
 
 function enable() {

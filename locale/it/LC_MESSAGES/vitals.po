@@ -1,0 +1,256 @@
+# English translation for gnome-shell-extension-vitals.
+# Copyright (C) Core Coding
+# This file is distributed under the same license as the gnome-shell-extension-vitals package.
+# Chris Monahan <vitals@corecoding>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.6\n"
+"Last-Translator: Jimmy Scionti <jimmy.scionti@gmail.com>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: it\n"
+
+#: general
+msgid "Average"
+msgstr "Media"
+
+#: main menu
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Voltage"
+msgstr "Voltaggio"
+
+msgid "Fan"
+msgstr "Ventola"
+
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "Processor"
+msgstr "Processore"
+
+msgid "System"
+msgstr "Sistema"
+
+msgid "Network"
+msgstr "Rete"
+
+msgid "Storage"
+msgstr "Archiviazione"
+
+#: temperature
+msgid "Core 0"
+msgstr "Core 0"
+
+msgid "Core 1"
+msgstr "Core 1"
+
+msgid "Core 2"
+msgstr "Core 2"
+
+msgid "Core 3"
+msgstr "Core 3"
+
+msgid "Core 4"
+msgstr "Core 4"
+
+msgid "Core 5"
+msgstr "Core 5"
+
+msgid "Core 6"
+msgstr "Core 6"
+
+msgid "Core 7"
+msgstr "Core 7"
+
+msgid "Core 8"
+msgstr "Core 8"
+
+msgid "Core 9"
+msgstr "Core 9"
+
+msgid "Core 10"
+msgstr "Core 10"
+
+msgid "Core 11"
+msgstr "Core 11"
+
+msgid "Core 12"
+msgstr "Core 12"
+
+msgid "Core 13"
+msgstr "Core 13"
+
+msgid "Core 14"
+msgstr "Core 14"
+
+msgid "Core 15"
+msgstr "Core 15"
+
+msgid "Core 16"
+msgstr "Core 16"
+
+msgid "Core 17"
+msgstr "Core 17"
+
+msgid "Core 18"
+msgstr "Core 18"
+
+msgid "Core 19"
+msgstr "Core 19"
+
+msgid "Core 20"
+msgstr "Core 20"
+
+msgid "Core 21"
+msgstr "Core 21"
+
+msgid "Core 22"
+msgstr "Core 22"
+
+msgid "Core 23"
+msgstr "Core 23"
+
+#: voltage fan memory
+msgid "Usage"
+msgstr "Utilizzo"
+
+msgid "Physical"
+msgstr "Fisica"
+
+msgid "Available"
+msgstr "Disponibile"
+
+msgid "Allocated"
+msgstr "Allocata"
+
+msgid "Swap Used"
+msgstr "Swap Usata"
+
+#: processor
+msgid "Frequency"
+msgstr "Frequenza"
+
+#: system
+msgid "Load 1m"
+msgstr "Carico (1m)"
+
+msgid "Load 5m"
+msgstr "Carico (5m)"
+
+msgid "Load 15m"
+msgstr "Carico (15m)"
+
+msgid "Threads Active"
+msgstr "Thread Attivi"
+
+msgid "Threads Total"
+msgstr "Thread Totali"
+
+msgid "Last PID"
+msgstr "Ultimo PID"
+
+#: network
+msgid "Maximum rx"
+msgstr "Massimo rx"
+
+msgid "Maximum tx"
+msgstr "Massimo tx"
+
+msgid "Public IP"
+msgstr "IP Pubblico"
+
+#: storage
+msgid "Total"
+msgstr "Totale"
+
+msgid "Used"
+msgstr "Usato"
+
+msgid "Reserved"
+msgstr "Riservato"
+
+msgid "Free"
+msgstr "Libero"
+
+#: prefs general
+msgid "Seconds between updates"
+msgstr "Secondi tra gli aggiornamenti"
+
+msgid "Position in panel"
+msgstr "Posizione sul pannello"
+
+msgid "Right"
+msgstr "Destra"
+
+msgid "Center"
+msgstr "Centro"
+
+msgid "Left"
+msgstr "Sinistra"
+
+msgid "Use higher precision"
+msgstr "Utilizza una maggiore precisione"
+
+msgid "Alphabetize sensors"
+msgstr "Alfabetizza i sensori"
+
+msgid "Hide zero values"
+msgstr "Nascondi valori nulli"
+
+msgid "Show icons in panel"
+msgstr "Mostra icone sul pannello"
+
+#: prefs about
+msgid ""
+"Like what you see? Support the development of this extension via <a href="
+"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
+"\n"
+"No warranty, expressed or implied. Feature requests or bugs? Please visit "
+"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgstr ""
+"Ti piace ciò che vedi? Supporta lo sviluppo di questa estensione via <a "
+"href=\"http://corecoding.com/donate.php\">PayPal</a>.\n"
+"\n"
+"Nessuna garanzia, espressa o implicita. Suggerimenti o errori da "
+"segnalare? Visita la pagina del progetto su <a href=\"https://github.com/"
+"corecoding/Vitals\">GitHub</a>."
+
+#: prefs sensors
+msgid "Monitor temperature"
+msgstr "Sensori termici"
+
+msgid "  Temperature unit"
+msgstr "Unità per la temperatura"
+
+msgid "Monitor voltage"
+msgstr "Monitora il voltaggio"
+
+msgid "Monitor fan"
+msgstr "Monitora le ventole"
+
+msgid "Monitor memory"
+msgstr "Monitora la memoria"
+
+msgid "Monitor processor"
+msgstr "Monitora il processore"
+
+msgid "Monitor system"
+msgstr "Monitora il sistema"
+
+msgid "Monitor network"
+msgstr "Monitora la rete"
+
+msgid "  Include public IP address"
+msgstr "Includi l'indirizzo IP pubblico"
+
+msgid "Monitor storage"
+msgstr "Monitora l'archiviazione"

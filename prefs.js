@@ -3,21 +3,15 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-
-const Gettext = imports.gettext;
-Gettext.bindtextdomain(Me.metadata['gettext-domain'], Me.path + '/locale');
-const _ = Gettext.domain(Me.metadata['gettext-domain']).gettext;
+const Convenience = Me.imports.helpers.convenience;
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 
 const Settings = new Lang.Class({
     Name: 'Vitals.Settings',
 
     _init: function() {
-        {
-            let GioSSS = Gio.SettingsSchemaSource;
-            let schema = GioSSS.new_from_directory(Me.path + '/schemas', GioSSS.get_default(), false);
-            schema = schema.lookup('org.gnome.shell.extensions.vitals', false);
-            this.settings = new Gio.Settings({ settings_schema: schema });
-        }
+        this._settings = Convenience.getSettings();
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(Me.metadata['gettext-domain']);
@@ -40,9 +34,9 @@ const Settings = new Lang.Class({
 
         for (let sensor of Object.values(sensors)) {
             widget = this.builder.get_object(sensor);
-            widget.set_active(this.settings.get_boolean(sensor));
+            widget.set_active(this._settings.get_boolean(sensor));
             widget.connect('state-set', (_, val) => {
-                this.settings.set_boolean(sensor, val);
+                this._settings.set_boolean(sensor, val);
             });
         }
 
@@ -50,13 +44,13 @@ const Settings = new Lang.Class({
 
         for (let sensor of Object.values(sensors)) {
             widget = this.builder.get_object(sensor);
-            widget.set_active(this.settings.get_int(sensor));
+            widget.set_active(this._settings.get_int(sensor));
             widget.connect('changed', (widget) => {
-                this.settings.set_int(sensor, widget.get_active());
+                this._settings.set_int(sensor, widget.get_active());
             });
         }
 
-        this.settings.bind(
+        this._settings.bind(
             'update-time',
             this.builder.get_object('update-time'),
             'value',
@@ -64,7 +58,9 @@ const Settings = new Lang.Class({
     },
 });
 
-function init() {}
+function init() {
+    Convenience.initTranslations();
+}
 
 function buildPrefsWidget() {
     let settings = new Settings();
