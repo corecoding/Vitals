@@ -211,7 +211,7 @@ msgstr ""
 msgid "Monitor temperature"
 msgstr ""
 
-msgid "  Temperature unit"
+msgid " ↳ Temperature unit"
 msgstr ""
 
 msgid "Monitor voltage"
@@ -232,7 +232,7 @@ msgstr ""
 msgid "Monitor network"
 msgstr ""
 
-msgid "  Include public IP address"
+msgid " ↳ Include public IP address"
 msgstr ""
 
 msgid "Monitor storage"

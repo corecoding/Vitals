@@ -228,8 +228,8 @@ msgstr ""
 msgid "Monitor temperature"
 msgstr "Sensori termici"
 
-msgid "  Temperature unit"
-msgstr "Unità per la temperatura"
+msgid " ↳ Temperature unit"
+msgstr " ↳ Unità per la temperatura"
 
 msgid "Monitor voltage"
 msgstr "Monitora il voltaggio"
@@ -249,8 +249,8 @@ msgstr "Monitora il sistema"
 msgid "Monitor network"
 msgstr "Monitora la rete"
 
-msgid "  Include public IP address"
-msgstr "Includi l'indirizzo IP pubblico"
+msgid " ↳ Include public IP address"
+msgstr " ↳ Includi l'indirizzo IP pubblico"
 
 msgid "Monitor storage"
 msgstr "Monitora l'archiviazione"

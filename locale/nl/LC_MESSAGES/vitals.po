@@ -218,13 +218,18 @@ msgid ""
 "No warranty, expressed or implied. Feature requests or bugs? Please visit "
 "our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
 msgstr ""
+"Like zoals je ziet? Ondersteun de ontwikkeling van deze extensie via <a href="
+"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
+"\n"
+"Geen garantie, expliciet of impliciet. Feature requests or bugs? Please visit "
+"ons <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
 
 #: prefs sensors
 msgid "Monitor temperature"
 msgstr "Temperatuur monitoren"
 
-msgid "  Temperature unit"
-msgstr " Temperatuureenheid"
+msgid " ↳ Temperature unit"
+msgstr " ↳ Temperatuureenheid"
 
 msgid "Monitor voltage"
 msgstr "Spanning monitoren"
@@ -244,8 +249,8 @@ msgstr "Systeem monitoren"
 msgid "Monitor network"
 msgstr "Netwerk monitoren"
 
-msgid "  Include public IP address"
-msgstr "  Publiek IP-adresss tonen"
+msgid " ↳ Include public IP address"
+msgstr " ↳ Publiek IP-adresss tonen"
 
 msgid "Monitor storage"
 msgstr "Opslag monitoren"
