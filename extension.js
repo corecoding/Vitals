@@ -421,9 +421,9 @@ const VitalsMenuButton = new Lang.Class({
                 format = '%d %s';
                 ending = 'RPM';
                 break;
-            case 'in':
+            case 'in': // voltage
                 value = value / 1000;
-                format = ((value >= 0) ? '+' : '-') + '%.2f %s';
+                format = ((value >= 0) ? '+' : '-') + ((this._use_higher_precision)?'%.2f %s':'%.1f %s');
                 ending = 'V';
                 break;
             case 'hertz':

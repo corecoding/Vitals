@@ -1,50 +1,51 @@
-# English translation for gnome-shell-extension-vitals.
-# Copyright (C) Core Coding
-# This file is distributed under the same license as the gnome-shell-extension-vitals package.
-# Chris Monahan <vitals@corecoding.com>, 2018.
+# Dutch translation for gnome-shell-extension-vitals.
+#
+# This file is distributed under the same license as the
+# gnome-shell-extension-vitals package.
+#
+# wouter bolsterlee <wouter@bolsterl.ee>, 2018
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: gnome-shell-extension-vitals\n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
-"Language-Team: \n"
+"Language-Team: nl\n"
 "MIME-Version: 1.0\n"
+"Last-Translator: wouter bolsterlee\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
-"Last-Translator: Jimmy Scionti <jimmy.scionti@gmail.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: it\n"
+"Language: nl\n"
 
 #: general
 msgid "Average"
-msgstr "Media"
+msgstr "Gemiddelde"
 
 #: main menu
 msgid "Temperature"
-msgstr "Temperatura"
+msgstr "Temperatuur"
 
 msgid "Voltage"
-msgstr "Voltaggio"
+msgstr "Spanning"
 
 msgid "Fan"
-msgstr "Ventola"
+msgstr "Ventilator"
 
 msgid "Memory"
-msgstr "Memoria"
+msgstr "Geheugen"
 
 msgid "Processor"
-msgstr "Processore"
+msgstr "Processor"
 
 msgid "System"
-msgstr "Sistema"
+msgstr "Systeem"
 
 msgid "Network"
-msgstr "Rete"
+msgstr "Netwerk"
 
 msgid "Storage"
-msgstr "Archiviazione"
+msgstr "Opslag"
 
 #: temperature
 msgid "Core 0"
@@ -121,93 +122,93 @@ msgstr "Core 23"
 
 #: voltage fan memory
 msgid "Usage"
-msgstr "Utilizzo"
+msgstr "Verbruik"
 
 msgid "Physical"
-msgstr "Fisica"
+msgstr "Fysiek"
 
 msgid "Available"
-msgstr "Disponibile"
+msgstr "Beschikbaar"
 
 msgid "Allocated"
-msgstr "Allocata"
+msgstr "Gealloceerd"
 
 msgid "Swap Used"
-msgstr "Swap Usata"
+msgstr "Gebruikte swap"
 
 #: processor
 msgid "Frequency"
-msgstr "Frequenza"
+msgstr "Frequentie"
 
 #: system
 msgid "Load 1m"
-msgstr "Carico (1m)"
+msgstr "Belasting 1m"
 
 msgid "Load 5m"
-msgstr "Carico (5m)"
+msgstr "Belasting 5m"
 
 msgid "Load 15m"
-msgstr "Carico (15m)"
+msgstr "Belasting 15m"
 
 msgid "Threads Active"
-msgstr "Thread Attivi"
+msgstr "Threads (actief)"
 
 msgid "Threads Total"
-msgstr "Thread Totali"
+msgstr "Threads (totaal)"
 
 msgid "Last PID"
-msgstr "Ultimo PID"
+msgstr "Laatste PID"
 
 #: network
 msgid "Maximum rx"
-msgstr "Massimo rx"
+msgstr "Maximum rx"
 
 msgid "Maximum tx"
-msgstr "Massimo tx"
+msgstr "Maximum tx"
 
 msgid "Public IP"
-msgstr "IP Pubblico"
+msgstr "Publiek IP"
 
 #: storage
 msgid "Total"
-msgstr "Totale"
+msgstr "Totaal"
 
 msgid "Used"
-msgstr "Usato"
+msgstr "Gebruikt"
 
 msgid "Reserved"
-msgstr "Riservato"
+msgstr "Gereserveerd"
 
 msgid "Free"
-msgstr "Libero"
+msgstr "Vrij"
 
 #: prefs general
 msgid "Seconds between updates"
-msgstr "Secondi tra gli aggiornamenti"
+msgstr "Aantal seconden tussen updates"
 
 msgid "Position in panel"
-msgstr "Posizione sul pannello"
+msgstr "Paneelpositie"
 
 msgid "Right"
-msgstr "Destra"
+msgstr "Rechts"
 
 msgid "Center"
-msgstr "Centro"
+msgstr "Midden"
 
 msgid "Left"
-msgstr "Sinistra"
+msgstr "Linkss"
 
 msgid "Use higher precision"
-msgstr "Utilizza una maggiore precisione"
+msgstr "Hogere precisie gebruiken"
 
 msgid "Alphabetize sensors"
-msgstr "Alfabetizza i sensori"
+msgstr "Sensors sorteren"
 
 msgid "Hide zero values"
-msgstr "Nascondi valori nulli"
+msgstr "Nulwaarden tonen"
 
 msgid "Show icons in panel"
-msgstr "Mostra icone sul pannello"
+msgstr "Pictogrammen in paneel tonen"
 
 #: prefs about
 msgid ""
@@ -217,40 +218,34 @@ msgid ""
 "No warranty, expressed or implied. Feature requests or bugs? Please visit "
 "our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
 msgstr ""
-"Ti piace ciò che vedi? Supporta lo sviluppo di questa estensione via <a "
-"href=\"http://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"Nessuna garanzia, espressa o implicita. Suggerimenti o errori da "
-"segnalare? Visita la pagina del progetto su <a href=\"https://github.com/"
-"corecoding/Vitals\">GitHub</a>."
 
 #: prefs sensors
 msgid "Monitor temperature"
-msgstr "Sensori termici"
+msgstr "Temperatuur monitoren"
 
 msgid "  Temperature unit"
-msgstr "Unità per la temperatura"
+msgstr " Temperatuureenheid"
 
 msgid "Monitor voltage"
-msgstr "Monitora il voltaggio"
+msgstr "Spanning monitoren"
 
 msgid "Monitor fan"
-msgstr "Monitora le ventole"
+msgstr "Ventilator monitoren"
 
 msgid "Monitor memory"
-msgstr "Monitora la memoria"
+msgstr "Geheugen monitoren"
 
 msgid "Monitor processor"
-msgstr "Monitora il processore"
+msgstr "Processos monitoren"
 
 msgid "Monitor system"
-msgstr "Monitora il sistema"
+msgstr "Systeem monitoren"
 
 msgid "Monitor network"
-msgstr "Monitora la rete"
+msgstr "Netwerk monitoren"
 
 msgid "  Include public IP address"
-msgstr "Includi l'indirizzo IP pubblico"
+msgstr "  Publiek IP-adresss tonen"
 
 msgid "Monitor storage"
-msgstr "Monitora l'archiviazione"
+msgstr "Opslag monitoren"

@@ -1,7 +1,7 @@
 # English translation for gnome-shell-extension-vitals.
 # Copyright (C) Core Coding
 # This file is distributed under the same license as the gnome-shell-extension-vitals package.
-# Chris Monahan <vitals@corecoding>, 2018.
+# Chris Monahan <vitals@corecoding.com>, 2018.
 #
 msgid ""
 msgstr ""

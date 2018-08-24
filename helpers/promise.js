@@ -153,39 +153,6 @@ Promise.prototype.catch = function(onRejected) {
     return this.then(null, onRejected);
 };
 
-// Returns a promise that resolves when all of the promises in the iterable
-// argument have resolved
-Promise.all = function(iterable) {
-    let promises = iterable.filter(p => p instanceof Promise),
-        values = [],
-        done = 0;
-
-    return new Promise((resolve, reject) => {
-        promises.forEach((promise, index) => {
-            promise.then(value => {
-                done++;
-
-                values[index] = value;
-
-                if (done === promises.length) {
-                    resolve(values);
-                }
-            }, reject);
-        });
-    });
-};
-
-// Returns a promise that resolves or rejects as soon as one of the promises
-// in the iterable resolves or rejects, with the value or reason from that
-// promise
-Promise.race = function(iterable) {
-    let promises = iterable.filter(p => p instanceof Promise);
-
-    return new Promise((resolve, reject) => {
-        promises.forEach(promise => promise.then(resolve, reject));
-    });
-};
-
 // Returns a Promise object that is rejected with the given reason
 Promise.reject = function(reason) {
     return new Promise((resolve, reject) => reject(reason));
