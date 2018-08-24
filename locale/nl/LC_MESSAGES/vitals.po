@@ -1,0 +1,251 @@
+# Dutch translation for gnome-shell-extension-vitals.
+#
+# This file is distributed under the same license as the
+# gnome-shell-extension-vitals package.
+#
+# wouter bolsterlee <wouter@bolsterl.ee>, 2018
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extension-vitals\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Language-Team: nl\n"
+"MIME-Version: 1.0\n"
+"Last-Translator: wouter bolsterlee\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: nl\n"
+
+#: general
+msgid "Average"
+msgstr "Gemiddelde"
+
+#: main menu
+msgid "Temperature"
+msgstr "Temperatuur"
+
+msgid "Voltage"
+msgstr "Spanning"
+
+msgid "Fan"
+msgstr "Ventilator"
+
+msgid "Memory"
+msgstr "Geheugen"
+
+msgid "Processor"
+msgstr "Processor"
+
+msgid "System"
+msgstr "Systeem"
+
+msgid "Network"
+msgstr "Netwerk"
+
+msgid "Storage"
+msgstr "Opslag"
+
+#: temperature
+msgid "Core 0"
+msgstr "Core 0"
+
+msgid "Core 1"
+msgstr "Core 1"
+
+msgid "Core 2"
+msgstr "Core 2"
+
+msgid "Core 3"
+msgstr "Core 3"
+
+msgid "Core 4"
+msgstr "Core 4"
+
+msgid "Core 5"
+msgstr "Core 5"
+
+msgid "Core 6"
+msgstr "Core 6"
+
+msgid "Core 7"
+msgstr "Core 7"
+
+msgid "Core 8"
+msgstr "Core 8"
+
+msgid "Core 9"
+msgstr "Core 9"
+
+msgid "Core 10"
+msgstr "Core 10"
+
+msgid "Core 11"
+msgstr "Core 11"
+
+msgid "Core 12"
+msgstr "Core 12"
+
+msgid "Core 13"
+msgstr "Core 13"
+
+msgid "Core 14"
+msgstr "Core 14"
+
+msgid "Core 15"
+msgstr "Core 15"
+
+msgid "Core 16"
+msgstr "Core 16"
+
+msgid "Core 17"
+msgstr "Core 17"
+
+msgid "Core 18"
+msgstr "Core 18"
+
+msgid "Core 19"
+msgstr "Core 19"
+
+msgid "Core 20"
+msgstr "Core 20"
+
+msgid "Core 21"
+msgstr "Core 21"
+
+msgid "Core 22"
+msgstr "Core 22"
+
+msgid "Core 23"
+msgstr "Core 23"
+
+#: voltage fan memory
+msgid "Usage"
+msgstr "Verbruik"
+
+msgid "Physical"
+msgstr "Fysiek"
+
+msgid "Available"
+msgstr "Beschikbaar"
+
+msgid "Allocated"
+msgstr "Gealloceerd"
+
+msgid "Swap Used"
+msgstr "Gebruikte swap"
+
+#: processor
+msgid "Frequency"
+msgstr "Frequentie"
+
+#: system
+msgid "Load 1m"
+msgstr "Belasting 1m"
+
+msgid "Load 5m"
+msgstr "Belasting 5m"
+
+msgid "Load 15m"
+msgstr "Belasting 15m"
+
+msgid "Threads Active"
+msgstr "Threads (actief)"
+
+msgid "Threads Total"
+msgstr "Threads (totaal)"
+
+msgid "Last PID"
+msgstr "Laatste PID"
+
+#: network
+msgid "Maximum rx"
+msgstr "Maximum rx"
+
+msgid "Maximum tx"
+msgstr "Maximum tx"
+
+msgid "Public IP"
+msgstr "Publiek IP"
+
+#: storage
+msgid "Total"
+msgstr "Totaal"
+
+msgid "Used"
+msgstr "Gebruikt"
+
+msgid "Reserved"
+msgstr "Gereserveerd"
+
+msgid "Free"
+msgstr "Vrij"
+
+#: prefs general
+msgid "Seconds between updates"
+msgstr "Aantal seconden tussen updates"
+
+msgid "Position in panel"
+msgstr "Paneelpositie"
+
+msgid "Right"
+msgstr "Rechts"
+
+msgid "Center"
+msgstr "Midden"
+
+msgid "Left"
+msgstr "Linkss"
+
+msgid "Use higher precision"
+msgstr "Hogere precisie gebruiken"
+
+msgid "Alphabetize sensors"
+msgstr "Sensors sorteren"
+
+msgid "Hide zero values"
+msgstr "Nulwaarden tonen"
+
+msgid "Show icons in panel"
+msgstr "Pictogrammen in paneel tonen"
+
+#: prefs about
+msgid ""
+"Like what you see? Support the development of this extension via <a href="
+"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
+"\n"
+"No warranty, expressed or implied. Feature requests or bugs? Please visit "
+"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgstr ""
+
+#: prefs sensors
+msgid "Monitor temperature"
+msgstr "Temperatuur monitoren"
+
+msgid "  Temperature unit"
+msgstr " Temperatuureenheid"
+
+msgid "Monitor voltage"
+msgstr "Spanning monitoren"
+
+msgid "Monitor fan"
+msgstr "Ventilator monitoren"
+
+msgid "Monitor memory"
+msgstr "Geheugen monitoren"
+
+msgid "Monitor processor"
+msgstr "Processos monitoren"
+
+msgid "Monitor system"
+msgstr "Systeem monitoren"
+
+msgid "Monitor network"
+msgstr "Netwerk monitoren"
+
+msgid "  Include public IP address"
+msgstr "  Publiek IP-adresss tonen"
+
+msgid "Monitor storage"
+msgstr "Opslag monitoren"
