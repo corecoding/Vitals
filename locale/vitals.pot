@@ -200,18 +200,17 @@ msgstr ""
 
 #: prefs about
 msgid ""
-"Like what you see? Support the development of this extension via <a href="
-"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"No warranty, expressed or implied. Feature requests or bugs? Please visit "
-"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+"Like what you see? Support the development of this extension via "
+"<a href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\n"
+"No warranty, expressed or implied. Feature requests or bugs? Please visit our "
+"<a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
 msgstr ""
 
 #: prefs sensors
 msgid "Monitor temperature"
 msgstr ""
 
-msgid "  Temperature unit"
+msgid " ↳ Temperature unit"
 msgstr ""
 
 msgid "Monitor voltage"
@@ -232,7 +231,7 @@ msgstr ""
 msgid "Monitor network"
 msgstr ""
 
-msgid "  Include public IP address"
+msgid " ↳ Include public IP address"
 msgstr ""
 
 msgid "Monitor storage"
