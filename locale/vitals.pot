@@ -36,76 +36,7 @@ msgid "Storage"
 msgstr ""
 
 #: temperature
-msgid "Core 0"
-msgstr ""
-
-msgid "Core 1"
-msgstr ""
-
-msgid "Core 2"
-msgstr ""
-
-msgid "Core 3"
-msgstr ""
-
-msgid "Core 4"
-msgstr ""
-
-msgid "Core 5"
-msgstr ""
-
-msgid "Core 6"
-msgstr ""
-
-msgid "Core 7"
-msgstr ""
-
-msgid "Core 8"
-msgstr ""
-
-msgid "Core 9"
-msgstr ""
-
-msgid "Core 10"
-msgstr ""
-
-msgid "Core 11"
-msgstr ""
-
-msgid "Core 12"
-msgstr ""
-
-msgid "Core 13"
-msgstr ""
-
-msgid "Core 14"
-msgstr ""
-
-msgid "Core 15"
-msgstr ""
-
-msgid "Core 16"
-msgstr ""
-
-msgid "Core 17"
-msgstr ""
-
-msgid "Core 18"
-msgstr ""
-
-msgid "Core 19"
-msgstr ""
-
-msgid "Core 20"
-msgstr ""
-
-msgid "Core 21"
-msgstr ""
-
-msgid "Core 22"
-msgstr ""
-
-msgid "Core 23"
+msgid "Core"
 msgstr ""
 
 #: voltage fan memory

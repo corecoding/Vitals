@@ -14,14 +14,6 @@ const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
-const cbFun = (d, c) => {
-    let bb = d[1] % c[0],
-        aa = (d[1] - bb) / c[0];
-    aa = aa > 0 ? aa + c[1] : '';
-
-    return [d[0] + aa, bb];
-};
-
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
     Extends: PanelMenu.Button,
@@ -59,7 +51,6 @@ const VitalsMenuButton = new Lang.Class({
         this._groups = {};
 
         this._update_time = this._settings.get_int('update-time');
-        this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._update_time);
         this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
@@ -174,7 +165,6 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _higherPrecisionChanged: function() {
-        this._use_higher_precision = this._settings.get_boolean('use-higher-precision');
         this._sensors.resetHistory();
         this._querySensors();
     },
@@ -386,99 +376,6 @@ const VitalsMenuButton = new Lang.Class({
         return icon;
     },
 
-    _formatValue: function(value, sensorClass) {
-        if (value === null) return 'N/A';
-
-        let format = '';
-        let ending = '';
-        let i = 0;
-
-        let kilo = 1024;
-        var sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
-        var hertz = [ 'Hz', 'KHz', '\u3392', '\u3393', 'THz', 'PHz', 'EHz', 'ZHz' ];
-
-        switch (sensorClass) {
-            case 'percent':
-                format = (this._use_higher_precision)?'%.1f%s':'%d%s';
-                //ending = '%';
-                ending = '\u0025';
-                break;
-            case 'temp':
-                value = value / 1000;
-                //ending = "\u00b0C";
-                ending = '\u2103';
-
-                // are we converting to fahrenheit?
-                if (this._settings.get_int('unit') == 1) {
-                    value = ((9 / 5) * value + 32);
-                    //ending = "\u00b0F";
-                    ending = '\u2109';
-                }
-
-                format = (this._use_higher_precision)?'%.1f%s':'%d%s';
-                break;
-            case 'fan':
-                format = '%d %s';
-                ending = 'RPM';
-                break;
-            case 'in': // voltage
-                value = value / 1000;
-                format = ((value >= 0) ? '+' : '-') + ((this._use_higher_precision)?'%.2f %s':'%.1f %s');
-                ending = 'V';
-                break;
-            case 'hertz':
-                if (value > 0) {
-                    i = Math.floor(Math.log(value) / Math.log(1000));
-                    value = parseFloat((value / Math.pow(1000, i)));
-                }
-
-                format = (this._use_higher_precision)?'%.2f %s':'%.1f %s';
-                ending = hertz[i];
-                break;
-            case 'storage':
-                if (value > 0) {
-                    i = Math.floor(Math.log(value) / Math.log(kilo));
-                    value = parseFloat((value / Math.pow(kilo, i)));
-                }
-
-                format = (this._use_higher_precision)?'%.2f %s':'%.1f %s';
-                ending = sizes[i];
-                break;
-            case 'speed':
-                if (value > 0) {
-                    i = Math.floor(Math.log(value) / Math.log(kilo));
-                    value = parseFloat((value / Math.pow(kilo, i)));
-                }
-
-                format = (this._use_higher_precision)?'%.1f %s':'%.0f %s';
-                ending = sizes[i] + '/s';
-                break;
-            case 'duration':
-                let scale = [24, 60, 60];
-                let units = ['d ', 'h ', 'm '];
-
-                // show seconds on higher precision or if value under a minute
-                if (this._use_higher_precision || value < 60) {
-                    scale.push(1);
-                    units.push('s ');
-                }
-
-                let rslt = scale.map((d, i, a) => a.slice(i).reduce((d, c) => d * c))
-                    .map((d, i) => ([d, units[i]]))
-                    .reduce(cbFun, ['', value]);
-
-                value = rslt[0].trim();
-
-                format = '%s';
-                break;
-            default:
-                format = '%s';
-                break;
-        }
-
-        return format.format(value, ending);
-    },
-
     _ucFirst: function(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
     },
@@ -489,27 +386,10 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _querySensors: function() {
-        this._sensors.query(Lang.bind(this, function(label, value, type, format, key) {
-            value = this._formatValue(value, format);
-            // for storage, blocks can change but have same rounded number - which is updated every time
-            //global.log('...label=' + label, 'value=' + value, 'type=' + type + ', format=' + format);
-            this._updateDisplay(_(label), value, type, key);
+        this._sensors.query(Lang.bind(this, function(label, value, type, key) {
+            //global.log('...label=' + label, 'value=' + value, 'type=' + type);
+            this._updateDisplay(_(label), value.toString(), type, key);
         }));
-    },
-
-    _setProgress: function(amount) {
-        let a = '00FF00';
-        let b = 'FF0000';
-
-        var ah = parseInt(a, 16),
-            ar = ah >> 16, ag = ah >> 8 & 0xff, ab = ah & 0xff,
-            bh = parseInt(b, 16),
-            br = bh >> 16, bg = bh >> 8 & 0xff, bb = bh & 0xff,
-            rr = ar + amount * (br - ar),
-            rg = ag + amount * (bg - ag),
-            rb = ab + amount * (bb - ab);
-
-        return 'color:#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
     },
 
     _onDestroy: function() {
