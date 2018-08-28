@@ -28,8 +28,9 @@ const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const GTop = imports.gi.GTop;
-
 const Values = Me.imports.values;
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 
 var Sensors = new Lang.Class({
     Name: 'Sensors',
@@ -330,7 +331,7 @@ var Sensors = new Lang.Class({
     _returnValue: function(callback, label, value, type, format) {
         let items = this._values.returnIfDifferent(label, value, type, format);
         for (let item of Object.values(items))
-            callback(item[0], item[1], item[2], item[3]);
+            callback(_(item[0]), item[1], item[2], item[3]);
     },
 
     set update_time(update_time) {
