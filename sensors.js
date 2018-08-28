@@ -28,6 +28,9 @@ const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const GTop = imports.gi.GTop;
+const Values = Me.imports.values;
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 
 var Sensors = new Lang.Class({
     Name: 'Sensors',
@@ -37,6 +40,7 @@ var Sensors = new Lang.Class({
         this._update_time = update_time;
         this._sensorIcons = sensorIcons;
 
+        this._values = new Values.Values(settings, sensorIcons);
         this.resetHistory();
 
         this._last_query = 0;
@@ -194,7 +198,7 @@ var Sensors = new Lang.Class({
                         label = 'Average';
                         this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
                     } else
-                        label = 'Core %d'.format(cpu.substr(3));
+                        label = '%s %d'.format(_('Core'), cpu.substr(3));
 
                     this._returnValue(callback, label, delta, 'processor', 'percent');
                 }
@@ -325,28 +329,9 @@ var Sensors = new Lang.Class({
     },
 
     _returnValue: function(callback, label, value, type, format) {
-        // only return sensors that are new or that need updating
-        let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
-        if (typeof this._history[type][key] == 'undefined' || this._history[type][key] != value) {
-            this._history[type][key] = value;
-            callback(label, value, type, format, key);
-
-            // process average values
-            if (type == 'temperature' || type == 'voltage' || type == 'fan') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x));
-                let sum = vals.reduce(function(a, b) { return a + b; });
-                let avg = sum / vals.length;
-                callback('Average', avg, type, format, '__' + type + '_avg__');
-                callback(type, avg, type + '-group', format);
-            } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x));
-                let max = Math.max(...vals);
-                callback('Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, format, '__max_' + type + '__');
-
-                if (type == 'network-download')
-                    callback(type, max, type + '-group', format);
-            }
-        }
+        let items = this._values.returnIfDifferent(label, value, type, format);
+        for (let item of Object.values(items))
+            callback(_(item[0]), item[1], item[2], item[3]);
     },
 
     set update_time(update_time) {
@@ -354,17 +339,7 @@ var Sensors = new Lang.Class({
     },
 
     resetHistory: function() {
-        this._history = {};
-        for (let sensor in this._sensorIcons) {
-            this._history[sensor] = {};
-            this._history[sensor + '-group'] = {};
-
-            if (sensor == 'network') {
-                this._history[sensor + '-download'] = {};
-                this._history[sensor + '-upload'] = {};
-            }
-        }
-
+        this._values.resetHistory();
         this._next_public_ip_check = 0;
     }
 });
