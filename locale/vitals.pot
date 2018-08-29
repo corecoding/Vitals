@@ -10,6 +10,15 @@ msgstr ""
 msgid "Average"
 msgstr ""
 
+msgid "System Monitor"
+msgstr ""
+
+msgid "Preferences"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
 #: main menu
 msgid "Temperature"
 msgstr ""
