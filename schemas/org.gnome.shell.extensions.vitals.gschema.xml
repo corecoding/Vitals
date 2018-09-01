@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="gse-sensors">
+<schemalist gettext-domain="gnome-shell-extensions">
   <schema id="org.gnome.shell.extensions.vitals" path="/org/gnome/shell/extensions/vitals/">
     <key name="hot-sensors" type="as">
-      <default>["_memory_usage_,_system_load_1m_"]</default>
+      <default>['_memory_usage_', '_system_load_1m_']</default>
       <summary>Sensors to show in panel</summary>
       <description>Select the sensord whose values has to be shown in the panel</description>
     </key>

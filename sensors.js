@@ -27,10 +27,17 @@
 const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
-const GTop = imports.gi.GTop;
 const Values = Me.imports.values;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+
+let GTop, hasGTop = true;
+try {
+    GTop = imports.gi.GTop;
+} catch (e) {
+    global.log(e);
+    hasGTop = false;
+}
 
 var Sensors = new Lang.Class({
     Name: 'Sensors',
@@ -46,7 +53,9 @@ var Sensors = new Lang.Class({
         this._last_query = 0;
         this._last_processor = {};
         this._last_network = {};
-        this.storage = new GTop.glibtop_fsusage();
+
+        if (hasGTop)
+            this.storage = new GTop.glibtop_fsusage();
     },
 
     query: function(callback) {
@@ -312,8 +321,11 @@ var Sensors = new Lang.Class({
         }
     },
 
-    _queryStorage: function(callback) {
-        GTop.glibtop_get_fsusage(this.storage, '/');
+    _queryStorage: function(callback, diff) {
+        if (!hasGTop) return;
+
+        let path = '/';
+        GTop.glibtop_get_fsusage(this.storage, path);
 
         let total = this.storage.blocks * this.storage.block_size;
         let avail = this.storage.bavail * this.storage.block_size;
