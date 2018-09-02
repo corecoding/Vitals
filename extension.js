@@ -61,11 +61,11 @@ const VitalsMenuButton = new Lang.Class({
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
-        this._addSettingChangedSignal('show-icon-on-panel', Lang.bind(this, this._showIconOnPanelChanged));
+        //this._addSettingChangedSignal('panel-display-mode', Lang.bind(this, this._showIconOnPanelChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit' ];
+        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'panel-display-mode' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, Lang.bind(this, this._redrawMenu));
 
@@ -192,7 +192,7 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _showIconOnPanelChanged: function() {
-        if (this._settings.get_boolean('show-icon-on-panel')) {
+        if (this._settings.get_int('panel-display-mode') == 0) {
             let index = 0;
             for (let key in this._hotLabels) {
                 let icon = this._defaultIcon(this._sensorMenuItems[key].gicon);
@@ -245,7 +245,7 @@ const VitalsMenuButton = new Lang.Class({
     _drawMenu: function() {
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
-        let showIcon = this._settings.get_boolean('show-icon-on-panel');
+        let showIcon = (this._settings.get_int('panel-display-mode') == 0);
         for (let key of Object.values(hotSensors))
             this._createHotItem(key, showIcon);
     },
@@ -287,7 +287,7 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _appendMenuItem: function(sensor, key) {
-        let showIcon = this._settings.get_boolean('show-icon-on-panel');
+        let showIcon = (this._settings.get_int('panel-display-mode') == 0);
 
         let split = sensor.type.split('-');
         let type = split[0];

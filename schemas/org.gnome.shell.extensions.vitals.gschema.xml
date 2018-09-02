@@ -4,7 +4,7 @@
     <key name="hot-sensors" type="as">
       <default>['_memory_usage_', '_system_load_1m_']</default>
       <summary>Sensors to show in panel</summary>
-      <description>Select the sensord whose values has to be shown in the panel</description>
+      <description>List of sensors to be shown in the panel</description>
     </key>
     <key type="i" name="update-time">
       <default>5</default>
@@ -31,10 +31,10 @@
       <summary>Hide zero values</summary>
       <description>Hide data from sensors that are invalid</description>
     </key>
-    <key type="b" name="show-icon-on-panel">
-      <default>true</default>
-      <summary>Show icons in panel</summary>
-      <description>Show sensor icon on top panel</description>
+    <key type="i" name="panel-display-mode">
+      <default>0</default>
+      <summary>Panel display mode</summary>
+      <description>What to display in panel, Icons and values, Values only, Single icon</description>
     </key>
     <key type="b" name="show-temperature">
       <default>true</default>
