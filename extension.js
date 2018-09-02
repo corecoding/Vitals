@@ -199,9 +199,15 @@ const VitalsMenuButton = new Lang.Class({
                 this._hotIcons[key] = icon;
                 this._menuLayout.insert_child_at_index(icon, index);
                 index += 2;
+                this._hotLabels[key].style = '';
             }
-        } else
+        } else {
             this._removeHotIcons();
+
+            for (let key in this._hotLabels) {
+                this._hotLabels[key].style = 'padding-right:10px;';
+            }
+        }
     },
 
     _removeHotLabel: function(key) {
@@ -372,6 +378,7 @@ const VitalsMenuButton = new Lang.Class({
         //icon.style = this._setProgress(0.1);
 
         if (gicon) icon.gicon = gicon;
+        //style here
 
         return icon;
     },
