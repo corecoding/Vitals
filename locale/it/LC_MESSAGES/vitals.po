@@ -137,9 +137,6 @@ msgstr "Alfabetizza i sensori"
 msgid "Hide zero values"
 msgstr "Nascondi valori nulli"
 
-msgid "Show icons in panel"
-msgstr "Mostra icone sul pannello"
-
 #: prefs about
 msgid ""
 "Like what you see? Support the development of this extension via "

@@ -40,7 +40,7 @@ const Settings = new Lang.Class({
             });
         }
 
-        sensors = [ 'position-in-panel', 'unit', 'panel-display-mode' ];
+        sensors = [ 'position-in-panel', 'unit' ];
 
         for (let sensor of Object.values(sensors)) {
             widget = this.builder.get_object(sensor);
