@@ -61,7 +61,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
-        this._addSettingChangedSignal('show-icon-on-panel', Lang.bind(this, this._showIconOnPanelChanged));
+        this._addSettingChangedSignal('panel-display-mode', Lang.bind(this, this._panelDisplayModeChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
@@ -144,19 +144,26 @@ const VitalsMenuButton = new Lang.Class({
         }));
     },
 
-    _createHotItem: function(key, showIcon, gicon, value) {
-        if (showIcon) {
+    _createHotItem: function(key, gicon, value) {
+        let displayMode = this._settings.get_int('panel-display-mode');
+        if (displayMode == 2 && Object.keys(this._hotIcons).length >= 1)
+            return;
+
+        if (displayMode != 1) {
             let icon = this._defaultIcon(gicon);
             this._hotIcons[key] = icon;
             this._menuLayout.add(icon);
         }
 
-        if (!value)
-            value = '\u2026'; /* ... */
+        // don't add labels to icon only mode
+        if (displayMode == 2) return;
+
+        if (!value) value = '\u2026'; // ...
 
         let label = new St.Label({
             text: value,
             y_expand: true,
+            style: ((displayMode == 1)?'padding-right:8px;':''),
             y_align: Clutter.ActorAlign.CENTER
         });
 
@@ -191,17 +198,9 @@ const VitalsMenuButton = new Lang.Class({
         boxes[p].insert_child_at_index(this.container, p == 'right' ? 0 : -1)
     },
 
-    _showIconOnPanelChanged: function() {
-        if (this._settings.get_boolean('show-icon-on-panel')) {
-            let index = 0;
-            for (let key in this._hotLabels) {
-                let icon = this._defaultIcon(this._sensorMenuItems[key].gicon);
-                this._hotIcons[key] = icon;
-                this._menuLayout.insert_child_at_index(icon, index);
-                index += 2;
-            }
-        } else
-            this._removeHotIcons();
+    _panelDisplayModeChanged: function(key) {
+        this._updateTimeChanged();
+        this._redrawMenu();
     },
 
     _removeHotLabel: function(key) {
@@ -237,7 +236,6 @@ const VitalsMenuButton = new Lang.Class({
         }
 
         this._drawMenu();
-
         this._sensors.resetHistory();
         this._querySensors();
     },
@@ -245,9 +243,8 @@ const VitalsMenuButton = new Lang.Class({
     _drawMenu: function() {
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
-        let showIcon = this._settings.get_boolean('show-icon-on-panel');
         for (let key of Object.values(hotSensors))
-            this._createHotItem(key, showIcon);
+            this._createHotItem(key);
     },
 
     _updateTimeChanged: function() {
@@ -256,6 +253,7 @@ const VitalsMenuButton = new Lang.Class({
 
         // invalidate and reinitialize timer
         Mainloop.source_remove(this._refreshTimeoutId);
+
         this._initializeTimer();
     },
 
@@ -287,8 +285,6 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _appendMenuItem: function(sensor, key) {
-        let showIcon = this._settings.get_boolean('show-icon-on-panel');
-
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
@@ -315,7 +311,7 @@ const VitalsMenuButton = new Lang.Class({
 
                 // add sensor to menubar
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, showIcon, self.gicon, self.value);
+                this._createHotItem(self.key, self.gicon, self.value);
             }
 
             for (let i = hotSensors.length - 1; i >= 0; i--) {
@@ -372,6 +368,7 @@ const VitalsMenuButton = new Lang.Class({
         //icon.style = this._setProgress(0.1);
 
         if (gicon) icon.gicon = gicon;
+        //style here
 
         return icon;
     },

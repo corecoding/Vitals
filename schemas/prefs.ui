@@ -329,7 +329,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="halign">start</property>
                                 <property name="margin_left">5</property>
-                                <property name="label" translatable="yes">Show icons in panel</property>
+                                <property name="label" translatable="yes">Panel display mode</property>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -338,14 +338,20 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSwitch" id="show-icon-on-panel">
+                              <object class="GtkComboBoxText" id="panel-display-mode">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="halign">end</property>
+                                <property name="can_focus">False</property>
+                                <property name="active">0</property>
+                                <items>
+                                  <item translatable="yes">Icons and values</item>
+                                  <item translatable="yes">Values only</item>
+                                  <item translatable="yes">Single icon</item>
+                                </items>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
+                                <property name="pack_type">end</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
