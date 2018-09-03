@@ -61,7 +61,6 @@ const VitalsMenuButton = new Lang.Class({
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
-        this._addSettingChangedSignal('panel-display-mode', Lang.bind(this, this._panelDisplayModeChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
@@ -81,21 +80,21 @@ const VitalsMenuButton = new Lang.Class({
         // display sensor categories
         for (let sensor in this._sensorIcons) {
             // groups associated sensors under accordion menu
-            if (typeof this._groups[sensor] == 'undefined') {
-                this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
-                this._groups[sensor].icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[sensor]['icon']);
+            if (typeof this._groups[sensor] != 'undefined') continue;
 
-                // hide menu items that user has requested to not include
-                if (!this._settings.get_boolean('show-' + sensor))
-                    this._groups[sensor].actor.hide();
+            this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
+            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[sensor]['icon']);
 
-                if (!this._groups[sensor].status) {
-                    this._groups[sensor].status = this._defaultLabel();
-                    this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
-                }
+            // hide menu items that user has requested to not include
+            if (!this._settings.get_boolean('show-' + sensor))
+                this._groups[sensor].actor.hide();
 
-                this.menu.addMenuItem(this._groups[sensor]);
+            if (!this._groups[sensor].status) {
+                this._groups[sensor].status = this._defaultLabel();
+                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
             }
+
+            this.menu.addMenuItem(this._groups[sensor]);
         }
 
         let panelSystem = Main.panel.statusArea.aggregateMenu._system;
@@ -145,25 +144,16 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _createHotItem: function(key, gicon, value) {
-        let displayMode = this._settings.get_int('panel-display-mode');
-        if (displayMode == 2 && Object.keys(this._hotIcons).length >= 1)
-            return;
+        let icon = this._defaultIcon(gicon);
+        this._hotIcons[key] = icon;
+        this._menuLayout.add(icon);
 
-        if (displayMode != 1) {
-            let icon = this._defaultIcon(gicon);
-            this._hotIcons[key] = icon;
-            this._menuLayout.add(icon);
-        }
-
-        // don't add labels to icon only mode
-        if (displayMode == 2) return;
-
-        if (!value) value = '\u2026'; // ...
+        // don't add a label when no sensors are in the panel
+        if (key == '_default_icon_') return;
 
         let label = new St.Label({
-            text: value,
+            text: (value)?value:'\u2026', // ...
             y_expand: true,
-            style: ((displayMode == 1)?'padding-right:8px;':''),
             y_align: Clutter.ActorAlign.CENTER
         });
 
@@ -198,16 +188,13 @@ const VitalsMenuButton = new Lang.Class({
         boxes[p].insert_child_at_index(this.container, p == 'right' ? 0 : -1)
     },
 
-    _panelDisplayModeChanged: function(key) {
-        this._updateTimeChanged();
-        this._redrawMenu();
-    },
-
     _removeHotLabel: function(key) {
-        let label = this._hotLabels[key];
-        delete this._hotLabels[key];
-        // make sure set_label is not called on non existant actor
-        label.destroy();
+        if (typeof this._hotLabels[key] != 'undefined') {
+            let label = this._hotLabels[key];
+            delete this._hotLabels[key];
+            // make sure set_label is not called on non existant actor
+            label.destroy();
+        }
     },
 
     _removeHotLabels: function() {
@@ -216,8 +203,10 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _removeHotIcon: function(key) {
-        this._hotIcons[key].destroy();
-        delete this._hotIcons[key];
+        if (typeof this._hotIcons[key] != 'undefined') {
+            this._hotIcons[key].destroy();
+            delete this._hotIcons[key];
+        }
     },
 
     _removeHotIcons: function() {
@@ -297,29 +286,28 @@ const VitalsMenuButton = new Lang.Class({
             if (self.checked) {
                 self.checked = false;
 
-                // require that one checkbox is always visible
-                if (hotSensors.length <= 1) {
-                    // don't close dropdown menu
-                    return true;
-                }
-
+                // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
                 this._removeHotLabel(self.key);
                 this._removeHotIcon(self.key);
             } else {
                 self.checked = true;
 
-                // add sensor to menubar
+                // add selected sensor to panel
                 hotSensors.push(self.key);
                 this._createHotItem(self.key, self.gicon, self.value);
             }
 
-            for (let i = hotSensors.length - 1; i >= 0; i--) {
-                let k = hotSensors[i];
-                if (!this._sensorMenuItems[k]) {
-                    hotSensors.splice(i, 1);
-                    this._removeHotLabel(k);
-                    this._removeHotIcon(k);
+            if (hotSensors.length <= 0) {
+                // add generic icon to panel when no sensors are selected
+                hotSensors.push('_default_icon_');
+                this._createHotItem('_default_icon_');
+            } else {
+                let defIconPos = hotSensors.indexOf('_default_icon_');
+                if (defIconPos >= 0) {
+                    // remove generic icon from panel when sensors are selected
+                    hotSensors.splice(defIconPos, 1);
+                    this._removeHotIcon('_default_icon_');
                 }
             }
 

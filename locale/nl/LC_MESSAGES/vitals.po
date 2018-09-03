@@ -138,9 +138,6 @@ msgstr "Sensors sorteren"
 msgid "Hide zero values"
 msgstr "Nulwaarden tonen"
 
-msgid "Show icons in panel"
-msgstr "Pictogrammen in paneel tonen"
-
 #: prefs about
 msgid ""
 "Like what you see? Support the development of this extension via "

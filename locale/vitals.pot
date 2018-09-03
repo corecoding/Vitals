@@ -135,9 +135,6 @@ msgstr ""
 msgid "Hide zero values"
 msgstr ""
 
-msgid "Show icons in panel"
-msgstr ""
-
 #: prefs about
 msgid ""
 "Like what you see? Support the development of this extension via "
