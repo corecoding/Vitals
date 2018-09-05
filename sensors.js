@@ -30,6 +30,7 @@ const FileModule = Me.imports.helpers.file;
 const Values = Me.imports.values;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const ngettext = Gettext.ngettext;
 
 let GTop, hasGTop = true;
 try {
@@ -207,7 +208,9 @@ var Sensors = new Lang.Class({
                         label = 'Average';
                         this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
                     } else
-                        label = '%s %d'.format(_('Core'), cpu.substr(3));
+                        //label = 'Core %d'.format(cpu.substr(3));
+                        label = ngettext("Core %d", "Core %d", cpu.substr(3)).format(cpu.substr(3));
+
 
                     this._returnValue(callback, label, delta, 'processor', 'percent');
                 }
