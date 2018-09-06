@@ -207,7 +207,7 @@ var Sensors = new Lang.Class({
                         label = 'Average';
                         this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
                     } else
-                        label = '%s %d'.format(_('Core'), cpu.substr(3));
+                        label = _('Core %d').format(cpu.substr(3));
 
                     this._returnValue(callback, label, delta, 'processor', 'percent');
                 }

@@ -47,8 +47,8 @@ msgid "Storage"
 msgstr "Archiviazione"
 
 #: temperature
-msgid "Core"
-msgstr "Core"
+msgid "Core %d"
+msgstr "Core %d"
 
 #: voltage fan memory
 msgid "Usage"
