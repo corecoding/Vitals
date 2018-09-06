@@ -48,8 +48,8 @@ msgid "Storage"
 msgstr "Opslag"
 
 #: temperature
-msgid "Core"
-msgstr "Processor"
+msgid "Core %d"
+msgstr "Processor %d"
 
 #: voltage fan memory
 msgid "Usage"
