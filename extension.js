@@ -401,13 +401,18 @@ const VitalsMenuButton = new Lang.Class({
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
 
             //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
+            let warnings = [];
 
             if (key == '_temperature_package_id 0_' && value >= 62000) {
-                this._notifications.display(label + ' has value of ' + value);
+                warnings.push(label + ' has value of ' + value);
             }
 
             if (key == '_system_load_1m_' && value >= 2) {
-                this._notifications.display(label + ' has value of ' + value);
+                warnings.push(label + ' has value of ' + value);
+            }
+
+            if (warnings.length > 0) {
+                this._notifications.display(warnings.join("\n"));
             }
 
         }));
