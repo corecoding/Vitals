@@ -153,14 +153,11 @@ var Values = new Lang.Class({
         return 'color:#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
     },
 
-    returnIfDifferent: function(label, value, type, format) {
-        // only return sensors that are new or that need updating
-        let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
-
-        value = this._humanReadable(value, format)
+    returnIfDifferent: function(label, value, type, format, key) {
+        value = this._humanReadable(value, format);
         let output = [];
 
-        // is the value different from last time?
+        // only return sensors that are new or that need updating
         if (this._getHistory(type, key) != value) {
             this._history[type][key] = value;
 

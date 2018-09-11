@@ -27,7 +27,6 @@
 const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
-const Values = Me.imports.values;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -42,12 +41,11 @@ try {
 var Sensors = new Lang.Class({
     Name: 'Sensors',
 
-    _init: function(settings, sensorIcons, update_time) {
+    _init: function(settings, sensorIcons) {
         this._settings = settings;
-        this._update_time = update_time;
+        this._update_time = this._settings.get_int('update-time');
         this._sensorIcons = sensorIcons;
 
-        this._values = new Values.Values(settings, sensorIcons);
         this.resetHistory();
 
         this._last_query = 0;
@@ -341,9 +339,7 @@ var Sensors = new Lang.Class({
     },
 
     _returnValue: function(callback, label, value, type, format) {
-        let items = this._values.returnIfDifferent(label, value, type, format);
-        for (let item of Object.values(items))
-            callback(_(item[0]), item[1], item[2], item[3]);
+        callback(label, value, type, format);
     },
 
     set update_time(update_time) {
@@ -351,7 +347,6 @@ var Sensors = new Lang.Class({
     },
 
     resetHistory: function() {
-        this._values.resetHistory();
         this._next_public_ip_check = 0;
     }
 });

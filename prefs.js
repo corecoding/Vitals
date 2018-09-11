@@ -55,7 +55,7 @@ const Settings = new Lang.Class({
             this.builder.get_object('update-time'),
             'value',
             Gio.SettingsBindFlags.DEFAULT);
-    },
+    }
 });
 
 function init() {
