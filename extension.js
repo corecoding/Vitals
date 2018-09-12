@@ -341,6 +341,8 @@ const VitalsMenuButton = new Lang.Class({
                     return hotSensors.indexOf(item) == pos;
                 }
             ));
+
+            return true;
         }));
 
         if (this._hotLabels[key]) {
@@ -401,21 +403,28 @@ const VitalsMenuButton = new Lang.Class({
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
 
             //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
-            let warnings = [];
-
-            if (key == '_temperature_package_id 0_' && value >= 62000) {
-                warnings.push(label + ' has value of ' + value);
-            }
-
-            if (key == '_system_load_1m_' && value >= 2) {
-                warnings.push(label + ' has value of ' + value);
-            }
-
-            if (warnings.length > 0) {
-                this._notifications.display(warnings.join("\n"));
-            }
-
         }));
+
+
+        let warnings = [];
+        for (let sensor in this._sensorIcons) {
+            let values = this._values._getSensorValuesFor(sensor);
+            for (let key in values) {
+                let value = parseFloat(values[key]);
+                global.log('key=' + key + ', value=' + value);
+
+/*
+                if (key == '_temperature_package_id 0_' && value >= 55)
+                    warnings.push(key + ' has value of ' + value);
+
+                if (key == '_system_load_1m_' && value >= 2)
+                    warnings.push(key + ' has value of ' + value);
+*/
+            }
+        }
+
+        if (warnings.length > 0)
+            this._notifications.display(warnings.join("\n"));
     },
 
     _onDestroy: function() {

@@ -158,7 +158,7 @@ var Values = new Lang.Class({
         let output = [];
 
         // only return sensors that are new or that need updating
-        if (this._getHistory(type, key) != value) {
+        if (typeof this._history[type][key] == 'undefined' || this._history[type][key] != value) {
             this._history[type][key] = value;
 
             output.push([label, value, type, key]);
@@ -186,11 +186,8 @@ var Values = new Lang.Class({
         return output;
     },
 
-    _getHistory: function(type, key) {
-        if (typeof this._history[type][key] == 'undefined')
-            return undefined;
-        else
-            return this._history[type][key];
+    _getSensorValuesFor: function(type) {
+        return this._history[type];
     },
 
     resetHistory: function() {
