@@ -44,7 +44,7 @@ var Values = new Lang.Class({
         this.resetHistory();
     },
 
-    _humanReadable: function(value, sensorClass, reduce = true) {
+    _legible: function(value, sensorClass) {
         if (value === null) return 'N/A';
         let use_higher_precision = this._settings.get_boolean('use-higher-precision');
 
@@ -63,7 +63,7 @@ var Values = new Lang.Class({
                 ending = '\u0025';
                 break;
             case 'temp':
-                if (reduce) value = value / 1000;
+                value = value / 1000;
                 //ending = "\u00b0C";
                 ending = '\u2103';
 
@@ -81,7 +81,7 @@ var Values = new Lang.Class({
                 ending = 'RPM';
                 break;
             case 'in': // voltage
-                if (reduce) value = value / 1000;
+                value = value / 1000;
                 format = ((value >= 0) ? '+' : '-') + ((use_higher_precision)?'%.2f %s':'%.1f %s');
                 ending = 'V';
                 break;
@@ -106,7 +106,7 @@ var Values = new Lang.Class({
             case 'speed':
                 if (value > 0) {
                     i = Math.floor(Math.log(value) / Math.log(kilo));
-                    if (reduce) value = parseFloat((value / Math.pow(kilo, i)));
+                    value = parseFloat((value / Math.pow(kilo, i)));
                 }
 
                 format = (use_higher_precision)?'%.1f %s':'%.0f %s';
@@ -154,28 +154,32 @@ var Values = new Lang.Class({
     },
 
     returnIfDifferent: function(label, value, type, format, key) {
-        value = this._humanReadable(value, format);
         let output = [];
 
-        // only return sensors that are new or that need updating
-        if (typeof this._history[type][key] == 'undefined' || this._history[type][key] != value) {
-            this._history[type][key] = value;
+        // no sense in continuing when the raw value has not changed
+        if (typeof this._history[type][key] != 'undefined' && this._history[type][key][1] == value)
+            return output;
 
-            output.push([label, value, type, key]);
+        // is the value different from last time?
+        let legible = this._legible(value, format);
+        if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
+            this._history[type][key] = [legible, value];
+
+            output.push([label, legible, type, key]);
 
             // process average values
             if (type == 'temperature' || type == 'voltage' || type == 'fan') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x));
+                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
                 let sum = vals.reduce(function(a, b) { return a + b; });
                 let avg = sum / vals.length;
-                avg = this._humanReadable(avg, format, false);
+                avg = this._legible(avg, format);
 
                 output.push(['Average', avg, type, '__' + type + '_avg__']);
                 output.push([type, avg, type + '-group', '']);
             } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x));
+                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
                 let max = Math.max(...vals);
-                max = this._humanReadable(max, format, false);
+                max = this._legible(max, format);
                 output.push(['Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, '__max_' + type + '__']);
 
                 if (type == 'network-download')
