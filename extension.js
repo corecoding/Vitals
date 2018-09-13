@@ -356,7 +356,6 @@ const VitalsMenuButton = new Lang.Class({
         //icon.style = this._setProgress(0.1);
 
         if (gicon) icon.gicon = gicon;
-        //style here
 
         return icon;
     },
