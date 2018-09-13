@@ -410,11 +410,11 @@ const VitalsMenuButton = new Lang.Class({
         for (let sensor in this._sensorIcons) {
             let values = this._values._getSensorValuesFor(sensor);
             for (let key in values) {
-                let value = parseFloat(values[key]);
+                let value = parseFloat(values[key][1]);
                 global.log('key=' + key + ', value=' + value);
 
 /*
-                if (key == '_temperature_package_id 0_' && value >= 55)
+                if (key == '_temperature_package_id 0_' && value >= 55000)
                     warnings.push(key + ' has value of ' + value);
 
                 if (key == '_system_load_1m_' && value >= 2)
