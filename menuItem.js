@@ -2,8 +2,8 @@ const Lang = imports.lang;
 const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 
-var VitalsItem = new Lang.Class({
-    Name: 'VitalsItem',
+var MenuItem = new Lang.Class({
+    Name: 'MenuItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
     _init: function(icon, key, label, value) {

@@ -8,7 +8,7 @@ const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const VitalsItem = Me.imports.vitalsItem;
+const MenuItem = Me.imports.menuItem;
 const Sensors = Me.imports.sensors;
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
@@ -279,7 +279,7 @@ const VitalsMenuButton = new Lang.Class({
         let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
-        let item = new VitalsItem.VitalsItem(gicon, key, sensor.label, sensor.value);
+        let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value);
         item.connect('activate', Lang.bind(this, function(self) {
             let hotSensors = this._settings.get_strv('hot-sensors');
 
