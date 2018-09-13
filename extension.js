@@ -108,14 +108,14 @@ const VitalsMenuButton = new Lang.Class({
         prefsButton.connect('clicked', function() {
             Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
         });
-        item.actor.add(prefsButton);
+        item.actor.add(prefsButton, { expand: true, x_fill: false });
 
         // round monitor button
         let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
         monitorButton.connect('clicked', function() {
             Util.spawn(["gnome-system-monitor"]);
         });
-        item.actor.add(monitorButton);
+        item.actor.add(monitorButton, { expand: true, x_fill: false });
 
         // round refresh button
         let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
@@ -123,7 +123,7 @@ const VitalsMenuButton = new Lang.Class({
             this._sensors.resetHistory();
             this._updateTimeChanged();
         }));
-        item.actor.add(refreshButton);
+        item.actor.add(refreshButton, { expand: true, x_fill: false });
 
         // add separator and buttons
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
