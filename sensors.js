@@ -30,6 +30,7 @@ const FileModule = Me.imports.helpers.file;
 const Values = Me.imports.values;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+Me.imports.helpers.otherPolyfills;
 
 let GTop, hasGTop = true;
 try {

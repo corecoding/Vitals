@@ -25,6 +25,8 @@
 */
 
 const Lang = imports.lang;
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+Me.imports.helpers.otherPolyfills;
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
@@ -181,7 +183,7 @@ var Values = new Lang.Class({
                 output.push([type, avg, type + '-group', '']);
             } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
-                let max = Math.max(...vals);
+                let max = Math.getMaxOfArray(vals);
                 max = this._legible(max, format);
                 output.push(['Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, '__max_' + type + '__']);
 

@@ -6,6 +6,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+Me.imports.helpers.otherPolyfills;
 
 const Settings = new Lang.Class({
     Name: 'Vitals.Settings',
