@@ -10,7 +10,7 @@ if (!String.prototype.includes) {
     } else {
       return this.indexOf(search, start) !== -1;
     }
-  };
+  }
 }
 
 if (!Object.values) Object.values = o=>Object.keys(o).map(k=>o[k]);
