@@ -8,6 +8,7 @@ const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
+Me.imports.helpers.polyfills;
 const MenuItem = Me.imports.menuItem;
 const Sensors = Me.imports.sensors;
 const Convenience = Me.imports.helpers.convenience;
@@ -15,7 +16,6 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Notifications = Me.imports.notifications;
 const Values = Me.imports.values;
-Me.imports.helpers.otherPolyfills;
 
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
@@ -406,7 +406,7 @@ const VitalsMenuButton = new Lang.Class({
             //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
         }));
 
-
+/*
         let warnings = [];
         for (let sensor in this._sensorIcons) {
             let values = this._values._getSensorValuesFor(sensor);
@@ -414,18 +414,17 @@ const VitalsMenuButton = new Lang.Class({
                 let value = parseFloat(values[key][1]);
                 global.log('key=' + key + ', value=' + value);
 
-/*
                 if (key == '_temperature_package_id 0_' && value >= 55000)
                     warnings.push(key + ' has value of ' + value);
 
                 if (key == '_system_load_1m_' && value >= 2)
                     warnings.push(key + ' has value of ' + value);
-*/
             }
         }
 
         if (warnings.length > 0)
             this._notifications.display(warnings.join("\n"));
+*/
     },
 
     _onDestroy: function() {

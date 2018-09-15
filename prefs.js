@@ -3,10 +3,10 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
+Me.imports.helpers.polyfills;
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-Me.imports.helpers.otherPolyfills;
 
 const Settings = new Lang.Class({
     Name: 'Vitals.Settings',
