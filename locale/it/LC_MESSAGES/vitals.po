@@ -86,9 +86,6 @@ msgstr "Thread Attivi"
 msgid "Threads Total"
 msgstr "Thread Totali"
 
-msgid "Last PID"
-msgstr "Ultimo PID"
-
 #: network
 msgid "Maximum rx"
 msgstr "Massimo rx"
