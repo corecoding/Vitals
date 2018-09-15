@@ -13,6 +13,7 @@ const Sensors = Me.imports.sensors;
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+Me.imports.helpers.otherPolyfills;
 
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
