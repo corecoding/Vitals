@@ -13,6 +13,8 @@ const Sensors = Me.imports.sensors;
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const Notifications = Me.imports.notifications;
+const Values = Me.imports.values;
 Me.imports.helpers.otherPolyfills;
 
 const VitalsMenuButton = new Lang.Class({
@@ -53,8 +55,10 @@ const VitalsMenuButton = new Lang.Class({
 
         this._update_time = this._settings.get_int('update-time');
 
-        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._update_time);
+        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
+        this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
+        this._notifications = new Notifications.Notifications();
 
         this._drawMenu();
 
@@ -122,6 +126,7 @@ const VitalsMenuButton = new Lang.Class({
         let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
         refreshButton.connect('clicked', Lang.bind(this, function(self) {
             this._sensors.resetHistory();
+            this._values.resetHistory();
             this._updateTimeChanged();
         }));
         item.actor.add(refreshButton, { expand: true, x_fill: false });
@@ -164,15 +169,33 @@ const VitalsMenuButton = new Lang.Class({
 
     _higherPrecisionChanged: function() {
         this._sensors.resetHistory();
+        this._values.resetHistory();
         this._querySensors();
     },
 
-    _showHideSensorsChanged: function() {
-        for (let sensor in this._sensorIcons)
-            if (this._settings.get_boolean('show-' + sensor))
-                this._groups[sensor].actor.show();
-            else
-                this._groups[sensor].actor.hide();
+    _showHideSensorsChanged: function(self, sensor) {
+        if (this._settings.get_boolean(sensor)) {
+            if (sensor == 'show-storage') {
+
+
+                let val = true;
+
+                try {
+                    let GTop = imports.gi.GTop;
+                } catch (e) {
+                    val = false;
+                }
+
+                let now = new Date().getTime();
+                this._notifications.display('Please install sudo apt install gir1.2-gtop-2.0 ' + now);
+
+
+
+            }
+
+            this._groups[sensor.substr(5)].actor.show();
+        } else
+            this._groups[sensor.substr(5)].actor.hide();
     },
 
     _positionInPanelChanged: function() {
@@ -227,6 +250,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._drawMenu();
         this._sensors.resetHistory();
+        this._values.resetHistory();
         this._querySensors();
     },
 
@@ -318,6 +342,8 @@ const VitalsMenuButton = new Lang.Class({
                     return hotSensors.indexOf(item) == pos;
                 }
             ));
+
+            return true;
         }));
 
         if (this._hotLabels[key]) {
@@ -371,10 +397,35 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _querySensors: function() {
-        this._sensors.query(Lang.bind(this, function(label, value, type, key) {
-            //global.log('...label=' + label, 'value=' + value, 'type=' + type);
-            this._updateDisplay(label, value.toString(), type, key);
+        this._sensors.query(Lang.bind(this, function(label, value, type, format) {
+            let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
+            let items = this._values.returnIfDifferent(label, value, type, format, key);
+            for (let item of Object.values(items))
+                this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
+
+            //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
         }));
+
+
+        let warnings = [];
+        for (let sensor in this._sensorIcons) {
+            let values = this._values._getSensorValuesFor(sensor);
+            for (let key in values) {
+                let value = parseFloat(values[key][1]);
+                global.log('key=' + key + ', value=' + value);
+
+/*
+                if (key == '_temperature_package_id 0_' && value >= 55000)
+                    warnings.push(key + ' has value of ' + value);
+
+                if (key == '_system_load_1m_' && value >= 2)
+                    warnings.push(key + ' has value of ' + value);
+*/
+            }
+        }
+
+        if (warnings.length > 0)
+            this._notifications.display(warnings.join("\n"));
     },
 
     _onDestroy: function() {

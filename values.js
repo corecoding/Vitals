@@ -155,10 +155,7 @@ var Values = new Lang.Class({
         return 'color:#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
     },
 
-    returnIfDifferent: function(label, value, type, format) {
-        // only return sensors that are new or that need updating
-        let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
-
+    returnIfDifferent: function(label, value, type, format, key) {
         let output = [];
 
         // no sense in continuing when the raw value has not changed
@@ -193,6 +190,10 @@ var Values = new Lang.Class({
         }
 
         return output;
+    },
+
+    _getSensorValuesFor: function(type) {
+        return this._history[type];
     },
 
     resetHistory: function() {
