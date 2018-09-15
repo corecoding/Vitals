@@ -26,7 +26,6 @@
 
 const Lang = imports.lang;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-Me.imports.helpers.otherPolyfills;
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
