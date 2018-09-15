@@ -84,9 +84,6 @@ msgstr ""
 msgid "Threads Total"
 msgstr ""
 
-msgid "Last PID"
-msgstr ""
-
 #: network
 msgid "Maximum rx"
 msgstr ""
