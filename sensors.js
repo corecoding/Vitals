@@ -29,6 +29,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+Me.imports.helpers.otherPolyfills;
 
 let GTop, hasGTop = true;
 try {

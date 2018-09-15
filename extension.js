@@ -15,6 +15,7 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Notifications = Me.imports.notifications;
 const Values = Me.imports.values;
+Me.imports.helpers.otherPolyfills;
 
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
