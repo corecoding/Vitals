@@ -103,11 +103,26 @@ var Sensors = new Lang.Class({
                             for (let sensor_type in sensor_types) {
                                 if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-6) == '_' + key) {
                                     let key2 = file + file2.substr(0, file2.indexOf('_'));
+                                    //global.log(key2);
 
                                     if (typeof trisensors[key2] == 'undefined') {
                                         trisensors[key2] = { 'type': sensor_types[sensor_type],
                                                            'format': sensor_type,
                                                             'label': hwbase + file + '/name' };
+                                    }
+
+                                    trisensors[key2][key] = path;
+
+
+
+
+                                    key2 = file + file2.substr(0, file2.indexOf('_')) + '_device';
+                                    //global.log(key2);
+
+                                    if (typeof trisensors[key2] == 'undefined') {
+                                        trisensors[key2] = { 'type': sensor_types[sensor_type],
+                                                           'format': sensor_type,
+                                                            'label': hwbase + file + '/device/name' };
                                     }
 
                                     trisensors[key2][key] = path;
