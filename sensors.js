@@ -71,7 +71,7 @@ var Sensors = new Lang.Class({
             this._queryTempVoltFan(callback);
         } else {
             this._trisensorsScanned = true;
-            this._discoverTrinity(callback);
+            this._findSensors(callback);
         }
 
         for (let sensor in this._sensorIcons) {
@@ -305,22 +305,31 @@ var Sensors = new Lang.Class({
         this._update_time = update_time;
     },
 
-    _discoverTrinity: function(callback) {
-        global.log('discoverTrinity');
+    _findSensors: function(callback) {
+        global.log('findSensors');
         this._trisensorValues = [];
 
         let hwbase = '/sys/class/hwmon/';
+
+        // process sensor_types now so it is not called multiple times below
+        let sensor_types = {};
+        if (this._settings.get_boolean('show-temperature'))
+            sensor_types['temp'] = 'temperature';
+        if (this._settings.get_boolean('show-voltage'))
+            sensor_types['in'] = 'voltage';
+        if (this._settings.get_boolean('show-fan'))
+            sensor_types['fan'] = 'fan';
 
         // a little informal, but this code has zero I/O block
         new FileModule.File(hwbase).list().then(files => {
             for (let file of Object.values(files)) {
                 global.log('scanning ' + hwbase + file);
 
-                new FileModule.File(hwbase + file + '/name').read().then(value => {
-                    this._scanSensors(callback, hwbase + file);
+                new FileModule.File(hwbase + file + '/name').read().then(name => {
+                    this._readSensors(callback, sensor_types, name, hwbase + file, file);
                 }).catch(err => {
-                    new FileModule.File(hwbase + file + '/device/name').read().then(value => {
-                        this._scanSensors(callback, hwbase + file + '/device');
+                    new FileModule.File(hwbase + file + '/device/name').read().then(name => {
+                        this._readSensors(callback, sensor_types, name, hwbase + file + '/device', file);
                     }).catch(err => {
                     });
                 });
@@ -330,25 +339,16 @@ var Sensors = new Lang.Class({
         });
     },
 
-    _scanSensors: function(callback, path) {
+    _readSensors: function(callback, sensor_types, name, path, file) {
         global.log('found sensors in ' + path + '/name');
         let sensor_files = [ 'input', 'label' ];
 
-        let sensor_types = {};
-        if (this._settings.get_boolean('show-temperature'))
-            sensor_types['temp'] = 'temperature';
-        if (this._settings.get_boolean('show-voltage'))
-            sensor_types['in'] = 'voltage';
-        if (this._settings.get_boolean('show-fan'))
-            sensor_types['fan'] = 'fan';
-
         new FileModule.File(path).list().then(files2 => {
             let trisensors = {};
+
             for (let file2 of Object.values(files2)) {
                 for (let key of Object.values(sensor_files)) {
                     for (let sensor_type in sensor_types) {
-                global.log('comparing ' + file2.substr(0, sensor_type.length) + ' to ' + sensor_type);
-                global.log('pomcaring ' + file2.substr(-6) + ' to _' + key);
                         if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-6) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
 
@@ -372,7 +372,12 @@ var Sensors = new Lang.Class({
                         let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
 
                         if (value > 0 || obj['type'] != 'fan' || (value == 0 && !this._settings.get_boolean('hide-zeros'))) {
+                            if (name != label) {
+                                label = name + ' ' + label;
+                            }
+
                             global.log('pushing label=' + label + extra + ', file=' + obj['input'] + ', type=' + obj['type']);
+                            // update screen on initial build to prevent delay on update
                             this._returnValue(callback, label + extra, value, obj['type'], obj['format']);
 
                             this._trisensorValues.push({'label': label + extra,
@@ -394,5 +399,3 @@ var Sensors = new Lang.Class({
         this._next_public_ip_check = 0;
     }
 });
-
-
