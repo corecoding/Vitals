@@ -71,7 +71,7 @@ var Sensors = new Lang.Class({
             this._queryTempVoltFan(callback);
         } else {
             this._trisensorsScanned = true;
-            this._findSensors(callback);
+            this._discoverTempVoltFan(callback);
         }
 
         for (let sensor in this._sensorIcons) {
@@ -86,9 +86,7 @@ var Sensors = new Lang.Class({
     },
 
     _queryTempVoltFan: function(callback) {
-        for (let sensor of Object.values(this._trisensorValues)) {
-            global.log('tri type=' + sensor['type'] + ', format=' + sensor['format'] + ', label=' + sensor['label'] + ', path=' + sensor['path']);
-
+        for (let sensor of Object.values(this._tempVoltFanSensors)) {
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
             }).catch(err => {
@@ -305,9 +303,8 @@ var Sensors = new Lang.Class({
         this._update_time = update_time;
     },
 
-    _findSensors: function(callback) {
-        global.log('findSensors');
-        this._trisensorValues = [];
+    _discoverTempVoltFan: function(callback) {
+        this._tempVoltFanSensors = [];
 
         let hwbase = '/sys/class/hwmon/';
 
@@ -323,14 +320,13 @@ var Sensors = new Lang.Class({
         // a little informal, but this code has zero I/O block
         new FileModule.File(hwbase).list().then(files => {
             for (let file of Object.values(files)) {
-                global.log('scanning ' + hwbase + file);
-
                 new FileModule.File(hwbase + file + '/name').read().then(name => {
-                    this._readSensors(callback, sensor_types, name, hwbase + file, file);
+                    this._readTempVoltFan(callback, sensor_types, name, hwbase + file, file);
                 }).catch(err => {
                     new FileModule.File(hwbase + file + '/device/name').read().then(name => {
-                        this._readSensors(callback, sensor_types, name, hwbase + file + '/device', file);
+                        this._readTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
                     }).catch(err => {
+                        global.log(err);
                     });
                 });
             }
@@ -339,8 +335,7 @@ var Sensors = new Lang.Class({
         });
     },
 
-    _readSensors: function(callback, sensor_types, name, path, file) {
-        global.log('found sensors in ' + path + '/name');
+    _readTempVoltFan: function(callback, sensor_types, name, path, file) {
         let sensor_files = [ 'input', 'label' ];
 
         new FileModule.File(path).list().then(files2 => {
@@ -365,22 +360,18 @@ var Sensors = new Lang.Class({
             }
 
             for (let obj of Object.values(trisensors)) {
-                global.log('obj ' + obj['label']);
-
                 new FileModule.File(obj['label']).read().then(label => {
                     new FileModule.File(obj['input']).read().then(value => {
                         let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
 
                         if (value > 0 || obj['type'] != 'fan' || (value == 0 && !this._settings.get_boolean('hide-zeros'))) {
-                            if (name != label) {
-                                label = name + ' ' + label;
-                            }
+                            // prepend module that provided sensor data
+                            //if (name != label) label = name + ' ' + label;
 
-                            global.log('pushing label=' + label + extra + ', file=' + obj['input'] + ', type=' + obj['type']);
                             // update screen on initial build to prevent delay on update
                             this._returnValue(callback, label + extra, value, obj['type'], obj['format']);
 
-                            this._trisensorValues.push({'label': label + extra,
+                            this._tempVoltFanSensors.push({'label': label + extra,
                                                     'type': obj['type'],
                                                   'format': obj['format'],
                                                   'path': obj['input']});
