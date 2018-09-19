@@ -79,6 +79,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._initializeMenu();
         this._initializeTimer();
+        this._removeMissingHotSensors();
     },
 
     _initializeMenu: function() {
@@ -136,6 +137,40 @@ const VitalsMenuButton = new Lang.Class({
         this.menu.addMenuItem(item);
     },
 
+    _removeMissingHotSensors: function() {
+        // wait 5 seconds and then check for missing (changed) sensors
+        Mainloop.timeout_add_seconds(5, Lang.bind(this, function() {
+            let updated = false;
+
+            let hotSensors = this._settings.get_strv('hot-sensors');
+            for (let i = hotSensors.length - 1; i >= 0; i--) {
+                let k = hotSensors[i];
+                if (!this._sensorMenuItems[k]) {
+                    hotSensors.splice(i, 1);
+
+                    this._removeHotLabel(k);
+                    this._removeHotIcon(k);
+
+                    updated = true;
+                }
+            }
+
+            if (updated)
+                this._saveHotSensors(hotSensors);
+
+            // stop the timer
+            return false;
+        }));
+    },
+
+    _saveHotSensors: function(hotSensors) {
+        this._settings.set_strv('hot-sensors', hotSensors.filter(
+            function(item, pos) {
+                return hotSensors.indexOf(item) == pos;
+            }
+        ));
+    },
+
     _initializeTimer: function() {
         // start off with fresh sensors
         this._querySensors();
@@ -144,7 +179,7 @@ const VitalsMenuButton = new Lang.Class({
         this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._update_time, Lang.bind(this, function() {
             this._querySensors();
 
-            // read to update queue
+            // keep the timer running
             return true;
         }));
     },
@@ -188,7 +223,6 @@ const VitalsMenuButton = new Lang.Class({
 
                 let now = new Date().getTime();
                 this._notifications.display('Please install sudo apt install gir1.2-gtop-2.0 ' + now);
-
 
 
             }
@@ -337,11 +371,7 @@ const VitalsMenuButton = new Lang.Class({
             }
 
             // this code is called asynchronously - make sure to save it for next round
-            this._settings.set_strv('hot-sensors', hotSensors.filter(
-                function(item, pos) {
-                    return hotSensors.indexOf(item) == pos;
-                }
-            ));
+            this._saveHotSensors(hotSensors);
 
             return true;
         }));
