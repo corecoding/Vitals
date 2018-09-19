@@ -47,6 +47,7 @@ var Sensors = new Lang.Class({
         this._sensorIcons = sensorIcons;
 
         this.resetHistory();
+        this._trisensorsScanned = false;
 
         this._last_query = 0;
         this._last_processor = {};
@@ -66,16 +67,12 @@ var Sensors = new Lang.Class({
 
         this._last_query = now;
 
-        let sensor_types = {};
-        if (this._settings.get_boolean('show-temperature'))
-            sensor_types['temp'] = 'temperature';
-        if (this._settings.get_boolean('show-voltage'))
-            sensor_types['in'] = 'voltage';
-        if (this._settings.get_boolean('show-fan'))
-            sensor_types['fan'] = 'fan';
-
-        if (Object.keys(sensor_types).length > 0)
-            this._queryTempVoltFan(callback, sensor_types);
+        if (this._trisensorsScanned) {
+            this._queryTempVoltFan(callback);
+        } else {
+            this._trisensorsScanned = true;
+            this._discoverTempVoltFan(callback);
+        }
 
         for (let sensor in this._sensorIcons) {
             if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan')
@@ -88,53 +85,14 @@ var Sensors = new Lang.Class({
         }
     },
 
-    _queryTempVoltFan: function(callback, sensor_types) {
-        let sensor_files = [ 'input', 'label' ];
-        let hwbase = '/sys/class/hwmon/';
-
-        // a little informal, but this code has zero I/O block
-        new FileModule.File(hwbase).list().then(files => {
-            for (let file of Object.values(files)) {
-                new FileModule.File(hwbase + file).list().then(files2 => {
-                    let trisensors = {};
-                    for (let file2 of Object.values(files2)) {
-                        let path = hwbase + file + '/' + file2;
-                        for (let key of Object.values(sensor_files)) {
-                            for (let sensor_type in sensor_types) {
-                                if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-6) == '_' + key) {
-                                    let key2 = file + file2.substr(0, file2.indexOf('_'));
-
-                                    if (typeof trisensors[key2] == 'undefined') {
-                                        trisensors[key2] = { 'type': sensor_types[sensor_type],
-                                                           'format': sensor_type,
-                                                            'label': hwbase + file + '/name' };
-                                    }
-
-                                    trisensors[key2][key] = path;
-                                }
-                            }
-                        }
-                    }
-
-                    for (let obj of Object.values(trisensors)) {
-                        new FileModule.File(obj['label']).read().then(label => {
-                            new FileModule.File(obj['input']).read().then(value => {
-                                let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
-
-                                if (value > 0 || obj['type'] != 'fan' || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                                    this._returnValue(callback, label + extra, value, obj['type'], obj['format']);
-                            }).catch(err => {
-                                global.log(err);
-                            });
-                        }).catch(err => {
-                            global.log(err);
-                        });
-                    }
-                });
-            }
-        }).catch(err => {
-            global.log(err);
-        });
+    _queryTempVoltFan: function(callback) {
+        for (let sensor of Object.values(this._tempVoltFanSensors)) {
+            new FileModule.File(sensor['path']).read().then(value => {
+                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
+            }).catch(err => {
+                global.log(err);
+            });
+        }
     },
 
     _queryMemory: function(callback) {
@@ -343,6 +301,89 @@ var Sensors = new Lang.Class({
 
     set update_time(update_time) {
         this._update_time = update_time;
+    },
+
+    _discoverTempVoltFan: function(callback) {
+        this._tempVoltFanSensors = [];
+
+        let hwbase = '/sys/class/hwmon/';
+
+        // process sensor_types now so it is not called multiple times below
+        let sensor_types = {};
+        if (this._settings.get_boolean('show-temperature'))
+            sensor_types['temp'] = 'temperature';
+        if (this._settings.get_boolean('show-voltage'))
+            sensor_types['in'] = 'voltage';
+        if (this._settings.get_boolean('show-fan'))
+            sensor_types['fan'] = 'fan';
+
+        // a little informal, but this code has zero I/O block
+        new FileModule.File(hwbase).list().then(files => {
+            for (let file of Object.values(files)) {
+                new FileModule.File(hwbase + file + '/name').read().then(name => {
+                    this._readTempVoltFan(callback, sensor_types, name, hwbase + file, file);
+                }).catch(err => {
+                    new FileModule.File(hwbase + file + '/device/name').read().then(name => {
+                        this._readTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
+                    }).catch(err => {
+                        global.log(err);
+                    });
+                });
+            }
+        }).catch(err => {
+            global.log(err);
+        });
+    },
+
+    _readTempVoltFan: function(callback, sensor_types, name, path, file) {
+        let sensor_files = [ 'input', 'label' ];
+
+        new FileModule.File(path).list().then(files2 => {
+            let trisensors = {};
+
+            for (let file2 of Object.values(files2)) {
+                for (let key of Object.values(sensor_files)) {
+                    for (let sensor_type in sensor_types) {
+                        if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-6) == '_' + key) {
+                            let key2 = file + file2.substr(0, file2.indexOf('_'));
+
+                            if (typeof trisensors[key2] == 'undefined') {
+                                trisensors[key2] = { 'type': sensor_types[sensor_type],
+                                                   'format': sensor_type,
+                                                    'label': path + '/name' };
+                            }
+
+                            trisensors[key2][key] = path + '/' + file2;
+                        }
+                    }
+                }
+            }
+
+            for (let obj of Object.values(trisensors)) {
+                new FileModule.File(obj['label']).read().then(label => {
+                    new FileModule.File(obj['input']).read().then(value => {
+                        let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
+
+                        if (value > 0 || obj['type'] != 'fan' || (value == 0 && !this._settings.get_boolean('hide-zeros'))) {
+                            // prepend module that provided sensor data
+                            //if (name != label) label = name + ' ' + label;
+
+                            // update screen on initial build to prevent delay on update
+                            this._returnValue(callback, label + extra, value, obj['type'], obj['format']);
+
+                            this._tempVoltFanSensors.push({'label': label + extra,
+                                                    'type': obj['type'],
+                                                  'format': obj['format'],
+                                                  'path': obj['input']});
+                        }
+                    }).catch(err => {
+                        global.log(err);
+                    });
+                }).catch(err => {
+                    global.log(err);
+                });
+            }
+        });
     },
 
     resetHistory: function() {

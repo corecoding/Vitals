@@ -79,7 +79,6 @@ const VitalsMenuButton = new Lang.Class({
 
         this._initializeMenu();
         this._initializeTimer();
-        this._removeMissingHotSensors();
     },
 
     _initializeMenu: function() {
@@ -137,30 +136,17 @@ const VitalsMenuButton = new Lang.Class({
         this.menu.addMenuItem(item);
     },
 
-    _removeMissingHotSensors: function() {
-        // wait 5 seconds and then check for missing (changed) sensors
-        Mainloop.timeout_add_seconds(5, Lang.bind(this, function() {
-            let updated = false;
-
-            let hotSensors = this._settings.get_strv('hot-sensors');
-            for (let i = hotSensors.length - 1; i >= 0; i--) {
-                let k = hotSensors[i];
-                if (!this._sensorMenuItems[k]) {
-                    hotSensors.splice(i, 1);
-
-                    this._removeHotLabel(k);
-                    this._removeHotIcon(k);
-
-                    updated = true;
-                }
+    _removeMissingHotSensors: function(hotSensors) {
+        for (let i = hotSensors.length - 1; i >= 0; i--) {
+            let k = hotSensors[i];
+            if (!this._sensorMenuItems[k]) {
+                hotSensors.splice(i, 1);
+                this._removeHotLabel(k);
+                this._removeHotIcon(k);
             }
+        }
 
-            if (updated)
-                this._saveHotSensors(hotSensors);
-
-            // stop the timer
-            return false;
-        }));
+        return hotSensors;
     },
 
     _saveHotSensors: function(hotSensors) {
@@ -210,8 +196,8 @@ const VitalsMenuButton = new Lang.Class({
 
     _showHideSensorsChanged: function(self, sensor) {
         if (this._settings.get_boolean(sensor)) {
+/*
             if (sensor == 'show-storage') {
-
 
                 let val = true;
 
@@ -224,9 +210,8 @@ const VitalsMenuButton = new Lang.Class({
                 let now = new Date().getTime();
                 this._notifications.display('Please install sudo apt install gir1.2-gtop-2.0 ' + now);
 
-
             }
-
+*/
             this._groups[sensor.substr(5)].actor.show();
         } else
             this._groups[sensor.substr(5)].actor.hide();
@@ -369,6 +354,9 @@ const VitalsMenuButton = new Lang.Class({
                     this._removeHotIcon('_default_icon_');
                 }
             }
+
+            // removes any sensors that may not currently be available
+            hotSensors = this._removeMissingHotSensors(hotSensors);
 
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
