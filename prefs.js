@@ -30,10 +30,11 @@ const Settings = new Lang.Class({
         let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
-                        'alphabetize', 'hide-zeros',
-                        'include-public-ip' ];
+                        'alphabetize', 'hide-zeros', 'include-public-ip' ];
 
-        for (let sensor of Object.values(sensors)) {
+        for (key in sensors) {
+            let sensor = sensors[key];
+
             widget = this.builder.get_object(sensor);
             widget.set_active(this._settings.get_boolean(sensor));
             widget.connect('state-set', (_, val) => {
@@ -43,7 +44,9 @@ const Settings = new Lang.Class({
 
         sensors = [ 'position-in-panel', 'unit' ];
 
-        for (let sensor of Object.values(sensors)) {
+        for (key in sensors) {
+            let sensor = sensors[key];
+
             widget = this.builder.get_object(sensor);
             widget.set_active(this._settings.get_int(sensor));
             widget.connect('changed', (widget) => {

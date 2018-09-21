@@ -86,7 +86,9 @@ var Sensors = new Lang.Class({
     },
 
     _queryTempVoltFan: function(callback) {
-        for (let sensor of Object.values(this._tempVoltFanSensors)) {
+        for (let key in this._tempVoltFanSensors) {
+            let sensor = this._tempVoltFanSensors[key];
+
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
             }).catch(err => {
@@ -225,7 +227,9 @@ var Sensors = new Lang.Class({
         // check network speed
         let netbase = '/sys/class/net/';
         new FileModule.File(netbase).list().then(files => {
-            for (let file of Object.values(files)) {
+            for (let key in files) {
+                let file = files[key];
+
                 if (typeof this._last_network[file] == 'undefined')
                     this._last_network[file] = {};
 
@@ -319,7 +323,9 @@ var Sensors = new Lang.Class({
 
         // a little informal, but this code has zero I/O block
         new FileModule.File(hwbase).list().then(files => {
-            for (let file of Object.values(files)) {
+            for (let key in files) {
+                let file = files[key];
+
                 new FileModule.File(hwbase + file + '/name').read().then(name => {
                     this._readTempVoltFan(callback, sensor_types, name, hwbase + file, file);
                 }).catch(err => {
