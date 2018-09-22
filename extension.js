@@ -138,11 +138,15 @@ const VitalsMenuButton = new Lang.Class({
 
     _removeMissingHotSensors: function(hotSensors) {
         for (let i = hotSensors.length - 1; i >= 0; i--) {
-            let k = hotSensors[i];
-            if (!this._sensorMenuItems[k]) {
+            let sensor = hotSensors[i];
+
+            // make sure default icon (if any) stays visible
+            if (sensor == '_default_icon_') continue;
+
+            if (!this._sensorMenuItems[sensor]) {
                 hotSensors.splice(i, 1);
-                this._removeHotLabel(k);
-                this._removeHotIcon(k);
+                this._removeHotLabel(sensor);
+                this._removeHotIcon(sensor);
             }
         }
 
