@@ -299,6 +299,8 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _updateDisplay: function(label, value, type, key) {
+        //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
+
         // update sensor value in menubar
         if (this._hotLabels[key])
             this._hotLabels[key].set_text(value);
@@ -424,8 +426,6 @@ const VitalsMenuButton = new Lang.Class({
             let items = this._values.returnIfDifferent(label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
-
-            //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
         }));
 
 /*
