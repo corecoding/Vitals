@@ -394,5 +394,6 @@ var Sensors = new Lang.Class({
 
     resetHistory: function() {
         this._next_public_ip_check = 0;
+        this._trisensorsScanned = false;
     }
 });
