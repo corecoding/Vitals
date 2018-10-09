@@ -234,10 +234,12 @@ var Sensors = new Lang.Class({
                     this._last_network[file] = {};
 
                 new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(value => {
+                    let speed = 0;
                     if (typeof this._last_network[file]['tx'] != 'undefined') {
-                        let speed = (value - this._last_network[file]['tx']) / diff;
-                        this._returnValue(callback, file + ' tx', speed, 'network-upload', 'speed');
+                        speed = (value - this._last_network[file]['tx']) / diff;
                     }
+
+                    this._returnValue(callback, file + ' tx', speed, 'network-upload', 'speed');
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['tx'] = value;
@@ -246,10 +248,12 @@ var Sensors = new Lang.Class({
                 });
 
                 new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
+                    let speed = 0;
                     if (typeof this._last_network[file]['rx'] != 'undefined') {
-                        let speed = (value - this._last_network[file]['rx']) / diff;
-                        this._returnValue(callback, file + ' rx', speed, 'network-download', 'speed');
+                        speed = (value - this._last_network[file]['rx']) / diff;
                     }
+
+                    this._returnValue(callback, file + ' rx', speed, 'network-download', 'speed');
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['rx'] = value;

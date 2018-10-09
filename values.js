@@ -57,21 +57,20 @@ var Values = new Lang.Class({
         var sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
         var hertz = [ 'Hz', 'KHz', '\u3392', '\u3393', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
+        var useBPS = false;
+
         switch (sensorClass) {
             case 'percent':
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
-                //ending = '%';
                 ending = '\u0025';
                 break;
             case 'temp':
                 value = value / 1000;
-                //ending = "\u00b0C";
                 ending = '\u2103';
 
                 // are we converting to fahrenheit?
                 if (this._settings.get_int('unit') == 1) {
                     value = ((9 / 5) * value + 32);
-                    //ending = "\u00b0F";
                     ending = '\u2109';
                 }
 
@@ -97,7 +96,7 @@ var Values = new Lang.Class({
                 break;
             case 'storage':
                 if (value > 0) {
-                    i = Math.floor(Math.log(value) / Math.log(kilo));
+                    i = Math.floor(Math.log(value) / Math.log(1000));
                     value = parseFloat((value / Math.pow(kilo, i)));
                 }
 
@@ -106,12 +105,19 @@ var Values = new Lang.Class({
                 break;
             case 'speed':
                 if (value > 0) {
-                    i = Math.floor(Math.log(value) / Math.log(kilo));
+                    if (useBPS) value *= 8;
+                    i = Math.floor(Math.log(value) / Math.log(1000));
                     value = parseFloat((value / Math.pow(kilo, i)));
                 }
 
                 format = (use_higher_precision)?'%.1f %s':'%.0f %s';
-                ending = sizes[i] + '/s';
+
+                if (useBPS) {
+                    ending = sizes[i].replace('B', 'bps');
+                } else {
+                    ending = sizes[i] + '/s';
+                }
+
                 break;
             case 'duration':
                 let scale = [24, 60, 60];
