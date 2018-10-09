@@ -33,7 +33,7 @@ var Notifications = new Lang.Class({
 
     _init: function() {
         /*
-        this._notifSource = new MessageTray.Source('ClipboardIndicator', "utilities-system-monitor-symbolic");
+        this._notifSource = new MessageTray.Source('VitalsIndicator', "utilities-system-monitor-symbolic");
 
         this._notifSource.connect('destroy', Lang.bind(this, function() {
             this._notifSource = null;
@@ -45,7 +45,7 @@ var Notifications = new Lang.Class({
 
     _initNotification: function () {
         if (!this._notifSource) {
-            this._notifSource = new MessageTray.Source('ClipboardIndicator', "utilities-system-monitor-symbolic");
+            this._notifSource = new MessageTray.Source('VitalsIndicator', 'utilities-system-monitor-symbolic');
 
             this._notifSource.connect('destroy', Lang.bind(this, function() {
                 this._notifSource = null;
