@@ -48,6 +48,7 @@ const VitalsMenuButton = new Lang.Class({
                        'alphabetize': false }
         }
 
+        this._warnings = [];
         this._sensorMenuItems = {};
         this._hotLabels = {};
         this._hotIcons = {};
@@ -423,30 +424,24 @@ const VitalsMenuButton = new Lang.Class({
     _querySensors: function() {
         this._sensors.query(Lang.bind(this, function(label, value, type, format) {
             let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
+
+/*
+            if (key == '_temperature_package_id 0_' && value >= 50000)
+                this._warnings.push(label + ' is ' + value);
+
+            if (key == '_system_load_1m_' && value >= 2)
+                this._warnings.push(label + ' is ' + value);
+*/
+
             let items = this._values.returnIfDifferent(label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
         }));
 
-/*
-        let warnings = [];
-        for (let sensor in this._sensorIcons) {
-            let values = this._values._getSensorValuesFor(sensor);
-            for (let key in values) {
-                let value = parseFloat(values[key][1]);
-                global.log('key=' + key + ', value=' + value);
-
-                if (key == '_temperature_package_id 0_' && value >= 55000)
-                    warnings.push(key + ' has value of ' + value);
-
-                if (key == '_system_load_1m_' && value >= 2)
-                    warnings.push(key + ' has value of ' + value);
-            }
+        if (this._warnings.length > 0) {
+            this._notifications.display(this._warnings.join("\n"));
+            this._warnings = [];
         }
-
-        if (warnings.length > 0)
-            this._notifications.display(warnings.join("\n"));
-*/
     },
 
     _onDestroy: function() {
