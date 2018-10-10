@@ -17,8 +17,14 @@ File.prototype.read = function() {
         try {
             this.file.load_contents_async(null, function(file, res) {
                 try {
-                    let contents = file.load_contents_finish(res)[1].toString().trim();
-                    resolve(contents);
+                    let contents = file.load_contents_finish(res)[1];
+
+                    // are we running gnome 3.30 or higher?
+                    if (contents instanceof Uint8Array) {
+                        resolve(imports.byteArray.toString(contents));
+                    } else {
+                        resolve(contents.toString().trim());
+                    }
                 } catch (e) {
                     reject(e.message);
                 }
