@@ -21,7 +21,7 @@ File.prototype.read = function() {
 
                     // are we running gnome 3.30 or higher?
                     if (contents instanceof Uint8Array) {
-                        resolve(imports.byteArray.toString(contents));
+                        resolve(imports.byteArray.toString(contents).trim());
                     } else {
                         resolve(contents.toString().trim());
                     }
