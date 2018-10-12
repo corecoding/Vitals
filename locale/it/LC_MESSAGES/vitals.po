@@ -1,7 +1,9 @@
-# English translation for gnome-shell-extension-vitals.
-# Copyright (C) Core Coding
-# This file is distributed under the same license as the gnome-shell-extension-vitals package.
-# Chris Monahan <vitals@corecoding.com>, 2018.
+# Italian translation for gnome-shell-extension-vitals.
+#
+# This file is distributed under the same license as the
+# gnome-shell-extension-vitals package.
+#
+# Jimmy Scionti <jimmy.scionti@gmail.com>, 2018
 #
 msgid ""
 msgstr ""
@@ -133,6 +135,9 @@ msgstr "Alfabetizza i sensori"
 
 msgid "Hide zero values"
 msgstr "Nascondi valori nulli"
+
+msgid "Network speed format"
+msgstr "Formato della velocità di rete"
 
 #: prefs about
 msgid ""

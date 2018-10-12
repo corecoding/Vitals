@@ -42,7 +42,7 @@ const Settings = new Lang.Class({
             });
         }
 
-        sensors = [ 'position-in-panel', 'unit' ];
+        sensors = [ 'position-in-panel', 'unit', 'network-speed-format' ];
 
         for (key in sensors) {
             let sensor = sensors[key];

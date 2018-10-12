@@ -48,6 +48,7 @@ var Values = new Lang.Class({
     _legible: function(value, sensorClass) {
         if (value === null) return 'N/A';
         let use_higher_precision = this._settings.get_boolean('use-higher-precision');
+        let use_bps = (this._settings.get_int('network-speed-format') == 1);
 
         let format = '';
         let ending = '';
@@ -56,8 +57,6 @@ var Values = new Lang.Class({
         let kilo = 1024;
         var sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
         var hertz = [ 'Hz', 'KHz', '\u3392', '\u3393', 'THz', 'PHz', 'EHz', 'ZHz' ];
-
-        var useBPS = false;
 
         switch (sensorClass) {
             case 'percent':
@@ -105,14 +104,14 @@ var Values = new Lang.Class({
                 break;
             case 'speed':
                 if (value > 0) {
-                    if (useBPS) value *= 8;
+                    if (use_bps) value *= 8;
                     i = Math.floor(Math.log(value) / Math.log(1000));
                     value = parseFloat((value / Math.pow(kilo, i)));
                 }
 
                 format = (use_higher_precision)?'%.1f %s':'%.0f %s';
 
-                if (useBPS) {
+                if (use_bps) {
                     ending = sizes[i].replace('B', 'bps');
                 } else {
                     ending = sizes[i] + '/s';
