@@ -70,7 +70,7 @@ const VitalsMenuButton = new Lang.Class({
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit' ];
+        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, Lang.bind(this, this._redrawMenu));
 

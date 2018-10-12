@@ -81,5 +81,10 @@
       <summary>Include public IP address</summary>
       <description>Display public IP address of internet connection</description>
     </key>
+    <key type="i" name="network-speed-format">
+      <default>0</default>
+      <summary>Network speed format</summary>
+      <description>Should speed display in bits or bytes?</description>
+    </key>
   </schema>
 </schemalist>
