@@ -1,4 +1,5 @@
 .vitals-icon { icon-size: 16px; }
 .vitals-menu-button-container {}
 .vitals-status-menu-item { font-weight:bold; }
-.vitals-panel-box StIcon { padding:0;margin-right: 1px; margin-left: 6px; }
+/* .vitals-panel-box StIcon { padding:0;margin-right: 1px; margin-left: 6px; } */
+#panel .panel-button .system-status-icon { margin: 0 1px 0 10px; padding: 0; }
