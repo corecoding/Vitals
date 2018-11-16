@@ -384,7 +384,8 @@ const VitalsMenuButton = new Lang.Class({
         if (this._sensorIcons[type]['alphabetize'] && this._settings.get_boolean('alphabetize')) {
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
-                if (menuItems[i].key.localeCompare(key) > 0)
+                // use natural sort order for system load, etc
+                if (menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
                     break;
         }
 
