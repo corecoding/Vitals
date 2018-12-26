@@ -287,8 +287,7 @@ var Sensors = new Lang.Class({
     _queryStorage: function(callback, diff) {
         if (!hasGTop) return;
 
-        let path = '/';
-        GTop.glibtop_get_fsusage(this.storage, path);
+        GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
 
         let total = this.storage.blocks * this.storage.block_size;
         let avail = this.storage.bavail * this.storage.block_size;

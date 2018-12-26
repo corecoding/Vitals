@@ -1,8 +1,24 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
-
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Promise = Me.imports.helpers.promise.Promise;
+const ByteArray = imports.byteArray;
+
+function contentsCleaner(contents) {
+    if (contents instanceof Uint8Array) {
+        // we running gnome 3.30 or higher
+        return ByteArray.toString(contents).trim();
+    } else {
+        return contents.toString().trim();
+    }
+}
+
+function getcontents(filename) {
+    let handle = Gio.File.new_for_path(filename);
+    let contents = handle.load_contents(null)[1];
+    contents = contentsCleaner(contents);
+    return contents;
+}
 
 function File(path) {
     if (path.indexOf('http://') == -1) {
@@ -18,13 +34,7 @@ File.prototype.read = function() {
             this.file.load_contents_async(null, function(file, res) {
                 try {
                     let contents = file.load_contents_finish(res)[1];
-
-                    // are we running gnome 3.30 or higher?
-                    if (contents instanceof Uint8Array) {
-                        resolve(imports.byteArray.toString(contents).trim());
-                    } else {
-                        resolve(contents.toString().trim());
-                    }
+                    resolve(contentsCleaner(contents));
                 } catch (e) {
                     reject(e.message);
                 }
