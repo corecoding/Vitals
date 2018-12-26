@@ -144,7 +144,7 @@ msgstr ""
 msgid "Monitor temperature"
 msgstr ""
 
-msgid " ↳ Temperature unit"
+msgid "Unit"
 msgstr ""
 
 msgid "Monitor voltage"
@@ -165,8 +165,29 @@ msgstr ""
 msgid "Monitor network"
 msgstr ""
 
-msgid " ↳ Include public IP address"
+msgid "Include public IP address"
 msgstr ""
 
 msgid "Monitor storage"
+msgstr ""
+
+msgid "Temperature Preferences"
+msgstr ""
+
+msgid "Network Preferences"
+msgstr ""
+
+msgid "Storage Preferences"
+msgstr ""
+
+msgid "Path"
+msgstr ""
+
+msgid "Generale"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Sensors"
 msgstr ""

@@ -135,8 +135,8 @@ msgstr "Sensors sorteren"
 msgid "Hide zero values"
 msgstr "Nulwaarden tonen"
 
-msgid "Network speed format"
-msgstr "Netwerk snelheid formaat"
+msgid "Format"
+msgstr "Formaat"
 
 #: prefs about
 msgid ""
@@ -154,8 +154,8 @@ msgstr ""
 msgid "Monitor temperature"
 msgstr "Temperatuur monitoren"
 
-msgid " ↳ Temperature unit"
-msgstr " ↳ Temperatuureenheid"
+msgid "Unit"
+msgstr "Eenheid"
 
 msgid "Monitor voltage"
 msgstr "Spanning monitoren"
@@ -175,8 +175,29 @@ msgstr "Systeem monitoren"
 msgid "Monitor network"
 msgstr "Netwerk monitoren"
 
-msgid " ↳ Include public IP address"
-msgstr " ↳ Publiek IP-adresss tonen"
+msgid "Include public IP address"
+msgstr "Publiek IP-adresss tonen"
 
 msgid "Monitor storage"
 msgstr "Opslag monitoren"
+
+msgid "Temperature Preferences"
+msgstr "Temperatuurvoorkeuren"
+
+msgid "Network Preferences"
+msgstr "Netwerkvoorkeuren"
+
+msgid "Storage Preferences"
+msgstr "Opslagvoorkeuren"
+
+msgid "Path"
+msgstr "Pad"
+
+msgid "General"
+msgstr "Algemeen"
+
+msgid "About"
+msgstr "Wat betreft"
+
+msgid "Sensors"
+msgstr "Sensoren"

@@ -136,8 +136,8 @@ msgstr "Alfabetizza i sensori"
 msgid "Hide zero values"
 msgstr "Nascondi valori nulli"
 
-msgid "Network speed format"
-msgstr "Formato della velocità di rete"
+msgid "Format"
+msgstr "Formato"
 
 #: prefs about
 msgid ""
@@ -156,8 +156,8 @@ msgstr ""
 msgid "Monitor temperature"
 msgstr "Sensori termici"
 
-msgid " ↳ Temperature unit"
-msgstr " ↳ Unità per la temperatura"
+msgid "Unit"
+msgstr "Unità"
 
 msgid "Monitor voltage"
 msgstr "Monitora il voltaggio"
@@ -177,8 +177,29 @@ msgstr "Monitora il sistema"
 msgid "Monitor network"
 msgstr "Monitora la rete"
 
-msgid " ↳ Include public IP address"
-msgstr " ↳ Includi l'indirizzo IP pubblico"
+msgid "Include public IP address"
+msgstr "Includi l'indirizzo IP pubblico"
 
 msgid "Monitor storage"
 msgstr "Monitora l'archiviazione"
+
+msgid "Temperature Preferences"
+msgstr "Preferenze di temperatura"
+
+msgid "Network Preferences"
+msgstr "Preferenze di rete"
+
+msgid "Storage Preferences"
+msgstr "Preferenze di archiviazione"
+
+msgid "Path"
+msgstr "Sentiero"
+
+msgid "General"
+msgstr "Generale"
+
+msgid "About"
+msgstr "Di"
+
+msgid "Sensors"
+msgstr "Sensori"
