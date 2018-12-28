@@ -183,7 +183,7 @@ msgstr ""
 msgid "Path"
 msgstr ""
 
-msgid "Generale"
+msgid "General"
 msgstr ""
 
 msgid "About"
