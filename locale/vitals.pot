@@ -1,25 +1,252 @@
-# English translation for gnome-shell-extension-vitals.
-# Copyright (C) Core Coding
-# This file is distributed under the same license as the gnome-shell-extension-vitals package.
-# Chris Monahan <vitals@corecoding.com>, 2018.
-#
+#, fuzzy
 msgid ""
 msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-12-29 12:05+0100\n"
+"PO-Revision-Date: 2018-12-29 10:26+0100\n"
+"Last-Translator: Piotr Komur <pkomur@gmail.com>\n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2\n"
+"X-Poedit-Basepath: ..\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SearchPath-0: values.js\n"
+"X-Poedit-SearchPath-1: sensors.js\n"
+"X-Poedit-SearchPath-2: prefs.js\n"
+"X-Poedit-SearchPath-3: notifications.js\n"
+"X-Poedit-SearchPath-4: menuItem.js\n"
+"X-Poedit-SearchPath-5: extension.js\n"
+"X-Poedit-SearchPath-6: schemas/prefs.ui\n"
 
-#: general
-msgid "Average"
-msgstr ""
-
-msgid "System Monitor"
-msgstr ""
-
+#: extension.js:113
 msgid "Preferences"
 msgstr ""
 
+#: extension.js:120
+msgid "System Monitor"
+msgstr ""
+
+#: extension.js:127
 msgid "Refresh"
 msgstr ""
 
-#: main menu
+#: prefs.js:94
+msgid " Preferences"
+msgstr ""
+
+#: schemas/prefs.ui:40
+msgid "Include public IP address"
+msgstr ""
+
+#: schemas/prefs.ui:81
+msgid "Format"
+msgstr ""
+
+#: schemas/prefs.ui:95
+msgid "Bytes"
+msgstr ""
+
+#: schemas/prefs.ui:96
+msgid "Bits"
+msgstr ""
+
+#: schemas/prefs.ui:154
+msgid "General"
+msgstr ""
+
+#: schemas/prefs.ui:194
+msgid "Seconds between updates"
+msgstr ""
+
+#: schemas/prefs.ui:244
+msgid "Position in panel"
+msgstr ""
+
+#: schemas/prefs.ui:259
+msgid "Left"
+msgstr ""
+
+#: schemas/prefs.ui:260
+msgid "Center"
+msgstr ""
+
+#: schemas/prefs.ui:261
+msgid "Right"
+msgstr ""
+
+#: schemas/prefs.ui:293
+msgid "Use higher precision"
+msgstr ""
+
+#: schemas/prefs.ui:335
+msgid "Alphabetize sensors"
+msgstr ""
+
+#: schemas/prefs.ui:377
+msgid "Hide zero values"
+msgstr ""
+
+#: schemas/prefs.ui:419
+msgid "About"
+msgstr ""
+
+#: schemas/prefs.ui:444
+msgid ""
+"Like what you see? Support the development of this extension via <a href="
+"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
+"\n"
+"No warranty, expressed or implied. Feature requests or bugs? Please visit "
+"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgstr ""
+
+#: schemas/prefs.ui:485
+msgid "Sensors"
+msgstr ""
+
+#: schemas/prefs.ui:529
+msgid "Monitor temperature"
+msgstr ""
+
+#: schemas/prefs.ui:610
+msgid "Monitor voltage"
+msgstr ""
+
+#: schemas/prefs.ui:653
+msgid "Monitor fan"
+msgstr ""
+
+#: schemas/prefs.ui:696
+msgid "Monitor memory"
+msgstr ""
+
+#: schemas/prefs.ui:739
+msgid "Monitor processor"
+msgstr ""
+
+#: schemas/prefs.ui:782
+msgid "Monitor system"
+msgstr ""
+
+#: schemas/prefs.ui:825
+msgid "Monitor network"
+msgstr ""
+
+#: schemas/prefs.ui:906
+msgid "Monitor storage"
+msgstr ""
+
+#: schemas/prefs.ui:1031
+msgid "Path"
+msgstr ""
+
+#: schemas/prefs.ui:1104
+msgid "Unit"
+msgstr ""
+
+#: sensors.js:120
+msgid "Usage"
+msgstr ""
+
+#: sensors.js:121
+msgid "Memory"
+msgstr ""
+
+#: sensors.js:122
+msgid "Physical"
+msgstr ""
+
+#: sensors.js:123
+msgid "Available"
+msgstr ""
+
+#: sensors.js:124
+msgid "Allocated"
+msgstr ""
+
+#: sensors.js:125
+msgid "Swap Used"
+msgstr ""
+
+#: sensors.js:165 values.js:183
+msgid "Average"
+msgstr ""
+
+#: sensors.js:166
+msgid "Processor"
+msgstr ""
+
+#: sensors.js:168
+#, javascript-format
+msgid "Core %d"
+msgstr ""
+
+#: sensors.js:191
+msgid "Frequency"
+msgstr ""
+
+#: sensors.js:203
+msgid "Load 1m"
+msgstr ""
+
+#: sensors.js:204
+msgid "System"
+msgstr ""
+
+#: sensors.js:205
+msgid "Load 5m"
+msgstr ""
+
+#: sensors.js:206
+msgid "Load 15m"
+msgstr ""
+
+#: sensors.js:207
+msgid "Threads Active"
+msgstr ""
+
+#: sensors.js:208
+msgid "Threads Total"
+msgstr ""
+
+#: sensors.js:216
+msgid "Uptime"
+msgstr ""
+
+#: sensors.js:220
+msgid "Used Cycles"
+msgstr ""
+
+#: sensors.js:277
+msgid "Public IP"
+msgstr ""
+
+#: sensors.js:298
+msgid "Total"
+msgstr ""
+
+#: sensors.js:299
+msgid "Used"
+msgstr ""
+
+#: sensors.js:300
+msgid "Reserved"
+msgstr ""
+
+#: sensors.js:301
+msgid "Free"
+msgstr ""
+
+#: sensors.js:302
+msgid "Storage"
+msgstr ""
+
+#: values.js:189
+msgid "Maximum "
+msgstr ""
+
 msgid "Temperature"
 msgstr ""
 
@@ -29,165 +256,6 @@ msgstr ""
 msgid "Fan"
 msgstr ""
 
-msgid "Memory"
-msgstr ""
-
-msgid "Processor"
-msgstr ""
-
-msgid "System"
-msgstr ""
-
 msgid "Network"
 msgstr ""
 
-msgid "Storage"
-msgstr ""
-
-#: temperature
-msgid "Core"
-msgstr ""
-
-#: voltage fan memory
-msgid "Usage"
-msgstr ""
-
-msgid "Physical"
-msgstr ""
-
-msgid "Available"
-msgstr ""
-
-msgid "Allocated"
-msgstr ""
-
-msgid "Swap Used"
-msgstr ""
-
-#: processor
-msgid "Frequency"
-msgstr ""
-
-#: system
-msgid "Load 1m"
-msgstr ""
-
-msgid "Load 5m"
-msgstr ""
-
-msgid "Load 15m"
-msgstr ""
-
-msgid "Threads Active"
-msgstr ""
-
-msgid "Threads Total"
-msgstr ""
-
-#: network
-msgid "Maximum rx"
-msgstr ""
-
-msgid "Maximum tx"
-msgstr ""
-
-msgid "Public IP"
-msgstr ""
-
-#: storage
-msgid "Total"
-msgstr ""
-
-msgid "Used"
-msgstr ""
-
-msgid "Reserved"
-msgstr ""
-
-msgid "Free"
-msgstr ""
-
-#: prefs general
-msgid "Seconds between updates"
-msgstr ""
-
-msgid "Position in panel"
-msgstr ""
-
-msgid "Right"
-msgstr ""
-
-msgid "Center"
-msgstr ""
-
-msgid "Left"
-msgstr ""
-
-msgid "Use higher precision"
-msgstr ""
-
-msgid "Alphabetize sensors"
-msgstr ""
-
-msgid "Hide zero values"
-msgstr ""
-
-#: prefs about
-msgid ""
-"Like what you see? Support the development of this extension via "
-"<a href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\n"
-"No warranty, expressed or implied. Feature requests or bugs? Please visit our "
-"<a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
-msgstr ""
-
-#: prefs sensors
-msgid "Monitor temperature"
-msgstr ""
-
-msgid "Unit"
-msgstr ""
-
-msgid "Monitor voltage"
-msgstr ""
-
-msgid "Monitor fan"
-msgstr ""
-
-msgid "Monitor memory"
-msgstr ""
-
-msgid "Monitor processor"
-msgstr ""
-
-msgid "Monitor system"
-msgstr ""
-
-msgid "Monitor network"
-msgstr ""
-
-msgid "Include public IP address"
-msgstr ""
-
-msgid "Monitor storage"
-msgstr ""
-
-msgid "Temperature Preferences"
-msgstr ""
-
-msgid "Network Preferences"
-msgstr ""
-
-msgid "Storage Preferences"
-msgstr ""
-
-msgid "Path"
-msgstr ""
-
-msgid "General"
-msgstr ""
-
-msgid "About"
-msgstr ""
-
-msgid "Sensors"
-msgstr ""
