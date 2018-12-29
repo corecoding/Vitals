@@ -1040,7 +1040,7 @@ No warranty, expressed or implied. Feature requests or bugs? Please visit our &l
                       <object class="GtkEntry" id="storage-path">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="placeholder_text" translatable="yes">/</property>
+                        <property name="placeholder_text" translatable="no">/</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1115,8 +1115,8 @@ No warranty, expressed or implied. Feature requests or bugs? Please visit our &l
                         <property name="can_focus">False</property>
                         <property name="active">0</property>
                         <items>
-                          <item translatable="yes">°C</item>
-                          <item translatable="yes">°F</item>
+                          <item translatable="no">°C</item>
+                          <item translatable="no">°F</item>
                         </items>
                       </object>
                       <packing>

@@ -180,7 +180,7 @@ var Values = new Lang.Class({
                 let avg = sum / vals.length;
                 avg = this._legible(avg, format);
 
-                output.push(['Average', avg, type, '__' + type + '_avg__']);
+                output.push([_('Average'), avg, type, '__' + type + '_avg__']);
                 output.push([type, avg, type + '-group', '']);
             } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));

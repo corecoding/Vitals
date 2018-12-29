@@ -117,12 +117,12 @@ var Sensors = new Lang.Class({
             let used = total - avail
             let utilized = used / total * 100;
 
-            this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
-            this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
-            this._returnValue(callback, 'Physical', total, 'memory', 'storage');
-            this._returnValue(callback, 'Available', avail, 'memory', 'storage');
-            this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
-            this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'storage');
+            this._returnValue(callback, _('Usage'), utilized, 'memory', 'percent');
+            this._returnValue(callback, _('Memory'), utilized, 'memory-group', 'percent');
+            this._returnValue(callback, _('Physical'), total, 'memory', 'storage');
+            this._returnValue(callback, _('Available'), avail, 'memory', 'storage');
+            this._returnValue(callback, _('Allocated'), used, 'memory', 'storage');
+            this._returnValue(callback, _('Swap Used'), swapTotal - swapFree, 'memory', 'storage');
         }).catch(err => {
             global.log(err);
         });
@@ -162,8 +162,8 @@ var Sensors = new Lang.Class({
                     let label = cpu;
                     if (cpu == 'cpu') {
                         delta = delta / (Object.keys(statistics).length - 1);
-                        label = 'Average';
-                        this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
+                        label = _('Average');
+                        this._returnValue(callback, _('Processor'), delta, 'processor-group', 'percent');
                     } else
                         label = _('Core %d').format(cpu.substr(3));
 
@@ -188,7 +188,7 @@ var Sensors = new Lang.Class({
 
             let sum = freqs.reduce(function(a, b) { return a + b; });
             let hertz = (sum / freqs.length) * 1000 * 1000;
-            this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
+            this._returnValue(callback, _('Frequency'), hertz, 'processor', 'hertz');
         }).catch(err => {
             global.log(err);
         });
@@ -200,12 +200,12 @@ var Sensors = new Lang.Class({
             let loadArray = contents.split(' ');
             let proc = loadArray[3].split('/');
 
-            this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'string');
-            this._returnValue(callback, 'system', loadArray[0], 'system-group', 'string');
-            this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'string');
-            this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'string');
-            this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
-            this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
+            this._returnValue(callback, _('Load 1m'), loadArray[0], 'system', 'string');
+            this._returnValue(callback, _('System'), loadArray[0], 'system-group', 'string');
+            this._returnValue(callback, _('Load 5m'), loadArray[1], 'system', 'string');
+            this._returnValue(callback, _('Load 15m'), loadArray[2], 'system', 'string');
+            this._returnValue(callback, _('Threads Active'), proc[0], 'system', 'string');
+            this._returnValue(callback, _('Threads Total'), proc[1], 'system', 'string');
         }).catch(err => {
             global.log(err);
         });
@@ -213,11 +213,11 @@ var Sensors = new Lang.Class({
         // check uptime
         new FileModule.File('/proc/uptime').read().then(contents => {
             let upArray = contents.split(' ');
-            this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
+            this._returnValue(callback, _('Uptime'), upArray[0], 'system', 'duration');
 
             let cores = Object.keys(this._last_processor).length - 1;
             if (cores > 0)
-                this._returnValue(callback, 'Used Cycles', upArray[0] - upArray[1] / cores, 'system', 'duration');
+                this._returnValue(callback, _('Used Cycles'), upArray[0] - upArray[1] / cores, 'system', 'duration');
         }).catch(err => {
             global.log(err);
         });
@@ -274,7 +274,7 @@ var Sensors = new Lang.Class({
                 // check uptime
                 new FileModule.File('http://corecoding.com/vitals.php').read().then(contents => {
                     let obj = JSON.parse(contents);
-                    this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
+                    this._returnValue(callback, _('Public IP'), obj['IPv4'], 'network', 'string');
                 }).catch(err => {
                     global.log(err);
                 });
@@ -295,11 +295,11 @@ var Sensors = new Lang.Class({
         let used = total - free;
         let reserved = (total - avail) - used;
 
-        this._returnValue(callback, 'Total', total, 'storage', 'storage');
-        this._returnValue(callback, 'Used', used, 'storage', 'storage');
-        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
-        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
-        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
+        this._returnValue(callback, _('Total'), total, 'storage', 'storage');
+        this._returnValue(callback, _('Used'), used, 'storage', 'storage');
+        this._returnValue(callback, _('Reserved'), reserved, 'storage', 'storage');
+        this._returnValue(callback, _('Free'), avail, 'storage', 'storage');
+        this._returnValue(callback, _('Storage'), avail, 'storage-group', 'storage');
     },
 
     _returnValue: function(callback, label, value, type, format) {
