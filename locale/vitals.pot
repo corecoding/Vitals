@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-12-29 12:05+0100\n"
-"PO-Revision-Date: 2018-12-29 10:26+0100\n"
-"Last-Translator: Piotr Komur <pkomur@gmail.com>\n"
+"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"Last-Translator: Chris Monahan <cmonahan@corecoding.com>\n"
 "Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
@@ -31,10 +31,6 @@ msgstr ""
 
 #: extension.js:127
 msgid "Refresh"
-msgstr ""
-
-#: prefs.js:94
-msgid " Preferences"
 msgstr ""
 
 #: schemas/prefs.ui:40
@@ -216,7 +212,7 @@ msgid "Uptime"
 msgstr ""
 
 #: sensors.js:220
-msgid "Used Cycles"
+msgid "Process Time"
 msgstr ""
 
 #: sensors.js:277
@@ -259,3 +255,11 @@ msgstr ""
 msgid "Network"
 msgstr ""
 
+msgid "Temperature Preferences"
+msgstr "Ustawienia temperatury"
+
+msgid "Network Preferences"
+msgstr "Ustawienia sieci"
+
+msgid "Storage Preferences"
+msgstr "Ustawienia dysku"

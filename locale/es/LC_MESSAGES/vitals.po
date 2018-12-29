@@ -1,0 +1,205 @@
+# Spanish translation for gnome-shell-extension-vitals.
+#
+# This file is distributed under the same license as the
+# gnome-shell-extension-vitals package.
+#
+# Chris Monahan <chris@corecoding.com>, 2018
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.6\n"
+"Last-Translator: Chris Monahan <chris@corecoding.com>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: it\n"
+
+#: general
+msgid "Average"
+msgstr "Promedio"
+
+#: main menu
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Voltage"
+msgstr "Voltaje"
+
+msgid "Fan"
+msgstr "Ventilador"
+
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "Processor"
+msgstr "Procesador"
+
+msgid "System"
+msgstr "Sistema"
+
+msgid "Network"
+msgstr "Red"
+
+msgid "Storage"
+msgstr "Almacenamiento"
+
+#: temperature
+msgid "Core %d"
+msgstr "Núcleo %d"
+
+#: voltage fan memory
+msgid "Usage"
+msgstr "Uso"
+
+msgid "Physical"
+msgstr "Físico"
+
+msgid "Available"
+msgstr "Disponible"
+
+msgid "Allocated"
+msgstr "Asignado"
+
+msgid "Swap Used"
+msgstr "Swap utilizado"
+
+#: processor
+msgid "Frequency"
+msgstr "Frecuencia"
+
+#: system
+msgid "Load 1m"
+msgstr "Carga (1m)"
+
+msgid "Load 5m"
+msgstr "Carga (5m)"
+
+msgid "Load 15m"
+msgstr "Carga (15m)"
+
+msgid "Threads Active"
+msgstr "Hilos activos"
+
+msgid "Threads Total"
+msgstr "Total de hilos"
+
+#: network
+msgid "Maximum rx"
+msgstr "Máximo rx"
+
+msgid "Maximum tx"
+msgstr "Máximo tx"
+
+msgid "Public IP"
+msgstr "IP pública"
+
+#: storage
+msgid "Total"
+msgstr "Total"
+
+msgid "Used"
+msgstr "Usado"
+
+msgid "Reserved"
+msgstr "Reservado"
+
+msgid "Free"
+msgstr "Gratis"
+
+#: prefs general
+msgid "Seconds between updates"
+msgstr "Segundos entre actualizaciones"
+
+msgid "Position in panel"
+msgstr "Posición en el panel"
+
+msgid "Right"
+msgstr "Derecha"
+
+msgid "Center"
+msgstr "Centrar"
+
+msgid "Left"
+msgstr "Izquierda"
+
+msgid "Use higher precision"
+msgstr "Usa una mayor precisión"
+
+msgid "Alphabetize sensors"
+msgstr "Alfabetizar los sensores"
+
+msgid "Hide zero values"
+msgstr "Ocultar valores cero"
+
+msgid "Format"
+msgstr "Formato"
+
+#: prefs about
+msgid ""
+"Like what you see? Support the development of this extension via "
+"<a href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\n"
+"No warranty, expressed or implied. Feature requests or bugs? Please visit our "
+"<a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgstr ""
+"Ti piace ciò che vedi? Supporta lo sviluppo di questa estensione via <a "
+"href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\n"
+"Nessuna garanzia, espressa o implicita. Suggerimenti o errori da "
+"segnalare? Visita la pagina del progetto su <a href=\"https://github.com/"
+"corecoding/Vitals\">GitHub</a>."
+
+#: prefs sensors
+msgid "Monitor temperature"
+msgstr "Temperatura del monitor"
+
+msgid "Unit"
+msgstr "Unidad"
+
+msgid "Monitor voltage"
+msgstr "Voltaje del monitor"
+
+msgid "Monitor fan"
+msgstr "Ventilador del monitor"
+
+msgid "Monitor memory"
+msgstr "Memoria del monitor"
+
+msgid "Monitor processor"
+msgstr "Monitor de procesador"
+
+msgid "Monitor system"
+msgstr "Sistema de monitor"
+
+msgid "Monitor network"
+msgstr "Red de monitores"
+
+msgid "Include public IP address"
+msgstr "Incluir dirección ip pública"
+
+msgid "Monitor storage"
+msgstr "Almacenamiento de monitores"
+
+msgid "Temperature Preferences"
+msgstr "Preferencias de temperatura"
+
+msgid "Network Preferences"
+msgstr "Preferencias de red"
+
+msgid "Storage Preferences"
+msgstr "Preferencias de almacenamiento"
+
+msgid "Path"
+msgstr "Camino"
+
+msgid "General"
+msgstr "General"
+
+msgid "About"
+msgstr "Acerca de"
+
+msgid "Sensors"
+msgstr "Sensores"
