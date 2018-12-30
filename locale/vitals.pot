@@ -256,10 +256,10 @@ msgid "Network"
 msgstr ""
 
 msgid "Temperature Preferences"
-msgstr "Ustawienia temperatury"
+msgstr ""
 
 msgid "Network Preferences"
-msgstr "Ustawienia sieci"
+msgstr ""
 
 msgid "Storage Preferences"
-msgstr "Ustawienia dysku"
+msgstr ""

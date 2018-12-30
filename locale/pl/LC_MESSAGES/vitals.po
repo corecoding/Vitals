@@ -64,7 +64,7 @@ msgstr "Z lewej"
 
 #: schemas/prefs.ui:260
 msgid "Center"
-msgstr "Pośrodku"
+msgstr "Na środku"
 
 #: schemas/prefs.ui:261
 msgid "Right"
@@ -97,9 +97,10 @@ msgstr ""
 "Podoba Ci się? Wspomóż rozwój tego rozszerzenia za pośrednictwem <a href="
 "\"http://corecoding.com/donate.php\">PayPal</a>.\n"
 "\n"
-"Brak jakiejkolwiek gwarancji.\n"
 "Masz prośby o nowe funkcje lub chcesz zgłosić błędy? Odwiedź nasz projekt "
-"na  <a href=\"https://github.com/corecoding/Vitals\">GitHub</a>'ie."
+"na  <a href=\"https://github.com/corecoding/Vitals\">GitHub</a>'ie.\n"
+"\n"
+"Brak jakiejkolwiek gwarancji."
 
 #: schemas/prefs.ui:485
 msgid "Sensors"
@@ -216,7 +217,7 @@ msgstr "Czas działania"
 
 #: sensors.js:220
 msgid "Process Time"
-msgstr "Czas Przetwarzania"
+msgstr "Czas aktywności"
 
 #: sensors.js:277
 msgid "Public IP"
