@@ -75,10 +75,7 @@ const Settings = new Lang.Class({
         widget.set_text(this._settings.get_string(sensor));
         widget.connect('changed', (widget) => {
             let text = widget.get_text();
-            if (!text) {
-                text = '/';
-//                widget.set_text(text);
-            }
+            if (!text) text = '/';
 
             this._settings.set_string(sensor, text);
         });

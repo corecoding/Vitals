@@ -2,6 +2,12 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.16"/>
+  <object class="GtkAdjustment" id="update-time-params">
+    <property name="lower">1</property>
+    <property name="upper">60</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkBox" id="network_prefs">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -208,6 +214,7 @@
                                 <property name="max_length">2</property>
                                 <property name="max_width_chars">2</property>
                                 <property name="input_purpose">number</property>
+                                <property name="adjustment">update-time-params</property>
                                 <property name="climb_rate">1</property>
                                 <property name="snap_to_ticks">True</property>
                                 <property name="numeric">True</property>
