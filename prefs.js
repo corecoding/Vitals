@@ -97,7 +97,6 @@ const Settings = new Lang.Class({
                 dialog.get_content_area().add(box);
 
                 dialog.connect('response', Lang.bind(this, function(dialog, id) {
-                    global.log('close');
                     // remove the settings box so it doesn't get destroyed;
                     dialog.get_content_area().remove(box);
                     dialog.destroy();
