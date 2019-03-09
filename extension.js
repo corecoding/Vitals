@@ -80,6 +80,12 @@ const VitalsMenuButton = new Lang.Class({
 
         this._initializeMenu();
         this._initializeTimer();
+
+        this._blah = this.menu.connect('open-state-changed', Lang.bind(this, function(menu, isOpen) {
+            if (isOpen && !this._areHotSensorsDisplayed())
+                this._querySensors();
+        }));
+                //this._menu.disconnect(this._blah);
     },
 
     _initializeMenu: function() {
@@ -168,11 +174,23 @@ const VitalsMenuButton = new Lang.Class({
 
         // used to query sensors and update display
         this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._update_time, Lang.bind(this, function() {
-            this._querySensors();
+            if (this._areHotSensorsDisplayed())
+                this._querySensors();
 
             // keep the timer running
             return true;
         }));
+    },
+
+    _areHotSensorsDisplayed: function() {
+        let now = new Date().getTime();
+        let hotSensors = this._settings.get_strv('hot-sensors');
+        //global.log(now + ': have ' + hotSensors.length + ' sensors, timer firing...');
+        if (hotSensors.length > 1 || (hotSensors.length == 1 && hotSensors[0] != '_default_icon_')) {
+            return true;
+        }
+
+        return false;
     },
 
     _createHotItem: function(key, gicon, value) {
@@ -423,8 +441,10 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _querySensors: function() {
+        //global.log('querying sensors');
         this._sensors.query(Lang.bind(this, function(label, value, type, format) {
             let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
+
 
 /*
             if (key == '_temperature_package_id 0_' && value >= 50000)
