@@ -3,12 +3,13 @@ const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 
 var MenuItem = class extends PopupMenu.PopupBaseMenuItem {
+    // more info: https://gitlab.gnome.org/GNOME/gnome-shell/blob/master/HACKING.md#classes
+    // and: https://github.com/HarlemSquirrel/gnome-shell-extension-sensory-perception/commit/50f3b6f8b310babf2be475d4af88d43f66ba0505#diff-92b4f6f0e289769a75760eb5ce859ba1
     constructor(icon, key, label, value) {
-	    super({ reactive: true });
-	    //this.actor.add_child(icon);
-	    //this.actor.add_child(label);
+        super({ reactive: true });
+        //this.actor.add_child(icon);
+        //this.actor.add_child(label);
 
-        //this.parent();
         this._checked = false;
         this._key = key;
         this._gIcon = icon;
