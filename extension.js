@@ -7,9 +7,22 @@ const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Config = imports.misc.config;
+
 Me.imports.helpers.polyfills;
-const MenuItem = Me.imports.menuItem;
+
+let MenuItem;
+if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
+  global.log('here 1 - old');
+  MenuItem = Me.imports.menuItem;
+} else {
+  global.log('here 2 - new');
+  MenuItem = Me.imports.menuItem;
+}
+
 const Sensors = Me.imports.sensors;
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
