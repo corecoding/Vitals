@@ -7,15 +7,18 @@ const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
-const MenuItem = Me.imports.menuItem;
 const Sensors = Me.imports.sensors;
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Notifications = Me.imports.notifications;
 const Values = Me.imports.values;
+
+const Config = imports.misc.config;
+let MenuItem;
 
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
@@ -24,6 +27,13 @@ const VitalsMenuButton = new Lang.Class({
     _init: function() {
         this.parent(St.Align.START);
         this.connect('destroy', Lang.bind(this, this._onDestroy));
+
+        // load correct menuItem depending on Gnome version
+        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
+          MenuItem = Me.imports.menuItemOld;
+        } else {
+          MenuItem = Me.imports.menuItem;
+        }
 
         this._settings = Convenience.getSettings();
 
