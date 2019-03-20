@@ -45,3 +45,9 @@ Vitals was originally forked from [gnome-shell-extension-freon](https://github.c
 
 ## Disclaimer
 Sensor data is obtained from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
+
+## Development Commands
+* Reload extension `gnome-shell-extension-tool -r Vitals@CoreCoding.com`
+* Launch preferences `gnome-shell-extension-prefs Vitals@CoreCoding.com`
+* View logs `journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f | grep Vitals`
+* Compile Schemas `glib-compile-schemas --strict schemas/`
