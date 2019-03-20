@@ -53,8 +53,29 @@ var Sensors = new Lang.Class({
         this._last_processor = {};
         this._last_network = {};
 
-        if (hasGTop)
+        if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
+            this._storageDevice = '';
+            this._findStorageDevice();
+
+            this._lastRead = 0;
+            this._lastWrite = 0;
+        }
+    },
+
+    _findStorageDevice: function() {
+        new FileModule.File('/proc/mounts').read().then(lines => {
+            lines = lines.split("\n");
+            for (let line of Object.values(lines)) {
+                let loadArray = line.trim().split(/\s+/);
+                if (loadArray[1] == this._settings.get_string('storage-path')) {
+                    this._storageDevice = loadArray[0];
+                    break;
+                }
+            }
+        }).catch(err => {
+            global.log(err);
+        });
     },
 
     query: function(callback) {
@@ -108,13 +129,13 @@ var Sensors = new Lang.Class({
             values = lines.match(/MemAvailable:(\s+)(\d+) kB/);
             if (values) avail = values[2] * 1024;
 
-            values = lines.match(/SwapTotal:(\s+)(\d+) kB/)
+            values = lines.match(/SwapTotal:(\s+)(\d+) kB/);
             if (values) swapTotal = values[2] * 1024;
 
-            values = lines.match(/SwapFree:(\s+)(\d+) kB/)
+            values = lines.match(/SwapFree:(\s+)(\d+) kB/);
             if (values) swapFree = values[2] * 1024;
 
-            let used = total - avail
+            let used = total - avail;
             let utilized = used / total * 100;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
@@ -300,6 +321,29 @@ var Sensors = new Lang.Class({
         this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
         this._returnValue(callback, 'Free', avail, 'storage', 'storage');
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
+
+        // check disk stats
+        new FileModule.File('/proc/diskstats').read().then(lines => {
+            lines = lines.split("\n");
+            for (let line of Object.values(lines)) {
+                let loadArray = line.trim().split(/\s+/);
+                if ('/dev/' + loadArray[2] == this._storageDevice) {
+                    var read = (loadArray[5] * 512);
+                    var write = (loadArray[9] * 512);
+                    this._returnValue(callback, 'Total Read', read, 'storage', 'storage');
+                    this._returnValue(callback, 'Total Write', write, 'storage', 'storage');
+                    this._returnValue(callback, 'Speed Read', (read - this._lastRead) / diff, 'storage', 'storage');
+                    this._returnValue(callback, 'Speed Write', (write - this._lastWrite) / diff, 'storage', 'storage');
+                    this._lastRead = read;
+                    this._lastWrite = write;
+                    //global.log('mbytes read = ' + read / 1000 / 1000);
+                    //global.log('mbytes written = ' + write / 1000 / 1000);
+                    break;
+                }
+            }
+        }).catch(err => {
+            global.log(err);
+        });
     },
 
     _returnValue: function(callback, label, value, type, format) {
