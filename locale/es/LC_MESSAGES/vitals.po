@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.0.6\n"
-"Last-Translator: Chris Monahan <chris@corecoding.com>\n"
+"Last-Translator: Alonso Lara <alonso.lara.plana@gmail.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: it\n"
 
@@ -109,7 +109,7 @@ msgid "Reserved"
 msgstr "Reservado"
 
 msgid "Free"
-msgstr "Gratis"
+msgstr "Libre"
 
 #: prefs general
 msgid "Seconds between updates"
@@ -122,7 +122,7 @@ msgid "Right"
 msgstr "Derecha"
 
 msgid "Center"
-msgstr "Centrar"
+msgstr "Centrado"
 
 msgid "Left"
 msgstr "Izquierda"
@@ -131,10 +131,10 @@ msgid "Use higher precision"
 msgstr "Usa una mayor precisión"
 
 msgid "Alphabetize sensors"
-msgstr "Alfabetizar los sensores"
+msgstr "Ordenar sensores alfabéticamente"
 
 msgid "Hide zero values"
-msgstr "Ocultar valores cero"
+msgstr "Ocultar los valores a cero"
 
 msgid "Format"
 msgstr "Formato"
@@ -146,54 +146,53 @@ msgid ""
 "No warranty, expressed or implied. Feature requests or bugs? Please visit our "
 "<a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
 msgstr ""
-"Ti piace ciò che vedi? Supporta lo sviluppo di questa estensione via <a "
-"href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\n"
-"Nessuna garanzia, espressa o implicita. Suggerimenti o errori da "
-"segnalare? Visita la pagina del progetto su <a href=\"https://github.com/"
-"corecoding/Vitals\">GitHub</a>."
+"¿Te gusta lo que ves? Apoye el desarrollo de esta extensión a través de "
+"<a href=\"http://corecoding.com/donate.php\">PayPal</a>.\n\n"
+"Sin garantía, expresa o implícita. ¿Peticiones de características o errores? Por "
+"favor visite nuestro proyecto en <a href=\"https://github.com/corecoding/Vitals\">GitHub</a>"
 
 #: prefs sensors
 msgid "Monitor temperature"
-msgstr "Temperatura del monitor"
+msgstr "Monitor de la temperatura"
 
 msgid "Unit"
 msgstr "Unidad"
 
 msgid "Monitor voltage"
-msgstr "Voltaje del monitor"
+msgstr "Monitor del voltaje"
 
 msgid "Monitor fan"
-msgstr "Ventilador del monitor"
+msgstr "Monitor del ventilador"
 
 msgid "Monitor memory"
-msgstr "Memoria del monitor"
+msgstr "Monitor de la memoria"
 
 msgid "Monitor processor"
-msgstr "Monitor de procesador"
+msgstr "Monitor del procesador"
 
 msgid "Monitor system"
-msgstr "Sistema de monitor"
+msgstr "Monitor del sistema"
 
 msgid "Monitor network"
-msgstr "Red de monitores"
+msgstr "Monitor de red"
 
 msgid "Include public IP address"
-msgstr "Incluir dirección ip pública"
+msgstr "Incluir la dirección IP pública"
 
 msgid "Monitor storage"
-msgstr "Almacenamiento de monitores"
+msgstr "Monitor del almacenamiento"
 
 msgid "Temperature Preferences"
-msgstr "Preferencias de temperatura"
+msgstr "Preferencias de la temperatura"
 
 msgid "Network Preferences"
 msgstr "Preferencias de red"
 
 msgid "Storage Preferences"
-msgstr "Preferencias de almacenamiento"
+msgstr "Preferencias del almacenamiento"
 
 msgid "Path"
-msgstr "Camino"
+msgstr "Ruta"
 
 msgid "General"
 msgstr "General"
