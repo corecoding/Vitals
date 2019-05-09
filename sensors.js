@@ -272,7 +272,7 @@ var Sensors = new Lang.Class({
                 this._next_public_ip_check = 3600;
 
                 // check uptime
-                new FileModule.File('http://corecoding.com/vitals.php').read().then(contents => {
+                new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
                     let obj = JSON.parse(contents);
                     this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
                 }).catch(err => {
