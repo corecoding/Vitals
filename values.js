@@ -56,21 +56,21 @@ var Values = new Lang.Class({
 
         let kilo = 1024;
         var sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
-        var hertz = [ 'Hz', 'KHz', '\u3392', '\u3393', 'THz', 'PHz', 'EHz', 'ZHz' ];
+        var hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
         switch (sensorClass) {
             case 'percent':
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
-                ending = '\u0025';
+                ending = '%';
                 break;
             case 'temp':
                 value = value / 1000;
-                ending = '\u2103';
+                ending = '°C';
 
                 // are we converting to fahrenheit?
                 if (this._settings.get_int('unit') == 1) {
                     value = ((9 / 5) * value + 32);
-                    ending = '\u2109';
+                    ending = '°F';
                 }
 
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
