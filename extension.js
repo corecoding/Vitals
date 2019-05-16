@@ -16,9 +16,9 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Notifications = Me.imports.notifications;
 const Values = Me.imports.values;
-
 const Config = imports.misc.config;
-let MenuItem;
+
+let MenuItem, vitalsMenu;
 
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
@@ -26,14 +26,6 @@ const VitalsMenuButton = new Lang.Class({
 
     _init: function() {
         this.parent(St.Align.START);
-        this.connect('destroy', Lang.bind(this, this._onDestroy));
-
-        // load correct menuItem depending on Gnome version
-        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
-          MenuItem = Me.imports.menuItemOld;
-        } else {
-          MenuItem = Me.imports.menuItem;
-        }
 
         this._settings = Convenience.getSettings();
 
@@ -55,6 +47,8 @@ const VitalsMenuButton = new Lang.Class({
                      'icon-download': 'network-download-symbolic.svg',
                        'icon-upload': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg',
+                       'alphabetize': false },
+                'battery' : { 'icon': 'storage-symbolic.svg',
                        'alphabetize': false }
         }
 
@@ -69,6 +63,7 @@ const VitalsMenuButton = new Lang.Class({
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
+
         this._notifications = new Notifications.Notifications();
 
         this._drawMenu();
@@ -419,7 +414,6 @@ const VitalsMenuButton = new Lang.Class({
         //icon.style = this._setProgress(0.1);
 
         if (gicon) icon.gicon = gicon;
-
         return icon;
     },
 
@@ -455,18 +449,26 @@ const VitalsMenuButton = new Lang.Class({
         }
     },
 
-    _onDestroy: function() {
+    destroy: function() {
         Mainloop.source_remove(this._refreshTimeoutId);
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
+
+        // Call parent
+        this.parent();
     }
 });
 
-let vitalsMenu;
-
 function init() {
     Convenience.initTranslations();
+
+    // load correct menuItem depending on Gnome version
+    if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
+      MenuItem = Me.imports.menuItemOld;
+    } else {
+      MenuItem = Me.imports.menuItem;
+    }
 }
 
 function enable() {
