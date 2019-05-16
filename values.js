@@ -61,6 +61,7 @@ var Values = new Lang.Class({
         switch (sensorClass) {
             case 'percent':
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
+                value = value * 100;
                 ending = '%';
                 break;
             case 'temp':
@@ -135,6 +136,16 @@ var Values = new Lang.Class({
                 value = rslt[0].trim();
 
                 format = '%s';
+                break;
+            case 'current':
+                format = (use_higher_precision)?'%.1f%s':'%d%s';
+                value = value / 1000;
+                ending = ' mA';
+                break;
+            case 'charge':
+                format = (use_higher_precision)?'%.1f%s':'%d%s';
+                value = value / 1000;
+                ending = ' mAh';
                 break;
             default:
                 format = '%s';

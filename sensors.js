@@ -115,7 +115,7 @@ var Sensors = new Lang.Class({
             if (values) swapFree = values[2] * 1024;
 
             let used = total - avail
-            let utilized = used / total * 100;
+            let utilized = used / total;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
@@ -163,11 +163,11 @@ var Sensors = new Lang.Class({
                     if (cpu == 'cpu') {
                         delta = delta / (Object.keys(statistics).length - 1);
                         label = 'Average';
-                        this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
+                        this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                     } else
                         label = _('Core %d').format(cpu.substr(3));
 
-                    this._returnValue(callback, label, delta, 'processor', 'percent');
+                    this._returnValue(callback, label, delta / 100, 'processor', 'percent');
                 }
 
                 this._last_processor[cpu] = statistics[cpu]['user'];
@@ -218,6 +218,45 @@ var Sensors = new Lang.Class({
             let cores = Object.keys(this._last_processor).length - 1;
             if (cores > 0)
                 this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
+        }).catch(err => {
+            global.log(err);
+        });
+    },
+
+    _queryBattery: function(callback) {
+        new FileModule.File('/sys/class/power_supply/BAT0/current_now').read().then(value => {
+            this._returnValue(callback, 'Load', value, 'battery', 'current');
+        }).catch(err => {
+            global.log(err);
+        });
+
+        new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read().then(charge_full => {
+            this._returnValue(callback, 'Capacity', charge_full, 'battery', 'charge');
+
+            new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read().then(charge_full_design => {
+                this._returnValue(callback, 'Health', (charge_full / charge_full_design), 'battery', 'percent');
+            }).catch(err => {
+                global.log(err);
+            });
+
+            new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read().then(charge_now => {
+                this._returnValue(callback, 'Level', charge_now / charge_full, 'battery', 'percent');
+            }).catch(err => {
+                global.log(err);
+            });
+        }).catch(err => {
+            global.log(err);
+        });
+
+        new FileModule.File('/sys/class/power_supply/BAT0/status').read().then(value => {
+            this._returnValue(callback, 'Status', value, 'battery', '');
+        }).catch(err => {
+            global.log(err);
+        });
+
+        new FileModule.File('/sys/class/power_supply/BAT0/cycle_count').read().then(value => {
+            if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+            this._returnValue(callback, 'Cycles', value, 'battery', '');
         }).catch(err => {
             global.log(err);
         });
