@@ -17,7 +17,7 @@ Vitals is a GNOME extension for displaying your computer's temperature, voltage,
     
 #### Arch/Manjaro
 
-    sudo pacman -Syu libgtop lm_sensors
+    sudo pacman -Syu libgtop lm_sensors gnome-icon-theme-symbolic
 
 ### 2a) Download from GitHub (either perform step 2a or 2b, not both)
 
