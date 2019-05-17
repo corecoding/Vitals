@@ -48,7 +48,7 @@ const VitalsMenuButton = new Lang.Class({
                        'icon-upload': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg',
                        'alphabetize': false },
-                'battery' : { 'icon': 'storage-symbolic.svg',
+                'battery' : { 'icon': 'battery-symbolic.svg',
                        'alphabetize': false }
         }
 
