@@ -1,7 +1,6 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Promise = Me.imports.helpers.promise.Promise;
 const ByteArray = imports.byteArray;
 
 function contentsCleaner(contents) {
@@ -16,71 +15,66 @@ function contentsCleaner(contents) {
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
-    contents = contentsCleaner(contents);
-    return contents;
+    return contentsCleaner(contents);
 }
 
 function File(path) {
-    if (path.indexOf('http://') == -1) {
+    if (path.indexOf('https://') == -1) {
         this.file = Gio.File.new_for_path(path);
     } else {
         this.file = Gio.File.new_for_uri(path);
     }
 }
 
-File.prototype.read = function() {
-    return new Promise((resolve, reject) => {
-        try {
-            this.file.load_contents_async(null, function(file, res) {
-                try {
-                    let contents = file.load_contents_finish(res)[1];
-                    resolve(contentsCleaner(contents));
-                } catch (e) {
-                    reject(e.message);
-                }
-            });
-        } catch (e) {
-            reject(e.message);
-        }
-    });
+File.prototype.read = function(callback) {
+    try {
+        this.file.load_contents_async(null, function(file, res) {
+            try {
+                let contents = file.load_contents_finish(res)[1];
+                callback(contentsCleaner(contents));
+            } catch (e) {
+                global.log(e.message);
+            }
+        });
+    } catch (e) {
+        global.log(e.message);
+    }
 };
 
-File.prototype.list = function() {
-    return new Promise((resolve, reject) => {
-        let max_items = 100, results = [];
+File.prototype.list = function(callback) {
+    let max_items = 100, results = [];
 
-        try {
-            this.file.enumerate_children_async(Gio.FILE_ATTRIBUTE_STANDARD_NAME, Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_LOW, null, function(file, res) {
-                try {
-                    let enumerator = file.enumerate_children_finish(res);
+    try {
+        this.file.enumerate_children_async(Gio.FILE_ATTRIBUTE_STANDARD_NAME, Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_LOW, null, function(file, res) {
+            try {
+                let enumerator = file.enumerate_children_finish(res);
 
-                    let callback = function(enumerator, res) {
-                        try {
-                            let files = enumerator.next_files_finish(res);
-                            for (let i = 0; i < files.length; i++) {
-                                let file_info = files[i];
-                                results.push(file_info.get_attribute_as_string(Gio.FILE_ATTRIBUTE_STANDARD_NAME));
-                            }
-
-                            if (files.length == 0) {
-                                enumerator.close_async(GLib.PRIORITY_LOW, null, function(){});
-
-                                resolve(results);
-                            } else {
-                                enumerator.next_files_async(max_items, GLib.PRIORITY_LOW, null, callback);
-                            }
-                        } catch (e) {
-                            reject(e.message);
+                let callback2 = function(enumerator, res) {
+                    try {
+                        let files = enumerator.next_files_finish(res);
+                        for (let i = 0; i < files.length; i++) {
+                            let file_info = files[i];
+                            results.push(file_info.get_attribute_as_string(Gio.FILE_ATTRIBUTE_STANDARD_NAME));
                         }
-                    };
 
-                    enumerator.next_files_async(max_items, GLib.PRIORITY_LOW, null, callback);
-                } catch (e) {
-                    reject(e.message);
-                }
-            });
-        } catch (e) {
-            reject(e.message);
-        }
-    });
+                        if (files.length == 0) {
+                            enumerator.close_async(GLib.PRIORITY_LOW, null, function(){});
+
+                            callback(results);
+                        } else {
+                            enumerator.next_files_async(max_items, GLib.PRIORITY_LOW, null, callback2);
+                        }
+                    } catch (e) {
+                        //reject(e.message);
+                    }
+                };
+
+                enumerator.next_files_async(max_items, GLib.PRIORITY_LOW, null, callback2);
+            } catch (e) {
+                //reject(e.message);
+            }
+        });
+    } catch (e) {
+        //reject(e.message);
+    }
 };

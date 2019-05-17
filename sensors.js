@@ -89,17 +89,15 @@ var Sensors = new Lang.Class({
         for (let key in this._tempVoltFanSensors) {
             let sensor = this._tempVoltFanSensors[key];
 
-            new FileModule.File(sensor['path']).read().then(value => {
+            new FileModule.File(sensor['path']).read(value => {
                 this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
-            }).catch(err => {
-                global.log(err);
             });
         }
     },
 
     _queryMemory: function(callback) {
         // check memory info
-        new FileModule.File('/proc/meminfo').read().then(lines => {
+        new FileModule.File('/proc/meminfo').read(lines => {
             let total = 0, avail = 0, swapTotal = 0, swapFree = 0;
 
             let values = lines.match(/MemTotal:(\s+)(\d+) kB/);
@@ -123,8 +121,6 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Available', avail, 'memory', 'storage');
             this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
             this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'storage');
-        }).catch(err => {
-            global.log(err);
         });
     },
 
@@ -132,7 +128,7 @@ var Sensors = new Lang.Class({
         let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
         // check processor usage
-        new FileModule.File('/proc/stat').read().then(lines => {
+        new FileModule.File('/proc/stat').read(lines => {
             lines = lines.split("\n");
             let statistics = {};
             let reverse_data;
@@ -172,12 +168,10 @@ var Sensors = new Lang.Class({
 
                 this._last_processor[cpu] = statistics[cpu]['user'];
             }
-        }).catch(err => {
-            global.log(err);
         });
 
         // grab cpu frequency
-        new FileModule.File('/proc/cpuinfo').read().then(lines => {
+        new FileModule.File('/proc/cpuinfo').read(lines => {
             lines = lines.split("\n");
 
             let freqs = [];
@@ -189,14 +183,12 @@ var Sensors = new Lang.Class({
             let sum = freqs.reduce(function(a, b) { return a + b; });
             let hertz = (sum / freqs.length) * 1000 * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-        }).catch(err => {
-            global.log(err);
         });
     },
 
     _querySystem: function(callback) {
         // check load average
-        new FileModule.File('/proc/loadavg').read().then(contents => {
+        new FileModule.File('/proc/loadavg').read(contents => {
             let loadArray = contents.split(' ');
             let proc = loadArray[3].split('/');
 
@@ -206,73 +198,59 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'string');
             this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
             this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
-        }).catch(err => {
-            global.log(err);
         });
 
         // check uptime
-        new FileModule.File('/proc/uptime').read().then(contents => {
+        new FileModule.File('/proc/uptime').read(contents => {
             let upArray = contents.split(' ');
             this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
 
             let cores = Object.keys(this._last_processor).length - 1;
             if (cores > 0)
                 this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
-        }).catch(err => {
-            global.log(err);
         });
     },
 
     _queryBattery: function(callback) {
-        new FileModule.File('/sys/class/power_supply/BAT0/current_now').read().then(value => {
+        new FileModule.File('/sys/class/power_supply/BAT0/current_now').read(value => {
             this._returnValue(callback, 'Load', value, 'battery', 'current');
-        }).catch(err => {
-            global.log(err);
         });
 
-        new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read().then(charge_full => {
+        new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read(charge_full => {
             this._returnValue(callback, 'Capacity', charge_full, 'battery', 'charge');
 
-            new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read().then(charge_full_design => {
+            new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read(charge_full_design => {
                 this._returnValue(callback, 'Health', (charge_full / charge_full_design), 'battery', 'percent');
-            }).catch(err => {
-                global.log(err);
             });
 
-            new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read().then(charge_now => {
-                this._returnValue(callback, 'Level', charge_now / charge_full, 'battery', 'percent');
-            }).catch(err => {
-                global.log(err);
+            new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read(charge_now => {
+                let level = charge_now / charge_full;
+                this._returnValue(callback, 'Level', level, 'battery', 'percent');
+                this._returnValue(callback, 'battery', level, 'battery-group', 'percent');
             });
-        }).catch(err => {
-            global.log(err);
         });
 
-        new FileModule.File('/sys/class/power_supply/BAT0/status').read().then(value => {
+        new FileModule.File('/sys/class/power_supply/BAT0/status').read(value => {
             this._returnValue(callback, 'Status', value, 'battery', '');
-        }).catch(err => {
-            global.log(err);
         });
 
-        new FileModule.File('/sys/class/power_supply/BAT0/cycle_count').read().then(value => {
+        new FileModule.File('/sys/class/power_supply/BAT0/cycle_count').read(value => {
             if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-            this._returnValue(callback, 'Cycles', value, 'battery', '');
-        }).catch(err => {
-            global.log(err);
+                this._returnValue(callback, 'Cycles', value, 'battery', '');
         });
     },
 
     _queryNetwork: function(callback, diff) {
         // check network speed
         let netbase = '/sys/class/net/';
-        new FileModule.File(netbase).list().then(files => {
+        new FileModule.File(netbase).list(files => {
             for (let key in files) {
                 let file = files[key];
 
                 if (typeof this._last_network[file] == 'undefined')
                     this._last_network[file] = {};
 
-                new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(value => {
+                new FileModule.File(netbase + file + '/statistics/tx_bytes').read(value => {
                     let speed = 0;
                     if (typeof this._last_network[file]['tx'] != 'undefined') {
                         speed = (value - this._last_network[file]['tx']) / diff;
@@ -282,11 +260,9 @@ var Sensors = new Lang.Class({
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['tx'] = value;
-                }).catch(err => {
-                    global.log(err);
                 });
 
-                new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
+                new FileModule.File(netbase + file + '/statistics/rx_bytes').read(value => {
                     let speed = 0;
                     if (typeof this._last_network[file]['rx'] != 'undefined') {
                         speed = (value - this._last_network[file]['rx']) / diff;
@@ -296,12 +272,8 @@ var Sensors = new Lang.Class({
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['rx'] = value;
-                }).catch(err => {
-                    global.log(err);
                 });
             }
-        }).catch(err => {
-            global.log(err);
         });
 
         // some may not want public ip checking
@@ -311,11 +283,9 @@ var Sensors = new Lang.Class({
                 this._next_public_ip_check = 3600;
 
                 // check uptime
-                new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
+                new FileModule.File('https://corecoding.com/vitals.php').read(contents => {
                     let obj = JSON.parse(contents);
                     this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
-                }).catch(err => {
-                    global.log(err);
                 });
             }
 
@@ -364,29 +334,28 @@ var Sensors = new Lang.Class({
             sensor_types['fan'] = 'fan';
 
         // a little informal, but this code has zero I/O block
-        new FileModule.File(hwbase).list().then(files => {
+        new FileModule.File(hwbase).list(files => {
             for (let key in files) {
                 let file = files[key];
 
-                new FileModule.File(hwbase + file + '/name').read().then(name => {
+                new FileModule.File(hwbase + file + '/name').read(name => {
                     this._readTempVoltFan(callback, sensor_types, name, hwbase + file, file);
-                }).catch(err => {
-                    new FileModule.File(hwbase + file + '/device/name').read().then(name => {
+                });
+                /*
+                .catch(err => {
+                    new FileModule.File(hwbase + file + '/device/name').read(name => {
                         this._readTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
-                    }).catch(err => {
-                        global.log(err);
                     });
                 });
+                */
             }
-        }).catch(err => {
-            global.log(err);
         });
     },
 
     _readTempVoltFan: function(callback, sensor_types, name, path, file) {
         let sensor_files = [ 'input', 'label' ];
 
-        new FileModule.File(path).list().then(files2 => {
+        new FileModule.File(path).list(files2 => {
             let trisensors = {};
 
             for (let file2 of Object.values(files2)) {
@@ -408,8 +377,8 @@ var Sensors = new Lang.Class({
             }
 
             for (let obj of Object.values(trisensors)) {
-                new FileModule.File(obj['label']).read().then(label => {
-                    new FileModule.File(obj['input']).read().then(value => {
+                new FileModule.File(obj['label']).read(label => {
+                    new FileModule.File(obj['input']).read(value => {
                         let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
 
                         if ((value > 0 && this._settings.get_boolean('hide-zeros')) || !this._settings.get_boolean('hide-zeros')) {
@@ -424,11 +393,7 @@ var Sensors = new Lang.Class({
                                                   'format': obj['format'],
                                                   'path': obj['input']});
                         }
-                    }).catch(err => {
-                        global.log(err);
                     });
-                }).catch(err => {
-                    global.log(err);
                 });
             }
         });
