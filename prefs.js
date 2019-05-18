@@ -40,7 +40,8 @@ const Settings = new Lang.Class({
         let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
-                        'alphabetize', 'hide-zeros', 'include-public-ip' ];
+                        'alphabetize', 'hide-zeros', 'include-public-ip',
+                        'show-battery' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
