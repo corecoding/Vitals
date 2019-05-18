@@ -1,8 +1,15 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-//const Promise = Me.imports.helpers.promise.Promise;
 const ByteArray = imports.byteArray;
+
+// newer verisons of Gnome have Promises built in
+if (typeof Promise === 'undefined') {
+  global.log('using helper');
+  const Promise = Me.imports.helpers.promise.Promise;
+} else {
+  global.log('not using helper');
+}
 
 function contentsCleaner(contents) {
     if (contents instanceof Uint8Array) {
