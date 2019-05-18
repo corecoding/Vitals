@@ -92,7 +92,7 @@
       <description>Storage path for monitoring</description>
     </key>
     <key type="b" name="show-battery">
-      <default>true</default>
+      <default>false</default>
       <summary>Monitor battery</summary>
       <description>Monitor battery health</description>
     </key>
