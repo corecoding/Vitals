@@ -1,23 +1,20 @@
+// Credit goes to https://github.com/satya164/gjs-helpers
+
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const ByteArray = imports.byteArray;
 
 // newer verisons of Gnome have Promises built in
-if (typeof Promise === 'undefined') {
-  global.log('using helper');
+if (typeof Promise === 'undefined')
   const Promise = Me.imports.helpers.promise.Promise;
-} else {
-  global.log('not using helper');
-}
 
 function contentsCleaner(contents) {
-    if (contents instanceof Uint8Array) {
-        // we running gnome 3.30 or higher
+    // are we running gnome 3.30 or higher?
+    if (contents instanceof Uint8Array)
         return ByteArray.toString(contents).trim();
-    } else {
+    else
         return contents.toString().trim();
-    }
 }
 
 function getcontents(filename) {
@@ -27,11 +24,10 @@ function getcontents(filename) {
 }
 
 function File(path) {
-    if (path.indexOf('https://') == -1) {
+    if (path.indexOf('https://') == -1)
         this.file = Gio.File.new_for_path(path);
-    } else {
+    else
         this.file = Gio.File.new_for_uri(path);
-    }
 }
 
 File.prototype.read = function() {

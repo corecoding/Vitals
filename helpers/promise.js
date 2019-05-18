@@ -1,3 +1,5 @@
+// Credit goes to https://github.com/satya164/gjs-helpers
+
 const GLib = imports.gi.GLib;
 
 const PENDING = 0,
@@ -28,7 +30,6 @@ function Promise(executor) {
         }
 
         GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1, () => {
-            global.log('here');
             let cb = this._state === FULFILLED ? deferred.onFulfilled : deferred.onRejected;
 
             if (cb === null) {
