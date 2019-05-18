@@ -1,13 +1,8 @@
-// Credit goes to https://github.com/satya164/gjs-helpers
-
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
+Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
-
-// newer verisons of Gnome have Promises built in
-if (typeof Promise === 'undefined')
-  const Promise = Me.imports.helpers.promise.Promise;
 
 function contentsCleaner(contents) {
     // are we running gnome 3.30 or higher?
