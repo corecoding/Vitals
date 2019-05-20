@@ -118,12 +118,6 @@ function buildPrefsWidget() {
     let settings = new Settings();
     let widget = settings.widget;
 
-    Mainloop.timeout_add(0, () => {
-        let header_bar = widget.get_toplevel().get_titlebar();
-        header_bar.custom_title = settings.switcher;
-        return false;
-    });
-
     widget.show_all();
     return widget;
 }
