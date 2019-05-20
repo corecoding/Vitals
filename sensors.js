@@ -212,12 +212,17 @@ var Sensors = new Lang.Class({
     },
 
     _queryBattery: function(callback) {
-        new FileModule.File('/sys/class/power_supply/BAT0/current_now').read().then(value => {
-            this._returnValue(callback, 'Load', value, 'battery', 'current');
+        new FileModule.File('/sys/class/power_supply/BAT0/current_now').read().then(current_now => {
+            this._returnValue(callback, 'Current', current_now, 'battery', 'milliamp');
+
+            new FileModule.File('/sys/class/power_supply/BAT0/voltage_now').read().then(voltage_now => {
+                this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
+                this._returnValue(callback, 'Load', current_now * voltage_now, 'battery', 'watt');
+            });
         });
 
         new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read().then(charge_full => {
-            this._returnValue(callback, 'Capacity', charge_full, 'battery', 'charge');
+            this._returnValue(callback, 'Capacity', charge_full, 'battery', 'milliamp-hour');
 
             new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read().then(charge_full_design => {
                 this._returnValue(callback, 'Health', (charge_full / charge_full_design), 'battery', 'percent');
@@ -225,7 +230,7 @@ var Sensors = new Lang.Class({
 
             new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read().then(charge_now => {
                 let level = charge_now / charge_full;
-                this._returnValue(callback, 'Level', level, 'battery', 'percent');
+                this._returnValue(callback, 'Charge', level, 'battery', 'percent');
                 this._returnValue(callback, 'battery', level, 'battery-group', 'percent');
             });
         });
@@ -238,6 +243,20 @@ var Sensors = new Lang.Class({
             if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                 this._returnValue(callback, 'Cycles', value, 'battery', '');
         });
+/*
++++ Battery Status
+/sys/class/power_supply/BAT0/manufacturer                   = SMP
+/sys/class/power_supply/BAT0/model_name                     = DELL TP1GT61
+/sys/class/power_supply/BAT0/cycle_count                    = (not supported)
+/sys/class/power_supply/BAT0/charge_full_design             =   7894 [mAh]
+/sys/class/power_supply/BAT0/charge_full                    =   7607 [mAh]
+/sys/class/power_supply/BAT0/charge_now                     =   7607 [mAh]
+/sys/class/power_supply/BAT0/current_now                    =      1 [mA]
+/sys/class/power_supply/BAT0/status                         = Full
+
+Charge                                                      =  100.0 [%]
+Capacity                                                    =   96.4 [%]
+*/
     },
 
     _queryNetwork: function(callback, diff) {

@@ -137,15 +137,20 @@ var Values = new Lang.Class({
 
                 format = '%s';
                 break;
-            case 'current':
+            case 'milliamp':
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
                 value = value / 1000;
                 ending = ' mA';
                 break;
-            case 'charge':
+            case 'milliamp-hour':
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
                 value = value / 1000;
                 ending = ' mAh';
+                break;
+            case 'watt':
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                value = value / 1000000000000;
+                ending = ' W';
                 break;
             default:
                 format = '%s';
