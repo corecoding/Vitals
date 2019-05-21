@@ -37,7 +37,7 @@ const VitalsMenuButton = new Lang.Class({
                     'fan' : { 'icon': 'fan-symbolic.svg',
                        'alphabetize': true },
                  'memory' : { 'icon': 'memory-symbolic.svg',
-                       'alphabetize': false },
+                       'alphabetize': true },
               'processor' : { 'icon': 'cpu-symbolic.svg',
                        'alphabetize': true },
                  'system' : { 'icon': 'system-symbolic.svg',
@@ -47,9 +47,9 @@ const VitalsMenuButton = new Lang.Class({
                      'icon-download': 'network-download-symbolic.svg',
                        'icon-upload': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg',
-                       'alphabetize': false },
+                       'alphabetize': true },
                 'battery' : { 'icon': 'battery-symbolic.svg',
-                       'alphabetize': false }
+                       'alphabetize': true }
         }
 
         this._warnings = [];

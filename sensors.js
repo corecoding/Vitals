@@ -212,29 +212,6 @@ var Sensors = new Lang.Class({
     },
 
     _queryBattery: function(callback) {
-        new FileModule.File('/sys/class/power_supply/BAT0/current_now').read().then(current_now => {
-            this._returnValue(callback, 'Current', current_now, 'battery', 'milliamp');
-
-            new FileModule.File('/sys/class/power_supply/BAT0/voltage_now').read().then(voltage_now => {
-                this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
-                this._returnValue(callback, 'Load', current_now * voltage_now, 'battery', 'watt');
-            });
-        });
-
-        new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read().then(charge_full => {
-            this._returnValue(callback, 'Capacity', charge_full, 'battery', 'milliamp-hour');
-
-            new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read().then(charge_full_design => {
-                this._returnValue(callback, 'Health', (charge_full / charge_full_design), 'battery', 'percent');
-            });
-
-            new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read().then(charge_now => {
-                let level = charge_now / charge_full;
-                this._returnValue(callback, 'Charge', level, 'battery', 'percent');
-                this._returnValue(callback, 'battery', level, 'battery-group', 'percent');
-            });
-        });
-
         new FileModule.File('/sys/class/power_supply/BAT0/status').read().then(value => {
             this._returnValue(callback, 'Status', value, 'battery', '');
         });
@@ -243,20 +220,39 @@ var Sensors = new Lang.Class({
             if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                 this._returnValue(callback, 'Cycles', value, 'battery', '');
         });
-/*
-+++ Battery Status
-/sys/class/power_supply/BAT0/manufacturer                   = SMP
-/sys/class/power_supply/BAT0/model_name                     = DELL TP1GT61
-/sys/class/power_supply/BAT0/cycle_count                    = (not supported)
-/sys/class/power_supply/BAT0/charge_full_design             =   7894 [mAh]
-/sys/class/power_supply/BAT0/charge_full                    =   7607 [mAh]
-/sys/class/power_supply/BAT0/charge_now                     =   7607 [mAh]
-/sys/class/power_supply/BAT0/current_now                    =      1 [mA]
-/sys/class/power_supply/BAT0/status                         = Full
 
-Charge                                                      =  100.0 [%]
-Capacity                                                    =   96.4 [%]
-*/
+        new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read().then(charge_full => {
+            //this._returnValue(callback, 'Capacity', charge_full, 'battery', 'milliamp-hour');
+
+            new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read().then(charge_full_design => {
+                this._returnValue(callback, 'Health', (charge_full / charge_full_design), 'battery', 'percent');
+            });
+
+            new FileModule.File('/sys/class/power_supply/BAT0/voltage_min_design').read().then(voltage_min_design => {
+                this._returnValue(callback, 'Capacity', charge_full * voltage_min_design, 'battery', 'watt-hour');
+
+                new FileModule.File('/sys/class/power_supply/BAT0/voltage_now').read().then(voltage_now => {
+                    this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
+
+                    new FileModule.File('/sys/class/power_supply/BAT0/current_now').read().then(current_now => {
+                        //this._returnValue(callback, 'Current', current_now, 'battery', 'milliamp');
+                        this._returnValue(callback, 'Load', current_now * voltage_now, 'battery', 'watt');
+
+                        new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read().then(charge_now => {
+                            let rest_pwr = voltage_min_design * charge_now;
+                            this._returnValue(callback, 'Charge', rest_pwr, 'battery', 'watt-hour');
+
+//                            let time_left_h = rest_pwr / last_pwr;
+//                           this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
+
+                            let level = charge_now / charge_full;
+                            this._returnValue(callback, 'Remaining', level, 'battery', 'percent');
+                            this._returnValue(callback, 'battery', level, 'battery-group', 'percent');
+                        });
+                    });
+                });
+            });
+        });
     },
 
     _queryNetwork: function(callback, diff) {
