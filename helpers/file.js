@@ -1,31 +1,28 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Promise = Me.imports.helpers.promise.Promise;
+Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
 
 function contentsCleaner(contents) {
-    if (contents instanceof Uint8Array) {
-        // we running gnome 3.30 or higher
+    // are we running gnome 3.30 or higher?
+    if (contents instanceof Uint8Array)
         return ByteArray.toString(contents).trim();
-    } else {
+    else
         return contents.toString().trim();
-    }
 }
 
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
-    contents = contentsCleaner(contents);
-    return contents;
+    return contentsCleaner(contents);
 }
 
 function File(path) {
-    if (path.indexOf('http://') == -1) {
+    if (path.indexOf('https://') == -1)
         this.file = Gio.File.new_for_path(path);
-    } else {
+    else
         this.file = Gio.File.new_for_uri(path);
-    }
 }
 
 File.prototype.read = function() {

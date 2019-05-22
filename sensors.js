@@ -112,8 +112,6 @@ var Sensors = new Lang.Class({
 
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
-            }).catch(err => {
-                global.log(err);
             });
         }
     },
@@ -135,8 +133,8 @@ var Sensors = new Lang.Class({
             values = lines.match(/SwapFree:(\s+)(\d+) kB/);
             if (values) swapFree = values[2] * 1024;
 
-            let used = total - avail;
-            let utilized = used / total * 100;
+            let used = total - avail
+            let utilized = used / total;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
@@ -144,8 +142,6 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Available', avail, 'memory', 'storage');
             this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
             this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'storage');
-        }).catch(err => {
-            global.log(err);
         });
     },
 
@@ -184,17 +180,15 @@ var Sensors = new Lang.Class({
                     if (cpu == 'cpu') {
                         delta = delta / (Object.keys(statistics).length - 1);
                         label = 'Average';
-                        this._returnValue(callback, 'processor', delta, 'processor-group', 'percent');
+                        this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                     } else
                         label = _('Core %d').format(cpu.substr(3));
 
-                    this._returnValue(callback, label, delta, 'processor', 'percent');
+                    this._returnValue(callback, label, delta / 100, 'processor', 'percent');
                 }
 
                 this._last_processor[cpu] = statistics[cpu]['user'];
             }
-        }).catch(err => {
-            global.log(err);
         });
 
         // grab cpu frequency
@@ -210,8 +204,6 @@ var Sensors = new Lang.Class({
             let sum = freqs.reduce(function(a, b) { return a + b; });
             let hertz = (sum / freqs.length) * 1000 * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-        }).catch(err => {
-            global.log(err);
         });
     },
 
@@ -227,8 +219,6 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'string');
             this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
             this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
-        }).catch(err => {
-            global.log(err);
         });
 
         // check uptime
@@ -239,8 +229,50 @@ var Sensors = new Lang.Class({
             let cores = Object.keys(this._last_processor).length - 1;
             if (cores > 0)
                 this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
-        }).catch(err => {
-            global.log(err);
+        });
+    },
+
+    _queryBattery: function(callback) {
+        new FileModule.File('/sys/class/power_supply/BAT0/status').read().then(value => {
+            this._returnValue(callback, 'Status', value, 'battery', '');
+        });
+
+        new FileModule.File('/sys/class/power_supply/BAT0/cycle_count').read().then(value => {
+            if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                this._returnValue(callback, 'Cycles', value, 'battery', '');
+        });
+
+        new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read().then(charge_full => {
+            //this._returnValue(callback, 'Capacity', charge_full, 'battery', 'milliamp-hour');
+
+            new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read().then(charge_full_design => {
+                this._returnValue(callback, 'Health', (charge_full / charge_full_design), 'battery', 'percent');
+            });
+
+            new FileModule.File('/sys/class/power_supply/BAT0/voltage_min_design').read().then(voltage_min_design => {
+                this._returnValue(callback, 'Capacity', charge_full * voltage_min_design, 'battery', 'watt-hour');
+
+                new FileModule.File('/sys/class/power_supply/BAT0/voltage_now').read().then(voltage_now => {
+                    this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
+
+                    new FileModule.File('/sys/class/power_supply/BAT0/current_now').read().then(current_now => {
+                        //this._returnValue(callback, 'Current', current_now, 'battery', 'milliamp');
+                        this._returnValue(callback, 'Load', current_now * voltage_now, 'battery', 'watt');
+
+                        new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read().then(charge_now => {
+                            let rest_pwr = voltage_min_design * charge_now;
+                            this._returnValue(callback, 'Charge', rest_pwr, 'battery', 'watt-hour');
+
+//                            let time_left_h = rest_pwr / last_pwr;
+//                           this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
+
+                            let level = charge_now / charge_full;
+                            this._returnValue(callback, 'Remaining', level, 'battery', 'percent');
+                            this._returnValue(callback, 'battery', level, 'battery-group', 'percent');
+                        });
+                    });
+                });
+            });
         });
     },
 
@@ -264,8 +296,6 @@ var Sensors = new Lang.Class({
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['tx'] = value;
-                }).catch(err => {
-                    global.log(err);
                 });
 
                 new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
@@ -278,12 +308,8 @@ var Sensors = new Lang.Class({
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['rx'] = value;
-                }).catch(err => {
-                    global.log(err);
                 });
             }
-        }).catch(err => {
-            global.log(err);
         });
 
         // some may not want public ip checking
@@ -293,11 +319,9 @@ var Sensors = new Lang.Class({
                 this._next_public_ip_check = 3600;
 
                 // check uptime
-                new FileModule.File('http://corecoding.com/vitals.php').read().then(contents => {
+                new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
                     let obj = JSON.parse(contents);
                     this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
-                }).catch(err => {
-                    global.log(err);
                 });
             }
 
@@ -378,13 +402,9 @@ var Sensors = new Lang.Class({
                 }).catch(err => {
                     new FileModule.File(hwbase + file + '/device/name').read().then(name => {
                         this._readTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
-                    }).catch(err => {
-                        global.log(err);
                     });
                 });
             }
-        }).catch(err => {
-            global.log(err);
         });
     },
 
@@ -429,11 +449,7 @@ var Sensors = new Lang.Class({
                                                   'format': obj['format'],
                                                   'path': obj['input']});
                         }
-                    }).catch(err => {
-                        global.log(err);
                     });
-                }).catch(err => {
-                    global.log(err);
                 });
             }
         });

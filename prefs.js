@@ -40,7 +40,8 @@ const Settings = new Lang.Class({
         let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
-                        'alphabetize', 'hide-zeros', 'include-public-ip' ];
+                        'alphabetize', 'hide-zeros', 'include-public-ip',
+                        'show-battery' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
@@ -116,12 +117,6 @@ function init() {
 function buildPrefsWidget() {
     let settings = new Settings();
     let widget = settings.widget;
-
-    Mainloop.timeout_add(0, () => {
-        let header_bar = widget.get_toplevel().get_titlebar();
-        header_bar.custom_title = settings.switcher;
-        return false;
-    });
 
     widget.show_all();
     return widget;

@@ -91,5 +91,10 @@
       <summary>Storage path</summary>
       <description>Storage path for monitoring</description>
     </key>
+    <key type="b" name="show-battery">
+      <default>false</default>
+      <summary>Monitor battery</summary>
+      <description>Monitor battery health</description>
+    </key>
   </schema>
 </schemalist>
