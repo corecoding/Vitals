@@ -354,14 +354,12 @@ var Sensors = new Lang.Class({
                 if ('/dev/' + loadArray[2] == this._storageDevice) {
                     var read = (loadArray[5] * 512);
                     var write = (loadArray[9] * 512);
-                    this._returnValue(callback, 'Total Read', read, 'storage', 'storage');
-                    this._returnValue(callback, 'Total Write', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Speed Read', (read - this._lastRead) / diff, 'storage', 'storage');
-                    this._returnValue(callback, 'Speed Write', (write - this._lastWrite) / diff, 'storage', 'storage');
+                    this._returnValue(callback, 'Data read', read, 'storage', 'storage');
+                    this._returnValue(callback, 'Data written', write, 'storage', 'storage');
+                    this._returnValue(callback, 'Data read/sec', (read - this._lastRead) / diff, 'storage', 'storage');
+                    this._returnValue(callback, 'Data written/sec', (write - this._lastWrite) / diff, 'storage', 'storage');
                     this._lastRead = read;
                     this._lastWrite = write;
-                    //global.log('mbytes read = ' + read / 1000 / 1000);
-                    //global.log('mbytes written = ' + write / 1000 / 1000);
                     break;
                 }
             }
