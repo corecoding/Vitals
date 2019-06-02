@@ -107,10 +107,10 @@ var Sensors = new Lang.Class({
     },
 
     _queryTempVoltFan: function(callback) {
-        for (let key in this._tempVoltFanSensors) {
-            let sensor = this._tempVoltFanSensors[key];
+        for (let path in this._tempVoltFanSensors) {
+            let sensor = this._tempVoltFanSensors[path];
 
-            new FileModule.File(sensor['path']).read().then(value => {
+            new FileModule.File(path).read().then(value => {
                 this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
             });
         }
@@ -384,7 +384,7 @@ var Sensors = new Lang.Class({
     },
 
     _discoverTempVoltFan: function(callback) {
-        this._tempVoltFanSensors = [];
+        this._tempVoltFanSensors = {};
 
         let hwbase = '/sys/class/hwmon/';
 
@@ -445,14 +445,19 @@ var Sensors = new Lang.Class({
                         if ((value > 0 && this._settings.get_boolean('hide-zeros')) || !this._settings.get_boolean('hide-zeros')) {
                             // prepend module that provided sensor data
                             //if (name != label) label = name + ' ' + label;
+                            label = label + extra;
+
+                            // if we have a sensor with a duplicate name, append ' 2' at the end
+                            // could be written to support more than one duplicate, perhaps later
+                            if (typeof this._tempVoltFanSensors[label] != 'undefined')
+                                label = label + ' 2';
 
                             // update screen on initial build to prevent delay on update
-                            this._returnValue(callback, label + extra, value, obj['type'], obj['format']);
+                            this._returnValue(callback, label, value, obj['type'], obj['format']);
 
-                            this._tempVoltFanSensors.push({'label': label + extra,
-                                                    'type': obj['type'],
-                                                  'format': obj['format'],
-                                                  'path': obj['input']});
+                            this._tempVoltFanSensors[label] = {'type': obj['type'],
+                                                             'format': obj['format'],
+                                                               'path': obj['input']};
                         }
                     });
                 });
