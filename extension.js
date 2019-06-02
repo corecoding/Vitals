@@ -103,6 +103,7 @@ const VitalsMenuButton = new Lang.Class({
             if (!this._groups[sensor].status) {
                 this._groups[sensor].status = this._defaultLabel();
                 this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
+                this._groups[sensor].status.text = 'No Data';
             }
 
             this.menu.addMenuItem(this._groups[sensor]);

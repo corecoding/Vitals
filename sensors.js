@@ -268,7 +268,7 @@ var Sensors = new Lang.Class({
 
                         new FileModule.File('/sys/class/power_supply/BAT0/charge_now').read().then(charge_now => {
                             let rest_pwr = voltage_min_design * charge_now;
-                            this._returnValue(callback, 'Energy', rest_pwr, 'battery', 'watt-hour');
+                            this._returnValue(callback, 'Energy (now)', rest_pwr, 'battery', 'watt-hour');
 
 //                            let time_left_h = rest_pwr / last_pwr;
 //                           this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
