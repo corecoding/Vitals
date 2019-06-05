@@ -107,11 +107,11 @@ var Sensors = new Lang.Class({
     },
 
     _queryTempVoltFan: function(callback) {
-        for (let path in this._tempVoltFanSensors) {
-            let sensor = this._tempVoltFanSensors[path];
+        for (let label in this._tempVoltFanSensors) {
+            let sensor = this._tempVoltFanSensors[label];
 
-            new FileModule.File(path).read().then(value => {
-                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
+            new FileModule.File(sensor['path']).read().then(value => {
+                this._returnValue(callback, label, value, sensor['type'], sensor['format']);
             });
         }
     },
