@@ -14,7 +14,7 @@ const Sensors = Me.imports.sensors;
 const Convenience = Me.imports.helpers.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const Notifications = Me.imports.notifications;
+const MessageTray = imports.ui.messageTray;
 const Values = Me.imports.values;
 const Config = imports.misc.config;
 
@@ -63,8 +63,6 @@ const VitalsMenuButton = new Lang.Class({
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
-
-        this._notifications = new Notifications.Notifications();
 
         this._drawMenu();
 
@@ -219,7 +217,7 @@ const VitalsMenuButton = new Lang.Class({
                 }
 
                 let now = new Date().getTime();
-                this._notifications.display('Please install sudo apt install gir1.2-gtop-2.0 ' + now);
+                this._notify("Vitals", "Please run sudo apt install gir1.2-gtop-2.0", 'folder-symbolic');
 
             }
 */
@@ -445,9 +443,17 @@ const VitalsMenuButton = new Lang.Class({
         }));
 
         if (this._warnings.length > 0) {
-            this._notifications.display(this._warnings.join("\n"));
+            this._notify("Vitals", this._warnings.join("\n"), 'folder-symbolic');
             this._warnings = [];
         }
+    },
+
+    _notify: function(msg, details, icon) {
+        let source = new MessageTray.Source("MyApp Information", icon);
+        Main.messageTray.add(source);
+        let notification = new MessageTray.Notification(source, msg, details);
+        notification.setTransient(true);
+        source.notify(notification);
     },
 
     destroy: function() {
