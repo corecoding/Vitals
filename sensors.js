@@ -112,7 +112,7 @@ var Sensors = new Lang.Class({
 
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, label, value, sensor['type'], sensor['format']);
-            });
+            }).catch(err => { });
         }
     },
 
@@ -142,7 +142,7 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Available', avail, 'memory', 'storage');
             this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
             this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'storage');
-        });
+        }).catch(err => { });
     },
 
     _queryProcessor: function(callback, diff) {
@@ -189,7 +189,7 @@ var Sensors = new Lang.Class({
 
                 this._last_processor[cpu] = statistics[cpu]['user'];
             }
-        });
+        }).catch(err => { });
 
         // grab cpu frequency
         new FileModule.File('/proc/cpuinfo').read().then(lines => {
@@ -204,7 +204,7 @@ var Sensors = new Lang.Class({
             let sum = freqs.reduce(function(a, b) { return a + b; });
             let hertz = (sum / freqs.length) * 1000 * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-        });
+        }).catch(err => { });
     },
 
     _querySystem: function(callback) {
@@ -213,7 +213,7 @@ var Sensors = new Lang.Class({
             let loadArray = contents.split('\t');
 
             this._returnValue(callback, 'Open Files', loadArray[0], 'system', 'string');
-        });
+        }).catch(err => { });
 
         // check load average
         new FileModule.File('/proc/loadavg').read().then(contents => {
@@ -226,7 +226,7 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'string');
             this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
             this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
-        });
+        }).catch(err => { });
 
         // check uptime
         new FileModule.File('/proc/uptime').read().then(contents => {
@@ -236,18 +236,18 @@ var Sensors = new Lang.Class({
             let cores = Object.keys(this._last_processor).length - 1;
             if (cores > 0)
                 this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
-        });
+        }).catch(err => { });
     },
 
     _queryBattery: function(callback) {
         new FileModule.File('/sys/class/power_supply/BAT0/status').read().then(value => {
             this._returnValue(callback, 'State', value, 'battery', '');
-        });
+        }).catch(err => { });
 
         new FileModule.File('/sys/class/power_supply/BAT0/cycle_count').read().then(value => {
             if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                 this._returnValue(callback, 'Cycles', value, 'battery', '');
-        });
+        }).catch(err => { });
 
         new FileModule.File('/sys/class/power_supply/BAT0/charge_full').read().then(charge_full => {
 
@@ -256,7 +256,7 @@ var Sensors = new Lang.Class({
                 new FileModule.File('/sys/class/power_supply/BAT0/charge_full_design').read().then(charge_full_design => {
                     this._returnValue(callback, 'Capacity', (charge_full / charge_full_design), 'battery', 'percent');
                     this._returnValue(callback, 'Energy (design)', charge_full_design * voltage_min_design, 'battery', 'watt-hour');
-                });
+                }).catch(err => { });
 
                 new FileModule.File('/sys/class/power_supply/BAT0/voltage_now').read().then(voltage_now => {
                     this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
@@ -270,17 +270,17 @@ var Sensors = new Lang.Class({
                             let rest_pwr = voltage_min_design * charge_now;
                             this._returnValue(callback, 'Energy (now)', rest_pwr, 'battery', 'watt-hour');
 
-//                            let time_left_h = rest_pwr / last_pwr;
-//                           this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
+                            //let time_left_h = rest_pwr / last_pwr;
+                            //this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
 
                             let level = charge_now / charge_full;
                             this._returnValue(callback, 'Percentage', level, 'battery', 'percent');
                             //this._returnValue(callback, 'battery', level, 'battery-group', 'percent');
-                        });
-                    });
-                });
-            });
-        });
+                        }).catch(err => { });
+                    }).catch(err => { });
+                }).catch(err => { });
+            }).catch(err => { });
+        }).catch(err => { });
     },
 
     _queryNetwork: function(callback, diff) {
@@ -303,7 +303,7 @@ var Sensors = new Lang.Class({
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['tx'] = value;
-                });
+                }).catch(err => { });
 
                 new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
                     let speed = 0;
@@ -315,9 +315,9 @@ var Sensors = new Lang.Class({
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['rx'] = value;
-                });
+                }).catch(err => { });
             }
-        });
+        }).catch(err => { });
 
         // some may not want public ip checking
         if (this._settings.get_boolean('include-public-ip')) {
@@ -329,7 +329,7 @@ var Sensors = new Lang.Class({
                 new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
                     let obj = JSON.parse(contents);
                     this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
-                });
+                }).catch(err => { });
             }
 
             this._next_public_ip_check -= diff;
@@ -370,9 +370,7 @@ var Sensors = new Lang.Class({
                     break;
                 }
             }
-        }).catch(err => {
-            global.log(err);
-        });
+        }).catch(err => { });
     },
 
     _returnValue: function(callback, label, value, type, format) {
@@ -407,10 +405,10 @@ var Sensors = new Lang.Class({
                 }).catch(err => {
                     new FileModule.File(hwbase + file + '/device/name').read().then(name => {
                         this._readTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
-                    });
+                    }).catch(err => { });
                 });
             }
-        });
+        }).catch(err => { });
     },
 
     _readTempVoltFan: function(callback, sensor_types, name, path, file) {
@@ -459,10 +457,10 @@ var Sensors = new Lang.Class({
                                                              'format': obj['format'],
                                                                'path': obj['input']};
                         }
-                    });
-                });
+                    }).catch(err => { });
+                }).catch(err => { });
             }
-        });
+        }).catch(err => { });
     },
 
     resetHistory: function() {
