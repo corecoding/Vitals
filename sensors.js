@@ -92,7 +92,7 @@ var Sensors = new Lang.Class({
             this._queryTempVoltFan(callback);
         } else {
             this._trisensorsScanned = true;
-            this._discoverTempVoltFan(callback);
+            this._discoverHardwareMonitors(callback);
         }
 
         for (let sensor in this._sensorIcons) {
@@ -408,7 +408,7 @@ var Sensors = new Lang.Class({
         this._update_time = update_time;
     },
 
-    _discoverTempVoltFan: function(callback) {
+    _discoverHardwareMonitors: function(callback) {
         this._tempVoltFanSensors = {};
 
         let hwbase = '/sys/class/hwmon/';
@@ -428,17 +428,17 @@ var Sensors = new Lang.Class({
                 let file = files[key];
 
                 new FileModule.File(hwbase + file + '/name').read().then(name => {
-                    this._readTempVoltFan(callback, sensor_types, name, hwbase + file, file);
+                    this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
                 }).catch(err => {
                     new FileModule.File(hwbase + file + '/device/name').read().then(name => {
-                        this._readTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
+                        this._processTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
                     }).catch(err => { });
                 });
             }
         }).catch(err => { });
     },
 
-    _readTempVoltFan: function(callback, sensor_types, name, path, file) {
+    _processTempVoltFan: function(callback, sensor_types, name, path, file) {
         let sensor_files = [ 'input', 'label' ];
 
         new FileModule.File(path).list().then(files2 => {
@@ -456,44 +456,48 @@ var Sensors = new Lang.Class({
                                                     'label': path + '/name' };
                             }
 
-                            var tmpFile = path + '/' + file2;
-
-                            // label file reading sometimes returns Invalid argument
-                            // in which case we default to the name
-                            if (key == 'label' && !FileModule.validFile(tmpFile)) continue;
-
-                            trisensors[key2][key] = tmpFile;
+                            trisensors[key2][key] = path + '/' + file2;
                         }
                     }
                 }
             }
 
             for (let obj of Object.values(trisensors)) {
-                new FileModule.File(obj['label']).read().then(label => {
-                    new FileModule.File(obj['input']).read().then(value => {
-                        let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
+                new FileModule.File(obj['input']).read().then(value => {
+                    let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
 
-                        if ((value > 0 && this._settings.get_boolean('hide-zeros')) || !this._settings.get_boolean('hide-zeros')) {
-                            // prepend module that provided sensor data
-                            //if (name != label) label = name + ' ' + label;
-                            label = label + extra;
-
-                            // if we have a sensor with a duplicate name, append ' 2' at the end
-                            // could be written to support more than one duplicate, perhaps later
-                            if (typeof this._tempVoltFanSensors[label] != 'undefined')
-                                label = label + ' 2';
-
-                            // update screen on initial build to prevent delay on update
-                            this._returnValue(callback, label, value, obj['type'], obj['format']);
-
-                            this._tempVoltFanSensors[label] = {'type': obj['type'],
-                                                             'format': obj['format'],
-                                                               'path': obj['input']};
-                        }
-                    }).catch(err => { });
+                    if ((value > 0 && this._settings.get_boolean('hide-zeros')) || !this._settings.get_boolean('hide-zeros')) {
+                        new FileModule.File(obj['label']).read().then(label => {
+                            this._addTempVoltFan(callback, obj, label, extra, value);
+                        }).catch(err => {
+                            // label file reading sometimes returns Invalid argument in which case we default to the name
+                            let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
+                            new FileModule.File(tmpFile).read().then(label => {
+                                this._addTempVoltFan(callback, obj, label, extra, value);
+                            }).catch(err => { });
+                        });
+                    }
                 }).catch(err => { });
             }
         }).catch(err => { });
+    },
+
+    _addTempVoltFan: function(callback, obj, label, extra, value) {
+        // prepend module that provided sensor data
+        //if (name != label) label = name + ' ' + label;
+        label = label + extra;
+
+        // if we have a sensor with a duplicate name, append ' 2' at the end
+        // could be written to support more than one duplicate, perhaps later
+        if (typeof this._tempVoltFanSensors[label] != 'undefined')
+            label = label + ' 2';
+
+        // update screen on initial build to prevent delay on update
+        this._returnValue(callback, label, value, obj['type'], obj['format']);
+
+        this._tempVoltFanSensors[label] = {'type': obj['type'],
+            'format': obj['format'],
+            'path': obj['input']};
     },
 
     resetHistory: function() {

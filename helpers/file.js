@@ -12,17 +12,6 @@ function contentsCleaner(contents) {
         return contents.toString().trim();
 }
 
-function validFile(filename) {
-    try {
-        let [ok, contents] = GLib.file_get_contents(filename);
-        return ok;
-    } catch (e) {
-        return false;
-    }
-
-    return true;
-}
-
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
