@@ -456,7 +456,13 @@ var Sensors = new Lang.Class({
                                                     'label': path + '/name' };
                             }
 
-                            trisensors[key2][key] = path + '/' + file2;
+                            var tmpFile = path + '/' + file2;
+
+                            // label file reading sometimes returns Invalid argument
+                            // in which case we default to the name
+                            if (key == 'label' && !FileModule.validFile(tmpFile)) continue;
+
+                            trisensors[key2][key] = tmpFile;
                         }
                     }
                 }
