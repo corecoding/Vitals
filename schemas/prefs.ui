@@ -991,7 +991,7 @@ No warranty, expressed or implied. Feature requests or bugs? Please visit our &l
                                     <property name="can_focus">False</property>
                                     <property name="halign">start</property>
                                     <property name="margin_left">5</property>
-                                    <property name="label" translatable="yes">Monitor battery (beta)</property>
+                                    <property name="label" translatable="yes">Monitor battery</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
