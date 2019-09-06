@@ -27,7 +27,7 @@
       <description>Display sensors in alphabetical order</description>
     </key>
     <key type="b" name="hide-zeros">
-      <default>true</default>
+      <default>false</default>
       <summary>Hide zero values</summary>
       <description>Hide data from sensors that are invalid</description>
     </key>

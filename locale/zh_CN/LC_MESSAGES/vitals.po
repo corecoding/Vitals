@@ -1,18 +1,25 @@
-#, fuzzy
+# Simplified Chinese translation for gnome-shell-extension-vitals.
+#
+# This file is distributed under the same license as the
+# gnome-shell-extension-vitals package.
+#
+# Yuehao Sui <tigersui@sina.com>, 2019
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2018-12-29 12:05+0100\n"
-"POT-Revision-Date: 2018-12-29 10:26+0100\n"
-"Last-Translator: Chris Monahan <cmonahan@corecoding.com>\n"
+"POT-Creation-Date: 2019-09-05 15:06+0000\n"
+"POT-Revision-Date: 2019-09-05 15:06+0000\n"
 "Language-Team: \n"
-"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-Basepath: ..\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Yuehao Sui <tigersui@sina.com>\n"
+"Language: zh_CN\n"
 "X-Poedit-SearchPath-0: values.js\n"
 "X-Poedit-SearchPath-1: sensors.js\n"
 "X-Poedit-SearchPath-2: prefs.js\n"
@@ -23,71 +30,71 @@ msgstr ""
 
 #: extension.js:113
 msgid "Preferences"
-msgstr ""
+msgstr "首选项"
 
 #: extension.js:120
 msgid "System Monitor"
-msgstr ""
+msgstr "系统监视器"
 
 #: extension.js:127
 msgid "Refresh"
-msgstr ""
+msgstr "刷新"
 
 #: schemas/prefs.ui:40
 msgid "Include public IP address"
-msgstr ""
+msgstr "包含公网IP地址"
 
 #: schemas/prefs.ui:81
 msgid "Format"
-msgstr ""
+msgstr "格式"
 
 #: schemas/prefs.ui:95
 msgid "Bytes"
-msgstr ""
+msgstr "字节"
 
 #: schemas/prefs.ui:96
 msgid "Bits"
-msgstr ""
+msgstr "位"
 
 #: schemas/prefs.ui:154
 msgid "General"
-msgstr ""
+msgstr "通项"
 
 #: schemas/prefs.ui:194
 msgid "Seconds between updates"
-msgstr ""
+msgstr "更新间隔秒数"
 
 #: schemas/prefs.ui:244
 msgid "Position in panel"
-msgstr ""
+msgstr "面板位置"
 
 #: schemas/prefs.ui:259
 msgid "Left"
-msgstr ""
+msgstr "靠左"
 
 #: schemas/prefs.ui:260
 msgid "Center"
-msgstr ""
+msgstr "居中"
 
 #: schemas/prefs.ui:261
 msgid "Right"
-msgstr ""
+msgstr "靠右"
 
 #: schemas/prefs.ui:293
 msgid "Use higher precision"
-msgstr ""
+msgstr "使用高精度"
 
 #: schemas/prefs.ui:335
 msgid "Alphabetize sensors"
-msgstr ""
+msgstr "传感器按字母排序"
 
 #: schemas/prefs.ui:377
 msgid "Hide zero values"
-msgstr ""
+msgstr "隐藏零值项"
 
 #: schemas/prefs.ui:419
 msgid "About"
-msgstr ""
+msgstr "关于"
 
 #: schemas/prefs.ui:444
 msgid ""
@@ -97,173 +104,178 @@ msgid ""
 "No warranty, expressed or implied. Feature requests or bugs? Please visit "
 "our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
 msgstr ""
+"喜欢你所看到的吗？请支持这个插件的开发 <a href=\"http://corecoding.com/"
+"donate.php\">PayPal</a>.\n"
+"\n"
+"本插件无任何明暗担保. 功能性需求或者错误改进? 请访问我们的 <a href="
+"\"https://github.com/corecoding/Vitals\">GitHub</a> 项目."
 
 #: schemas/prefs.ui:485
 msgid "Sensors"
-msgstr ""
+msgstr "传感器"
 
 #: schemas/prefs.ui:529
 msgid "Monitor temperature"
-msgstr ""
+msgstr "监控温度"
 
 #: schemas/prefs.ui:610
 msgid "Monitor voltage"
-msgstr ""
+msgstr "监控电压"
 
 #: schemas/prefs.ui:653
 msgid "Monitor fan"
-msgstr ""
+msgstr "监控扇速"
 
 #: schemas/prefs.ui:696
 msgid "Monitor memory"
-msgstr ""
+msgstr "监控内存"
 
 #: schemas/prefs.ui:739
 msgid "Monitor processor"
-msgstr ""
+msgstr "监控处理器"
 
 #: schemas/prefs.ui:782
 msgid "Monitor system"
-msgstr ""
+msgstr "监控系统"
 
 #: schemas/prefs.ui:825
 msgid "Monitor network"
-msgstr ""
+msgstr "监控网络"
 
 #: schemas/prefs.ui:906
 msgid "Monitor storage"
-msgstr ""
+msgstr "监控存储"
 
 #: schemas/prefs.ui:1031
 msgid "Path"
-msgstr ""
+msgstr "路径"
 
 #: schemas/prefs.ui:1104
 msgid "Unit"
-msgstr ""
+msgstr "单位"
 
 #: sensors.js:120
 msgid "Usage"
-msgstr ""
+msgstr "使用量"
 
 #: sensors.js:121
 msgid "Memory"
-msgstr ""
+msgstr "内存"
 
 #: sensors.js:122
 msgid "Physical"
-msgstr ""
+msgstr "物理内存"
 
 #: sensors.js:123
 msgid "Available"
-msgstr ""
+msgstr "可用"
 
 #: sensors.js:124
 msgid "Allocated"
-msgstr ""
+msgstr "已分配"
 
 #: sensors.js:125
 msgid "Swap Used"
-msgstr ""
+msgstr "交换分区已使用"
 
 #: sensors.js:165 values.js:183
 msgid "Average"
-msgstr ""
+msgstr "平均值"
 
 #: sensors.js:166
 msgid "Processor"
-msgstr ""
+msgstr "处理器"
 
 #: sensors.js:168
 #, javascript-format
 msgid "Core %d"
-msgstr ""
+msgstr "核心 %d"
 
 #: sensors.js:207
 msgid "Frequency"
-msgstr ""
+msgstr "频率"
 
 #: sensors.js:208
 msgid "Boost frequency"
-msgstr ""
+msgstr "睿频"
 
 #: sensors.js:203
 msgid "Load 1m"
-msgstr ""
+msgstr "Load 1m"
 
 #: sensors.js:204
 msgid "System"
-msgstr ""
+msgstr "系统"
 
 #: sensors.js:205
 msgid "Load 5m"
-msgstr ""
+msgstr "Load 5m"
 
 #: sensors.js:206
 msgid "Load 15m"
-msgstr ""
+msgstr "Load 15m"
 
 #: sensors.js:207
 msgid "Threads Active"
-msgstr ""
+msgstr "活动线程"
 
 #: sensors.js:208
 msgid "Threads Total"
-msgstr ""
+msgstr "总线程"
 
 #: sensors.js:216
 msgid "Uptime"
-msgstr ""
+msgstr "运行时间"
 
 #: sensors.js:220
 msgid "Process Time"
-msgstr ""
+msgstr "处理时间"
 
 #: sensors.js:277
 msgid "Public IP"
-msgstr ""
+msgstr "公共IP"
 
 #: sensors.js:298
 msgid "Total"
-msgstr ""
+msgstr "总量"
 
 #: sensors.js:299
 msgid "Used"
-msgstr ""
+msgstr "已使用"
 
 #: sensors.js:300
 msgid "Reserved"
-msgstr ""
+msgstr "保留"
 
 #: sensors.js:301
 msgid "Free"
-msgstr ""
+msgstr "剩余"
 
 #: sensors.js:302
 msgid "Storage"
-msgstr ""
+msgstr "存储"
 
 #: values.js:189
 msgid "Maximum "
-msgstr ""
+msgstr "最大值 "
 
 msgid "Temperature"
-msgstr ""
+msgstr "温度"
 
 msgid "Voltage"
-msgstr ""
+msgstr "电压"
 
 msgid "Fan"
-msgstr ""
+msgstr "扇速"
 
 msgid "Network"
-msgstr ""
+msgstr "网络"
 
 msgid "Temperature Preferences"
-msgstr ""
+msgstr "温度首选项"
 
 msgid "Network Preferences"
-msgstr ""
+msgstr "网络首选项"
 
 msgid "Storage Preferences"
-msgstr ""
+msgstr "存储首选项"
