@@ -389,7 +389,7 @@ const VitalsMenuButton = new Lang.Class({
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 // use natural sort order for system load, etc
-                if (menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
+                if (typeof menuItems[i] != 'undefined' && menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
                     break;
         }
 
