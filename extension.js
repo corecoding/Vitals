@@ -16,9 +16,9 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const MessageTray = imports.ui.messageTray;
 const Values = Me.imports.values;
-const MenuItem = Me.imports.menuItem;
+const Config = imports.misc.config;
 
-let vitalsMenu;
+let MenuItem, vitalsMenu;
 
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
@@ -469,6 +469,13 @@ const VitalsMenuButton = new Lang.Class({
 
 function init() {
     Convenience.initTranslations();
+
+    // load correct menuItem depending on Gnome version
+    if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
+      MenuItem = Me.imports.menuItemOld;
+    } else {
+      MenuItem = Me.imports.menuItem;
+    }
 }
 
 function enable() {
