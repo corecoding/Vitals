@@ -66,7 +66,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._drawMenu();
 
-        this.add_actor(this._menuLayout);
+        this.actor.add_actor(this._menuLayout); // CPM
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
@@ -96,11 +96,11 @@ const VitalsMenuButton = new Lang.Class({
 
             // hide menu items that user has requested to not include
             if (!this._settings.get_boolean('show-' + sensor))
-                this._groups[sensor].hide();
+                this._groups[sensor].actor.hide(); // CPM
 
             if (!this._groups[sensor].status) {
                 this._groups[sensor].status = this._defaultLabel();
-                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
+                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4); // CPM
                 this._groups[sensor].status.text = 'No Data';
             }
 
@@ -118,14 +118,14 @@ const VitalsMenuButton = new Lang.Class({
         prefsButton.connect('clicked', function() {
             Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
         });
-        item.add(prefsButton, { expand: true, x_fill: false });
+        item.actor.add(prefsButton, { expand: true, x_fill: false }); // CPM
 
         // round monitor button
         let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
         monitorButton.connect('clicked', function() {
             Util.spawn(["gnome-system-monitor"]);
         });
-        item.add(monitorButton, { expand: true, x_fill: false });
+        item.actor.add(monitorButton, { expand: true, x_fill: false }); // CPM
 
         // round refresh button
         let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
@@ -134,7 +134,7 @@ const VitalsMenuButton = new Lang.Class({
             this._values.resetHistory();
             this._updateTimeChanged();
         }));
-        item.add(refreshButton, { expand: true, x_fill: false });
+        item.actor.add(refreshButton, { expand: true, x_fill: false }); // CPM
 
         // add separator and buttons
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -315,13 +315,9 @@ const VitalsMenuButton = new Lang.Class({
         let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
-	    log('here 1'); log(gicon);
-
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value);
         item.connect('activate', Lang.bind(this, function(self) {
             let hotSensors = this._settings.get_strv('hot-sensors');
-
-	    log('here 2'); log(this.gicon);
 
             if (self.checked) {
                 self.checked = false;
@@ -374,10 +370,7 @@ const VitalsMenuButton = new Lang.Class({
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 // use natural sort order for system load, etc
-                if (
-typeof menuItems[i] != 'undefined' && 
-typeof menuItems[i].key != 'undefined' && 
-                    menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
+                if (typeof menuItems[i] != 'undefined' && typeof menuItems[i].key != 'undefined' && menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
                     break;
         }
 
