@@ -66,7 +66,11 @@ const VitalsMenuButton = new Lang.Class({
 
         this._drawMenu();
 
-        this.actor.add_actor(this._menuLayout); // CPM
+        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
+            this.actor.add_actor(this._menuLayout);
+	} else {
+            this.add_actor(this._menuLayout);
+	}
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
