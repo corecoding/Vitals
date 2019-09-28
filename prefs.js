@@ -9,6 +9,23 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const FileModule = Me.imports.helpers.file;
 
+/*
+        if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
+
+            let val = true;
+
+            try {
+                let GTop = imports.gi.GTop;
+            } catch (e) {
+                val = false;
+            }
+
+            let now = new Date().getTime();
+            this._notify("Vitals", "Please run sudo apt install gir1.2-gtop-2.0", 'folder-symbolic');
+
+        }
+*/
+
 const Settings = new Lang.Class({
     Name: 'Vitals.Settings',
 

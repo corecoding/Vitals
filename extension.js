@@ -17,8 +17,9 @@ const _ = Gettext.gettext;
 const MessageTray = imports.ui.messageTray;
 const Values = Me.imports.values;
 const Config = imports.misc.config;
+const MenuItem = Me.imports.menuItem;
 
-let MenuItem, vitalsMenu;
+let vitalsMenu;
 
 const VitalsMenuButton = new Lang.Class({
     Name: 'VitalsMenuButton',
@@ -66,7 +67,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._drawMenu();
 
-        this.actor.add_actor(this._menuLayout);
+        this.add_actor(this._menuLayout);
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
@@ -96,11 +97,11 @@ const VitalsMenuButton = new Lang.Class({
 
             // hide menu items that user has requested to not include
             if (!this._settings.get_boolean('show-' + sensor))
-                this._groups[sensor].actor.hide();
+                this._groups[sensor].hide();
 
             if (!this._groups[sensor].status) {
                 this._groups[sensor].status = this._defaultLabel();
-                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
+                this._groups[sensor].insert_child_at_index(this._groups[sensor].status, 4);
                 this._groups[sensor].status.text = 'No Data';
             }
 
@@ -118,14 +119,14 @@ const VitalsMenuButton = new Lang.Class({
         prefsButton.connect('clicked', function() {
             Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
         });
-        item.actor.add(prefsButton, { expand: true, x_fill: false });
+        item.add(prefsButton, { expand: true, x_fill: false });
 
         // round monitor button
         let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
         monitorButton.connect('clicked', function() {
             Util.spawn(["gnome-system-monitor"]);
         });
-        item.actor.add(monitorButton, { expand: true, x_fill: false });
+        item.add(monitorButton, { expand: true, x_fill: false });
 
         // round refresh button
         let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
@@ -134,7 +135,7 @@ const VitalsMenuButton = new Lang.Class({
             this._values.resetHistory();
             this._updateTimeChanged();
         }));
-        item.actor.add(refreshButton, { expand: true, x_fill: false });
+        item.add(refreshButton, { expand: true, x_fill: false });
 
         // add separator and buttons
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -204,26 +205,7 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _showHideSensorsChanged: function(self, sensor) {
-        if (this._settings.get_boolean(sensor)) {
-/*
-            if (sensor == 'show-storage') {
-
-                let val = true;
-
-                try {
-                    let GTop = imports.gi.GTop;
-                } catch (e) {
-                    val = false;
-                }
-
-                let now = new Date().getTime();
-                this._notify("Vitals", "Please run sudo apt install gir1.2-gtop-2.0", 'folder-symbolic');
-
-            }
-*/
-            this._groups[sensor.substr(5)].actor.show();
-        } else
-            this._groups[sensor.substr(5)].actor.hide();
+        this._groups[sensor.substr(5)].visible = this._settings.get_boolean(sensor);
     },
 
     _positionInPanelChanged: function() {
@@ -334,9 +316,13 @@ const VitalsMenuButton = new Lang.Class({
         let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
+	    log('here 1'); log(gicon);
+
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value);
         item.connect('activate', Lang.bind(this, function(self) {
             let hotSensors = this._settings.get_strv('hot-sensors');
+
+	    log('here 2'); log(this.gicon);
 
             if (self.checked) {
                 self.checked = false;
@@ -389,7 +375,10 @@ const VitalsMenuButton = new Lang.Class({
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 // use natural sort order for system load, etc
-                if (typeof menuItems[i] != 'undefined' && menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
+                if (
+typeof menuItems[i] != 'undefined' && 
+typeof menuItems[i].key != 'undefined' && 
+                    menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
                     break;
         }
 
@@ -409,8 +398,6 @@ const VitalsMenuButton = new Lang.Class({
             icon_name: "utilities-system-monitor-symbolic",
           style_class: 'system-status-icon'
         });
-
-        //icon.style = this._setProgress(0.1);
 
         if (gicon) icon.gicon = gicon;
         return icon;
@@ -469,13 +456,6 @@ const VitalsMenuButton = new Lang.Class({
 
 function init() {
     Convenience.initTranslations();
-
-    // load correct menuItem depending on Gnome version
-    if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
-      MenuItem = Me.imports.menuItemOld;
-    } else {
-      MenuItem = Me.imports.menuItem;
-    }
 }
 
 function enable() {
