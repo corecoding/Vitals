@@ -90,12 +90,10 @@ msgid "About"
 msgstr ""
 
 #: schemas/prefs.ui:444
-msgid ""
-"Like what you see? Support the development of this extension via <a href="
-"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"No warranty, expressed or implied. Feature requests or bugs? Please visit "
-"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgid "Feature requests or bugs? Please visit <a href=\""
+"https://github.com/corecoding/Vitals/issues\">GitHub</a>. "
+"No warranty, expressed or implied. <a href=\"https://"
+"corecoding.com/donate.php\">Donate</a> if you found this useful."
 msgstr ""
 
 #: schemas/prefs.ui:485
@@ -184,7 +182,7 @@ msgid "Frequency"
 msgstr ""
 
 #: sensors.js:208
-msgid "Boost frequency"
+msgid "Boost"
 msgstr ""
 
 #: sensors.js:203

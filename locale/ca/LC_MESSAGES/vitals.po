@@ -88,15 +88,13 @@ msgid "About"
 msgstr "Quant a"
 
 #: schemas/prefs.ui:444
-msgid ""
-"Like what you see? Support the development of this extension via <a href="
-"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"No warranty, expressed or implied. Feature requests or bugs? Please visit "
-"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgid "Feature requests or bugs? Please visit <a href=\""
+"https://github.com/corecoding/Vitals/issues\">GitHub</a>. "
+"No warranty, expressed or implied. <a href=\"https://"
+"corecoding.com/donate.php\">Donate</a> if you found this useful."
 msgstr ""
 "T'agrada el que veus? Dóna suport al desenvolupament d'aquesta extensió "
-"mitjançant <a href=\"http://corecoding.com/donate.php\">PayPal</a>.\n"
+"mitjançant <a href=\"https://corecoding.com/donate.php\">PayPal</a>.\n"
 "\n"
 "Sense garantia, expressa o implícita. Peticions de característiques o "
 "errors? Per favor visiti el nostre projecte a <a href=\"https://github.com/"
@@ -188,8 +186,8 @@ msgid "Frequency"
 msgstr "Freqüència mitjana"
 
 #: sensors.js:208
-msgid "Boost frequency"
-msgstr "Freqüència turbo"
+msgid "Boost"
+msgstr "Turbo"
 
 #: sensors.js:203
 msgid "Load 1m"
@@ -271,9 +269,6 @@ msgstr "Preferèncias de xarxa"
 
 msgid "Storage Preferences"
 msgstr "Preferèncias d'emmagatzematge"
-
-#~ msgid "Boost"
-#~ msgstr "Turbo"
 
 #~ msgid "Maximum tx"
 #~ msgstr "Màxim tx"

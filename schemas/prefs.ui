@@ -448,9 +448,7 @@
                     <property name="valign">baseline</property>
                     <property name="margin_left">5</property>
                     <property name="xpad">0</property>
-                    <property name="label" translatable="yes">Like what you see? Support the development of this extension via &lt;a href="http://corecoding.com/donate.php"&gt;PayPal&lt;/a&gt;.
-
-No warranty, expressed or implied. Feature requests or bugs? Please visit our &lt;a href="https://github.com/corecoding/Vitals"&gt;GitHub&lt;/a&gt; project.</property>
+                    <property name="label" translatable="yes">Feature requests or bugs? Please visit &lt;a href="https://github.com/corecoding/Vitals/issues"&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href="https://corecoding.com/donate.php"&gt;Donate&lt;/a&gt; if you found this useful.</property>
                     <property name="use_markup">True</property>
                     <property name="wrap">True</property>
                     <property name="xalign">0</property>

@@ -205,7 +205,7 @@ var Sensors = new Lang.Class({
             let sum = freqs.reduce(function(a, b) { return a + b; });
             let hertz = (sum / freqs.length) * 1000 * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-            this._returnValue(callback, 'Boost frequency', max_hertz, 'processor', 'hertz');
+            this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
         }).catch(err => { });
     },
 

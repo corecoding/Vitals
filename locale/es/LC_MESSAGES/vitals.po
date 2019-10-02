@@ -88,15 +88,13 @@ msgid "About"
 msgstr "Acerca de"
 
 #: schemas/prefs.ui:444
-msgid ""
-"Like what you see? Support the development of this extension via <a href="
-"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"No warranty, expressed or implied. Feature requests or bugs? Please visit "
-"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgid "Feature requests or bugs? Please visit <a href=\""
+"https://github.com/corecoding/Vitals/issues\">GitHub</a>. "
+"No warranty, expressed or implied. <a href=\"https://"
+"corecoding.com/donate.php\">Donate</a> if you found this useful."
 msgstr ""
 "¿Te gusta lo que ves? Apoye el desarrollo de esta extensión a través de <a "
-"href=\"http://corecoding.com/donate.php\">PayPal</a>.\n"
+"href=\"https://corecoding.com/donate.php\">PayPal</a>.\n"
 "\n"
 "Sin garantía, expresa o implícita. ¿Peticiones de características o errores? "
 "Por favor visite nuestro proyecto en <a href=\"https://github.com/corecoding/"
@@ -188,8 +186,8 @@ msgid "Frequency"
 msgstr "Frecuencia promedio"
 
 #: sensors.js:208
-msgid "Boost frequency"
-msgstr "Frecuencia turbo"
+msgid "Boost"
+msgstr "Turbo"
 
 #: sensors.js:203
 msgid "Load 1m"

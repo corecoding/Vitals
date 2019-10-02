@@ -97,14 +97,12 @@ msgid "About"
 msgstr "关于"
 
 #: schemas/prefs.ui:444
-msgid ""
-"Like what you see? Support the development of this extension via <a href="
-"\"http://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"No warranty, expressed or implied. Feature requests or bugs? Please visit "
-"our <a href=\"https://github.com/corecoding/Vitals\">GitHub</a> project."
+msgid "Feature requests or bugs? Please visit <a href=\""
+"https://github.com/corecoding/Vitals/issues\">GitHub</a>. "
+"No warranty, expressed or implied. <a href=\"https://"
+"corecoding.com/donate.php\">Donate</a> if you found this useful."
 msgstr ""
-"喜欢你所看到的吗？请支持这个插件的开发 <a href=\"http://corecoding.com/"
+"喜欢你所看到的吗？请支持这个插件的开发 <a href=\"https://corecoding.com/"
 "donate.php\">PayPal</a>.\n"
 "\n"
 "本插件无任何明暗担保. 功能性需求或者错误改进? 请访问我们的 <a href="
@@ -196,7 +194,7 @@ msgid "Frequency"
 msgstr "频率"
 
 #: sensors.js:208
-msgid "Boost frequency"
+msgid "Boost"
 msgstr "睿频"
 
 #: sensors.js:203
