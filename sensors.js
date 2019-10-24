@@ -363,6 +363,35 @@ var Sensors = new Lang.Class({
 
             this._next_public_ip_check -= diff;
         }
+
+/*
+Inter-| sta-|   Quality        |   Discarded packets               | Missed | WE
+ face | tus | link level noise |  nwid  crypt   frag  retry   misc | beacon | 22
+wlp58s0: 0000   67.  -43.  -256        0      0      0      0     69        0
+*/
+
+        new FileModule.File('/proc/net/wireless').read().then(lines => {
+            lines = lines.split("\n");
+            let counter = 0;
+            for (let line of Object.values(lines)) {
+                if (counter++ <= 1)
+                    continue;
+
+                let netArray = line.trim().split(/\s+/);
+                let iface = netArray[0].substr(0, netArray[0].length-1);
+
+                let quality = netArray[2].substr(0, netArray[2].length-1);
+                let quality_pct = quality / 70;
+
+                let signal = netArray[3].substr(0, netArray[3].length-1);
+                //let signal_pct = (signal + 110) * 10 / 7
+
+                //this._returnValue(callback, iface + ' Link Quality', quality, 'network', 'string');
+                this._returnValue(callback, iface + ' Link Quality', quality_pct, 'network', 'percent');
+                this._returnValue(callback, iface + ' Signal Level', signal, 'network', 'string');
+                //this._returnValue(callback, iface + ' Signal Level 2', signal_pct, 'network', 'string');
+            }
+        }).catch(err => { });
     },
 
     _queryStorage: function(callback, diff) {
@@ -465,6 +494,9 @@ var Sensors = new Lang.Class({
             }
 
             for (let obj of Object.values(trisensors)) {
+                if (typeof obj['input'] == 'undefined')
+                    continue;
+
                 new FileModule.File(obj['input']).read().then(value => {
                     let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
 
