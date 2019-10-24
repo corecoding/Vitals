@@ -3,10 +3,10 @@ const PopupMenu = imports.ui.popupMenu;
 const GObject = imports.gi.GObject;
 
 var MenuItem = GObject.registerClass(
-    class MenuItemPopup extends PopupMenu.PopupBaseMenuItem {
+    class MenuItem extends PopupMenu.PopupBaseMenuItem {
 
     _init(icon, key, label, value) {
-	super._init({ reactive: true });
+        super._init();
 
         this._checked = false;
         this._key = key;
