@@ -6,7 +6,7 @@ var MenuItem = GObject.registerClass(
     class MenuItem extends PopupMenu.PopupBaseMenuItem {
 
     _init(icon, key, label, value) {
-        super._init();
+        super._init({ reactive: true });
 
         this._checked = false;
         this._key = key;
