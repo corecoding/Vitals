@@ -4,6 +4,7 @@
 # gnome-shell-extension-vitals package.
 #
 # Jimmy Scionti <jimmy.scionti@gmail.com>, 2018
+# Jacopo Cassinis <jacopo@a-centauri.com>, 2019
 #
 msgid ""
 msgstr ""
@@ -14,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
-"Last-Translator: Jimmy Scionti <jimmy.scionti@gmail.com>\n"
+"X-Generator: Poedit 2.2.4\n"
+"Last-Translator: Jacopo Cassinis <jacopo@a-centauri.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: it\n"
 
@@ -28,7 +29,7 @@ msgid "Temperature"
 msgstr "Temperatura"
 
 msgid "Voltage"
-msgstr "Voltaggio"
+msgstr "Tensione"
 
 msgid "Fan"
 msgstr "Ventola"
@@ -66,7 +67,7 @@ msgid "Allocated"
 msgstr "Allocata"
 
 msgid "Swap Used"
-msgstr "Swap Usata"
+msgstr "Swap Usato"
 
 #: processor
 msgid "Frequency"
@@ -74,13 +75,13 @@ msgstr "Frequenza"
 
 #: system
 msgid "Load 1m"
-msgstr "Carico (1m)"
+msgstr "Carico (1 min)"
 
 msgid "Load 5m"
-msgstr "Carico (5m)"
+msgstr "Carico (5 min)"
 
 msgid "Load 15m"
-msgstr "Carico (15m)"
+msgstr "Carico (15 min)"
 
 msgid "Threads Active"
 msgstr "Thread Attivi"
@@ -90,10 +91,10 @@ msgstr "Thread Totali"
 
 #: network
 msgid "Maximum rx"
-msgstr "Massimo rx"
+msgstr "Totale ric"
 
 msgid "Maximum tx"
-msgstr "Massimo tx"
+msgstr "Totale trasm"
 
 msgid "Public IP"
 msgstr "IP Pubblico"
@@ -103,7 +104,7 @@ msgid "Total"
 msgstr "Totale"
 
 msgid "Used"
-msgstr "Usato"
+msgstr "Occupato"
 
 msgid "Reserved"
 msgstr "Riservato"
@@ -131,7 +132,7 @@ msgid "Use higher precision"
 msgstr "Utilizza una maggiore precisione"
 
 msgid "Alphabetize sensors"
-msgstr "Alfabetizza i sensori"
+msgstr "Ordine alfabetico per i sensori"
 
 msgid "Hide zero values"
 msgstr "Nascondi valori nulli"
@@ -140,13 +141,15 @@ msgid "Format"
 msgstr "Formato"
 
 #: prefs about
-msgid "Feature requests or bugs? Please visit <a href=\""
-"https://github.com/corecoding/Vitals/issues\">GitHub</a>. "
-"No warranty, expressed or implied. <a href=\"https://"
-"corecoding.com/donate.php\">Donate</a> if you found this useful."
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or "
+"implied. <a href=\"https://corecoding.com/donate.php\">Donate</a> if you "
+"found this useful."
 msgstr ""
 "Ti piace ciò che vedi? Supporta lo sviluppo di questa estensione via <a "
-"href=\"https://corecoding.com/donate.php\">PayPal</a>.\n\n"
+"href=\"https://corecoding.com/donate.php\">PayPal</a>.\n"
+"\n"
 "Nessuna garanzia, espressa o implicita. Suggerimenti o errori da "
 "segnalare? Visita la pagina del progetto su <a href=\"https://github.com/"
 "corecoding/Vitals\">GitHub</a>."
@@ -159,7 +162,7 @@ msgid "Unit"
 msgstr "Unità"
 
 msgid "Monitor voltage"
-msgstr "Monitora il voltaggio"
+msgstr "Monitora la tensione"
 
 msgid "Monitor fan"
 msgstr "Monitora le ventole"
@@ -183,22 +186,22 @@ msgid "Monitor storage"
 msgstr "Monitora l'archiviazione"
 
 msgid "Temperature Preferences"
-msgstr "Preferenze di temperatura"
+msgstr "Preferenze temperatura"
 
 msgid "Network Preferences"
-msgstr "Preferenze di rete"
+msgstr "Preferenze rete"
 
 msgid "Storage Preferences"
-msgstr "Preferenze di archiviazione"
+msgstr "Preferenze archiviazione"
 
 msgid "Path"
-msgstr "Sentiero"
+msgstr "Percorso"
 
 msgid "General"
 msgstr "Generale"
 
 msgid "About"
-msgstr "Di"
+msgstr "A proposito"
 
 msgid "Sensors"
 msgstr "Sensori"
