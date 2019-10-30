@@ -62,7 +62,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
-        this._menuLayout = new St.BoxLayout({ style_class: 'vitals-panel-box' });
+        this._menuLayout = new St.BoxLayout();
 
         this._drawMenu();
 
@@ -87,6 +87,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._initializeMenu();
         this._initializeTimer();
+        //this.emit('style-changed');
     },
 
     _initializeMenu: function() {
@@ -357,6 +358,8 @@ const VitalsMenuButton = new Lang.Class({
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
 
+            //this.emit('activate', self);
+            //self.disconnect();
             return true;
         }));
 
@@ -445,7 +448,7 @@ const VitalsMenuButton = new Lang.Class({
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
 
-        // Call parent
+        // call parent
         this.parent();
     }
 });
