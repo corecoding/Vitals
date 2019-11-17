@@ -187,7 +187,7 @@ const VitalsMenuButton = new Lang.Class({
     _createHotItem: function(key, gicon, value) {
         let icon = this._defaultIcon(gicon);
         this._hotIcons[key] = icon;
-        this._menuLayout.add(icon);
+        this._menuLayout.add(icon, { expand: true, x_fill: false });
 
         // don't add a label when no sensors are in the panel
         if (key == '_default_icon_') return;
@@ -199,7 +199,7 @@ const VitalsMenuButton = new Lang.Class({
         });
 
         this._hotLabels[key] = label;
-        this._menuLayout.add(label);
+        this._menuLayout.add(label, { expand: true, x_fill: false });
     },
 
     _higherPrecisionChanged: function() {
