@@ -62,7 +62,15 @@ const VitalsMenuButton = new Lang.Class({
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
-        this._menuLayout = new St.BoxLayout();
+        this._menuLayout = new St.BoxLayout({
+            vertical: false,
+            clip_to_allocation: true,
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.CENTER,
+            reactive: true,
+            x_expand:true,
+            pack_start: false
+        });
 
         this._drawMenu();
 
@@ -395,7 +403,8 @@ const VitalsMenuButton = new Lang.Class({
     _defaultIcon: function(gicon) {
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
-          style_class: 'system-status-icon'
+          style_class: 'system-status-icon',
+            reactive: true
         });
 
         if (gicon) icon.gicon = gicon;
