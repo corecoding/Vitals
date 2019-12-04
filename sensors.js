@@ -492,7 +492,7 @@ var Sensors = new Lang.Class({
                 new FileModule.File(obj['input']).read().then(value => {
                     let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
 
-                    if ((value > 0 && this._settings.get_boolean('hide-zeros')) || !this._settings.get_boolean('hide-zeros')) {
+                    if ((value > 0 && this._settings.get_boolean('hide-zeros')) || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
                             this._addTempVoltFan(callback, obj, label, extra, value);
                         }).catch(err => {
