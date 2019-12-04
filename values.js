@@ -46,15 +46,15 @@ var Values = new Lang.Class({
     },
 
     _legible: function(value, sensorClass) {
+        let unit = 1000; // add option later in prefs to use 1024
         if (value === null) return 'N/A';
         let use_higher_precision = this._settings.get_boolean('use-higher-precision');
         let use_bps = (this._settings.get_int('network-speed-format') == 1);
 
         let format = '';
         let ending = '';
-        let i = 0;
+        let exp = 0;
 
-        let kilo = 1024;
         var sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
         var hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
@@ -87,35 +87,39 @@ var Values = new Lang.Class({
                 break;
             case 'hertz':
                 if (value > 0) {
-                    i = Math.floor(Math.log(value) / Math.log(1000));
-                    value = parseFloat((value / Math.pow(1000, i)));
+                    exp = Math.floor(Math.log(value) / Math.log(unit));
+                    if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
+                    value = parseFloat((value / Math.pow(unit, exp)));
                 }
 
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
-                ending = hertz[i];
+                ending = hertz[exp];
                 break;
             case 'storage':
+                unit = 1024;
                 if (value > 0) {
-                    i = Math.floor(Math.log(value) / Math.log(1000));
-                    value = parseFloat((value / Math.pow(kilo, i)));
+                    exp = Math.floor(Math.log(value) / Math.log(unit));
+                    if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
+                    value = parseFloat((value / Math.pow(unit, exp)));
                 }
 
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
-                ending = sizes[i];
+                ending = sizes[exp];
                 break;
             case 'speed':
                 if (value > 0) {
                     if (use_bps) value *= 8;
-                    i = Math.floor(Math.log(value) / Math.log(1000));
-                    value = parseFloat((value / Math.pow(kilo, i)));
+                    exp = Math.floor(Math.log(value) / Math.log(unit));
+                    if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
+                    value = parseFloat((value / Math.pow(unit, exp)));
                 }
 
                 format = (use_higher_precision)?'%.1f %s':'%.0f %s';
 
                 if (use_bps) {
-                    ending = sizes[i].replace('B', 'bps');
+                    ending = sizes[exp].replace('B', 'bps');
                 } else {
-                    ending = sizes[i] + '/s';
+                    ending = sizes[exp] + '/s';
                 }
 
                 break;
@@ -164,6 +168,24 @@ var Values = new Lang.Class({
 
         return format.format(value, ending);
     },
+
+    // From: https://programming.guide/the-worlds-most-copied-so-snippet.html
+/*
+    _humanReadableByteCount: function(bytes, si) {
+        int unit = (si) ? 1000 : 1024;
+        long absBytes = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
+        if (absBytes < unit) return bytes + " B";
+        int exp = (int) (Math.log(absBytes) / Math.log(unit));
+        long th = (long) (Math.pow(unit, exp) * (unit - 0.05));
+        if (exp < 6 && absBytes >= th - ((th & 0xfff) == 0xd00 ? 52 : 0)) exp++;
+        String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
+        if (exp > 4) {
+            bytes /= unit;
+            exp -= 1;
+        }
+        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+    },
+*/
 
     _setProgress: function(amount) {
         let a = '00FF00';

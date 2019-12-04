@@ -87,7 +87,6 @@ const VitalsMenuButton = new Lang.Class({
 
         this._initializeMenu();
         this._initializeTimer();
-        //this.emit('style-changed');
     },
 
     _initializeMenu: function() {
@@ -144,6 +143,7 @@ const VitalsMenuButton = new Lang.Class({
         // add separator and buttons
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this.menu.addMenuItem(item);
+        this.emit('style-changed');
     },
 
     _removeMissingHotSensors: function(hotSensors) {
