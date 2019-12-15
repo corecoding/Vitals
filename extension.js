@@ -478,7 +478,7 @@ function init() {
 function enable() {
     vitalsMenu = new VitalsMenuButton();
     let positionInPanel = vitalsMenu.positionInPanel;
-    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, positionInPanel == 'right' ? 0 : -1, positionInPanel);
+    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, positionInPanel == 'right' ? 1 : -1, positionInPanel);
 }
 
 function disable() {
