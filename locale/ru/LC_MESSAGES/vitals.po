@@ -1,0 +1,269 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-12-29 12:05+0100\n"
+"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.4\n"
+"X-Poedit-Basepath: ..\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language: ru\n"
+"X-Poedit-SearchPath-0: values.js\n"
+"X-Poedit-SearchPath-1: sensors.js\n"
+"X-Poedit-SearchPath-2: prefs.js\n"
+"X-Poedit-SearchPath-3: notifications.js\n"
+"X-Poedit-SearchPath-4: menuItem.js\n"
+"X-Poedit-SearchPath-5: extension.js\n"
+"X-Poedit-SearchPath-6: schemas/prefs.ui\n"
+
+#: extension.js:113
+msgid "Preferences"
+msgstr "Настройки"
+
+#: extension.js:120
+msgid "System Monitor"
+msgstr "Системный монитор"
+
+#: extension.js:127
+msgid "Refresh"
+msgstr "Обновить"
+
+#: schemas/prefs.ui:40
+msgid "Include public IP address"
+msgstr "Включить публичный IP-адрес"
+
+#: schemas/prefs.ui:81
+msgid "Format"
+msgstr "Формат"
+
+#: schemas/prefs.ui:95
+msgid "Bytes"
+msgstr ""
+
+#: schemas/prefs.ui:96
+msgid "Bits"
+msgstr ""
+
+#: schemas/prefs.ui:154
+msgid "General"
+msgstr "Общая"
+
+#: schemas/prefs.ui:194
+msgid "Seconds between updates"
+msgstr "Секунды между обновлениями"
+
+#: schemas/prefs.ui:244
+msgid "Position in panel"
+msgstr "Позиция на панели"
+
+#: schemas/prefs.ui:259
+msgid "Left"
+msgstr "Слева"
+
+#: schemas/prefs.ui:260
+msgid "Center"
+msgstr "Центр"
+
+#: schemas/prefs.ui:261
+msgid "Right"
+msgstr "Справа"
+
+#: schemas/prefs.ui:293
+msgid "Use higher precision"
+msgstr "Используйте более высокую точность"
+
+#: schemas/prefs.ui:335
+msgid "Alphabetize sensors"
+msgstr "Pасполагать в алфавитном порядке"
+
+#: schemas/prefs.ui:377
+msgid "Hide zero values"
+msgstr "Скрыть нулевые значения"
+
+#: schemas/prefs.ui:419
+msgid "About"
+msgstr "О программе"
+
+#: schemas/prefs.ui:444
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
+"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
+"useful."
+msgstr ""
+
+#: schemas/prefs.ui:485
+msgid "Sensors"
+msgstr "Сенсор"
+
+#: schemas/prefs.ui:529
+msgid "Monitor temperature"
+msgstr "Температура"
+
+#: schemas/prefs.ui:610
+msgid "Monitor voltage"
+msgstr "Напряжение"
+
+#: schemas/prefs.ui:653
+msgid "Monitor fan"
+msgstr "Кулер"
+
+#: schemas/prefs.ui:696
+msgid "Monitor memory"
+msgstr "Память"
+
+#: schemas/prefs.ui:739
+msgid "Monitor processor"
+msgstr "Процессор"
+
+#: schemas/prefs.ui:782
+msgid "Monitor system"
+msgstr "Система"
+
+#: schemas/prefs.ui:825
+msgid "Monitor network"
+msgstr "Сеть"
+
+#: schemas/prefs.ui:906
+msgid "Monitor storage"
+msgstr "Диск"
+
+#: schemas/prefs.ui:1031
+msgid "Path"
+msgstr ""
+
+#: schemas/prefs.ui:1104
+msgid "Unit"
+msgstr ""
+
+#: sensors.js:120
+msgid "Usage"
+msgstr "Использовано"
+
+#: sensors.js:121
+msgid "Memory"
+msgstr "Память"
+
+#: sensors.js:122
+msgid "Physical"
+msgstr "Физическая"
+
+#: sensors.js:123
+msgid "Available"
+msgstr "Доступно"
+
+#: sensors.js:124
+msgid "Allocated"
+msgstr "Использовано"
+
+#: sensors.js:125
+msgid "Swap Used"
+msgstr "Swap"
+
+#: sensors.js:165 values.js:183
+msgid "Average"
+msgstr ""
+
+#: sensors.js:166
+msgid "Processor"
+msgstr "Процессор"
+
+#: sensors.js:168
+#, javascript-format
+msgid "Core %d"
+msgstr "Ядро %d"
+
+#: sensors.js:207
+msgid "Frequency"
+msgstr "Частота"
+
+#: sensors.js:208
+msgid "Boost"
+msgstr ""
+
+#: sensors.js:203
+msgid "Load 1m"
+msgstr "Нагрузка 1мин"
+
+#: sensors.js:204
+msgid "System"
+msgstr "Система"
+
+#: sensors.js:205
+msgid "Load 5m"
+msgstr "Нагрузка 5мин"
+
+#: sensors.js:206
+msgid "Load 15m"
+msgstr "Нагрузка 15мин"
+
+#: sensors.js:207
+msgid "Threads Active"
+msgstr ""
+
+#: sensors.js:208
+msgid "Threads Total"
+msgstr ""
+
+#: sensors.js:216
+msgid "Uptime"
+msgstr ""
+
+#: sensors.js:220
+msgid "Process Time"
+msgstr ""
+
+#: sensors.js:277
+msgid "Public IP"
+msgstr "Публичный Ip"
+
+#: sensors.js:298
+msgid "Total"
+msgstr "Всего"
+
+#: sensors.js:299
+msgid "Used"
+msgstr "Занято"
+
+#: sensors.js:300
+msgid "Reserved"
+msgstr "Зарезервиравано"
+
+#: sensors.js:301
+msgid "Free"
+msgstr "Свободно"
+
+#: sensors.js:302
+msgid "Storage"
+msgstr "Диск"
+
+#: values.js:189
+msgid "Maximum "
+msgstr ""
+
+msgid "Temperature"
+msgstr "Температура"
+
+msgid "Voltage"
+msgstr "Напряжение"
+
+msgid "Fan"
+msgstr "Кулер"
+
+msgid "Network"
+msgstr "Сеть"
+
+msgid "Temperature Preferences"
+msgstr "Температура"
+
+msgid "Network Preferences"
+msgstr "Сеть"
+
+msgid "Storage Preferences"
+msgstr "Диск"
