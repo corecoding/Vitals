@@ -119,39 +119,67 @@ const VitalsMenuButton = new Lang.Class({
             this.menu.addMenuItem(this._groups[sensor]);
         }
 
-        let panelSystem = Main.panel.statusArea.aggregateMenu._system;
-        let item = new PopupMenu.PopupBaseMenuItem({
-            reactive: false,
-            style_class: 'vitals-menu-button-container'
-        });
+        // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
+        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
+            let panelSystem = Main.panel.statusArea.aggregateMenu._system;
+            let item = new PopupMenu.PopupBaseMenuItem({
+                reactive: false,
+                style_class: 'vitals-menu-button-container'
+            });
 
-        // round preferences button
-        let prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
-        prefsButton.connect('clicked', function() {
-            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
-        });
-        item.actor.add(prefsButton, { expand: true, x_fill: false }); // 3.34?
+            // round preferences button
+            let prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
+            prefsButton.connect('clicked', function() {
+                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+            });
+            item.actor.add(prefsButton, { expand: true, x_fill: false }); // 3.34?
 
-        // round monitor button
-        let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
-        monitorButton.connect('clicked', function() {
-            Util.spawn(["gnome-system-monitor"]);
-        });
-        item.actor.add(monitorButton, { expand: true, x_fill: false }); // 3.34?
+            // round monitor button
+            let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
+            monitorButton.connect('clicked', function() {
+                Util.spawn(["gnome-system-monitor"]);
+            });
+            item.actor.add(monitorButton, { expand: true, x_fill: false }); // 3.34?
 
-        // round refresh button
-        let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
-        refreshButton.connect('clicked', Lang.bind(this, function(self) {
-            this._sensors.resetHistory();
-            this._values.resetHistory();
-            this._updateTimeChanged();
-        }));
-        item.actor.add(refreshButton, { expand: true, x_fill: false }); // 3.34?
+            // round refresh button
+            let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
+            refreshButton.connect('clicked', Lang.bind(this, function(self) {
+                this._sensors.resetHistory();
+                this._values.resetHistory();
+                this._updateTimeChanged();
+            }));
+            item.actor.add(refreshButton, { expand: true, x_fill: false }); // 3.34?
+        } else {
+            // add separator and buttons
+            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        // add separator and buttons
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this.menu.addMenuItem(item);
-        this.emit('style-changed');
+            // preferences option
+            let preferences = new PopupMenu.PopupBaseMenuItem();
+            preferences.actor.add(new St.Label({ text: _("Preferences") }), { expand: false, x_fill: false });
+            preferences.connect('activate', function () {
+                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+            });
+            this.menu.addMenuItem(preferences);
+
+            // monitor option
+            let monitor = new PopupMenu.PopupBaseMenuItem();
+            monitor.actor.add(new St.Label({ text: _("System Monitor") }), { expand: false, x_fill: false });
+            monitor.connect('activate', function () {
+                Util.spawn(["gnome-system-monitor"]);
+            });
+            this.menu.addMenuItem(monitor);
+
+            // refresh option
+            let refresh = new PopupMenu.PopupBaseMenuItem();
+            refresh.actor.add(new St.Label({ text: _("Refresh") }), { expand: false, x_fill: false });
+            refresh.connect('activate', function () {
+                this._sensors.resetHistory();
+                this._values.resetHistory();
+                this._updateTimeChanged();
+            });
+            this.menu.addMenuItem(refresh);
+        }
+>>>>>>> Stashed changes
     },
 
     _removeMissingHotSensors: function(hotSensors) {
