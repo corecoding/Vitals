@@ -179,7 +179,6 @@ const VitalsMenuButton = new Lang.Class({
             });
             this.menu.addMenuItem(refresh);
         }
->>>>>>> Stashed changes
     },
 
     _removeMissingHotSensors: function(hotSensors) {
