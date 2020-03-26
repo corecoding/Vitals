@@ -119,6 +119,9 @@ const VitalsMenuButton = new Lang.Class({
             this.menu.addMenuItem(this._groups[sensor]);
         }
 
+        // add separator
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
         // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
         if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
             let panelSystem = Main.panel.statusArea.aggregateMenu._system;
@@ -149,10 +152,10 @@ const VitalsMenuButton = new Lang.Class({
                 this._updateTimeChanged();
             }));
             item.actor.add(refreshButton, { expand: true, x_fill: false }); // 3.34?
-        } else {
-            // add separator and buttons
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+            // add buttons
+            this.menu.addMenuItem(item);
+        } else {
             // preferences option
             let preferences = new PopupMenu.PopupBaseMenuItem();
             preferences.actor.add(new St.Label({ text: _("Preferences") }), { expand: false, x_fill: false });
