@@ -52,3 +52,6 @@ Sensor data is obtained from the system using hwmon and GTop. Core Coding and th
 * View logs ```journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f | grep Vitals```
 * Compile schemas `glib-compile-schemas --strict schemas/`
 * Compile translation file `msgfmt vitals.po -o vitals.mo`
+
+## Donations
+[Please consider donating if you find this extension useful.](https://corecoding.com/donate.php)
