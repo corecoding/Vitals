@@ -9,7 +9,7 @@ Vitals is a GNOME extension for displaying your computer's temperature, voltage,
 
 #### Ubuntu
 
-    apt install gir1.2-gtop-2.0 lm-sensors
+    apt install gir1.2-gtop-2.0 lm-sensors gnome-shell-extension-prefs
 
 #### Fedora
 
