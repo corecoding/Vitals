@@ -48,6 +48,7 @@ Sensor data is obtained from the system using hwmon and GTop. Core Coding and th
 
 ## Development Commands
 * Reload extension `gnome-shell-extension-tool -r Vitals@CoreCoding.com`
+  - Note: This command is no longer supported as of GNOME 3.34
 * Launch preferences `gnome-shell-extension-prefs Vitals@CoreCoding.com`
 * View logs ```journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f | grep Vitals```
 * Compile schemas `glib-compile-schemas --strict schemas/`
