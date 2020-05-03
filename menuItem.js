@@ -1,6 +1,7 @@
 const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 const GObject = imports.gi.GObject;
+const Clutter = imports.gi.Clutter;
 
 var MenuItem = GObject.registerClass(
     class MenuItem extends PopupMenu.PopupBaseMenuItem {
@@ -12,10 +13,18 @@ var MenuItem = GObject.registerClass(
         this._key = key;
         this._gIcon = icon;
 
-        this._labelActor = new St.Label({ text: label });
+        // add icon
         this.add(new St.Icon({ style_class: 'popup-menu-icon', gicon : this._gIcon }));
-        this.add(this._labelActor, { x_fill: true, expand: true });
+
+        // add label
+        this._labelActor = new St.Label({ text: label });
+        this.add(this._labelActor);
+
+        // add value
         this._valueLabel = new St.Label({ text: value });
+        this._valueLabel.set_x_align(Clutter.ActorAlign.END);
+        this._valueLabel.set_x_expand(true);
+        this._valueLabel.set_y_expand(true);
         this.add(this._valueLabel);
     }
 
