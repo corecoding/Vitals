@@ -68,7 +68,7 @@ const VitalsMenuButton = new Lang.Class({
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
-            x_expand:true,
+            x_expand: true,
             pack_start: false
         });
 
@@ -148,10 +148,10 @@ const VitalsMenuButton = new Lang.Class({
                 style_class: 'vitals-button-box',
                 vertical: false,
                 clip_to_allocation: true,
-                x_align: Clutter.ActorAlign.START,
+                x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
                 reactive: true,
-                x_expand:true,
+                x_expand: true,
                 pack_start: false
             });
 
