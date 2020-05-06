@@ -50,6 +50,7 @@ var Values = new Lang.Class({
         if (value === null) return 'N/A';
         let use_higher_precision = this._settings.get_boolean('use-higher-precision');
         let memory_measurement = this._settings.get_int('memory-measurement')
+        let storage_measurement = this._settings.get_int('storage-measurement')
         let use_bps = (this._settings.get_int('network-speed-format') == 1);
 
         let format = '';
@@ -117,7 +118,8 @@ var Values = new Lang.Class({
 
                 break;
             case 'storage':
-                unit = 1024;
+                unit = (storage_measurement == 1)?1000:1024;
+
                 if (value > 0) {
                     exp = Math.floor(Math.log(value) / Math.log(unit));
                     if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
@@ -125,7 +127,12 @@ var Values = new Lang.Class({
                 }
 
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
-                ending = decimal[exp];
+
+                if (storage_measurement)
+                    ending = decimal[exp];
+                else
+                    ending = binary[exp];
+
                 break;
             case 'speed':
                 if (value > 0) {

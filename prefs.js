@@ -70,7 +70,7 @@ const Settings = new Lang.Class({
             });
         }
 
-        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement' ];
+        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 
