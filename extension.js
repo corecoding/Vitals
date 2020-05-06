@@ -172,7 +172,13 @@ const VitalsMenuButton = new Lang.Class({
 
         prefsButton.connect('clicked', Lang.bind(this, function(self) {
             this.menu.actor.hide();
-            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+
+            // Gnome 3.36 has a fancier way of opening preferences
+            if (typeof ExtensionUtils.openPrefs === 'function') {
+                ExtensionUtils.openPrefs();
+            } else {
+                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+            }
         }));
 
         monitorButton.connect('clicked', Lang.bind(this, function(self) {
