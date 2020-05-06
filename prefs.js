@@ -70,8 +70,7 @@ const Settings = new Lang.Class({
             });
         }
 
-        sensors = [ 'position-in-panel', 'unit', 'network-speed-format' ];
-
+        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 
@@ -98,12 +97,11 @@ const Settings = new Lang.Class({
             this._settings.set_string(sensor, text);
         });
 
-        sensors = [ 'temperature', 'network', 'storage' ];
-
+        sensors = [ 'temperature', 'network', 'storage', 'memory' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 
-            // Create dialog for intelligent autohide advanced settings
+            // create dialog for intelligent autohide advanced settings
             this.builder.get_object(sensor + '-prefs').connect('clicked', Lang.bind(this, function() {
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
                 let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),

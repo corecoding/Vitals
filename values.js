@@ -49,13 +49,16 @@ var Values = new Lang.Class({
         let unit = 1000; // add option later in prefs to use 1024
         if (value === null) return 'N/A';
         let use_higher_precision = this._settings.get_boolean('use-higher-precision');
+        let memory_measurement = this._settings.get_int('memory-measurement')
         let use_bps = (this._settings.get_int('network-speed-format') == 1);
 
         let format = '';
         let ending = '';
         let exp = 0;
 
-        var sizes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+        var decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+        var binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
+
         var hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
         switch (sensorClass) {
@@ -95,6 +98,24 @@ var Values = new Lang.Class({
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
                 ending = hertz[exp];
                 break;
+            case 'memory':
+                unit = (memory_measurement == 1)?1000:1024;
+
+                if (value > 0) {
+                    value *= unit;
+                    exp = Math.floor(Math.log(value) / Math.log(unit));
+                    if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
+                    value = parseFloat((value / Math.pow(unit, exp)));
+                }
+
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+
+                if (memory_measurement)
+                    ending = decimal[exp];
+                else
+                    ending = binary[exp];
+
+                break;
             case 'storage':
                 unit = 1024;
                 if (value > 0) {
@@ -104,7 +125,7 @@ var Values = new Lang.Class({
                 }
 
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
-                ending = sizes[exp];
+                ending = decimal[exp];
                 break;
             case 'speed':
                 if (value > 0) {
@@ -117,9 +138,9 @@ var Values = new Lang.Class({
                 format = (use_higher_precision)?'%.1f %s':'%.0f %s';
 
                 if (use_bps) {
-                    ending = sizes[exp].replace('B', 'bps');
+                    ending = decimal[exp].replace('B', 'bps');
                 } else {
-                    ending = sizes[exp] + '/s';
+                    ending = decimal[exp] + '/s';
                 }
 
                 break;

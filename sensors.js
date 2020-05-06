@@ -122,26 +122,26 @@ var Sensors = new Lang.Class({
             let total = 0, avail = 0, swapTotal = 0, swapFree = 0;
 
             let values = lines.match(/MemTotal:(\s+)(\d+) kB/);
-            if (values) total = values[2] * 1024;
+            if (values) total = values[2];
 
             values = lines.match(/MemAvailable:(\s+)(\d+) kB/);
-            if (values) avail = values[2] * 1024;
+            if (values) avail = values[2];
 
             values = lines.match(/SwapTotal:(\s+)(\d+) kB/);
-            if (values) swapTotal = values[2] * 1024;
+            if (values) swapTotal = values[2];
 
             values = lines.match(/SwapFree:(\s+)(\d+) kB/);
-            if (values) swapFree = values[2] * 1024;
+            if (values) swapFree = values[2];
 
             let used = total - avail
             let utilized = used / total;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
-            this._returnValue(callback, 'Physical', total, 'memory', 'storage');
-            this._returnValue(callback, 'Available', avail, 'memory', 'storage');
-            this._returnValue(callback, 'Allocated', used, 'memory', 'storage');
-            this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'storage');
+            this._returnValue(callback, 'Physical', total, 'memory', 'memory');
+            this._returnValue(callback, 'Available', avail, 'memory', 'memory');
+            this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'memory');
         }).catch(err => { });
     },
 
