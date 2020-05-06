@@ -68,7 +68,7 @@ const VitalsMenuButton = new Lang.Class({
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
-            x_expand:true,
+            x_expand: true,
             pack_start: false
         });
 
@@ -85,7 +85,7 @@ const VitalsMenuButton = new Lang.Class({
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format' ];
+        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, Lang.bind(this, this._redrawMenu));
 
@@ -122,66 +122,90 @@ const VitalsMenuButton = new Lang.Class({
         // add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
-        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
-            let panelSystem = Main.panel.statusArea.aggregateMenu._system;
-            let item = new PopupMenu.PopupBaseMenuItem({
-                reactive: false,
-                style_class: 'vitals-menu-button-container'
-            });
+        let item = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            style_class: 'vitals-menu-button-container'
+        });
 
+        let prefsButton, monitorButton, refreshButton;
+
+        // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
+        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32', '3.34'], Config.PACKAGE_VERSION)) {
             // round preferences button
-            let prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
-            prefsButton.connect('clicked', function() {
-                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
-            });
+            let panelSystem = Main.panel.statusArea.aggregateMenu._system;
+            prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
             item.actor.add(prefsButton, { expand: true, x_fill: false }); // 3.34?
 
             // round monitor button
-            let monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
-            monitorButton.connect('clicked', function() {
-                Util.spawn(["gnome-system-monitor"]);
-            });
+            monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
             item.actor.add(monitorButton, { expand: true, x_fill: false }); // 3.34?
 
             // round refresh button
-            let refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
-            refreshButton.connect('clicked', Lang.bind(this, function(self) {
-                this._sensors.resetHistory();
-                this._values.resetHistory();
-                this._updateTimeChanged();
-            }));
+            refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
             item.actor.add(refreshButton, { expand: true, x_fill: false }); // 3.34?
-
-            // add buttons
-            this.menu.addMenuItem(item);
         } else {
-            // preferences option
-            let preferences = new PopupMenu.PopupBaseMenuItem();
-            preferences.actor.add(new St.Label({ text: _("Preferences") }), { expand: false, x_fill: false });
-            preferences.connect('activate', function () {
-                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+            let customButtonBox = new St.BoxLayout({
+                style_class: 'vitals-button-box',
+                vertical: false,
+                clip_to_allocation: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                reactive: true,
+                x_expand: true,
+                pack_start: false
             });
-            this.menu.addMenuItem(preferences);
 
-            // monitor option
-            let monitor = new PopupMenu.PopupBaseMenuItem();
-            monitor.actor.add(new St.Label({ text: _("System Monitor") }), { expand: false, x_fill: false });
-            monitor.connect('activate', function () {
-                Util.spawn(["gnome-system-monitor"]);
-            });
-            this.menu.addMenuItem(monitor);
+            // custom round preferences button
+            prefsButton = this._createButton('preferences-system-symbolic', _("Preferences"));
+            customButtonBox.add_actor(prefsButton);
 
-            // refresh option
-            let refresh = new PopupMenu.PopupBaseMenuItem();
-            refresh.actor.add(new St.Label({ text: _("Refresh") }), { expand: false, x_fill: false });
-            refresh.connect('activate', function () {
-                this._sensors.resetHistory();
-                this._values.resetHistory();
-                this._updateTimeChanged();
-            });
-            this.menu.addMenuItem(refresh);
+            // custom round monitor button
+            monitorButton = this._createButton('utilities-system-monitor-symbolic', _("System Monitor"));
+            customButtonBox.add_actor(monitorButton);
+
+            // custom round refresh button
+            refreshButton = this._createButton('view-refresh-symbolic', _("Refresh"));
+            customButtonBox.add_actor(refreshButton);
+
+            item.actor.add_actor(customButtonBox);
         }
+
+        prefsButton.connect('clicked', Lang.bind(this, function(self) {
+            this.menu.actor.hide();
+
+            // Gnome 3.36 has a fancier way of opening preferences
+            if (typeof ExtensionUtils.openPrefs === 'function') {
+                ExtensionUtils.openPrefs();
+            } else {
+                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+            }
+        }));
+
+        monitorButton.connect('clicked', Lang.bind(this, function(self) {
+            this.menu.actor.hide();
+            Util.spawn(["gnome-system-monitor"]);
+        }));
+
+        refreshButton.connect('clicked', Lang.bind(this, function(self) {
+            this._sensors.resetHistory();
+            this._values.resetHistory();
+            this._updateTimeChanged();
+        }));
+
+        // add buttons
+        this.menu.addMenuItem(item);
+    },
+
+    _createButton: function(iconName, accessibleName) {
+        let button = new St.Button({
+            style_class: 'message-list-clear-button button vitals-button-action'
+        });
+
+        button.child = new St.Icon({
+            icon_name: iconName
+        });
+
+        return button;
     },
 
     _removeMissingHotSensors: function(hotSensors) {
@@ -225,7 +249,7 @@ const VitalsMenuButton = new Lang.Class({
     _createHotItem: function(key, gicon, value) {
         let icon = this._defaultIcon(gicon);
         this._hotIcons[key] = icon;
-        this._menuLayout.add(icon, { expand: true, x_fill: false });
+        this._menuLayout.add_actor(icon)
 
         // don't add a label when no sensors are in the panel
         if (key == '_default_icon_') return;
@@ -237,7 +261,7 @@ const VitalsMenuButton = new Lang.Class({
         });
 
         this._hotLabels[key] = label;
-        this._menuLayout.add(label, { expand: true, x_fill: false });
+        this._menuLayout.add_actor(label);
     },
 
     _higherPrecisionChanged: function() {

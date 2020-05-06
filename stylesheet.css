@@ -1,3 +1,7 @@
 .vitals-icon { icon-size: 16px; }
 .vitals-menu-button-container {}
 #panel .panel-button .system-status-icon { margin: 0 4px 0 8px; padding: 0; }
+.vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; }
+.vitals-button-action:hover, .vitals-button-action:focus { border: 1px solid #777; }
+.vitals-button-action > StIcon { icon-size: 16px; }
+.vitals-button-box { padding: 0px; spacing: 12px; }
