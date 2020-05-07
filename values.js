@@ -257,7 +257,7 @@ var Values = new Lang.Class({
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
                 let max = Math.getMaxOfArray(vals);
                 max = this._legible(max, format);
-                output.push(['Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, '__max_' + type + '__']);
+                output.push(['Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, '__' + type + '_max__']);
 
                 if (type == 'network-download')
                     output.push([type, max, type + '-group', '']);

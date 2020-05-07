@@ -247,7 +247,8 @@ const VitalsMenuButton = new Lang.Class({
     },
 
     _createHotItem: function(key, gicon, value) {
-        let icon = this._defaultIcon(gicon);
+        let css_class = key.replace('__', '_').replace('-','_').split('_')[1];
+        let icon = this._defaultIcon(css_class, gicon);
 
         this._hotIcons[key] = icon;
         this._menuLayout.add_actor(icon)
@@ -256,6 +257,7 @@ const VitalsMenuButton = new Lang.Class({
         if (key == '_default_icon_') return;
 
         let label = new St.Label({
+            style_class: 'vitals-panel-label',
             text: (value)?value:'\u2026', // ...
             y_expand: true,
             y_align: Clutter.ActorAlign.CENTER
@@ -449,16 +451,15 @@ const VitalsMenuButton = new Lang.Class({
 
     _defaultLabel: function() {
         return new St.Label({
-            style_class: 'vitals-status-menu-item',
                y_expand: true,
                 y_align: Clutter.ActorAlign.CENTER
         });
     },
 
-    _defaultIcon: function(gicon) {
+    _defaultIcon: function(css_class, gicon) {
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
-          style_class: 'system-status-icon vitals-system-status-icon-extra',
+          style_class: 'system-status-icon vitals-panel-icon-' + css_class,
             reactive: true
         });
 
