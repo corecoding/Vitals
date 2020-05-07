@@ -248,6 +248,7 @@ const VitalsMenuButton = new Lang.Class({
 
     _createHotItem: function(key, gicon, value) {
         let icon = this._defaultIcon(gicon);
+
         this._hotIcons[key] = icon;
         this._menuLayout.add_actor(icon)
 
@@ -457,7 +458,7 @@ const VitalsMenuButton = new Lang.Class({
     _defaultIcon: function(gicon) {
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
-          style_class: 'system-status-icon',
+          style_class: 'system-status-icon vitals-system-status-icon-extra',
             reactive: true
         });
 
