@@ -46,7 +46,7 @@ var Values = new Lang.Class({
     },
 
     _legible: function(value, sensorClass) {
-        let unit = 1000; // add option later in prefs to use 1024
+        let unit = 1000;
         if (value === null) return 'N/A';
         let use_higher_precision = this._settings.get_boolean('use-higher-precision');
         let memory_measurement = this._settings.get_int('memory-measurement')
@@ -100,7 +100,7 @@ var Values = new Lang.Class({
                 ending = hertz[exp];
                 break;
             case 'memory':
-                unit = (memory_measurement == 1)?1000:1024;
+                unit = (memory_measurement)?1000:1024;
 
                 if (value > 0) {
                     value *= unit;
@@ -118,7 +118,7 @@ var Values = new Lang.Class({
 
                 break;
             case 'storage':
-                unit = (storage_measurement == 1)?1000:1024;
+                unit = (storage_measurement)?1000:1024;
 
                 if (value > 0) {
                     exp = Math.floor(Math.log(value) / Math.log(unit));
