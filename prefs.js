@@ -72,7 +72,7 @@ const Settings = new Lang.Class({
         }
 
         // process individual drop down sensor preferences
-        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement' ];
+        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 
@@ -86,7 +86,7 @@ const Settings = new Lang.Class({
         this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
 
         // process individual text entry sensor preferences
-        sensors = [ 'storage-path', 'battery-slot' ];
+        sensors = [ 'storage-path' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 

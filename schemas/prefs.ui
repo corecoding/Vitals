@@ -1432,7 +1432,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="halign">start</property>
-                        <property name="label" translatable="yes">Numerical Slot</property>
+                        <property name="label" translatable="yes">Primary battery</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -1441,15 +1441,20 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="battery-slot">
+                      <object class="GtkComboBoxText" id="battery-slot">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="placeholder_text" translatable="no">0</property>
-                        <property name="input_purpose">number</property>
+                        <property name="can_focus">False</property>
+                        <property name="active">0</property>
+                        <items>
+                          <item translatable="no">#1</item>
+                          <item translatable="no">#2</item>
+                          <item translatable="no">#3</item>
+                        </items>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
+                        <property name="pack_type">end</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
