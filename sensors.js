@@ -167,14 +167,16 @@ var Sensors = new Lang.Class({
 
                     let stats = reverse_data[2].trim().split(' ').reverse();
                     for (let index in columns)
-                        statistics[cpu][columns[index]] = stats.pop();
+                        statistics[cpu][columns[index]] = parseInt(stats.pop());
                 }
             }
 
             for (let cpu in statistics) {
+                let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
+
                 // make sure we have data to report
                 if (this._last_processor[cpu] > 0) {
-                    let delta = (statistics[cpu]['user'] - this._last_processor[cpu]) / diff;
+                    let delta = (total - this._last_processor[cpu]) / diff;
 
                     let label = cpu;
                     if (cpu == 'cpu') {
@@ -187,7 +189,7 @@ var Sensors = new Lang.Class({
                     this._returnValue(callback, label, delta / 100, 'processor', 'percent');
                 }
 
-                this._last_processor[cpu] = statistics[cpu]['user'];
+                this._last_processor[cpu] = total;
             }
         }).catch(err => { });
 
