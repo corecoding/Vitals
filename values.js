@@ -66,6 +66,7 @@ var Values = new Lang.Class({
             case 'percent':
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
                 value = value * 100;
+                if (value > 100) value = 100;
                 ending = '%';
                 break;
             case 'temp':
