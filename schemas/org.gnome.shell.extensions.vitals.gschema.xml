@@ -106,5 +106,10 @@
       <summary>Storage measurement</summary>
       <description>Can use use gigabyte or gibigyte for storage</description>
     </key>
+    <key type="s" name="battery-slot">
+      <default>"0"</default>
+      <summary>Battery slot to monitor</summary>
+      <description>Which numerical battery slot should vitals monitor</description>
+    </key>
   </schema>
 </schemalist>
