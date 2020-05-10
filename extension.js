@@ -156,15 +156,15 @@ const VitalsMenuButton = new Lang.Class({
             });
 
             // custom round refresh button
-            refreshButton = this._createButton('view-refresh-symbolic', _("Refresh"));
+            refreshButton = this._createRoundButton('view-refresh-symbolic', _("Refresh"));
             customButtonBox.add_actor(refreshButton);
 
             // custom round monitor button
-            monitorButton = this._createButton('utilities-system-monitor-symbolic', _("System Monitor"));
+            monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _("System Monitor"));
             customButtonBox.add_actor(monitorButton);
 
             // custom round preferences button
-            prefsButton = this._createButton('preferences-system-symbolic', _("Preferences"));
+            prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
             customButtonBox.add_actor(prefsButton);
 
             item.actor.add_actor(customButtonBox);
@@ -196,7 +196,7 @@ const VitalsMenuButton = new Lang.Class({
         this.menu.addMenuItem(item);
     },
 
-    _createButton: function(iconName, accessibleName) {
+    _createRoundButton: function(iconName) {
         let button = new St.Button({
             style_class: 'message-list-clear-button button vitals-button-action'
         });
