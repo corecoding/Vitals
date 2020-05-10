@@ -131,18 +131,18 @@ const VitalsMenuButton = new Lang.Class({
 
         // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
         if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32', '3.34'], Config.PACKAGE_VERSION)) {
-            // round preferences button
-            let panelSystem = Main.panel.statusArea.aggregateMenu._system;
-            prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
-            item.actor.add(prefsButton, { expand: true, x_fill: false }); // 3.34?
+            // round refresh button
+            refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
+            item.actor.add(refreshButton, { expand: true, x_fill: false }); // 3.34?
 
             // round monitor button
             monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
             item.actor.add(monitorButton, { expand: true, x_fill: false }); // 3.34?
 
-            // round refresh button
-            refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
-            item.actor.add(refreshButton, { expand: true, x_fill: false }); // 3.34?
+            // round preferences button
+            let panelSystem = Main.panel.statusArea.aggregateMenu._system;
+            prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
+            item.actor.add(prefsButton, { expand: true, x_fill: false }); // 3.34?
         } else {
             let customButtonBox = new St.BoxLayout({
                 style_class: 'vitals-button-box',
@@ -155,20 +155,31 @@ const VitalsMenuButton = new Lang.Class({
                 pack_start: false
             });
 
-            // custom round preferences button
-            prefsButton = this._createButton('preferences-system-symbolic', _("Preferences"));
-            customButtonBox.add_actor(prefsButton);
+            // custom round refresh button
+            refreshButton = this._createButton('view-refresh-symbolic', _("Refresh"));
+            customButtonBox.add_actor(refreshButton);
 
             // custom round monitor button
             monitorButton = this._createButton('utilities-system-monitor-symbolic', _("System Monitor"));
             customButtonBox.add_actor(monitorButton);
 
-            // custom round refresh button
-            refreshButton = this._createButton('view-refresh-symbolic', _("Refresh"));
-            customButtonBox.add_actor(refreshButton);
+            // custom round preferences button
+            prefsButton = this._createButton('preferences-system-symbolic', _("Preferences"));
+            customButtonBox.add_actor(prefsButton);
 
             item.actor.add_actor(customButtonBox);
         }
+
+        refreshButton.connect('clicked', Lang.bind(this, function(self) {
+            this._sensors.resetHistory();
+            this._values.resetHistory();
+            this._updateTimeChanged();
+        }));
+
+        monitorButton.connect('clicked', Lang.bind(this, function(self) {
+            this.menu.actor.hide();
+            Util.spawn(["gnome-system-monitor"]);
+        }));
 
         prefsButton.connect('clicked', Lang.bind(this, function(self) {
             this.menu.actor.hide();
@@ -179,17 +190,6 @@ const VitalsMenuButton = new Lang.Class({
             } else {
                 Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
             }
-        }));
-
-        monitorButton.connect('clicked', Lang.bind(this, function(self) {
-            this.menu.actor.hide();
-            Util.spawn(["gnome-system-monitor"]);
-        }));
-
-        refreshButton.connect('clicked', Lang.bind(this, function(self) {
-            this._sensors.resetHistory();
-            this._values.resetHistory();
-            this._updateTimeChanged();
         }));
 
         // add buttons
