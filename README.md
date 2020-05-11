@@ -42,6 +42,11 @@ I am hesitant to give an rm command here, in case someone copies and pastes it i
     mkdir -p ~/.local/share/gnome-shell/extensions
     git clone https://github.com/corecoding/Vitals.git ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
 
+### 3) Check out develop branch
+
+    cd ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
+    git checkout develop
+
 ## Credits
 Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured system monitoring tool. My biggest pet peeve was random system delays becaus of I/O blocking polls, and thus, the idea for Vitals was born! It has been refactored several times over, so most of the code is new or different.
 
