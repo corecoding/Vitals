@@ -244,7 +244,7 @@ var Sensors = new Lang.Class({
     },
 
     _queryBattery: function(callback) {
-        let battery_path = '/sys/class/power_supply/BAT' + this._settings.get_string('battery-slot') + '/';
+        let battery_path = '/sys/class/power_supply/BAT' + this._settings.get_int('battery-slot') + '/';
 
         new FileModule.File(battery_path + 'status').read().then(value => {
             this._returnValue(callback, 'State', value, 'battery', '');
