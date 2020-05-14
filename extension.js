@@ -385,48 +385,7 @@ const VitalsMenuButton = new Lang.Class({
         let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
-        let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value);
-        item.connect('activate', Lang.bind(this, function(self) {
-            let hotSensors = this._settings.get_strv('hot-sensors');
-
-            if (self.checked) {
-                self.checked = false;
-
-                // remove selected sensor from panel
-                hotSensors.splice(hotSensors.indexOf(self.key), 1);
-                this._removeHotLabel(self.key);
-                this._removeHotIcon(self.key);
-            } else {
-                self.checked = true;
-
-                // add selected sensor to panel
-                hotSensors.push(self.key);
-                this._createHotItem(self.key, self.gicon, self.value);
-            }
-
-            if (hotSensors.length <= 0) {
-                // add generic icon to panel when no sensors are selected
-                hotSensors.push('_default_icon_');
-                this._createHotItem('_default_icon_');
-            } else {
-                let defIconPos = hotSensors.indexOf('_default_icon_');
-                if (defIconPos >= 0) {
-                    // remove generic icon from panel when sensors are selected
-                    hotSensors.splice(defIconPos, 1);
-                    this._removeHotIcon('_default_icon_');
-                }
-            }
-
-            // removes any sensors that may not currently be available
-            hotSensors = this._removeMissingHotSensors(hotSensors);
-
-            // this code is called asynchronously - make sure to save it for next round
-            this._saveHotSensors(hotSensors);
-
-            //this.emit('activate', self);
-            //self.disconnect();
-            return true;
-        }));
+        let item = new MenuItem.MenuItem(this, gicon, key, sensor.label, sensor.value);
 
         if (this._hotLabels[key]) {
             item.checked = true;
@@ -509,6 +468,9 @@ const VitalsMenuButton = new Lang.Class({
 
     destroy: function() {
         Mainloop.source_remove(this._refreshTimeoutId);
+
+        for (let key in this._sensorMenuItems)
+            this._sensorMenuItems[key].destroy();
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
