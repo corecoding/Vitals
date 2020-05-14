@@ -127,60 +127,36 @@ const VitalsMenuButton = new Lang.Class({
             style_class: 'vitals-menu-button-container'
         });
 
-        let prefsButton, monitorButton, refreshButton;
+        let customButtonBox = new St.BoxLayout({
+            style_class: 'vitals-button-box',
+            vertical: false,
+            clip_to_allocation: true,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+            reactive: true,
+            x_expand: true,
+            pack_start: false
+        });
 
-        // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
-        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32', '3.34'], Config.PACKAGE_VERSION)) {
-            // round refresh button
-            let panelSystem = Main.panel.statusArea.aggregateMenu._system;
-            refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
-            item.actor.add(refreshButton, { expand: true, x_fill: false }); // 3.34?
-
-            // round monitor button
-            monitorButton = panelSystem._createActionButton('utilities-system-monitor-symbolic', _("System Monitor"));
-            item.actor.add(monitorButton, { expand: true, x_fill: false }); // 3.34?
-
-            // round preferences button
-            prefsButton = panelSystem._createActionButton('preferences-system-symbolic', _("Preferences"));
-            item.actor.add(prefsButton, { expand: true, x_fill: false }); // 3.34?
-        } else {
-            let customButtonBox = new St.BoxLayout({
-                style_class: 'vitals-button-box',
-                vertical: false,
-                clip_to_allocation: true,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-                reactive: true,
-                x_expand: true,
-                pack_start: false
-            });
-
-            // custom round refresh button
-            refreshButton = this._createRoundButton('view-refresh-symbolic', _("Refresh"));
-            customButtonBox.add_actor(refreshButton);
-
-            // custom round monitor button
-            monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _("System Monitor"));
-            customButtonBox.add_actor(monitorButton);
-
-            // custom round preferences button
-            prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
-            customButtonBox.add_actor(prefsButton);
-
-            item.actor.add_actor(customButtonBox);
-        }
-
+        // custom round refresh button
+        let refreshButton = this._createRoundButton('view-refresh-symbolic', _("Refresh"));
         refreshButton.connect('clicked', Lang.bind(this, function(self) {
             this._sensors.resetHistory();
             this._values.resetHistory();
             this._updateTimeChanged();
         }));
+        customButtonBox.add_actor(refreshButton);
 
+        // custom round monitor button
+        let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _("System Monitor"));
         monitorButton.connect('clicked', Lang.bind(this, function(self) {
             this.menu.actor.hide();
             Util.spawn(["gnome-system-monitor"]);
         }));
+        customButtonBox.add_actor(monitorButton);
 
+        // custom round preferences button
+        prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
         prefsButton.connect('clicked', Lang.bind(this, function(self) {
             this.menu.actor.hide();
 
@@ -191,6 +167,10 @@ const VitalsMenuButton = new Lang.Class({
                 Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
             }
         }));
+        customButtonBox.add_actor(prefsButton);
+
+        // now add the buttons to the top bar
+        item.actor.add_actor(customButtonBox);
 
         // add buttons
         this.menu.addMenuItem(item);
