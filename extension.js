@@ -74,7 +74,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._drawMenu();
 
-        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
+        if (ExtensionUtils.versionCheck(['3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
             this.actor.add_actor(this._menuLayout);
         } else {
             this.add_actor(this._menuLayout);
@@ -130,7 +130,7 @@ const VitalsMenuButton = new Lang.Class({
         let prefsButton, monitorButton, refreshButton;
 
         // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
-        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32', '3.34'], Config.PACKAGE_VERSION)) {
+        if (ExtensionUtils.versionCheck(['3.26', '3.28', '3.30', '3.32', '3.34'], Config.PACKAGE_VERSION)) {
             // round refresh button
             let panelSystem = Main.panel.statusArea.aggregateMenu._system;
             refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
@@ -386,6 +386,45 @@ const VitalsMenuButton = new Lang.Class({
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
         let item = new MenuItem.MenuItem(this, gicon, key, sensor.label, sensor.value);
+        item.connect('activate', (self) => {
+            let hotSensors = this._settings.get_strv('hot-sensors');
+
+            if (self.checked) {
+                self.checked = false;
+
+                // remove selected sensor from panel
+                hotSensors.splice(hotSensors.indexOf(self.key), 1);
+                this._removeHotLabel(self.key);
+                this._removeHotIcon(self.key);
+            } else {
+                self.checked = true;
+
+                // add selected sensor to panel
+                hotSensors.push(self.key);
+                this._createHotItem(self.key, self.gicon, self.value);
+            }
+
+            if (hotSensors.length <= 0) {
+                // add generic icon to panel when no sensors are selected
+                hotSensors.push('_default_icon_');
+                this._createHotItem('_default_icon_');
+            } else {
+                let defIconPos = hotSensors.indexOf('_default_icon_');
+                if (defIconPos >= 0) {
+                    // remove generic icon from panel when sensors are selected
+                    hotSensors.splice(defIconPos, 1);
+                    this._removeHotIcon('_default_icon_');
+                }
+            }
+
+            // removes any sensors that may not currently be available
+            hotSensors = this._removeMissingHotSensors(hotSensors);
+
+            // this code is called asynchronously - make sure to save it for next round
+            this._saveHotSensors(hotSensors);
+
+            return true;
+        });
 
         if (this._hotLabels[key]) {
             item.checked = true;
@@ -482,13 +521,7 @@ const VitalsMenuButton = new Lang.Class({
 
 function init() {
     Convenience.initTranslations();
-
-    // load correct menuItem depending on Gnome version
-    if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
-        MenuItem = Me.imports.menuItemLegacy;
-    } else {
-        MenuItem = Me.imports.menuItem;
-    }
+    MenuItem = Me.imports.menuItem;
 }
 
 function enable() {
