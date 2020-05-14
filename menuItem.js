@@ -6,9 +6,9 @@ const Clutter = imports.gi.Clutter;
 // https://gitlab.gnome.org/GNOME/gnome-shell/issues/1069
 // https://wiki.gnome.org/Projects/GnomeShell/Extensions/MigratingShellClasses
 var MenuItem = GObject.registerClass(
-class MenuItem extends PopupMenu.PopupBaseMenuItem {
+  class MenuItem extends PopupMenu.PopupBaseMenuItem {
 
-    _init(that, icon, key, label, value) {
+    _init(icon, key, label, value) {
         super._init({ reactive: true });
 
         this._checked = false;
