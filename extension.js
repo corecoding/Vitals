@@ -74,7 +74,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._drawMenu();
 
-        if (ExtensionUtils.versionCheck(['3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
+        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
             this.actor.add_actor(this._menuLayout);
         } else {
             this.add_actor(this._menuLayout);
@@ -130,7 +130,7 @@ const VitalsMenuButton = new Lang.Class({
         let prefsButton, monitorButton, refreshButton;
 
         // Gnome 3.36 straight up removed round button support. No standard deprecation process. What the heck??
-        if (ExtensionUtils.versionCheck(['3.26', '3.28', '3.30', '3.32', '3.34'], Config.PACKAGE_VERSION)) {
+        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32', '3.34'], Config.PACKAGE_VERSION)) {
             // round refresh button
             let panelSystem = Main.panel.statusArea.aggregateMenu._system;
             refreshButton = panelSystem._createActionButton('view-refresh-symbolic', _("Refresh"));
