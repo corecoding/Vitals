@@ -458,14 +458,6 @@ const VitalsMenuButton = new Lang.Class({
         this._sensors.query(Lang.bind(this, function(label, value, type, format) {
             let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
-/*
-            if (key == '_temperature_package_id 0_' && value >= 50000)
-                this._warnings.push(label + ' is ' + value);
-
-            if (key == '_system_load_1m_' && value >= 2)
-                this._warnings.push(label + ' is ' + value);
-*/
-
             let items = this._values.returnIfDifferent(label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
@@ -501,7 +493,15 @@ const VitalsMenuButton = new Lang.Class({
 
 function init() {
     Convenience.initTranslations();
-    MenuItem = Me.imports.menuItem;
+
+    // load correct menuItem depending on Gnome version
+    if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28'], Config.PACKAGE_VERSION)) {
+        MenuItem = Me.imports.menuItemLegacy;
+    } else if (ExtensionUtils.versionCheck(['3.30', '3.32'], Config.PACKAGE_VERSION)) {
+        MenuItem = Me.imports.menuItemOld;
+    } else {
+        MenuItem = Me.imports.menuItem;
+    }
 }
 
 function enable() {
