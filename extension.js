@@ -74,7 +74,7 @@ const VitalsMenuButton = new Lang.Class({
 
         this._drawMenu();
 
-        if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24', '3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
+        if (ExtensionUtils.versionCheck(['3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
             this.actor.add_actor(this._menuLayout);
         } else {
             this.add_actor(this._menuLayout);
@@ -495,10 +495,8 @@ function init() {
     Convenience.initTranslations();
 
     // load correct menuItem depending on Gnome version
-    if (ExtensionUtils.versionCheck(['3.18', '3.20', '3.22', '3.24'], Config.PACKAGE_VERSION)) {
+    if (ExtensionUtils.versionCheck(['3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
         MenuItem = Me.imports.menuItemLegacy;
-    } else if (ExtensionUtils.versionCheck(['3.26', '3.28', '3.30', '3.32'], Config.PACKAGE_VERSION)) {
-        MenuItem = Me.imports.menuItemOld;
     } else {
         MenuItem = Me.imports.menuItem;
     }

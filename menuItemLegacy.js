@@ -1,13 +1,10 @@
-const Lang = imports.lang;
 const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 
-var MenuItem = new Lang.Class({
-    Name: 'MenuItem',
-    Extends: PopupMenu.PopupBaseMenuItem,
+var MenuItem = class extends PopupMenu.PopupBaseMenuItem {
+    constructor(icon, key, label, value) {
+        super({ reactive: true });
 
-    _init: function(icon, key, label, value) {
-        this.parent();
         this._checked = false;
         this._key = key;
         this._gIcon = icon;
@@ -17,7 +14,7 @@ var MenuItem = new Lang.Class({
         this.actor.add(this._labelActor, { x_fill: true, expand: true });
         this._valueLabel = new St.Label({ text: value });
         this.actor.add(this._valueLabel);
-    },
+    }
 
     set checked(checked) {
         if (checked)
@@ -26,29 +23,29 @@ var MenuItem = new Lang.Class({
             this.setOrnament(PopupMenu.Ornament.NONE);
 
         this._checked = checked;
-    },
+    }
 
     get checked() {
         return this._checked;
-    },
+    }
 
     get key() {
         return this._key;
-    },
+    }
 
     set display_name(text) {
         return this._labelActor.text = text;
-    },
+    }
 
     get gicon() {
         return this._gIcon;
-    },
+    }
 
     set value(value) {
         this._valueLabel.text = value;
-    },
+    }
 
     get value() {
         return this._valueLabel.text;
     }
-});
+};
