@@ -156,7 +156,7 @@ const VitalsMenuButton = new Lang.Class({
         customButtonBox.add_actor(monitorButton);
 
         // custom round preferences button
-        prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
+        let prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
         prefsButton.connect('clicked', Lang.bind(this, function(self) {
             this.menu.actor.hide();
 
