@@ -248,7 +248,7 @@ const VitalsMenuButton = new Lang.Class({
             text: (value)?value:'\u2026', // ...
             y_expand: true,
             y_align: Clutter.ActorAlign.START
-            //,width: this._sensorIcons[css_class]['width']
+            ,width: this._sensorIcons[css_class]['width']
         });
 
         // attempt to prevent ellipsizes
