@@ -29,6 +29,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const NM = imports.gi.NM;
 
 let GTop, hasGTop = true;
 try {
@@ -61,6 +62,36 @@ var Sensors = new Lang.Class({
             this._lastRead = 0;
             this._lastWrite = 0;
         }
+
+        /*
+        //this._sensors.query(Lang.bind(this, function(label, value, type, format) {
+        //NM.Client.new_async(null, this._establishNetworkConnectivity.bind(this));
+        NM.Client.new_async(null, Lang.bind(this, function(obj, result) {
+            this._client = NM.Client.new_finish(result);
+            this.activeConnectionsID = this._client.connect('notify::active-connections', () => {
+                global.log('get ip inner 1');
+                this._next_public_ip_check = 0;
+                //this._refreshIPAddress(callback);
+            });
+            global.log('get ip outer');
+        }));
+
+        //this._client.disconnect(this.activeConnectionsID);
+        */
+    },
+
+    _refreshIPAddress: function(callback) {
+        global.log('get ip inner 2');
+
+        // check IP address
+        new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
+            global.log('callback: ');
+            global.log(callback);
+            global.log('get ip inner 3');
+            let obj = JSON.parse(contents);
+            global.log(obj['IPv4']);
+            this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
+        }).catch(err => { });
     },
 
     _findStorageDevice: function() {
@@ -358,11 +389,7 @@ var Sensors = new Lang.Class({
             if (this._next_public_ip_check <= 0) {
                 this._next_public_ip_check = 3600;
 
-                // check uptime
-                new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
-                    let obj = JSON.parse(contents);
-                    this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
-                }).catch(err => { });
+                this._refreshIPAddress(callback);
             }
 
             this._next_public_ip_check -= diff;
