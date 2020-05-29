@@ -251,10 +251,11 @@ const VitalsMenuButton = new Lang.Class({
             //,width: this._sensorIcons[css_class]['width']
         });
 
+        // attempt to prevent ellipsizes
+        label.get_clutter_text().ellipsize = 0;
+
         this._hotLabels[key] = label;
-        this._menuLayout.add_actor(label, { x_fill: true,
-                                            expand: true
-                                          });
+        this._menuLayout.add_actor(label);
     },
 
     _higherPrecisionChanged: function() {
