@@ -1,12 +1,10 @@
-const St = imports.gi.St;
+const {Clutter, Gio, St} = imports.gi;
 const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
-const Clutter = imports.gi.Clutter;
-const Gio = imports.gi.Gio;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
@@ -31,25 +29,34 @@ const VitalsMenuButton = new Lang.Class({
 
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg',
-                       'alphabetize': true },
+                       'alphabetize': true,
+                             'width': 60 },
                 'voltage' : { 'icon': 'voltage-symbolic.svg',
-                       'alphabetize': true },
+                       'alphabetize': true,
+                             'width': 60 },
                     'fan' : { 'icon': 'fan-symbolic.svg',
-                       'alphabetize': true },
+                       'alphabetize': true,
+                             'width': 78 },
                  'memory' : { 'icon': 'memory-symbolic.svg',
-                       'alphabetize': true },
+                       'alphabetize': true,
+                             'width': 70 },
               'processor' : { 'icon': 'cpu-symbolic.svg',
-                       'alphabetize': true },
+                       'alphabetize': true,
+                             'width': 80 },
                  'system' : { 'icon': 'system-symbolic.svg',
-                       'alphabetize': true },
+                       'alphabetize': true,
+                             'width': 80 },
                 'network' : { 'icon': 'network-symbolic.svg',
                        'alphabetize': true,
                      'icon-download': 'network-download-symbolic.svg',
-                       'icon-upload': 'network-upload-symbolic.svg' },
+                       'icon-upload': 'network-upload-symbolic.svg',
+                             'width': 90 },
                 'storage' : { 'icon': 'storage-symbolic.svg',
-                       'alphabetize': true },
+                       'alphabetize': true,
+                             'width': 100 },
                 'battery' : { 'icon': 'battery-symbolic.svg',
-                       'alphabetize': true }
+                       'alphabetize': true,
+                             'width': 100 }
         }
 
         this._warnings = [];
@@ -240,11 +247,14 @@ const VitalsMenuButton = new Lang.Class({
             style_class: 'vitals-panel-label',
             text: (value)?value:'\u2026', // ...
             y_expand: true,
-            y_align: Clutter.ActorAlign.CENTER
+            y_align: Clutter.ActorAlign.START
+            //,width: this._sensorIcons[css_class]['width']
         });
 
         this._hotLabels[key] = label;
-        this._menuLayout.add_actor(label);
+        this._menuLayout.add_actor(label, { x_fill: true,
+                                            expand: true
+                                          });
     },
 
     _higherPrecisionChanged: function() {
