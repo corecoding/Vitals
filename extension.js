@@ -29,34 +29,25 @@ const VitalsMenuButton = new Lang.Class({
 
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 60 },
+                       'alphabetize': true },
                 'voltage' : { 'icon': 'voltage-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 60 },
+                       'alphabetize': true },
                     'fan' : { 'icon': 'fan-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 78 },
+                       'alphabetize': true },
                  'memory' : { 'icon': 'memory-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 70 },
+                       'alphabetize': true },
               'processor' : { 'icon': 'cpu-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 80 },
+                       'alphabetize': true },
                  'system' : { 'icon': 'system-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 80 },
+                       'alphabetize': true },
                 'network' : { 'icon': 'network-symbolic.svg',
                        'alphabetize': true,
                      'icon-download': 'network-download-symbolic.svg',
-                       'icon-upload': 'network-upload-symbolic.svg',
-                             'width': 90 },
+                       'icon-upload': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 100 },
+                       'alphabetize': true },
                 'battery' : { 'icon': 'battery-symbolic.svg',
-                       'alphabetize': true,
-                             'width': 100 }
+                       'alphabetize': true }
         }
 
         this._warnings = [];
@@ -64,6 +55,7 @@ const VitalsMenuButton = new Lang.Class({
         this._hotLabels = {};
         this._hotIcons = {};
         this._groups = {};
+        this._widths = {};
 
         this._update_time = this._settings.get_int('update-time');
 
@@ -248,7 +240,7 @@ const VitalsMenuButton = new Lang.Class({
             text: (value)?value:'\u2026', // ...
             y_expand: true,
             y_align: Clutter.ActorAlign.START
-            ,width: this._sensorIcons[css_class]['width']
+            //,width: 10
         });
 
         // attempt to prevent ellipsizes
@@ -349,8 +341,25 @@ const VitalsMenuButton = new Lang.Class({
         //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
 
         // update sensor value in menubar
-        if (this._hotLabels[key])
+        if (this._hotLabels[key]) {
             this._hotLabels[key].set_text(value);
+
+            if (typeof this._widths[key] == 'undefined')
+                this._widths[key] = this._hotLabels[key].width;
+
+            //global.log('*******************');
+            //global.log('label=' + label);
+            //global.log('width before=' + this._widths[key]);
+
+            let width2 = this._hotLabels[key].get_clutter_text().width;
+            if (width2 > this._widths[key]) {
+                global.log('setting width to ' + width2);
+                this._hotLabels[key].set_width(width2);
+                this._widths[key] = width2;
+            }
+
+            //global.log('width after=' + this._hotLabels[key].width);
+        }
 
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
