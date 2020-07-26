@@ -62,22 +62,6 @@ var Sensors = new Lang.Class({
             this._lastRead = 0;
             this._lastWrite = 0;
         }
-
-        /*
-        //this._sensors.query(Lang.bind(this, function(label, value, type, format) {
-        //NM.Client.new_async(null, this._establishNetworkConnectivity.bind(this));
-        NM.Client.new_async(null, Lang.bind(this, function(obj, result) {
-            this._client = NM.Client.new_finish(result);
-            this.activeConnectionsID = this._client.connect('notify::active-connections', () => {
-                global.log('get ip inner 1');
-                this._next_public_ip_check = 0;
-                //this._refreshIPAddress(callback);
-            });
-            global.log('get ip outer');
-        }));
-
-        //this._client.disconnect(this.activeConnectionsID);
-        */
     },
 
     _refreshIPAddress: function(callback) {
