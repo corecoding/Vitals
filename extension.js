@@ -84,7 +84,7 @@ const VitalsMenuButton = new Lang.Class({
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement' ];
+        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'fixed-widths' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, Lang.bind(this, this._redrawMenu));
 
@@ -344,21 +344,23 @@ const VitalsMenuButton = new Lang.Class({
         if (this._hotLabels[key]) {
             this._hotLabels[key].set_text(value);
 
-            if (typeof this._widths[key] == 'undefined')
-                this._widths[key] = this._hotLabels[key].width;
+            if (this._settings.get_boolean('fixed-widths')) {
+                if (typeof this._widths[key] == 'undefined')
+                    this._widths[key] = this._hotLabels[key].width;
 
-            //global.log('*******************');
-            //global.log('label=' + label);
-            //global.log('width before=' + this._widths[key]);
+                //global.log('*******************');
+                //global.log('label=' + label);
+                //global.log('width before=' + this._widths[key]);
 
-            let width2 = this._hotLabels[key].get_clutter_text().width;
-            if (width2 > this._widths[key]) {
-                global.log('setting width to ' + width2);
-                this._hotLabels[key].set_width(width2);
-                this._widths[key] = width2;
+                let width2 = this._hotLabels[key].get_clutter_text().width;
+                if (width2 > this._widths[key]) {
+                    global.log('setting width to ' + width2);
+                    this._hotLabels[key].set_width(width2);
+                    this._widths[key] = width2;
+                }
+
+                //global.log('width after=' + this._hotLabels[key].width);
             }
-
-            //global.log('width after=' + this._hotLabels[key].width);
         }
 
         // have we added this sensor before?

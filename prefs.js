@@ -59,7 +59,7 @@ const Settings = new Lang.Class({
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
-                        'show-battery' ];
+                        'show-battery', 'fixed-widths' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
