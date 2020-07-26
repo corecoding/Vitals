@@ -3,8 +3,10 @@ const PopupMenu = imports.ui.popupMenu;
 const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 
+// https://gitlab.gnome.org/GNOME/gnome-shell/issues/1069
+// https://wiki.gnome.org/Projects/GnomeShell/Extensions/MigratingShellClasses
 var MenuItem = GObject.registerClass(
-    class MenuItem extends PopupMenu.PopupBaseMenuItem {
+  class MenuItem extends PopupMenu.PopupBaseMenuItem {
 
     _init(icon, key, label, value) {
         super._init({ reactive: true });
@@ -26,6 +28,8 @@ var MenuItem = GObject.registerClass(
         this._valueLabel.set_x_expand(true);
         this._valueLabel.set_y_expand(true);
         this.add(this._valueLabel);
+
+        this.actor._delegate = this;
     }
 
     set checked(checked) {
@@ -60,4 +64,12 @@ var MenuItem = GObject.registerClass(
     get value() {
         return this._valueLabel.text;
     }
+
+    /*
+    destroy() {
+        global.log('destroying');
+        this.disconnect(this.signal);
+        super.destroy();
+    }
+    */
 });

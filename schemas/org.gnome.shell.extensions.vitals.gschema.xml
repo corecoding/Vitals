@@ -111,5 +111,10 @@
       <summary>Battery slot to monitor</summary>
       <description>Which numerical battery slot should vitals monitor</description>
     </key>
+    <key type="b" name="fixed-widths">
+      <default>false</default>
+      <summary>Use fixed widths in top bar</summary>
+      <description>Keep sensors in top bar from jumping around</description>
+    </key>
   </schema>
 </schemalist>
