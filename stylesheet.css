@@ -10,7 +10,7 @@
 .vitals-panel-icon-storage { margin: 0 2px 0 8px; padding: 0; }
 .vitals-panel-icon-battery { margin: 0 4px 0 8px; padding: 0; }
 .vitals-panel-label { margin: 0 3px 0 0; padding: 0; }
-.vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; }
-.vitals-button-action:hover, .vitals-button-action:focus { border: 1px solid #777; }
+.vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; border: 1px solid transparent; }
+.vitals-button-action:hover, .vitals-button-action:focus { border-color: #777; }
 .vitals-button-action > StIcon { icon-size: 16px; }
 .vitals-button-box { padding: 0px; spacing: 22px; }
