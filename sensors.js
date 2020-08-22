@@ -65,15 +65,9 @@ var Sensors = new Lang.Class({
     },
 
     _refreshIPAddress: function(callback) {
-        global.log('get ip inner 2');
-
         // check IP address
         new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
-            global.log('callback: ');
-            global.log(callback);
-            global.log('get ip inner 3');
             let obj = JSON.parse(contents);
-            global.log(obj['IPv4']);
             this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
         }).catch(err => { });
     },
@@ -88,9 +82,7 @@ var Sensors = new Lang.Class({
                     break;
                 }
             }
-        }).catch(err => {
-            global.log(err);
-        });
+        }).catch(err => { });
     },
 
     query: function(callback) {
