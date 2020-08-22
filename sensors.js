@@ -259,7 +259,16 @@ var Sensors = new Lang.Class({
     },
 
     _queryBattery: function(callback) {
-        let battery_path = '/sys/class/power_supply/BAT' + this._settings.get_int('battery-slot') + '/';
+        let battery_slot = this._settings.get_int('battery-slot');
+
+        // addresses issue #161
+        let batt_key = 'BAT';
+        if (battery_slot == 3) {
+            batt_key = 'CMB';
+            battery_slot = 0;
+        }
+
+        let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/';
 
         new FileModule.File(battery_path + 'status').read().then(value => {
             this._returnValue(callback, 'State', value, 'battery', '');

@@ -1488,9 +1488,10 @@
                         <property name="can_focus">False</property>
                         <property name="active">0</property>
                         <items>
-                          <item translatable="no">#1</item>
-                          <item translatable="no">#2</item>
-                          <item translatable="no">#3</item>
+                          <item translatable="no">BAT0</item>
+                          <item translatable="no">BAT1</item>
+                          <item translatable="no">BAT2</item>
+                          <item translatable="no">CMB0</item>
                         </items>
                       </object>
                       <packing>
