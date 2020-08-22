@@ -344,6 +344,7 @@ const VitalsMenuButton = new Lang.Class({
         if (this._hotLabels[key]) {
             this._hotLabels[key].set_text(value);
 
+            // support for fixed widths #55 (beta)
             if (this._settings.get_boolean('fixed-widths')) {
                 if (typeof this._widths[key] == 'undefined')
                     this._widths[key] = this._hotLabels[key].width;
