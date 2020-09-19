@@ -1,16 +1,48 @@
-.vitals-icon { icon-size: 16px; }
+.vitals-icon {
+    icon-size: 16px;
+}
+
 .vitals-menu-button-container {}
-.vitals-panel-icon-temperature { margin: 0 1px 0 8px; padding: 0; }
-.vitals-panel-icon-voltage { margin: 0 0 0 8px; padding: 0; }
-.vitals-panel-icon-fan { margin: 0 4px 0 8px; padding: 0; }
-.vitals-panel-icon-memory { margin: 0 2px 0 8px; padding: 0; }
-.vitals-panel-icon-processor { margin: 0 3px 0 8px; padding: 0; }
-.vitals-panel-icon-system { margin: 0 3px 0 8px; padding: 0; }
-.vitals-panel-icon-network { margin: 0 3px 0 8px; padding: 0; }
-.vitals-panel-icon-storage { margin: 0 2px 0 8px; padding: 0; }
-.vitals-panel-icon-battery { margin: 0 4px 0 8px; padding: 0; }
-.vitals-panel-label { margin: 0 3px 0 0; padding: 0; }
-.vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; border: 1px solid transparent; }
-.vitals-button-action:hover, .vitals-button-action:focus { border-color: #777; }
-.vitals-button-action > StIcon { icon-size: 16px; }
-.vitals-button-box { padding: 0px; spacing: 22px; }
+
+.vitals-panel-icon-temperature,
+.vitals-panel-icon-voltage,
+.vitals-panel-icon-fan,
+.vitals-panel-icon-memory,
+.vitals-panel-icon-processor,
+.vitals-panel-icon-system,
+.vitals-panel-icon-network,
+.vitals-panel-icon-storage,
+.vitals-panel-icon-battery {
+    margin: 0 4px;
+    padding: 0;
+}
+
+.vitals-panel-label {
+    margin: 0 1.5px;
+    padding: 0;
+}
+
+.vitals-button-action {
+    -st-icon-style: symbolic;
+    border-radius: 32px;
+    margin: 0px;
+    min-height: 22px;
+    min-width: 22px;
+    padding: 10px;
+    font-size: 100%;
+    border: 1px solid transparent;
+}
+
+.vitals-button-action:hover,
+.vitals-button-action:focus {
+    border-color: #777;
+}
+
+.vitals-button-action>StIcon {
+    icon-size: 16px;
+}
+
+.vitals-button-box {
+    padding: 0px;
+    spacing: 22px;
+}

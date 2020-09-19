@@ -64,7 +64,7 @@ const VitalsMenuButton = new Lang.Class({
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
-            x_align: Clutter.ActorAlign.START,
+            x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
             x_expand: true,
