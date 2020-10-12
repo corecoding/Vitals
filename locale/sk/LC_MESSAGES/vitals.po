@@ -5,22 +5,22 @@
 #
 # Jose Riha <jose1711 gmail com>, 2019
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2018-12-29 12:05+0100\n"
-"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-09-28 23:48+0200\n"
+"PO-Revision-Date: 2020-09-28 23:53+0200\n"
+"Last-Translator: Jose Riha <jose1711@gmail.com>\n"
 "Language-Team: \n"
+"Language: sk_SK\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.1\n"
+"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"X-Generator: Poedit 2.4.1\n"
 "X-Poedit-Basepath: ..\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
-"PO-Revision-Date: 2019-10-16 23:45+0200\n"
-"Last-Translator: Jose Riha <jose1711@gmail.com>\n"
-"Language: sk_SK\n"
 "X-Poedit-SearchPath-0: values.js\n"
 "X-Poedit-SearchPath-1: sensors.js\n"
 "X-Poedit-SearchPath-2: prefs.js\n"
@@ -279,3 +279,18 @@ msgstr "Predvoľby siete"
 
 msgid "Storage Preferences"
 msgstr "Predvoľby úložiska"
+
+msgid " Preferences"
+msgstr " Predvoľby"
+
+msgid "Use fixed widths (beta)"
+msgstr "Použiť pevné šírky (beta)"
+
+msgid "Monitor battery"
+msgstr "Sledovať batériu"
+
+msgid "Measurement"
+msgstr "Merania"
+
+msgid "Display battery"
+msgstr "Zobraziť batériu"
