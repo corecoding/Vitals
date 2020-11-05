@@ -64,12 +64,4 @@ var MenuItem = GObject.registerClass(
     get value() {
         return this._valueLabel.text;
     }
-
-    /*
-    destroy() {
-        global.log('destroying');
-        this.disconnect(this.signal);
-        super.destroy();
-    }
-    */
 });
