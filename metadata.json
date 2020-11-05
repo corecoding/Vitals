@@ -10,9 +10,10 @@
     "3.30",
     "3.34",
     "3.32",
-    "3.36"
+    "3.36",
+    "3.38"
   ],
   "url": "https://github.com/corecoding/Vitals",
   "uuid": "Vitals@CoreCoding.com",
-  "version": 34
+  "version": 37
 }
