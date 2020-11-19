@@ -504,7 +504,8 @@ const VitalsMenuButton = new Lang.Class({
         Mainloop.source_remove(this._refreshTimeoutId);
 
         for (let key in this._sensorMenuItems)
-            this._sensorMenuItems[key].destroy();
+            if (typeof this._sensorMenuItems[key] != 'undefined')
+                this._sensorMenuItems[key].destroy();
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
