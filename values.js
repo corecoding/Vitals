@@ -248,6 +248,7 @@ var Values = new Lang.Class({
             // process average values
             if (type == 'temperature' || type == 'voltage' || type == 'fan') {
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
+/*
 		if (type == 'fan') {
 		  filtered = vals.filter(item => item !== 0);
 		  vals = filtered;
@@ -256,6 +257,7 @@ var Values = new Lang.Class({
 		  filtered = vals.filter(item => item >= 0 && item < 130000);
 		  vals = filtered;
 		}
+*/
                 let sum = vals.reduce(function(a, b) { return a + b; });
                 let avg = sum / vals.length;
                 avg = this._legible(avg, format);
