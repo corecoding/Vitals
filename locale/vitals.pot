@@ -265,3 +265,23 @@ msgstr ""
 
 msgid "Storage Preferences"
 msgstr ""
+
+#: sensors.js:226
+msgid "Open Files"
+msgstr ""
+
+#: sensors.js:430
+msgid "Data read"
+msgstr ""
+
+#: sensors.js:431
+msgid "Data written"
+msgstr ""
+
+#: sensors.js:432
+msgid "Data read/sec"
+msgstr ""
+
+#: sensors.js:433
+msgid "Data written/sec"
+msgstr ""
