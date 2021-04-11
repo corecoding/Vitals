@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-09-28 23:48+0200\n"
-"PO-Revision-Date: 2020-09-28 23:53+0200\n"
+"PO-Revision-Date: 2021-03-14 20:41+0100\n"
 "Last-Translator: Jose Riha <jose1711@gmail.com>\n"
 "Language-Team: \n"
 "Language: sk_SK\n"
@@ -241,11 +241,11 @@ msgstr "Celkom"
 
 #: sensors.js:299
 msgid "Used"
-msgstr "Použitých"
+msgstr "Použité"
 
 #: sensors.js:300
 msgid "Reserved"
-msgstr "Vyhradených"
+msgstr "Vyhradené"
 
 #: sensors.js:301
 msgid "Free"
@@ -294,3 +294,23 @@ msgstr "Merania"
 
 msgid "Display battery"
 msgstr "Zobraziť batériu"
+
+#: sensors.js:226
+msgid "Open Files"
+msgstr "Otvorené súbory"
+
+#: sensors.js:430
+msgid "Data read"
+msgstr "Prečítaných dát"
+
+#: sensors.js:431
+msgid "Data written"
+msgstr "Zapísaných dát"
+
+#: sensors.js:432
+msgid "Data read/sec"
+msgstr "Čítanie dát/s"
+
+#: sensors.js:433
+msgid "Data written/sec"
+msgstr "Zápis dát/s"
