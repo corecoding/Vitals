@@ -111,7 +111,7 @@ const Settings = new Lang.Class({
 
                 let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),
                                               transient_for: this.widget.get_root(),
-                                              use_header_bar: true,
+                                              use_header_bar: false,
                                               modal: true });
 
                 let box = this.builder.get_object(sensor + '_prefs');
