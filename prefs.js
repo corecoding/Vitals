@@ -4,7 +4,7 @@ const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
-const Convenience = Me.imports.helpers.convenience;
+const ExtensionUtils = imports.misc.extensionUtils;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const FileModule = Me.imports.helpers.file;
@@ -30,7 +30,7 @@ const Settings = new Lang.Class({
     Name: 'Vitals.Settings',
 
     _init: function() {
-        this._settings = Convenience.getSettings();
+        this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vitals');
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(Me.metadata['gettext-domain']);
@@ -108,13 +108,14 @@ const Settings = new Lang.Class({
             // create dialog for intelligent autohide advanced settings
             this.builder.get_object(sensor + '-prefs').connect('clicked', Lang.bind(this, function() {
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
+
                 let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),
-                                              transient_for: this.widget.get_toplevel(),
+                                              transient_for: this.widget.get_root(),
                                               use_header_bar: true,
                                               modal: true });
 
                 let box = this.builder.get_object(sensor + '_prefs');
-                dialog.get_content_area().add(box);
+                dialog.get_content_area().append(box);
 
                 dialog.connect('response', Lang.bind(this, function(dialog, id) {
                     // remove the settings box so it doesn't get destroyed;
@@ -123,20 +124,20 @@ const Settings = new Lang.Class({
                     return;
                 }));
 
-                dialog.show_all();
+                dialog.show();
             }));
         }
     }
 });
 
 function init() {
-    Convenience.initTranslations();
+    ExtensionUtils.initTranslations();
 }
 
 function buildPrefsWidget() {
     let settings = new Settings();
     let widget = settings.widget;
 
-    widget.show_all();
+    widget.show();
     return widget;
 }

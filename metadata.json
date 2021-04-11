@@ -5,15 +5,9 @@
   "name": "Vitals",
   "settings-schema": "org.gnome.shell.extensions.vitals",
   "shell-version": [
-    "3.26",
-    "3.28",
-    "3.30",
-    "3.34",
-    "3.32",
-    "3.36",
-    "3.38"
+    "40"
   ],
   "url": "https://github.com/corecoding/Vitals",
   "uuid": "Vitals@CoreCoding.com",
-  "version": 39
+  "version": 40
 }
