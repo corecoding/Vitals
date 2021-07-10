@@ -24,7 +24,7 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const Lang = imports.lang;
+const GObject = imports.gi.GObject;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const cbFun = (d, c) => {
@@ -35,17 +35,18 @@ const cbFun = (d, c) => {
     return [d[0] + aa, bb];
 };
 
-var Values = new Lang.Class({
-    Name: 'Values',
+var Values = GObject.registerClass({
+       GTypeName: 'Values',
+}, class Values extends GObject.Object {
 
-    _init: function(settings, sensorIcons) {
+    _init(settings, sensorIcons) {
         this._settings = settings;
         this._sensorIcons = sensorIcons;
 
         this.resetHistory();
-    },
+    }
 
-    _legible: function(value, sensorClass) {
+    _legible(value, sensorClass) {
         let unit = 1000;
         if (value === null) return 'N/A';
         let use_higher_precision = this._settings.get_boolean('use-higher-precision');
@@ -196,11 +197,11 @@ var Values = new Lang.Class({
         }
 
         return format.format(value, ending);
-    },
+    }
 
     // From: https://programming.guide/the-worlds-most-copied-so-snippet.html
 /*
-    _humanReadableByteCount: function(bytes, si) {
+    _humanReadableByteCount(bytes, si) {
         int unit = (si) ? 1000 : 1024;
         long absBytes = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);
         if (absBytes < unit) return bytes + " B";
@@ -213,10 +214,10 @@ var Values = new Lang.Class({
             exp -= 1;
         }
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
-    },
+    }
 */
 
-    _setProgress: function(amount) {
+    _setProgress(amount) {
         let a = '00FF00';
         let b = 'FF0000';
 
@@ -229,9 +230,9 @@ var Values = new Lang.Class({
             rb = ab + amount * (bb - ab);
 
         return 'color:#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
-    },
+    }
 
-    returnIfDifferent: function(label, value, type, format, key) {
+    returnIfDifferent(label, value, type, format, key) {
         let output = [];
 
         // no sense in continuing when the raw value has not changed
@@ -276,13 +277,13 @@ var Values = new Lang.Class({
         }
 
         return output;
-    },
+    }
 
-    _getSensorValuesFor: function(type) {
+    _getSensorValuesFor(type) {
         return this._history[type];
-    },
+    }
 
-    resetHistory: function() {
+    resetHistory() {
         this._history = {};
 
         for (let sensor in this._sensorIcons) {
