@@ -14,9 +14,9 @@ const _ = Gettext.gettext;
 const MessageTray = imports.ui.messageTray;
 const Values = Me.imports.values;
 const Config = imports.misc.config;
-MenuItem = Me.imports.menuItem;
+const MenuItem = Me.imports.menuItem;
 
-let MenuItem, vitalsMenu;
+let vitalsMenu;
 
 var VitalsMenuButton = GObject.registerClass({
        GTypeName: 'VitalsMenuButton',
