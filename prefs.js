@@ -1,6 +1,6 @@
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
-const Lang = imports.lang;
+const GObject = imports.gi.GObject;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
@@ -26,10 +26,11 @@ const FileModule = Me.imports.helpers.file;
         }
 */
 
-const Settings = new Lang.Class({
-    Name: 'Vitals.Settings',
+var Settings = GObject.registerClass({
+       GTypeName: 'Settings',
+}, class Settings extends GObject.Object {
 
-    _init: function() {
+    _init() {
         this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vitals');
 
         this.builder = new Gtk.Builder();
@@ -48,10 +49,10 @@ const Settings = new Lang.Class({
         //     if (line.indexOf('/snap/') != -1) continue;
         //     global.log('*** ' + line);
         // }
-    },
+    }
 
     // Bind the gtk window to the schema settings
-    _bind_settings: function() {
+    _bind_settings() {
         let widget;
 
         // process sensor toggles
@@ -106,7 +107,7 @@ const Settings = new Lang.Class({
             let sensor = sensors[key];
 
             // create dialog for intelligent autohide advanced settings
-            this.builder.get_object(sensor + '-prefs').connect('clicked', Lang.bind(this, function() {
+            this.builder.get_object(sensor + '-prefs').connect('clicked', function(this) {
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
 
                 let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),
@@ -117,15 +118,15 @@ const Settings = new Lang.Class({
                 let box = this.builder.get_object(sensor + '_prefs');
                 dialog.get_content_area().append(box);
 
-                dialog.connect('response', Lang.bind(this, function(dialog, id) {
+                dialog.connect('response', function(this, dialog, id) {
                     // remove the settings box so it doesn't get destroyed;
                     dialog.get_content_area().remove(box);
                     dialog.destroy();
                     return;
-                }));
+                });
 
                 dialog.show();
-            }));
+            });
         }
     }
 });
