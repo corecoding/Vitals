@@ -1,6 +1,5 @@
-const {Clutter, Gio, St} = imports.gi;
+const {Clutter, Gio, St, GObject} = imports.gi;
 const Lang = imports.lang;
-const GObject = imports.gi.GObject;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
