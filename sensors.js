@@ -24,7 +24,7 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const Lang = imports.lang;
+const GObject = imports.gi.GObject;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
@@ -39,10 +39,10 @@ try {
     hasGTop = false;
 }
 
-var Sensors = new Lang.Class({
-    Name: 'Sensors',
-
-    _init: function(settings, sensorIcons) {
+var Sensors = GObject.registerClass({
+       GTypeName: 'Sensors',
+}, class Sensors extends GObject.Object {
+    _init(settings, sensorIcons) {
         this._settings = settings;
         this._update_time = this._settings.get_int('update-time');
         this._sensorIcons = sensorIcons;
@@ -62,17 +62,17 @@ var Sensors = new Lang.Class({
             this._lastRead = 0;
             this._lastWrite = 0;
         }
-    },
+    }
 
-    _refreshIPAddress: function(callback) {
+    _refreshIPAddress(callback) {
         // check IP address
         new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
             let obj = JSON.parse(contents);
             this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
         }).catch(err => { });
-    },
+    }
 
-    _findStorageDevice: function() {
+    _findStorageDevice() {
         new FileModule.File('/proc/mounts').read().then(lines => {
             lines = lines.split("\n");
             for (let line of Object.values(lines)) {
@@ -83,9 +83,9 @@ var Sensors = new Lang.Class({
                 }
             }
         }).catch(err => { });
-    },
+    }
 
-    query: function(callback) {
+    query(callback) {
         // figure out last run time
         let diff = this._update_time;
         let now = new Date().getTime();
@@ -111,9 +111,9 @@ var Sensors = new Lang.Class({
                 this[method](callback, diff);
             }
         }
-    },
+    }
 
-    _queryTempVoltFan: function(callback) {
+    _queryTempVoltFan(callback) {
         for (let label in this._tempVoltFanSensors) {
             let sensor = this._tempVoltFanSensors[label];
 
@@ -121,9 +121,9 @@ var Sensors = new Lang.Class({
                 this._returnValue(callback, label, value, sensor['type'], sensor['format']);
             }).catch(err => { });
         }
-    },
+    }
 
-    _queryMemory: function(callback) {
+    _queryMemory(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
             let total = 0, avail = 0, swapTotal = 0, swapFree = 0;
@@ -150,9 +150,9 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
             this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'memory');
         }).catch(err => { });
-    },
+    }
 
-    _queryProcessor: function(callback, diff) {
+    _queryProcessor(callback, diff) {
         let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
         // check processor usage
@@ -216,9 +216,9 @@ var Sensors = new Lang.Class({
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
             this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
         }).catch(err => { });
-    },
+    }
 
-    _querySystem: function(callback) {
+    _querySystem(callback) {
         // check load average
         new FileModule.File('/proc/sys/fs/file-nr').read().then(contents => {
             let loadArray = contents.split('\t');
@@ -248,9 +248,9 @@ var Sensors = new Lang.Class({
             if (cores > 0)
                 this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
         }).catch(err => { });
-    },
+    }
 
-    _queryBattery: function(callback) {
+    _queryBattery(callback) {
         let battery_slot = this._settings.get_int('battery-slot');
 
         // addresses issue #161
@@ -330,9 +330,9 @@ var Sensors = new Lang.Class({
                 }).catch(err => { });
             }).catch(err => { });
         });
-    },
+    }
 
-    _queryNetwork: function(callback, diff) {
+    _queryNetwork(callback, diff) {
         // check network speed
         let netbase = '/sys/class/net/';
         new FileModule.File(netbase).list().then(files => {
@@ -400,9 +400,9 @@ var Sensors = new Lang.Class({
                 this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
             }
         }).catch(err => { });
-    },
+    }
 
-    _queryStorage: function(callback, diff) {
+    _queryStorage(callback, diff) {
         if (!hasGTop) return;
 
         GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
@@ -437,17 +437,17 @@ var Sensors = new Lang.Class({
                 }
             }
         }).catch(err => { });
-    },
+    }
 
-    _returnValue: function(callback, label, value, type, format) {
+    _returnValue(callback, label, value, type, format) {
         callback(label, value, type, format);
-    },
+    }
 
     set update_time(update_time) {
         this._update_time = update_time;
-    },
+    }
 
-    _discoverHardwareMonitors: function(callback) {
+    _discoverHardwareMonitors(callback) {
         this._tempVoltFanSensors = {};
 
         let hwbase = '/sys/class/hwmon/';
@@ -475,9 +475,9 @@ var Sensors = new Lang.Class({
                 });
             }
         }).catch(err => { });
-    },
+    }
 
-    _processTempVoltFan: function(callback, sensor_types, name, path, file) {
+    _processTempVoltFan(callback, sensor_types, name, path, file) {
         let sensor_files = [ 'input', 'label' ];
 
         new FileModule.File(path).list().then(files2 => {
@@ -522,9 +522,9 @@ var Sensors = new Lang.Class({
                 }).catch(err => { });
             }
         }).catch(err => { });
-    },
+    }
 
-    _addTempVoltFan: function(callback, obj, label, extra, value) {
+    _addTempVoltFan(callback, obj, label, extra, value) {
         // prepend module that provided sensor data
         //if (name != label) label = name + ' ' + label;
         label = label + extra;
@@ -540,9 +540,9 @@ var Sensors = new Lang.Class({
         this._tempVoltFanSensors[label] = {'type': obj['type'],
             'format': obj['format'],
             'path': obj['input']};
-    },
+    }
 
-    resetHistory: function() {
+    resetHistory() {
         this._next_public_ip_check = 0;
         this._trisensorsScanned = false;
     }
