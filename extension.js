@@ -74,6 +74,7 @@ var VitalsMenuButton = GObject.registerClass({
         this.actor.add_actor(this._menuLayout);
         this._settingChangedSignals = [];
         //this._addSettingChangedSignal('update-time', this._updateTimeChanged(this));
+        this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
         this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
         this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
 
