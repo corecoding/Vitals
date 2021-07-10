@@ -4,16 +4,19 @@ const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 
 var MenuItem = GObject.registerClass({
+
     Signals: {
         'toggle': { param_types: [Clutter.Event.$gtype] },
     },
 
 }, class MenuItem extends PopupMenu.PopupBaseMenuItem {
 
-    _init(icon, key, label, value) {
+    _init(icon, key, label, value, checked) {
         super._init({ reactive: true });
 
-        this._checked = false;
+        this._checked = checked;
+        this._updateOrnament();
+
         this._key = key;
         this._gIcon = icon;
 
@@ -34,25 +37,12 @@ var MenuItem = GObject.registerClass({
         this.actor._delegate = this;
     }
 
-    set checked(checked) {
-        if (checked)
-            this.setOrnament(PopupMenu.Ornament.CHECK);
-        else
-            this.setOrnament(PopupMenu.Ornament.NONE);
-
-        this._checked = checked;
-    }
-
     get checked() {
         return this._checked;
     }
 
     get key() {
         return this._key;
-    }
-
-    set display_name(text) {
-        return this._labelActor.text = text;
     }
 
     get gicon() {
@@ -69,6 +59,16 @@ var MenuItem = GObject.registerClass({
 
     // prevents menu from being closed
     activate(event) {
+	this._checked = !this._checked;
+        this._updateOrnament();
         this.emit('toggle', event);
     }
+
+    _updateOrnament() {
+        if (this._checked)
+            this.setOrnament(PopupMenu.Ornament.CHECK);
+        else
+            this.setOrnament(PopupMenu.Ornament.NONE);
+    }
+
 });

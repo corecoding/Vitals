@@ -382,23 +382,19 @@ var VitalsMenuButton = GObject.registerClass({
         let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
-        let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value);
+        let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {
             let hotSensors = this._settings.get_strv('hot-sensors');
 
             if (self.checked) {
-                self.checked = false;
-
+                // add selected sensor to panel
+                hotSensors.push(self.key);
+                this._createHotItem(self.key, self.gicon, self.value);
+            } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
                 this._removeHotLabel(self.key);
                 this._removeHotIcon(self.key);
-            } else {
-                self.checked = true;
-
-                // add selected sensor to panel
-                hotSensors.push(self.key);
-                this._createHotItem(self.key, self.gicon, self.value);
             }
 
             if (hotSensors.length <= 0) {
@@ -421,21 +417,8 @@ var VitalsMenuButton = GObject.registerClass({
             this._saveHotSensors(hotSensors);
         });
 
-
-
-        // Modify the ::activate callback to invoke the GAction or submenu
-        //item.disconnect(item._activateId);
-        //item._activateId = item.connect(
-        //    'activate',
-        //    this._onGMenuItemActivate.bind(this)
-        //);
-
-
-        if (this._hotLabels[key]) {
-            item.checked = true;
-            if (this._hotIcons[key])
-                this._hotIcons[key].gicon = item.gicon;
-        }
+        if (this._hotLabels[key] && this._hotIcons[key])
+            this._hotIcons[key].gicon = item.gicon;
 
         this._sensorMenuItems[key] = item;
         let i = Object.keys(this._sensorMenuItems[key]).length;
