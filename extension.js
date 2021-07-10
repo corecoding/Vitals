@@ -15,6 +15,7 @@ const _ = Gettext.gettext;
 const MessageTray = imports.ui.messageTray;
 const Values = Me.imports.values;
 const Config = imports.misc.config;
+MenuItem = Me.imports.menuItem;
 
 let MenuItem, vitalsMenu;
 
@@ -499,7 +500,6 @@ var VitalsMenuButton = GObject.registerClass({
 
 function init() {
     ExtensionUtils.initTranslations('vitals');
-    MenuItem = Me.imports.menuItem;
 }
 
 function enable() {
