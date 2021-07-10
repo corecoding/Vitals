@@ -1,5 +1,6 @@
 const {Clutter, Gio, St} = imports.gi;
 const Lang = imports.lang;
+const GObject = imports.gi.GObject;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
@@ -17,12 +18,11 @@ const Config = imports.misc.config;
 
 let MenuItem, vitalsMenu;
 
-const VitalsMenuButton = new Lang.Class({
-    Name: 'VitalsMenuButton',
-    Extends: PanelMenu.Button,
-
-    _init: function() {
-        this.parent(St.Align.START);
+var VitalsMenuButton = GObject.registerClass({
+       GTypeName: 'VitalsMenuButton',
+}, class VitalsMenuButton extends PanelMenu.Button {
+    _init() {
+        super._init(St.Align.START);
 
         this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vitals');
 
@@ -87,9 +87,9 @@ const VitalsMenuButton = new Lang.Class({
 
         this._initializeMenu();
         this._initializeTimer();
-    },
+    }
 
-    _initializeMenu: function() {
+    _initializeMenu() {
         // display sensor categories
         for (let sensor in this._sensorIcons) {
             // groups associated sensors under accordion menu
@@ -166,9 +166,9 @@ const VitalsMenuButton = new Lang.Class({
 
         // add buttons
         this.menu.addMenuItem(item);
-    },
+    }
 
-    _createRoundButton: function(iconName) {
+    _createRoundButton(iconName) {
         let button = new St.Button({
             style_class: 'message-list-clear-button button vitals-button-action'
         });
@@ -178,9 +178,9 @@ const VitalsMenuButton = new Lang.Class({
         });
 
         return button;
-    },
+    }
 
-    _removeMissingHotSensors: function(hotSensors) {
+    _removeMissingHotSensors(hotSensors) {
         for (let i = hotSensors.length - 1; i >= 0; i--) {
             let sensor = hotSensors[i];
 
@@ -195,17 +195,17 @@ const VitalsMenuButton = new Lang.Class({
         }
 
         return hotSensors;
-    },
+    }
 
-    _saveHotSensors: function(hotSensors) {
+    _saveHotSensors(hotSensors) {
         this._settings.set_strv('hot-sensors', hotSensors.filter(
             function(item, pos) {
                 return hotSensors.indexOf(item) == pos;
             }
         ));
-    },
+    }
 
-    _initializeTimer: function() {
+    _initializeTimer() {
         // start off with fresh sensors
         this._querySensors();
 
@@ -216,9 +216,9 @@ const VitalsMenuButton = new Lang.Class({
             // keep the timer running
             return true;
         }));
-    },
+    }
 
-    _createHotItem: function(key, gicon, value) {
+    _createHotItem(key, gicon, value) {
         let css_class = key.replace('__', '_').replace('-','_').split('_')[1];
         let icon = this._defaultIcon(css_class, gicon);
 
@@ -241,22 +241,22 @@ const VitalsMenuButton = new Lang.Class({
 
         this._hotLabels[key] = label;
         this._menuLayout.add_actor(label);
-    },
+    }
 
-    _higherPrecisionChanged: function() {
+    _higherPrecisionChanged() {
         this._sensors.resetHistory();
         this._values.resetHistory();
         this._querySensors();
-    },
+    }
 
-    _showHideSensorsChanged: function(self, sensor) {
+    _showHideSensorsChanged(self, sensor) {
         this._groups[sensor.substr(5)].visible = this._settings.get_boolean(sensor);
-    },
+    }
 
-    _positionInPanelChanged: function() {
+    _positionInPanelChanged() {
         this.container.get_parent().remove_actor(this.container);
 
-        // small HACK with private boxes :)
+        // small HACK with private boxes
         let boxes = {
             left: Main.panel._leftBox,
             center: Main.panel._centerBox,
@@ -265,35 +265,35 @@ const VitalsMenuButton = new Lang.Class({
 
         let p = this.positionInPanel;
         boxes[p].insert_child_at_index(this.container, p == 'right' ? 0 : -1)
-    },
+    }
 
-    _removeHotLabel: function(key) {
+    _removeHotLabel(key) {
         if (typeof this._hotLabels[key] != 'undefined') {
             let label = this._hotLabels[key];
             delete this._hotLabels[key];
             // make sure set_label is not called on non existant actor
             label.destroy();
         }
-    },
+    }
 
-    _removeHotLabels: function() {
+    _removeHotLabels() {
         for (let key in this._hotLabels)
             this._removeHotLabel(key);
-    },
+    }
 
-    _removeHotIcon: function(key) {
+    _removeHotIcon(key) {
         if (typeof this._hotIcons[key] != 'undefined') {
             this._hotIcons[key].destroy();
             delete this._hotIcons[key];
         }
-    },
+    }
 
-    _removeHotIcons: function() {
+    _removeHotIcons() {
         for (let key in this._hotIcons)
             this._removeHotIcon(key);
-    },
+    }
 
-    _redrawMenu: function() {
+    _redrawMenu() {
         this._removeHotIcons();
         this._removeHotLabels();
 
@@ -307,16 +307,16 @@ const VitalsMenuButton = new Lang.Class({
         this._sensors.resetHistory();
         this._values.resetHistory();
         this._querySensors();
-    },
+    }
 
-    _drawMenu: function() {
+    _drawMenu() {
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
         for (let key of Object.values(hotSensors))
             this._createHotItem(key);
-    },
+    }
 
-    _updateTimeChanged: function() {
+    _updateTimeChanged() {
         this._update_time = this._settings.get_int('update-time');
         this._sensors.update_time = this._update_time;
 
@@ -324,13 +324,13 @@ const VitalsMenuButton = new Lang.Class({
         Mainloop.source_remove(this._refreshTimeoutId);
 
         this._initializeTimer();
-    },
+    }
 
-    _addSettingChangedSignal: function(key, callback) {
+    _addSettingChangedSignal(key, callback) {
         this._settingChangedSignals.push(this._settings.connect('changed::' + key, callback));
-    },
+    }
 
-    _updateDisplay: function(label, value, type, key) {
+    _updateDisplay(label, value, type, key) {
         //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
 
         // update sensor value in menubar
@@ -373,9 +373,9 @@ const VitalsMenuButton = new Lang.Class({
             let sensor = { 'label': label, 'value': value, 'type': type }
             this._appendMenuItem(sensor, key);
         }
-    },
+    }
 
-    _appendMenuItem: function(sensor, key) {
+    _appendMenuItem(sensor, key) {
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
@@ -441,16 +441,16 @@ const VitalsMenuButton = new Lang.Class({
         }
 
         this._groups[type].menu.addMenuItem(item, i);
-    },
+    }
 
-    _defaultLabel: function() {
+    _defaultLabel() {
         return new St.Label({
                y_expand: true,
                 y_align: Clutter.ActorAlign.CENTER
         });
-    },
+    }
 
-    _defaultIcon: function(css_class, gicon) {
+    _defaultIcon(css_class, gicon) {
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
           style_class: 'system-status-icon vitals-panel-icon-' + css_class,
@@ -459,18 +459,18 @@ const VitalsMenuButton = new Lang.Class({
 
         if (gicon) icon.gicon = gicon;
         return icon;
-    },
+    }
 
-    _ucFirst: function(string) {
+    _ucFirst(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
-    },
+    }
 
     get positionInPanel() {
         let positions = [ 'left', 'center', 'right' ];
         return positions[this._settings.get_int('position-in-panel')];
-    },
+    }
 
-    _querySensors: function() {
+    _querySensors() {
         this._sensors.query(Lang.bind(this, function(label, value, type, format) {
             let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
@@ -483,17 +483,17 @@ const VitalsMenuButton = new Lang.Class({
             this._notify("Vitals", this._warnings.join("\n"), 'folder-symbolic');
             this._warnings = [];
         }
-    },
+    }
 
-    _notify: function(msg, details, icon) {
+    _notify(msg, details, icon) {
         let source = new MessageTray.Source("MyApp Information", icon);
         Main.messageTray.add(source);
         let notification = new MessageTray.Notification(source, msg, details);
         notification.setTransient(true);
         source.notify(notification);
-    },
+    }
 
-    destroy: function() {
+    destroy() {
         Mainloop.source_remove(this._refreshTimeoutId);
 
         for (let key in this._sensorMenuItems)
