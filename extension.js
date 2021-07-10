@@ -383,7 +383,7 @@ var VitalsMenuButton = GObject.registerClass({
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value);
-        item.connect('activate', (self) => {
+        item.connect('toggle', (self) => {
             let hotSensors = this._settings.get_strv('hot-sensors');
 
             if (self.checked) {
@@ -419,9 +419,17 @@ var VitalsMenuButton = GObject.registerClass({
 
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
-
-            return true;
         });
+
+
+
+        // Modify the ::activate callback to invoke the GAction or submenu
+        //item.disconnect(item._activateId);
+        //item._activateId = item.connect(
+        //    'activate',
+        //    this._onGMenuItemActivate.bind(this)
+        //);
+
 
         if (this._hotLabels[key]) {
             item.checked = true;

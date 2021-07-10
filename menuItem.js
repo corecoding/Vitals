@@ -3,10 +3,12 @@ const PopupMenu = imports.ui.popupMenu;
 const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 
-// https://gitlab.gnome.org/GNOME/gnome-shell/issues/1069
-// https://wiki.gnome.org/Projects/GnomeShell/Extensions/MigratingShellClasses
-var MenuItem = GObject.registerClass(
-  class MenuItem extends PopupMenu.PopupBaseMenuItem {
+var MenuItem = GObject.registerClass({
+    Signals: {
+        'toggle': { param_types: [Clutter.Event.$gtype] },
+    },
+
+}, class MenuItem extends PopupMenu.PopupBaseMenuItem {
 
     _init(icon, key, label, value) {
         super._init({ reactive: true });
@@ -63,5 +65,10 @@ var MenuItem = GObject.registerClass(
 
     get value() {
         return this._valueLabel.text;
+    }
+
+    // prevents menu from being closed
+    activate(event) {
+        this.emit('toggle', event);
     }
 });
