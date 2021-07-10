@@ -35,7 +35,7 @@ var Settings = GObject.registerClass({
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(Me.metadata['gettext-domain']);
-        this.builder.add_from_file(Me.path + '/schemas/prefs.ui');
+        this.builder.add_from_file(Me.path + '/prefs.ui');
 
         this.widget = this.builder.get_object('prefs-container');
 
