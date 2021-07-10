@@ -503,9 +503,6 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
-
-        // call parent
-        this.parent();
     }
 });
 
