@@ -493,6 +493,8 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
+
+        super.destroy();
     }
 });
 
