@@ -73,18 +73,18 @@ var VitalsMenuButton = GObject.registerClass({
         this._drawMenu();     
         this.actor.add_actor(this._menuLayout);
         this._settingChangedSignals = [];
-        //this._addSettingChangedSignal('update-time', this._updateTimeChanged(this));
-        this._addSettingChangedSignal('update-time', Lang.bind(this, this._updateTimeChanged));
-        this._addSettingChangedSignal('position-in-panel', Lang.bind(this, this._positionInPanelChanged));
-        this._addSettingChangedSignal('use-higher-precision', Lang.bind(this, this._higherPrecisionChanged));
+
+        this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
+        this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
+        this._addSettingChangedSignal('use-higher-precision', this._higherPrecisionChanged.bind(this));
 
         let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'fixed-widths' ];
         for (let setting of Object.values(settings))
-            this._addSettingChangedSignal(setting, Lang.bind(this, this._redrawMenu));
+            this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
         // add signals for show- preference based categories
         for (let sensor in this._sensorIcons)
-            this._addSettingChangedSignal('show-' + sensor, Lang.bind(this, this._showHideSensorsChanged));
+            this._addSettingChangedSignal('show-' + sensor, this._showHideSensorsChanged.bind(this));
 
         this._initializeMenu();
         this._initializeTimer();
