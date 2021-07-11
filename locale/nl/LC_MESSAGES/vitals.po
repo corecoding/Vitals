@@ -8,177 +8,258 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: gnome-shell-extension-vitals\n"
-"POT-Creation-Date: \n"
+"POT-Creation-Date: 2018-12-29 12:05+0100\n"
 "PO-Revision-Date: \n"
+"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: nl\n"
+"Language: nl\n"
 "MIME-Version: 1.0\n"
-"Last-Translator: wouter bolsterlee\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: nl\n"
+"X-Generator: Poedit 3.0\n"
 
-#: general
+#: extension.js:113
+msgid "Preferences"
+msgstr "Voorkeuren"
+
+#: extension.js:120
+msgid "System Monitor"
+msgstr "Systeemmonitor"
+
+#: extension.js:127
+msgid "Refresh"
+msgstr "Verversen"
+
+#: schemas/prefs.ui:40
+msgid "Include public IP address"
+msgstr "Publiek ip-adres tonen"
+
+#: schemas/prefs.ui:81
+msgid "Format"
+msgstr "Formaat"
+
+#: schemas/prefs.ui:95
+msgid "Bytes"
+msgstr "Bytes"
+
+#: schemas/prefs.ui:96
+msgid "Bits"
+msgstr "Bits"
+
+#: schemas/prefs.ui:154
+msgid "General"
+msgstr "Algemeen"
+
+#: schemas/prefs.ui:194
+msgid "Seconds between updates"
+msgstr "Aantal seconden tussen verversingen"
+
+#: schemas/prefs.ui:244
+msgid "Position in panel"
+msgstr "Paneelpositie"
+
+#: schemas/prefs.ui:259
+msgid "Left"
+msgstr "Links"
+
+#: schemas/prefs.ui:260
+msgid "Center"
+msgstr "Midden"
+
+#: schemas/prefs.ui:261
+msgid "Right"
+msgstr "Rechts"
+
+#: schemas/prefs.ui:293
+msgid "Use higher precision"
+msgstr "Hogere precisie gebruiken"
+
+#: schemas/prefs.ui:335
+msgid "Alphabetize sensors"
+msgstr "Sensors alfabetisch sorteren"
+
+#: schemas/prefs.ui:377
+msgid "Hide zero values"
+msgstr "Nulwaarden verbergen"
+
+#: schemas/prefs.ui:419
+msgid "About"
+msgstr "Over"
+
+#: schemas/prefs.ui:444
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
+"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
+"useful."
+msgstr ""
+"Heeft u een bug aangetroffen of wilt u een idee delen? Ga dan naar de <a "
+"href=\"https://github.com/corecoding/Vitals/issues\">GitHub-pagina</a>. Er "
+"zit geen garantie op deze uitbreiding. Gebruikt u deze uitbreiding graag? "
+"Dan wordt een <a href=\"https://corecoding.com/donate.php\">donatie </a> op "
+"prijs gesteld."
+
+#: schemas/prefs.ui:485
+msgid "Sensors"
+msgstr "Sensoren"
+
+#: schemas/prefs.ui:529
+msgid "Monitor temperature"
+msgstr "Temperatuurmonitor"
+
+#: schemas/prefs.ui:610
+msgid "Monitor voltage"
+msgstr "Voltagemonitor"
+
+#: schemas/prefs.ui:653
+msgid "Monitor fan"
+msgstr "Ventilatormonitor"
+
+#: schemas/prefs.ui:696
+msgid "Monitor memory"
+msgstr "Geheugenmonitor"
+
+#: schemas/prefs.ui:739
+msgid "Monitor processor"
+msgstr "Processormonitor"
+
+#: schemas/prefs.ui:782
+msgid "Monitor system"
+msgstr "Systeemmonitor"
+
+#: schemas/prefs.ui:825
+msgid "Monitor network"
+msgstr "Netwerkmonitor"
+
+#: schemas/prefs.ui:906
+msgid "Monitor storage"
+msgstr "Opslagmonitor"
+
+#: schemas/prefs.ui:1031
+msgid "Path"
+msgstr "Locatie"
+
+#: schemas/prefs.ui:1104
+msgid "Unit"
+msgstr "Eenheid"
+
+#: sensors.js:120
+msgid "Usage"
+msgstr "Gebruik"
+
+#: sensors.js:121
+msgid "Memory"
+msgstr "Geheugen"
+
+#: sensors.js:122
+msgid "Physical"
+msgstr "Fysiek"
+
+#: sensors.js:123
+msgid "Available"
+msgstr "Beschikbaar"
+
+#: sensors.js:124
+msgid "Allocated"
+msgstr "Toegewezen"
+
+#: sensors.js:125
+msgid "Swap Used"
+msgstr "Gebruikt wisselgeheugen"
+
+#: sensors.js:165 values.js:183
 msgid "Average"
 msgstr "Gemiddelde"
 
-#: main menu
+#: sensors.js:166
+msgid "Processor"
+msgstr "Processor"
+
+#: sensors.js:168
+#, javascript-format
+msgid "Core %d"
+msgstr "Kern %d"
+
+#: sensors.js:207
+msgid "Frequency"
+msgstr "Frequentie"
+
+#: sensors.js:208
+msgid "Boost"
+msgstr "Boost"
+
+#: sensors.js:203
+msgid "Load 1m"
+msgstr "Belasting (1 min.)"
+
+#: sensors.js:204
+msgid "System"
+msgstr "Systeem"
+
+#: sensors.js:205
+msgid "Load 5m"
+msgstr "Belasting (5 min.)"
+
+#: sensors.js:206
+msgid "Load 15m"
+msgstr "Belasting (15 min.)"
+
+#: sensors.js:207
+msgid "Threads Active"
+msgstr "Processen (actief)"
+
+#: sensors.js:208
+msgid "Threads Total"
+msgstr "Processen (totaal)"
+
+#: sensors.js:216
+msgid "Uptime"
+msgstr "Uptime"
+
+#: sensors.js:220
+msgid "Process Time"
+msgstr "Procestijd"
+
+#: sensors.js:277
+msgid "Public IP"
+msgstr "Publiek ip-adres"
+
+#: sensors.js:298
+msgid "Total"
+msgstr "Totaal"
+
+#: sensors.js:299
+msgid "Used"
+msgstr "Gebruikt"
+
+#: sensors.js:300
+msgid "Reserved"
+msgstr "Gereserveerd"
+
+#: sensors.js:301
+msgid "Free"
+msgstr "Vrij"
+
+#: sensors.js:302
+msgid "Storage"
+msgstr "Opslag"
+
+#: values.js:189
+msgid "Maximum "
+msgstr "Maximum "
+
 msgid "Temperature"
 msgstr "Temperatuur"
 
 msgid "Voltage"
-msgstr "Spanning"
+msgstr "Voltage"
 
 msgid "Fan"
 msgstr "Ventilator"
 
-msgid "Memory"
-msgstr "Geheugen"
-
-msgid "Processor"
-msgstr "Processor"
-
-msgid "System"
-msgstr "Systeem"
-
 msgid "Network"
 msgstr "Netwerk"
-
-msgid "Storage"
-msgstr "Opslag"
-
-#: temperature
-msgid "Core %d"
-msgstr "Processor %d"
-
-#: voltage fan memory
-msgid "Usage"
-msgstr "Verbruik"
-
-msgid "Physical"
-msgstr "Fysiek"
-
-msgid "Available"
-msgstr "Beschikbaar"
-
-msgid "Allocated"
-msgstr "Gealloceerd"
-
-msgid "Swap Used"
-msgstr "Gebruikte swap"
-
-#: processor
-msgid "Frequency"
-msgstr "Frequentie"
-
-#: system
-msgid "Load 1m"
-msgstr "Belasting 1m"
-
-msgid "Load 5m"
-msgstr "Belasting 5m"
-
-msgid "Load 15m"
-msgstr "Belasting 15m"
-
-msgid "Threads Active"
-msgstr "Threads (actief)"
-
-msgid "Threads Total"
-msgstr "Threads (totaal)"
-
-#: network
-msgid "Maximum rx"
-msgstr "Maximum rx"
-
-msgid "Maximum tx"
-msgstr "Maximum tx"
-
-msgid "Public IP"
-msgstr "Publiek IP"
-
-#: storage
-msgid "Total"
-msgstr "Totaal"
-
-msgid "Used"
-msgstr "Gebruikt"
-
-msgid "Reserved"
-msgstr "Gereserveerd"
-
-msgid "Free"
-msgstr "Vrij"
-
-#: prefs general
-msgid "Seconds between updates"
-msgstr "Aantal seconden tussen updates"
-
-msgid "Position in panel"
-msgstr "Paneelpositie"
-
-msgid "Right"
-msgstr "Rechts"
-
-msgid "Center"
-msgstr "Midden"
-
-msgid "Left"
-msgstr "Linkss"
-
-msgid "Use higher precision"
-msgstr "Hogere precisie gebruiken"
-
-msgid "Alphabetize sensors"
-msgstr "Sensors sorteren"
-
-msgid "Hide zero values"
-msgstr "Nulwaarden tonen"
-
-msgid "Format"
-msgstr "Formaat"
-
-#: prefs about
-msgid "Feature requests or bugs? Please visit <a href=\""
-"https://github.com/corecoding/Vitals/issues\">GitHub</a>. "
-"No warranty, expressed or implied. <a href=\"https://"
-"corecoding.com/donate.php\">Donate</a> if you found this useful."
-msgstr ""
-"Vind je het leuk wat je ziet? Ondersteuning van de ontwikkeling van deze extensie via "
-"<a href=\"https://corecoding.com/donate.php\">PayPal</a>.\n\n"
-"Geen garantie, expliciet of impliciet. Functieverzoeken of bugs? Bezoek ons "
-"<a href=\"https://github.com/corecoding/Vitals\">GitHub-project</a>."
-
-#: prefs sensors
-msgid "Monitor temperature"
-msgstr "Temperatuur monitoren"
-
-msgid "Unit"
-msgstr "Eenheid"
-
-msgid "Monitor voltage"
-msgstr "Spanning monitoren"
-
-msgid "Monitor fan"
-msgstr "Ventilator monitoren"
-
-msgid "Monitor memory"
-msgstr "Geheugen monitoren"
-
-msgid "Monitor processor"
-msgstr "Processos monitoren"
-
-msgid "Monitor system"
-msgstr "Systeem monitoren"
-
-msgid "Monitor network"
-msgstr "Netwerk monitoren"
-
-msgid "Include public IP address"
-msgstr "Publiek IP-adresss tonen"
-
-msgid "Monitor storage"
-msgstr "Opslag monitoren"
 
 msgid "Temperature Preferences"
 msgstr "Temperatuurvoorkeuren"
@@ -189,14 +270,25 @@ msgstr "Netwerkvoorkeuren"
 msgid "Storage Preferences"
 msgstr "Opslagvoorkeuren"
 
-msgid "Path"
-msgstr "Pad"
+#: sensors.js:226
+msgid "Open Files"
+msgstr "Geopende bestanden"
 
-msgid "General"
-msgstr "Algemeen"
+#: sensors.js:430
+msgid "Data read"
+msgstr "Uitgelezen gegevens"
 
-msgid "About"
-msgstr "Wat betreft"
+#: sensors.js:431
+msgid "Data written"
+msgstr "Weggeschreven gegevens"
 
-msgid "Sensors"
-msgstr "Sensoren"
+#: sensors.js:432
+msgid "Data read/sec"
+msgstr "Uitgelezen/sec."
+
+#: sensors.js:433
+msgid "Data written/sec"
+msgstr "Weggeschreven/sec."
+
+#~ msgid "Maximum tx"
+#~ msgstr "Maximum tx"
