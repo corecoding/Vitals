@@ -1,5 +1,4 @@
 const {Clutter, Gio, St, GObject} = imports.gi;
-const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
@@ -133,24 +132,24 @@ var VitalsMenuButton = GObject.registerClass({
 
         // custom round refresh button
         let refreshButton = this._createRoundButton('view-refresh-symbolic', _("Refresh"));
-        refreshButton.connect('clicked', Lang.bind(this, function(self) {
+        refreshButton.connect('clicked', (function() {
             this._sensors.resetHistory();
             this._values.resetHistory();
             this._updateTimeChanged();
-        }));
+        }).bind(this));
         customButtonBox.add_actor(refreshButton);
 
         // custom round monitor button
         let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _("System Monitor"));
-        monitorButton.connect('clicked', Lang.bind(this, function(self) {
+        monitorButton.connect('clicked', (function() {
             this.menu.actor.hide();
             Util.spawn(["gnome-system-monitor"]);
-        }));
+        }).bind(this));
         customButtonBox.add_actor(monitorButton);
 
         // custom round preferences button
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
-        prefsButton.connect('clicked', Lang.bind(this, function(self) {
+        prefsButton.connect('clicked', (function() {
             this.menu.actor.hide();
 
             // Gnome 3.36 has a fancier way of opening preferences
@@ -159,7 +158,7 @@ var VitalsMenuButton = GObject.registerClass({
             } else {
                 Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
             }
-        }));
+        }).bind(this));
         customButtonBox.add_actor(prefsButton);
 
         // now add the buttons to the top bar
@@ -211,12 +210,12 @@ var VitalsMenuButton = GObject.registerClass({
         this._querySensors();
 
         // used to query sensors and update display
-        this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._update_time, Lang.bind(this, function() {
+        this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._update_time, (function() {
             this._querySensors();
 
             // keep the timer running
             return true;
-        }));
+        }).bind(this));
     }
 
     _createHotItem(key, gicon, value) {
@@ -463,13 +462,13 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _querySensors() {
-        this._sensors.query(Lang.bind(this, function(label, value, type, format) {
+        this._sensors.query((function(label, value, type, format) {
             let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
             let items = this._values.returnIfDifferent(label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
-        }));
+        }).bind(this));
 
         if (this._warnings.length > 0) {
             this._notify("Vitals", this._warnings.join("\n"), 'folder-symbolic');
