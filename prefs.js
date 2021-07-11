@@ -107,7 +107,7 @@ var Settings = GObject.registerClass({
             let sensor = sensors[key];
 
             // create dialog for intelligent autohide advanced settings
-            this.builder.get_object(sensor + '-prefs').connect('clicked', (function() {
+            this.builder.get_object(sensor + '-prefs').connect('clicked', (self) => {
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
                 let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),
                                               transient_for: this.widget.get_root(),
@@ -117,15 +117,15 @@ var Settings = GObject.registerClass({
                 let box = this.builder.get_object(sensor + '_prefs');
                 dialog.get_content_area().append(box);
 
-                dialog.connect('response', (function(dialog, id) {
+                dialog.connect('response', (dialog, id) => {
                     // remove the settings box so it doesn't get destroyed;
                     dialog.get_content_area().remove(box);
                     dialog.destroy();
                     return;
-                }).bind(this));
+                });
 
                 dialog.show();
-            }).bind(this));
+            });
         }
     }
 });
