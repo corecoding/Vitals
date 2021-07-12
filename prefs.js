@@ -1,5 +1,4 @@
 const {Gio, Gtk, GObject} = imports.gi;
-const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
@@ -107,29 +106,28 @@ const Settings = new GObject.Class({
             let sensor = sensors[key];
 
             // create dialog for intelligent autohide advanced settings
-            this.builder.get_object(sensor + '-prefs').connect('clicked', Lang.bind(this, function() {
+            this.builder.get_object(sensor + '-prefs').connect('clicked', () => {
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
                 let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),
                                               transient_for: this.widget.get_toplevel(),
 //                                              transient_for: this.widget.get_root(), // Gnome 40??
                                               use_header_bar: false,
-
                                               modal: true });
 
                 let box = this.builder.get_object(sensor + '_prefs');
                 //dialog.get_content_area().append(box); // Gnome 40??
                 dialog.get_content_area().add(box);
 
-                dialog.connect('response', Lang.bind(this, function(dialog, id) {
+                dialog.connect('response', (dialog, id) => {
                     // remove the settings box so it doesn't get destroyed;
                     dialog.get_content_area().remove(box);
                     dialog.destroy();
                     return;
-                }));
+                });
 
                 //dialog.show_all(); // Gnome 40??
                 dialog.show();
-            }));
+            });
         }
     }
 });
