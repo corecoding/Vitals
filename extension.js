@@ -69,7 +69,7 @@ var VitalsMenuButton = GObject.registerClass({
             pack_start: false
         });
 
-        this._drawMenu();     
+        this._drawMenu();
         this.add_actor(this._menuLayout);
         this._settingChangedSignals = [];
 
@@ -487,7 +487,7 @@ var VitalsMenuButton = GObject.registerClass({
     destroy() {
         Mainloop.source_remove(this._refreshTimeoutId);
 
-	// has already been deallocated, was causing silent crashes
+        // has already been deallocated, was causing silent crashes
 /*
         for (let key in this._sensorMenuItems)
             if (typeof this._sensorMenuItems[key] != 'undefined')
