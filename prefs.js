@@ -124,8 +124,11 @@ const Settings = new GObject.Class({
                                               modal: true });
 
                 let box = this.builder.get_object(sensor + '_prefs');
-                //dialog.get_content_area().append(box); // Gnome 40??
-                dialog.get_content_area().add(box);
+
+                if (shellVersion < 40)
+                    dialog.get_content_area().add(box);
+                else
+                    dialog.get_content_area().append(box);
 
                 dialog.connect('response', (dialog, id) => {
                     // remove the settings box so it doesn't get destroyed;
@@ -134,7 +137,6 @@ const Settings = new GObject.Class({
                     return;
                 });
 
-                //dialog.show_all(); // Gnome 40??
                 dialog.show();
             });
         }
@@ -149,7 +151,6 @@ function buildPrefsWidget() {
     let settings = new Settings();
     let widget = settings.widget;
 
-    //widget.show_all(); Gnome 40??
     widget.show();
     return widget;
 }
