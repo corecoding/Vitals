@@ -142,7 +142,7 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round monitor button
         let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _("System Monitor"));
         monitorButton.connect('clicked', (self) => {
-            this.menu.actor.hide();
+            this.menu._getTopMenu().close();
             Util.spawn(["gnome-system-monitor"]);
         });
         customButtonBox.add_actor(monitorButton);
@@ -150,7 +150,7 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round preferences button
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
         prefsButton.connect('clicked', (self) => {
-            this.menu.actor.hide();
+            this.menu._getTopMenu().close();
 
             // Gnome 3.36 has a fancier way of opening preferences
             if (typeof ExtensionUtils.openPrefs === 'function') {
