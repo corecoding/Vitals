@@ -117,9 +117,9 @@ const Settings = new GObject.Class({
             // create dialog for intelligent autohide advanced settings
             this.builder.get_object(sensor + '-prefs').connect('clicked', () => {
 
-		let transientObj;
+                let transientObj;
                 if (shellVersion < 40)
-		    transientObj = this.widget.get_toplevel();
+                    transientObj = this.widget.get_toplevel();
                 else
                     transientObj = this.widget.get_root();
 
