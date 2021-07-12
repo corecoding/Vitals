@@ -1,3 +1,8 @@
+// https://gjs.guide/extensions/upgrading/gnome-shell-40.html#contents
+const Config = imports.misc.config;
+const [major] = Config.PACKAGE_VERSION.split('.');
+const shellVersion = Number.parseInt(major);
+
 const {Gio, Gtk, GObject} = imports.gi;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -34,7 +39,11 @@ const Settings = new GObject.Class({
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(Me.metadata['gettext-domain']);
-        this.builder.add_from_file(Me.path + '/prefs.ui');
+
+        if (shellVersion < 40)
+            this.builder.add_from_file(Me.path + '/prefs.legacy.ui');
+        else
+            this.builder.add_from_file(Me.path + '/prefs.ui');
 
         this.widget = this.builder.get_object('prefs-container');
 
