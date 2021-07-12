@@ -487,9 +487,12 @@ var VitalsMenuButton = GObject.registerClass({
     destroy() {
         Mainloop.source_remove(this._refreshTimeoutId);
 
+	// has already been deallocated, was causing silent crashes
+/*
         for (let key in this._sensorMenuItems)
             if (typeof this._sensorMenuItems[key] != 'undefined')
                 this._sensorMenuItems[key].destroy();
+*/
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
