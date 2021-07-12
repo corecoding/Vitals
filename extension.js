@@ -70,7 +70,7 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         this._drawMenu();     
-        this.actor.add_actor(this._menuLayout);
+        this.add_actor(this._menuLayout);
         this._settingChangedSignals = [];
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
