@@ -2,7 +2,7 @@
 name: Bug report
 about: Please read Wiki before submitting!
 title: ''
-labels: ''
+labels: 'bug'
 assignees: ''
 
 ---
