@@ -2,7 +2,7 @@
 name: Feature request
 about: Please read Wiki before submitting!
 title: ''
-labels: ''
+labels: 'feature'
 assignees: ''
 
 ---
