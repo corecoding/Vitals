@@ -486,7 +486,7 @@ var Sensors = GObject.registerClass({
             for (let file2 of Object.values(files2)) {
                 for (let key of Object.values(sensor_files)) {
                     for (let sensor_type in sensor_types) {
-                        if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-6) == '_' + key) {
+                        if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-(key.length+1)) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
 
                             if (typeof trisensors[key2] == 'undefined') {
@@ -508,7 +508,7 @@ var Sensors = GObject.registerClass({
                 new FileModule.File(obj['input']).read().then(value => {
                     let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
 
-                    if ((value > 0 && this._settings.get_boolean('hide-zeros')) || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
+                    if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
                             this._addTempVoltFan(callback, obj, label, extra, value);
                         }).catch(err => {
