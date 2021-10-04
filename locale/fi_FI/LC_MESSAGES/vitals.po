@@ -1,0 +1,293 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-12-29 12:05+0100\n"
+"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.2\n"
+"X-Poedit-Basepath: ..\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Elias Arno Eskelinen <elias.eskelinen@protonmail.com>\n"
+"Language: fi_FI\n"
+"X-Poedit-SearchPath-0: values.js\n"
+"X-Poedit-SearchPath-1: sensors.js\n"
+"X-Poedit-SearchPath-2: prefs.js\n"
+"X-Poedit-SearchPath-3: notifications.js\n"
+"X-Poedit-SearchPath-4: menuItem.js\n"
+"X-Poedit-SearchPath-5: extension.js\n"
+"X-Poedit-SearchPath-6: schemas/prefs.ui\n"
+
+#: extension.js:113
+msgid "Preferences"
+msgstr "Asetukset"
+
+#: extension.js:120
+msgid "System Monitor"
+msgstr "Järjestelmänvalvonta"
+
+#: extension.js:127
+msgid "Refresh"
+msgstr "Virkistä"
+
+#: schemas/prefs.ui:40
+msgid "Include public IP address"
+msgstr "Sisällytä julkinen IP-osoite"
+
+#: schemas/prefs.ui:81
+msgid "Format"
+msgstr "Muoto"
+
+#: schemas/prefs.ui:95
+msgid "Bytes"
+msgstr "Tavut"
+
+#: schemas/prefs.ui:96
+msgid "Bits"
+msgstr "Bitit"
+
+#: schemas/prefs.ui:154
+msgid "General"
+msgstr "Yleinen"
+
+#: schemas/prefs.ui:194
+msgid "Seconds between updates"
+msgstr "Sekunnit virkistysten välillä"
+
+#: schemas/prefs.ui:244
+msgid "Position in panel"
+msgstr "Sijainti paneelissa"
+
+#: schemas/prefs.ui:259
+msgid "Left"
+msgstr "Vasemmalla"
+
+#: schemas/prefs.ui:260
+msgid "Center"
+msgstr "Keskellä"
+
+#: schemas/prefs.ui:261
+msgid "Right"
+msgstr "Oikealla"
+
+#: schemas/prefs.ui:293
+msgid "Use higher precision"
+msgstr "Käytä korkeampaa tarkkuutta"
+
+#: schemas/prefs.ui:335
+msgid "Alphabetize sensors"
+msgstr "Luetteloi anturit aakkosjärjestyksessä"
+
+#: schemas/prefs.ui:377
+msgid "Hide zero values"
+msgstr "Piilota tyhjät arvot"
+
+#: schemas/prefs.ui:419
+msgid "About"
+msgstr "Tietoja"
+
+#: schemas/prefs.ui:444
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
+"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
+"useful."
+msgstr ""
+"Onko sinulla ominaisuuspyyntöjä tai oletko löytänyt bugeja? Käy osoitteessa "
+"<a href=\"https://github.com/corecoding/Vitals/issues\">GitHub</a>. "
+"Ohjelmisto ei sisällä minkäänlaisia takuuta, ilmaistua taiko epäsuoraa. <a "
+"href=\"https://corecoding.com/donate.php\">Lahjoita</a> jos pidät tätä "
+"ohjelmistoa hyödyllisenä."
+
+#: schemas/prefs.ui:485
+msgid "Sensors"
+msgstr "Anturit"
+
+#: schemas/prefs.ui:529
+msgid "Monitor temperature"
+msgstr "Valvo lämpötilaa"
+
+#: schemas/prefs.ui:610
+msgid "Monitor voltage"
+msgstr "Valvo jännitettä"
+
+#: schemas/prefs.ui:653
+msgid "Monitor fan"
+msgstr "Valvo tuuletinta"
+
+#: schemas/prefs.ui:696
+msgid "Monitor memory"
+msgstr "Valvo muistia"
+
+#: schemas/prefs.ui:739
+msgid "Monitor processor"
+msgstr "Valvo suoritinta"
+
+#: schemas/prefs.ui:782
+msgid "Monitor system"
+msgstr "Valvo järjestelmää"
+
+#: schemas/prefs.ui:825
+msgid "Monitor network"
+msgstr "Valvo verkkoa"
+
+#: schemas/prefs.ui:906
+msgid "Monitor storage"
+msgstr "Valvo tallennustilaa"
+
+#: schemas/prefs.ui:1031
+msgid "Path"
+msgstr "Polku"
+
+#: schemas/prefs.ui:1104
+msgid "Unit"
+msgstr "Yksikkö"
+
+#: sensors.js:120
+msgid "Usage"
+msgstr "Käyttöaste"
+
+#: sensors.js:121
+msgid "Memory"
+msgstr "Muisti"
+
+#: sensors.js:122
+msgid "Physical"
+msgstr "Fyysinen"
+
+#: sensors.js:123
+msgid "Available"
+msgstr "Saatavilla"
+
+#: sensors.js:124
+msgid "Allocated"
+msgstr "Varattu"
+
+#: sensors.js:125
+msgid "Swap Used"
+msgstr "Swap-muistia käytössä"
+
+#: sensors.js:165 values.js:183
+msgid "Average"
+msgstr "Keskiarvo"
+
+#: sensors.js:166
+msgid "Processor"
+msgstr "Suoritin"
+
+#: sensors.js:168
+#, javascript-format
+msgid "Core %d"
+msgstr "Ydin %d"
+
+#: sensors.js:207
+msgid "Frequency"
+msgstr "Taajuus"
+
+#: sensors.js:208
+msgid "Boost"
+msgstr "Boost-taajuus"
+
+#: sensors.js:203
+msgid "Load 1m"
+msgstr "Kuormitus 1m"
+
+#: sensors.js:204
+msgid "System"
+msgstr "Järjestelmä"
+
+#: sensors.js:205
+msgid "Load 5m"
+msgstr "Kuormitus 5m"
+
+#: sensors.js:206
+msgid "Load 15m"
+msgstr "Kuormitus 15m"
+
+#: sensors.js:207
+msgid "Threads Active"
+msgstr "Aktiivisia Säikeitä"
+
+#: sensors.js:208
+msgid "Threads Total"
+msgstr "Säikeitä Yhteensä"
+
+#: sensors.js:216
+msgid "Uptime"
+msgstr "Käyntiaika"
+
+#: sensors.js:220
+msgid "Process Time"
+msgstr "Prosessin Pituus"
+
+#: sensors.js:277
+msgid "Public IP"
+msgstr "Julkinen IP"
+
+#: sensors.js:298
+msgid "Total"
+msgstr "Yhteensä"
+
+#: sensors.js:299
+msgid "Used"
+msgstr "Käytetty"
+
+#: sensors.js:300
+msgid "Reserved"
+msgstr "Varattu"
+
+#: sensors.js:301
+msgid "Free"
+msgstr "Vapaana"
+
+#: sensors.js:302
+msgid "Storage"
+msgstr "Tallennustila"
+
+#: values.js:189
+msgid "Maximum "
+msgstr "Maksimi "
+
+msgid "Temperature"
+msgstr "Lämpötila"
+
+msgid "Voltage"
+msgstr "Jännite"
+
+msgid "Fan"
+msgstr "Tuuletin"
+
+msgid "Network"
+msgstr "Verkko"
+
+msgid "Temperature Preferences"
+msgstr "Lämpötilan Asetukset"
+
+msgid "Network Preferences"
+msgstr "Verkon Asetukset"
+
+msgid "Storage Preferences"
+msgstr "Tallennustilan Asetukset"
+
+#: sensors.js:226
+msgid "Open Files"
+msgstr "Tiedostoja Avoinna"
+
+#: sensors.js:430
+msgid "Data read"
+msgstr "Dataa luettu"
+
+#: sensors.js:431
+msgid "Data written"
+msgstr "Dataa kirjoitettu"
+
+#: sensors.js:432
+msgid "Data read/sec"
+msgstr "Dataa luettu/sekunti"
+
+#: sensors.js:433
+msgid "Data written/sec"
+msgstr "Dataa kirjoitettu/sekunti"
