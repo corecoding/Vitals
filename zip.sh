@@ -4,4 +4,4 @@ if [ -f $FILE ]; then
     rm $FILE
 fi
 
-zip vitals.zip -r * -x "*.po" -x "locale/vitals.pot" -x "build.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
+zip vitals.zip -r * -x "locale/*.po" -x "locale/vitals.pot" -x "build.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
