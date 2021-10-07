@@ -11,4 +11,6 @@ if [ -d ./schemas/ ]; then
     fi
 fi
 
+# zip up files, skipping blocked files as seen at
+# https://wiki.gnome.org/Projects/GnomeShell/Extensions/Review#Don.27t_include_unecessary_files
 zip vitals.zip -r * -x "locale/*.po" -x "locale/vitals.pot" -x "build.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
