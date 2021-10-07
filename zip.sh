@@ -24,7 +24,7 @@ fi
 # check if msgfmt exists
 if [ -x /usr/bin/msgfmt ]; then
     if [ -d ./locale/ ]; then
-        for i in locale/*
+        for i in locale/*/
             do /usr/bin/msgfmt $i/LC_MESSAGES/vitals.po -o $i/LC_MESSAGES/vitals.mo
         done
     fi
