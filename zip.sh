@@ -4,10 +4,11 @@ if [ -f $FILE ]; then
     rm $FILE
 fi
 
-# check if schemas directory exists
-if [ -d ./schemas/ ]; then
-    if [ -x /usr/bin/glib-compile-schemas ]; then
-        glib-compile-schemas --strict schemas/
+# check if glib-compile-schemas exists
+if [ -x /usr/bin/glib-compile-schemas ]; then
+    # check if schemas directory exists
+    if [ -d ./schemas/ ]; then
+        /usr/bin/glib-compile-schemas --strict schemas/
     fi
 fi
 
