@@ -448,7 +448,12 @@ var VitalsMenuButton = GObject.registerClass({
             reactive: true
         });
 
+        // support for fixed widths #80
+        if (!this._settings.get_boolean('hide-icons')) {
         if (gicon) icon.gicon = gicon;
+        }
+
+
         return icon;
     }
 
