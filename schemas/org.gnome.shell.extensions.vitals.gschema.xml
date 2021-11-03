@@ -116,5 +116,10 @@
       <summary>Use fixed widths in top bar</summary>
       <description>Keep sensors in top bar from jumping around</description>
     </key>
+    <key type="b" name="hide-icons">
+      <default>false</default>
+      <summary>Hide icons in top bar</summary>
+      <description>Keep top bar clean by only showing sensor values</description>
+    </key>
   </schema>
 </schemalist>
