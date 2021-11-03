@@ -283,8 +283,8 @@ msgstr "Predvoľby úložiska"
 msgid " Preferences"
 msgstr " Predvoľby"
 
-msgid "Use fixed widths (beta)"
-msgstr "Použiť pevné šírky (beta)"
+msgid "Use fixed widths"
+msgstr "Použiť pevné šírky"
 
 msgid "Monitor battery"
 msgstr "Sledovať batériu"

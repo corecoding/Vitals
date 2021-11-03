@@ -296,7 +296,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
-                                <property name="label" translatable="yes">Use fixed widths (beta)</property>
+                                <property name="label" translatable="yes">Use fixed widths</property>
                               </object>
                             </child>
                             <child>
