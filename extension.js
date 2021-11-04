@@ -404,9 +404,6 @@ var VitalsMenuButton = GObject.registerClass({
             this._saveHotSensors(hotSensors);
         });
 
-        if (this._hotLabels[key] && this._hotIcons[key])
-            this._hotIcons[key].gicon = item.gicon;
-
         this._sensorMenuItems[key] = item;
         let i = Object.keys(this._sensorMenuItems[key]).length;
 
