@@ -427,17 +427,17 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _defaultIcon(key) {
-        let css_class = key.replace('__', '_').replace('-','_').split('_')[1];
+        let split = key.replaceAll('_', ' ').trim().split(' ')[0].split('-');
+        let type = split[0];
+
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
-          style_class: 'system-status-icon vitals-panel-icon-' + css_class,
+          style_class: 'system-status-icon vitals-panel-icon-' + type,
             reactive: true
         });
 
         // support for hide icons #80
         if (!this._settings.get_boolean('hide-icons')) {
-            let split = key.replace(/_/g, ' ').trim().split(' ')[0].split('-');
-            let type = split[0];
             let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
