@@ -218,10 +218,8 @@ var VitalsMenuButton = GObject.registerClass({
         });
     }
 
-    _createHotItem(key, gicon, value) {
-        let css_class = key.replace('__', '_').replace('-','_').split('_')[1];
-        let icon = this._defaultIcon(css_class, gicon);
-
+    _createHotItem(key, value) {
+        let icon = this._defaultIcon(key);
         this._hotIcons[key] = icon;
         this._menuLayout.add_actor(icon)
 
@@ -379,7 +377,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (self.checked) {
                 // add selected sensor to panel
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, self.gicon, self.value);
+                this._createHotItem(self.key, self.value);
             } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
@@ -432,18 +430,21 @@ var VitalsMenuButton = GObject.registerClass({
         });
     }
 
-    _defaultIcon(css_class, gicon) {
+    _defaultIcon(key) {
+        let css_class = key.replace('__', '_').replace('-','_').split('_')[1];
         let icon = new St.Icon({
             icon_name: "utilities-system-monitor-symbolic",
           style_class: 'system-status-icon vitals-panel-icon-' + css_class,
             reactive: true
         });
 
-        // support for fixed widths #80
+        // support for hide icons #80
         if (!this._settings.get_boolean('hide-icons')) {
-        if (gicon) icon.gicon = gicon;
+            let split = key.replace(/_/g, ' ').trim().split(' ')[0].split('-');
+            let type = split[0];
+            let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+            icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
-
 
         return icon;
     }
