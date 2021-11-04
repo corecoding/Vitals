@@ -231,7 +231,6 @@ var VitalsMenuButton = GObject.registerClass({
             text: (value)?value:'\u2026', // ...
             y_expand: true,
             y_align: Clutter.ActorAlign.START
-            //,width: 10
         });
 
         // attempt to prevent ellipsizes
@@ -450,7 +449,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _ucFirst(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
+        return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     get positionInPanel() {
