@@ -331,8 +331,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _updateDisplay(label, value, type, key) {
-        //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
-
         // update sensor value in menubar
         if (this._hotLabels[key]) {
             this._hotLabels[key].set_text(value);
@@ -342,18 +340,11 @@ var VitalsMenuButton = GObject.registerClass({
                 if (typeof this._widths[key] == 'undefined')
                     this._widths[key] = this._hotLabels[key].width;
 
-                //global.log('*******************');
-                //global.log('label=' + label);
-                //global.log('width before=' + this._widths[key]);
-
                 let width2 = this._hotLabels[key].get_clutter_text().width;
                 if (width2 > this._widths[key]) {
-                    global.log('setting width to ' + width2);
                     this._hotLabels[key].set_width(width2);
                     this._widths[key] = width2;
                 }
-
-                //global.log('width after=' + this._hotLabels[key].width);
             }
         }
 
