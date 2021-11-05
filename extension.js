@@ -55,8 +55,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._groups = {};
         this._widths = {};
 
-        this._update_time = this._settings.get_int('update-time');
-
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({
@@ -206,6 +204,9 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _initializeTimer() {
+        this._update_time = this._settings.get_int('update-time');
+        this._sensors.update_time = this._update_time;
+
         // start off with fresh sensors
         this._querySensors();
 
@@ -314,9 +315,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _updateTimeChanged() {
-        this._update_time = this._settings.get_int('update-time');
-        this._sensors.update_time = this._update_time;
-
         // invalidate and reinitialize timer
         Mainloop.source_remove(this._refreshTimeoutId);
 
@@ -456,6 +454,15 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _querySensors() {
+        global.log('querySensors');
+
+        let hotSensors = this._settings.get_strv('hot-sensors');
+        if (hotSensors[0] == '_default_icon_') {
+            global.log('nothing to query');
+        } else {
+            global.log('querying sensors');
+        }
+
         this._sensors.query((label, value, type, format) => {
             let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
