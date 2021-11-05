@@ -70,6 +70,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._drawMenu();
         this.add_actor(this._menuLayout);
         this._settingChangedSignals = [];
+        this._refreshTimeoutId = null;
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
@@ -204,14 +205,12 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _initializeTimer() {
-        this._update_time = this._settings.get_int('update-time');
-        this._sensors.update_time = this._update_time;
-
         // start off with fresh sensors
         this._querySensors();
 
         // used to query sensors and update display
-        this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._update_time, (self) => {
+        this._sensors.update_time = this._settings.get_int('update-time');
+        this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._sensors.update_time, (self) => {
             this._querySensors();
 
             // keep the timer running
@@ -314,10 +313,16 @@ var VitalsMenuButton = GObject.registerClass({
             this._createHotItem(key);
     }
 
-    _updateTimeChanged() {
+    _destroyTimer() {
         // invalidate and reinitialize timer
-        Mainloop.source_remove(this._refreshTimeoutId);
+        if (this._refreshTimeoutId != null) {
+            Mainloop.source_remove(this._refreshTimeoutId);
+            this._refreshTimeoutId = null;
+        }
+    }
 
+    _updateTimeChanged() {
+        this._destroyTimer();
         this._initializeTimer();
     }
 
@@ -454,15 +459,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _querySensors() {
-        global.log('querySensors');
-
-        let hotSensors = this._settings.get_strv('hot-sensors');
-        if (hotSensors[0] == '_default_icon_') {
-            global.log('nothing to query');
-        } else {
-            global.log('querying sensors');
-        }
-
         this._sensors.query((label, value, type, format) => {
             let key = '_' + type.split('-')[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
@@ -486,7 +482,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
-        Mainloop.source_remove(this._refreshTimeoutId);
+        this._destroyTimer();
 
         // has already been deallocated, was causing silent crashes
 /*
