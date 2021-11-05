@@ -129,7 +129,7 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         // custom round refresh button
-        let refreshButton = this._createRoundButton('view-refresh-symbolic', _("Refresh"));
+        let refreshButton = this._createRoundButton('view-refresh-symbolic', _('Refresh'));
         refreshButton.connect('clicked', (self) => {
             this._sensors.resetHistory();
             this._values.resetHistory();
@@ -138,15 +138,15 @@ var VitalsMenuButton = GObject.registerClass({
         customButtonBox.add_actor(refreshButton);
 
         // custom round monitor button
-        let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _("System Monitor"));
+        let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _('System Monitor'));
         monitorButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-            Util.spawn(["gnome-system-monitor"]);
+            Util.spawn(['gnome-system-monitor']);
         });
         customButtonBox.add_actor(monitorButton);
 
         // custom round preferences button
-        let prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
+        let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
 
@@ -154,7 +154,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (typeof ExtensionUtils.openPrefs === 'function') {
                 ExtensionUtils.openPrefs();
             } else {
-                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+                Util.spawn(['gnome-shell-extension-prefs', Me.metadata.uuid]);
             }
         });
         customButtonBox.add_actor(prefsButton);
@@ -472,13 +472,13 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         if (this._warnings.length > 0) {
-            this._notify("Vitals", this._warnings.join("\n"), 'folder-symbolic');
+            this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
             this._warnings = [];
         }
     }
 
     _notify(msg, details, icon) {
-        let source = new MessageTray.Source("MyApp Information", icon);
+        let source = new MessageTray.Source('MyApp Information', icon);
         Main.messageTray.add(source);
         let notification = new MessageTray.Notification(source, msg, details);
         notification.setTransient(true);
