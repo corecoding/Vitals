@@ -209,8 +209,9 @@ var VitalsMenuButton = GObject.registerClass({
         this._querySensors();
 
         // used to query sensors and update display
-        this._sensors.update_time = this._settings.get_int('update-time');
-        this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._sensors.update_time, (self) => {
+        let update_time = this._settings.get_int('update-time');
+        this._sensors.update_time = update_time;
+        this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, (self) => {
             this._querySensors();
 
             // keep the timer running
