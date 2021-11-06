@@ -441,7 +441,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         // support for hide icons #80
         if (type == 'default') {
-            icon.icon_name = 'utilities-system-monitor-symbolic';
+            icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons['system']['icon']);
         } else if (!this._settings.get_boolean('hide-icons')) {
             let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
