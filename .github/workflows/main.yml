@@ -1,8 +1,9 @@
 name: Create zip artifact
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - master
 
 jobs:
   zip-files:
