@@ -1,0 +1,15 @@
+name: Create zip artifact
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  zip-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: papeloto/action-zip@v1
+        with:
+          files: metadata.json extension.js menuItem.js sensors.js values.js prefs.*
+          dest: vitals.zip
