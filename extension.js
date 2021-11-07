@@ -55,8 +55,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._groups = {};
         this._widths = {};
 
-        this._update_time = this._settings.get_int('update-time');
-
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({
@@ -72,12 +70,13 @@ var VitalsMenuButton = GObject.registerClass({
         this._drawMenu();
         this.add_actor(this._menuLayout);
         this._settingChangedSignals = [];
+        this._refreshTimeoutId = null;
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('use-higher-precision', this._higherPrecisionChanged.bind(this));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'fixed-widths' ];
+        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'fixed-widths', 'hide-icons' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -131,7 +130,7 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         // custom round refresh button
-        let refreshButton = this._createRoundButton('view-refresh-symbolic', _("Refresh"));
+        let refreshButton = this._createRoundButton('view-refresh-symbolic', _('Refresh'));
         refreshButton.connect('clicked', (self) => {
             this._sensors.resetHistory();
             this._values.resetHistory();
@@ -140,15 +139,15 @@ var VitalsMenuButton = GObject.registerClass({
         customButtonBox.add_actor(refreshButton);
 
         // custom round monitor button
-        let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _("System Monitor"));
+        let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _('System Monitor'));
         monitorButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-            Util.spawn(["gnome-system-monitor"]);
+            Util.spawn(['gnome-system-monitor']);
         });
         customButtonBox.add_actor(monitorButton);
 
         // custom round preferences button
-        let prefsButton = this._createRoundButton('preferences-system-symbolic', _("Preferences"));
+        let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
 
@@ -156,7 +155,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (typeof ExtensionUtils.openPrefs === 'function') {
                 ExtensionUtils.openPrefs();
             } else {
-                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+                Util.spawn(['gnome-shell-extension-prefs', Me.metadata.uuid]);
             }
         });
         customButtonBox.add_actor(prefsButton);
@@ -210,7 +209,9 @@ var VitalsMenuButton = GObject.registerClass({
         this._querySensors();
 
         // used to query sensors and update display
-        this._refreshTimeoutId = Mainloop.timeout_add_seconds(this._update_time, (self) => {
+        let update_time = this._settings.get_int('update-time');
+        this._sensors.update_time = update_time;
+        this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, (self) => {
             this._querySensors();
 
             // keep the timer running
@@ -218,10 +219,8 @@ var VitalsMenuButton = GObject.registerClass({
         });
     }
 
-    _createHotItem(key, gicon, value) {
-        let css_class = key.replace('__', '_').replace('-','_').split('_')[1];
-        let icon = this._defaultIcon(css_class, gicon);
-
+    _createHotItem(key, value) {
+        let icon = this._defaultIcon(key);
         this._hotIcons[key] = icon;
         this._menuLayout.add_actor(icon)
 
@@ -233,7 +232,6 @@ var VitalsMenuButton = GObject.registerClass({
             text: (value)?value:'\u2026', // ...
             y_expand: true,
             y_align: Clutter.ActorAlign.START
-            //,width: 10
         });
 
         // attempt to prevent ellipsizes
@@ -316,13 +314,16 @@ var VitalsMenuButton = GObject.registerClass({
             this._createHotItem(key);
     }
 
-    _updateTimeChanged() {
-        this._update_time = this._settings.get_int('update-time');
-        this._sensors.update_time = this._update_time;
-
+    _destroyTimer() {
         // invalidate and reinitialize timer
-        Mainloop.source_remove(this._refreshTimeoutId);
+        if (this._refreshTimeoutId != null) {
+            Mainloop.source_remove(this._refreshTimeoutId);
+            this._refreshTimeoutId = null;
+        }
+    }
 
+    _updateTimeChanged() {
+        this._destroyTimer();
         this._initializeTimer();
     }
 
@@ -331,8 +332,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _updateDisplay(label, value, type, key) {
-        //global.log('...label=' + label, 'value=' + value, 'type=' + type, 'key=' + key);
-
         // update sensor value in menubar
         if (this._hotLabels[key]) {
             this._hotLabels[key].set_text(value);
@@ -342,18 +341,11 @@ var VitalsMenuButton = GObject.registerClass({
                 if (typeof this._widths[key] == 'undefined')
                     this._widths[key] = this._hotLabels[key].width;
 
-                //global.log('*******************');
-                //global.log('label=' + label);
-                //global.log('width before=' + this._widths[key]);
-
                 let width2 = this._hotLabels[key].get_clutter_text().width;
                 if (width2 > this._widths[key]) {
-                    global.log('setting width to ' + width2);
                     this._hotLabels[key].set_width(width2);
                     this._widths[key] = width2;
                 }
-
-                //global.log('width after=' + this._hotLabels[key].width);
             }
         }
 
@@ -388,7 +380,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (self.checked) {
                 // add selected sensor to panel
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, self.gicon, self.value);
+                this._createHotItem(self.key, self.value);
             } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
@@ -416,9 +408,6 @@ var VitalsMenuButton = GObject.registerClass({
             this._saveHotSensors(hotSensors);
         });
 
-        if (this._hotLabels[key] && this._hotIcons[key])
-            this._hotIcons[key].gicon = item.gicon;
-
         this._sensorMenuItems[key] = item;
         let i = Object.keys(this._sensorMenuItems[key]).length;
 
@@ -441,19 +430,28 @@ var VitalsMenuButton = GObject.registerClass({
         });
     }
 
-    _defaultIcon(css_class, gicon) {
+    _defaultIcon(key) {
+        let split = key.replaceAll('_', ' ').trim().split(' ')[0].split('-');
+        let type = split[0];
+
         let icon = new St.Icon({
-            icon_name: "utilities-system-monitor-symbolic",
-          style_class: 'system-status-icon vitals-panel-icon-' + css_class,
+          style_class: 'system-status-icon vitals-panel-icon-' + type,
             reactive: true
         });
 
-        if (gicon) icon.gicon = gicon;
+        // support for hide icons #80
+        if (type == 'default') {
+            icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons['system']['icon']);
+        } else if (!this._settings.get_boolean('hide-icons')) {
+            let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+            icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
+        }
+
         return icon;
     }
 
     _ucFirst(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
+        return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     get positionInPanel() {
@@ -471,13 +469,13 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         if (this._warnings.length > 0) {
-            this._notify("Vitals", this._warnings.join("\n"), 'folder-symbolic');
+            this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
             this._warnings = [];
         }
     }
 
     _notify(msg, details, icon) {
-        let source = new MessageTray.Source("MyApp Information", icon);
+        let source = new MessageTray.Source('MyApp Information', icon);
         Main.messageTray.add(source);
         let notification = new MessageTray.Notification(source, msg, details);
         notification.setTransient(true);
@@ -485,7 +483,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
-        Mainloop.source_remove(this._refreshTimeoutId);
+        this._destroyTimer();
 
         // has already been deallocated, was causing silent crashes
 /*

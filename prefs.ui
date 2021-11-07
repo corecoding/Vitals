@@ -308,6 +308,33 @@
                         </property>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="width_request">100</property>
+                        <property name="selectable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="can_focus">0</property>
+                            <property name="margin_top">6</property>
+                            <property name="margin_bottom">6</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="hexpand">1</property>
+                                <property name="can_focus">0</property>
+                                <property name="halign">start</property>
+                                <property name="margin-start">5</property>
+                                <property name="label" translatable="yes">Hide icons in top bar</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSwitch" id="hide-icons">
+                                <property name="halign">end</property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </property>
                 <child type="label_item">
@@ -754,7 +781,7 @@
     </child>
   </object>
   <object class="GtkBox" id="storage_prefs">
-    <property name="can_focus">0</property>
+    <property name="can_focus">1</property>
     <property name="margin_top">12</property>
     <property name="margin_bottom">12</property>
     <property name="margin_start">6</property>
@@ -762,10 +789,10 @@
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkFrame">
-        <property name="can_focus">0</property>
+        <property name="can_focus">1</property>
         <property name="child">
           <object class="GtkListBox">
-            <property name="can_focus">0</property>
+            <property name="can_focus">1</property>
             <property name="selection_mode">none</property>
             <child>
               <object class="GtkListBoxRow">
@@ -774,7 +801,7 @@
                 <property name="selectable">0</property>
                 <property name="child">
                   <object class="GtkBox">
-                    <property name="can_focus">0</property>
+                    <property name="can_focus">1</property>
                     <property name="margin_top">6</property>
                     <property name="margin_bottom">6</property>
                     <property name="margin_start">6</property>
@@ -783,7 +810,7 @@
                     <child>
                       <object class="GtkLabel">
                         <property name="hexpand">1</property>
-                        <property name="can_focus">0</property>
+                        <property name="can_focus">1</property>
                         <property name="halign">start</property>
                         <property name="label" translatable="yes">Path</property>
                       </object>
@@ -791,6 +818,9 @@
                     <child>
                       <object class="GtkEntry" id="storage-path">
                         <property name="placeholder_text" translatable="no">/</property>
+                        <property name="can_focus">1</property>
+                        <property name="editable">1</property>
+                        <property name="width_chars">24</property>
                       </object>
                     </child>
                   </object>
