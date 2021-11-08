@@ -1,4 +1,16 @@
-locale/*.po export-ignore
+locale/sk/LC_MESSAGES/vitals.po export-ignore
+locale/pl/LC_MESSAGES/vitals.po export-ignore
+locale/fi_FI/LC_MESSAGES/vitals.po export-ignore
+locale/pt_BR/LC_MESSAGES/vitals.po export-ignore
+locale/it/LC_MESSAGES/vitals.po export-ignore
+locale/ca/LC_MESSAGES/vitals.po export-ignore
+locale/ru/LC_MESSAGES/vitals.po export-ignore
+locale/zh_CN/LC_MESSAGES/vitals.po export-ignore
+locale/pt/LC_MESSAGES/vitals.po export-ignore
+locale/nl/LC_MESSAGES/vitals.po export-ignore
+locale/es/LC_MESSAGES/vitals.po export-ignore
+locale/tr/LC_MESSAGES/vitals.po export-ignore
 locale/vitals.pot export-ignore
 zip.sh export-ignore
 README.md export-ignore
+schemas/org.gnome.shell.extensions.vitals.gschema.xml export-ignore
