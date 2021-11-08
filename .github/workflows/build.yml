@@ -5,7 +5,6 @@ on:
     branches:
       - master
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,8 +22,8 @@ jobs:
           type: 'zip'
           filename: 'release.zip'
           exclusions: '*.git* locale/*.po locale/vitals.pot zip.sh schemas/org.gnome.shell.extensions.vitals.gschema.xml'
-      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        name: Upload Release
+#      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      - name: Upload Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: "release.zip"
