@@ -6,10 +6,12 @@ on:
       - master
 
 jobs:
-  zip-files:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Gettext
+        run: sudo apt install gettext
       - uses: papeloto/action-zip@v1
         with:
           files: metadata.json extension.js menuItem.js sensors.js values.js prefs.*
