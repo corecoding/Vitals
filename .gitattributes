@@ -1,4 +1,4 @@
 locale/*.po export-ignore
 locale/vitals.pot export-ignore
 zip.sh export-ignore
-
+README.md export-ignore
