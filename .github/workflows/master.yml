@@ -1,0 +1,16 @@
+name: Create zip artifact
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Zip Folder
+      run: zip release.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
+    - name: Release to Github
+      run: echo "Release"
