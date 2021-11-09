@@ -12,7 +12,7 @@ if [ -x /usr/bin/glib-compile-schemas ]; then
     fi
 fi
 
-# check if msgfmt is missing
+# check if msgfmt is tool missing
 if [ ! -x /usr/bin/msgfmt ]; then
     # msgfmt doesn't exist, see if apt exists
     if [ -x /usr/bin/apt ]; then
@@ -21,7 +21,7 @@ if [ ! -x /usr/bin/msgfmt ]; then
     fi
 fi
 
-# check if msgfmt exists
+# compile message catalogs to binary format
 if [ -x /usr/bin/msgfmt ]; then
     if [ -d ./locale/ ]; then
         for i in locale/*/
@@ -30,6 +30,5 @@ if [ -x /usr/bin/msgfmt ]; then
     fi
 fi
 
-# zip up files, skipping blocked files as seen at
-# https://wiki.gnome.org/Projects/GnomeShell/Extensions/Review#Don.27t_include_unecessary_files
+# bundle files, skip unecessary files per https://wiki.gnome.org/Projects/GnomeShell/Extensions/Review#Don.27t_include_unecessary_files
 zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
