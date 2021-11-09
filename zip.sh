@@ -30,5 +30,5 @@ if [ -x /usr/bin/msgfmt ]; then
     fi
 fi
 
-# bundle files, skip unecessary files per https://wiki.gnome.org/Projects/GnomeShell/Extensions/Review#Don.27t_include_unecessary_files
+# bundle files, skip unnecessary files per https://wiki.gnome.org/Projects/GnomeShell/Extensions/Review#Don.27t_include_unecessary_files
 zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
