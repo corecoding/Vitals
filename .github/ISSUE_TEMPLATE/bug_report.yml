@@ -4,6 +4,13 @@ labels: ["bug"]
 assignees:
   - corecoding
 body:
+  - type: input
+    id: title
+    attributes:
+      label: What distribution and version of Linux are you using? 
+      description: Ubuntu 21.10, Fedora 35, etc
+    validations:
+      required: true
   - type: markdown
     attributes:
       value: |
