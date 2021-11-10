@@ -11,16 +11,14 @@ body:
   - type: checkboxes
     attributes:
       label: Has this issue been covered in the Wiki?
-      description: Please search the Wiki to see if your issue already has a solution.
       options:
-      - label: I have read the Wiki and my issue is not covered
+      - label: I have read the Wiki and my issue is not covered.
         required: true
   - type: checkboxes
     attributes:
       label: Is there an existing issue reported already?
-      description: Please search to see if an issue already exists for the bug you encountered.
       options:
-      - label: I have searched the existing issues
+      - label: I have searched the existing issues, it does not exist.
         required: true
   - type: textarea
     id: what-happened
