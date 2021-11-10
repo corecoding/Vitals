@@ -23,7 +23,7 @@ body:
   - type: textarea
     id: what-happened
     attributes:
-      label: What happened?
+      label: What is the unexpected behavior?
       placeholder: A clear and concise description of what the bug is.
     validations:
       required: true
