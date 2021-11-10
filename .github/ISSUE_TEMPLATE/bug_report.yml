@@ -24,15 +24,13 @@ body:
     id: what-happened
     attributes:
       label: What happened?
-      description: A clear and concise description of what the bug is.
-      placeholder: Tell us what you see!
+      placeholder: A clear and concise description of what the bug is.
     validations:
       required: true
   - type: textarea
     id: steps-to-reproduce
     attributes:
-      label: Steps to reproduce
-      description: Steps to reproduce the unexpected behavior.
+      label: Steps to reproduce the unexpected behavior.
       placeholder: |
         1. Go to '...'
         2. Click on '....'
