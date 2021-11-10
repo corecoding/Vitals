@@ -1,8 +1,6 @@
 name: Bug Report
 description: Please read Wiki before submitting! 
 labels: ["bug"]
-assignees:
-  - corecoding
 body:
   - type: markdown
     attributes:
