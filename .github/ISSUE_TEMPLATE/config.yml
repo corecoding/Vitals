@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: GitHub Community Support
+  - name: Wiki
     url: https://github.com/corecoding/Vitals/wiki/
-    about: Please read Wiki before submitting a bug report! 
+    about: Please read this page submitting a bug report! It will likely save us both time.
