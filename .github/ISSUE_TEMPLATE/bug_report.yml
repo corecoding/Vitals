@@ -1,14 +1,21 @@
 name: Bug Report
-description: File a bug report
-title: "[Bug]: "
-labels: ["bug", "triage"]
+description: Please read Wiki before submitting! 
+title: ""
+labels: ["bug"]
 assignees:
-  - octocat
+  - corecoding
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        Thanks for taking the time to fill out this bug report! Please read Wiki before submitting - yes, your issue may already be documented.
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
   - type: input
     id: contact
     attributes:
