@@ -50,7 +50,7 @@ body:
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       render: shell
 
-  - type: text
+  - type: input
     id: distro
     attributes:
       label: What distribution and version of Linux are you using? 
