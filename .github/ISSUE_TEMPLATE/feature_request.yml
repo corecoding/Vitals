@@ -1,0 +1,60 @@
+name: Bug Report
+description: Please read Wiki before submitting! 
+labels: ["bug"]
+assignees:
+  - corecoding
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please read this form carefully.
+  - type: checkboxes
+    attributes:
+      label: Has this issue been covered in the Wiki?
+      options:
+      - label: I have read the Wiki and my issue is not covered.
+        required: true
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue reported already?
+      options:
+      - label: I have searched the existing issues, it does not exist.
+        required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What is the unexpected behavior?
+      placeholder: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce the unexpected behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true      
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output, such as from /var/log/syslog. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: input
+    id: distro-type
+    attributes:
+      label: What distribution and version of Linux are you using? 
+      placeholder: Ubuntu 21.10, Fedora 35, etc
+    validations:
+      required: true
+  - type: input
+    id: gnome-version
+    attributes:
+      label: What version of Gnome are you using? 
+      placeholder: 3.38, 40, 41, etc
+    validations:
+      required: true
