@@ -1,8 +1,6 @@
-name: Bug Report
+name: Feature Request
 description: Please read Wiki before submitting! 
-labels: ["bug"]
-assignees:
-  - corecoding
+labels: ["feature"]
 body:
   - type: markdown
     attributes:
