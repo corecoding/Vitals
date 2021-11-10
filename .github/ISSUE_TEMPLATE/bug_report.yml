@@ -42,7 +42,7 @@ body:
     id: logs
     attributes:
       label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      description: Please copy and paste any relevant log output, such as from /var/log/syslog. This will be automatically formatted into code, so no need for backticks.
       render: shell
   - type: input
     id: distro-type
@@ -58,9 +58,3 @@ body:
       placeholder: 3.38, 40, 41, etc
     validations:
       required: true
-
-
-
-
-
-
