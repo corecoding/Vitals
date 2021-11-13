@@ -6,7 +6,6 @@ const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-Me.imports.helpers.polyfills;
 const Sensors = Me.imports.sensors;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;

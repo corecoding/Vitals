@@ -2,11 +2,9 @@
 const Config = imports.misc.config;
 const [major] = Config.PACKAGE_VERSION.split('.');
 const shellVersion = Number.parseInt(major);
-
 const {Gio, Gtk, GObject} = imports.gi;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-Me.imports.helpers.polyfills;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
