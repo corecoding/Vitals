@@ -26,7 +26,7 @@
 
 const GObject = imports.gi.GObject;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const FileModule = Me.imports.helpers.file;
+const FileModule = Me.imports.files;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const NM = imports.gi.NM;

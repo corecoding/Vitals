@@ -8,7 +8,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const ExtensionUtils = imports.misc.extensionUtils;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const FileModule = Me.imports.helpers.file;
 
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
@@ -46,15 +45,6 @@ const Settings = new GObject.Class({
         this.widget = this.builder.get_object('prefs-container');
 
         this._bind_settings();
-
-        // let contents = FileModule.getcontents('/proc/mounts');
-        // let lines = contents.split("\n");
-
-        // for (let line of Object.values(lines)) {
-        //     if (line[0] != '/') continue;
-        //     if (line.indexOf('/snap/') != -1) continue;
-        //     global.log('*** ' + line);
-        // }
     },
 
     // Bind the gtk window to the schema settings
