@@ -139,7 +139,7 @@ var VitalsMenuButton = GObject.registerClass({
         customButtonBox.add_actor(refreshButton);
 
         // custom round monitor button
-        let monitorButton = this._createRoundButton('utilities-system-monitor-symbolic', _('System Monitor'));
+        let monitorButton = this._createRoundButton('org.gnome.SystemMonitor-symbolic', _('System Monitor'));
         monitorButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
             Util.spawn(['gnome-system-monitor']);
