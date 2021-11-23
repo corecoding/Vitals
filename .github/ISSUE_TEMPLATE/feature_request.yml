@@ -1,0 +1,27 @@
+name: Feature Request
+description: Please read Wiki before submitting!
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to submit a feature request! Please read this form carefully.
+  - type: checkboxes
+    attributes:
+      label: Has this issue been covered in the Wiki?
+      options:
+      - label: I have read the Wiki and my issue is not covered.
+        required: true
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue reported already?
+      options:
+      - label: I have searched the existing issues, it does not exist.
+        required: true
+  - type: textarea
+    id: feature-desc
+    attributes:
+      label: Describe the new feature you would like
+      placeholder: A clear and concise description of what you want to happen.
+    validations:
+      required: true

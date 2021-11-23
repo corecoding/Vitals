@@ -1,0 +1,291 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-12-29 12:05+0100\n"
+"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0\n"
+"X-Poedit-Basepath: ..\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Quentin PAGÈS\n"
+"Language: oc\n"
+"X-Poedit-SearchPath-0: values.js\n"
+"X-Poedit-SearchPath-1: sensors.js\n"
+"X-Poedit-SearchPath-2: prefs.js\n"
+"X-Poedit-SearchPath-3: notifications.js\n"
+"X-Poedit-SearchPath-4: menuItem.js\n"
+"X-Poedit-SearchPath-5: extension.js\n"
+"X-Poedit-SearchPath-6: schemas/prefs.ui\n"
+
+#: extension.js:113
+msgid "Preferences"
+msgstr "Preferéncias"
+
+#: extension.js:120
+msgid "System Monitor"
+msgstr "Monitor sistèma"
+
+#: extension.js:127
+msgid "Refresh"
+msgstr "Actualizar"
+
+#: schemas/prefs.ui:40
+msgid "Include public IP address"
+msgstr "Inclure l’adreça IP publica"
+
+#: schemas/prefs.ui:81
+msgid "Format"
+msgstr "Format"
+
+#: schemas/prefs.ui:95
+msgid "Bytes"
+msgstr "Octets"
+
+#: schemas/prefs.ui:96
+msgid "Bits"
+msgstr "Bits"
+
+#: schemas/prefs.ui:154
+msgid "General"
+msgstr "General"
+
+#: schemas/prefs.ui:194
+msgid "Seconds between updates"
+msgstr "Segondas entre las actualizacions"
+
+#: schemas/prefs.ui:244
+msgid "Position in panel"
+msgstr "Posicion al panèl"
+
+#: schemas/prefs.ui:259
+msgid "Left"
+msgstr "Esquèrra"
+
+#: schemas/prefs.ui:260
+msgid "Center"
+msgstr "Centre"
+
+#: schemas/prefs.ui:261
+msgid "Right"
+msgstr "Drecha"
+
+#: schemas/prefs.ui:293
+msgid "Use higher precision"
+msgstr "Precision mai granda"
+
+#: schemas/prefs.ui:335
+msgid "Alphabetize sensors"
+msgstr "Ordenar alfabeticament los captaires"
+
+#: schemas/prefs.ui:377
+msgid "Hide zero values"
+msgstr "Rescondre las valors a zèro"
+
+#: schemas/prefs.ui:419
+msgid "About"
+msgstr "A prepaus"
+
+#: schemas/prefs.ui:444
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
+"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
+"useful."
+msgstr ""
+"Demanda de foncionalitat o bug ? Consultatz <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. Cap de garantida, exprimida o "
+"implicita. <a href=\"https://corecoding.com/donate.php\">Donar</a> se "
+"trobatz aquò util."
+
+#: schemas/prefs.ui:485
+msgid "Sensors"
+msgstr "Captaires"
+
+#: schemas/prefs.ui:529
+msgid "Monitor temperature"
+msgstr "Susvelhar la temperatura"
+
+#: schemas/prefs.ui:610
+msgid "Monitor voltage"
+msgstr "Susvelhar lo voltatge"
+
+#: schemas/prefs.ui:653
+msgid "Monitor fan"
+msgstr "Susvelhar lo ventilador"
+
+#: schemas/prefs.ui:696
+msgid "Monitor memory"
+msgstr "Susvelhar la memòria"
+
+#: schemas/prefs.ui:739
+msgid "Monitor processor"
+msgstr "Susvelhar lo processor"
+
+#: schemas/prefs.ui:782
+msgid "Monitor system"
+msgstr "Susvelhar lo sistèma"
+
+#: schemas/prefs.ui:825
+msgid "Monitor network"
+msgstr "Susvelhar lo ret"
+
+#: schemas/prefs.ui:906
+msgid "Monitor storage"
+msgstr "Susvelhar l’emmagazinatge"
+
+#: schemas/prefs.ui:1031
+msgid "Path"
+msgstr "Camin d'accès"
+
+#: schemas/prefs.ui:1104
+msgid "Unit"
+msgstr "Unitat"
+
+#: sensors.js:120
+msgid "Usage"
+msgstr "Usatge"
+
+#: sensors.js:121
+msgid "Memory"
+msgstr "Memòria"
+
+#: sensors.js:122
+msgid "Physical"
+msgstr "Fisic"
+
+#: sensors.js:123
+msgid "Available"
+msgstr "Disponible"
+
+#: sensors.js:124
+msgid "Allocated"
+msgstr "Alogat"
+
+#: sensors.js:125
+msgid "Swap Used"
+msgstr "Fichièr d’escambi utilizat"
+
+#: sensors.js:165 values.js:183
+msgid "Average"
+msgstr "Mejana"
+
+#: sensors.js:166
+msgid "Processor"
+msgstr "Processor"
+
+#: sensors.js:168
+#, javascript-format
+msgid "Core %d"
+msgstr "Còs %d"
+
+#: sensors.js:207
+msgid "Frequency"
+msgstr "Frequéncia"
+
+#: sensors.js:208
+msgid "Boost"
+msgstr "Partejar"
+
+#: sensors.js:203
+msgid "Load 1m"
+msgstr "Carga 1m"
+
+#: sensors.js:204
+msgid "System"
+msgstr "Sistèma"
+
+#: sensors.js:205
+msgid "Load 5m"
+msgstr "Carga 5m"
+
+#: sensors.js:206
+msgid "Load 15m"
+msgstr "Carga 15m"
+
+#: sensors.js:207
+msgid "Threads Active"
+msgstr "Fils actius"
+
+#: sensors.js:208
+msgid "Threads Total"
+msgstr "Fils totals"
+
+#: sensors.js:216
+msgid "Uptime"
+msgstr "Temps de connexion"
+
+#: sensors.js:220
+msgid "Process Time"
+msgstr "Temps de tractament"
+
+#: sensors.js:277
+msgid "Public IP"
+msgstr "IP publica"
+
+#: sensors.js:298
+msgid "Total"
+msgstr "Al total"
+
+#: sensors.js:299
+msgid "Used"
+msgstr "Utilizat"
+
+#: sensors.js:300
+msgid "Reserved"
+msgstr "Reservat"
+
+#: sensors.js:301
+msgid "Free"
+msgstr "Libre"
+
+#: sensors.js:302
+msgid "Storage"
+msgstr "Emmagazinatge"
+
+#: values.js:189
+msgid "Maximum "
+msgstr "Maximum "
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Voltage"
+msgstr "Voltatge"
+
+msgid "Fan"
+msgstr "Ventilador"
+
+msgid "Network"
+msgstr "Ret"
+
+msgid "Temperature Preferences"
+msgstr "Preferéncias de temperatura"
+
+msgid "Network Preferences"
+msgstr "Preferéncias ret"
+
+msgid "Storage Preferences"
+msgstr "Preferéncias d’emmagazinatge"
+
+#: sensors.js:226
+msgid "Open Files"
+msgstr "Dobrir los fichièrs"
+
+#: sensors.js:430
+msgid "Data read"
+msgstr "Donadas legidas"
+
+#: sensors.js:431
+msgid "Data written"
+msgstr "Donadas escrichas"
+
+#: sensors.js:432
+msgid "Data read/sec"
+msgstr "Donadas legidas/seg"
+
+#: sensors.js:433
+msgid "Data written/sec"
+msgstr "Donadas escrichas/seg"
