@@ -204,14 +204,15 @@ var Sensors = GObject.registerClass({
         new FileModule.File('/proc/cpuinfo').read().then(lines => {
             lines = lines.split("\n");
 
-            //let vendor_id = '';
+            let vendor_id = '';
 
             let freqs = [];
             for (let line of Object.values(lines)) {
                 let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
                 if (value) freqs.push(parseFloat(value[2]));
 
-                //vendor_id = line.match(/^vendor_id(\s+): ([+-]?\d+(\.\d+)?)/);
+                value = line.match(/^vendor_id(\s+): (\w+.*)/);
+                if (value) vendor_id = value[2];
             }
 
             let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
@@ -219,7 +220,7 @@ var Sensors = GObject.registerClass({
             let hertz = (sum / freqs.length) * 1000 * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
             this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
-            //this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
+            this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
         }).catch(err => { });
     }
 
