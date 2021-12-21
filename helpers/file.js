@@ -1,5 +1,7 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
 
 function contentsCleaner(contents) {
