@@ -205,14 +205,31 @@ var Sensors = GObject.registerClass({
             lines = lines.split("\n");
 
             let vendor_id = '';
+            let sockets = {};
+            let bogomips = '';
+            let cache = '';
 
             let freqs = [];
             for (let line of Object.values(lines)) {
+                // grab megahertz
                 let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
                 if (value) freqs.push(parseFloat(value[2]));
 
+                // grab cpu vendor
                 value = line.match(/^vendor_id(\s+): (\w+.*)/);
                 if (value) vendor_id = value[2];
+
+                // grab bogomips
+                value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/);
+                if (value) bogomips = value[2];
+
+                // grab processor count
+                value = line.match(/^physical id(\s+): (\d+)$/);
+                if (value) sockets[value[2]] = 1;
+
+                // grab cache
+                value = line.match(/^cache size(\s+): (\d+) KB$/);
+                if (value) cache = value[2];
             }
 
             let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
@@ -221,6 +238,9 @@ var Sensors = GObject.registerClass({
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
             this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
             this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
+            this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
+            this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
+            this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
         }).catch(err => { });
     }
 
