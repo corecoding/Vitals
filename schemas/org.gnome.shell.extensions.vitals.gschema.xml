@@ -77,7 +77,7 @@
       <description>Display network information</description>
     </key>
     <key type="b" name="include-public-ip">
-      <default>false</default>
+      <default>true</default>
       <summary>Include public IP address</summary>
       <description>Display public IP address of internet connection</description>
     </key>
