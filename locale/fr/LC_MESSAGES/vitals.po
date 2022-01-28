@@ -1,0 +1,397 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Vitals\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-29 12:05+0100\n"
+"PO-Revision-Date: 2022-01-25 12:40+0100\n"
+"Last-Translator: Yaya-Cout <yaya.cout@free.fr>\n"
+"Language-Team: French <gnome-fr-list@gnome.org\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: extension.js:113
+msgid "Preferences"
+msgstr "Préférences"
+
+#: extension.js:120
+msgid "System Monitor"
+msgstr "Moniteur système"
+
+#: extension.js:127
+msgid "Refresh"
+msgstr "Actualiser"
+
+#: schemas/prefs.ui:40
+msgid "Include public IP address"
+msgstr "Inclure l'adresse IP publique"
+
+#: schemas/prefs.ui:81
+msgid "Format"
+msgstr "Format"
+
+#: schemas/prefs.ui:95
+msgid "Bytes"
+msgstr "Octets"
+
+#: schemas/prefs.ui:96
+msgid "Bits"
+msgstr "Bits"
+
+#: schemas/prefs.ui:154
+msgid "General"
+msgstr "Général"
+
+#: schemas/prefs.ui:194
+msgid "Seconds between updates"
+msgstr "Secondes entres les mises à jour"
+
+#: schemas/prefs.ui:244
+msgid "Position in panel"
+msgstr "Position dans le panneau"
+
+#: schemas/prefs.ui:259
+msgid "Left"
+msgstr "Gauche"
+
+#: schemas/prefs.ui:260
+msgid "Center"
+msgstr "Centre"
+
+#: schemas/prefs.ui:261
+msgid "Right"
+msgstr "Droite"
+
+#: schemas/prefs.ui:293
+msgid "Use higher precision"
+msgstr "Utiliser plus de précision"
+
+#: schemas/prefs.ui:335
+msgid "Alphabetize sensors"
+msgstr "Alphabetiser les capteurs"
+
+#: schemas/prefs.ui:377
+msgid "Hide zero values"
+msgstr "Masques les valeurs nulles"
+
+#: schemas/prefs.ui:419
+msgid "About"
+msgstr "À propos"
+
+#: schemas/prefs.ui:444
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
+"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
+"useful."
+msgstr ""
+"Demandes de fonctionnalités ou bugs ? Veuillez visiter <a href=\"https://"
+"github.com/corecoding/Vitals/issues\">GitHub</a>. Aucune garantie, explicite "
+"ou implicite. Faites un <a href=\"https://corecoding.com/donate.php\">don</"
+"a> si cela vous a été utile."
+
+#: schemas/prefs.ui:485
+msgid "Sensors"
+msgstr "Capteurs"
+
+#: schemas/prefs.ui:529
+msgid "Monitor temperature"
+msgstr "Surveiller la temperature"
+
+#: schemas/prefs.ui:610
+msgid "Monitor voltage"
+msgstr "Surveiller la tension"
+
+#: schemas/prefs.ui:653
+msgid "Monitor fan"
+msgstr "Surveiller les ventilateurs"
+
+#: schemas/prefs.ui:696
+msgid "Monitor memory"
+msgstr "Surveiller la mémoire"
+
+#: schemas/prefs.ui:739
+msgid "Monitor processor"
+msgstr "Surveiller le processeur"
+
+#: schemas/prefs.ui:782
+msgid "Monitor system"
+msgstr "Surveiller le système"
+
+#: schemas/prefs.ui:825
+msgid "Monitor network"
+msgstr "Surveiller le réseau"
+
+#: schemas/prefs.ui:906
+msgid "Monitor storage"
+msgstr "Surveiller le stockage"
+
+#: schemas/prefs.ui:1031
+msgid "Path"
+msgstr "Chemin"
+
+#: schemas/prefs.ui:1104
+msgid "Unit"
+msgstr "Unité"
+
+#: sensors.js:120
+msgid "Usage"
+msgstr "Utilisation"
+
+#: sensors.js:121
+msgid "Memory"
+msgstr "Memoire"
+
+#: sensors.js:122
+msgid "Physical"
+msgstr "Physique"
+
+#: sensors.js:123
+msgid "Available"
+msgstr "Disponible"
+
+#: sensors.js:124
+msgid "Allocated"
+msgstr "Alloué"
+
+#: sensors.js:125
+msgid "Swap Used"
+msgstr "Espace d'échange utilisé"
+
+#: sensors.js:165 values.js:183
+msgid "Average"
+msgstr "Moyenne"
+
+#: sensors.js:166
+msgid "Processor"
+msgstr "Processeur"
+
+#: sensors.js:168
+#, javascript-format
+msgid "Core %d"
+msgstr "Coeur %d"
+
+#: sensors.js:207
+msgid "Frequency"
+msgstr "Fréquence"
+
+#: sensors.js:208
+msgid "Boost"
+msgstr "Boost"
+
+#: sensors.js:203
+msgid "Load 1m"
+msgstr "Charge 1min"
+
+#: sensors.js:204
+msgid "System"
+msgstr "Système"
+
+#: sensors.js:205
+msgid "Load 5m"
+msgstr "Charge 5min"
+
+#: sensors.js:206
+msgid "Load 15m"
+msgstr "Charge 15min"
+
+#: sensors.js:207
+msgid "Threads Active"
+msgstr "Processus actifs"
+
+#: sensors.js:208
+msgid "Threads Total"
+msgstr "Processus total"
+
+#: sensors.js:216
+msgid "Uptime"
+msgstr "Durée de fonctionnement"
+
+#: sensors.js:220
+msgid "Process Time"
+msgstr "Temps de traitement"
+
+#: sensors.js:277
+msgid "Public IP"
+msgstr "IP publique"
+
+#: sensors.js:298
+msgid "Total"
+msgstr "Total"
+
+#: sensors.js:299
+msgid "Used"
+msgstr "Utilisé"
+
+#: sensors.js:300
+msgid "Reserved"
+msgstr "Réservé"
+
+#: sensors.js:301
+msgid "Free"
+msgstr "Libre"
+
+#: sensors.js:302
+msgid "Storage"
+msgstr "Stockage"
+
+#: values.js:189
+msgid "Maximum "
+msgstr "Maximum "
+
+msgid "Temperature"
+msgstr "Température"
+
+msgid "Voltage"
+msgstr "Tension"
+
+msgid "Fan"
+msgstr "Ventilateur"
+
+msgid "Network"
+msgstr "Réseau"
+
+msgid "Temperature Preferences"
+msgstr "Préférences de température"
+
+msgid "Network Preferences"
+msgstr "Préférences de réseau"
+
+msgid "Storage Preferences"
+msgstr "Préférences de stockage"
+
+#: sensors.js:226
+msgid "Open Files"
+msgstr "Fichiers ouverts"
+
+#: sensors.js:430
+msgid "Data read"
+msgstr "Données lues"
+
+#: sensors.js:431
+msgid "Data written"
+msgstr "Données écrites"
+
+#: sensors.js:432
+msgid "Data read/sec"
+msgstr "Données lues / sec"
+
+#: sensors.js:433
+msgid "Data written/sec"
+msgstr "Données écrites / sec"
+
+msgid "Use fixed widths"
+msgstr "Utiliser des largeurs fixes"
+
+msgid "Hide icons in top bar"
+msgstr "Masquer les icônes dans la barre supérieure"
+
+msgid "Monitor battery"
+msgstr "Surveiller la batterie"
+
+msgid "Measurement"
+msgstr "Mesure"
+
+msgid "Display battery"
+msgstr "Afficher la batterie"
+
+msgid "Display Battery"
+msgstr "Afficher la batterie"
+
+msgid "Sensors to show in panel"
+msgstr "Capteurs à afficher dans le panneau"
+
+msgid "List of sensors to be shown in the panel"
+msgstr "Liste des capteurs à afficher dans le panneau"
+
+msgid "Delay between sensor polling"
+msgstr "Délai entre les interrogations des capteurs"
+
+msgid "Position in Panel ('left', 'center', 'right')"
+msgstr "Position dans le panneau ('gauche', 'centre', 'droite')"
+
+msgid "Show one extra digit after decimal"
+msgstr "Afficher un chiffre supplémentaire après la virgule"
+
+msgid "Display sensors in alphabetical order"
+msgstr "Afficher les capteurs dans l'ordre alphabétique"
+
+msgid "Hide data from sensors that are invalid"
+msgstr "Masquer les données des capteurs qui ne sont pas valides"
+
+msgid "Display temperature of various components"
+msgstr "Afficher la température de divers composants"
+
+msgid ""
+"The unit ('centigrade' or 'fahrenheit') the extension should display the "
+"temperature in"
+msgstr ""
+"L'unité ('celsius' ou 'fahrenheit') de l'extension doit afficher la "
+"température en"
+
+msgid "Display voltage of various components"
+msgstr "Afficher la tension de divers composants"
+
+msgid "Display fan rotation per minute"
+msgstr "Afficher la rotation du ventilateur par minute"
+
+msgid "Display memory information"
+msgstr "Afficher les informations sur la mémoire"
+
+msgid "Display processor information"
+msgstr "Afficher les informations sur le processeur"
+
+msgid "Display system information"
+msgstr "Afficher les informations sur le système"
+
+msgid "Display storage information"
+msgstr "Afficher les informations sur le stockage"
+
+msgid "Display network information"
+msgstr "Afficher les informations sur le réseau"
+
+msgid "Display public IP address of internet connection"
+msgstr "Afficher l'adresse IP publique de la connexion Internet"
+
+msgid "Network speed format"
+msgstr "Format de vitesse du réseau"
+
+msgid "Should speed display in bits or bytes?"
+msgstr "La vitesse doit-elle s'afficher en bits ou en octets ?"
+
+msgid "Storage path for monitoring"
+msgstr "Chemin de stockage pour la surveillance"
+
+msgid "Monitor battery health"
+msgstr "Surveiller la santé de la batterie"
+
+msgid "Memory measurement"
+msgstr "Mesure de la mémoire"
+
+msgid "Can use use gigabyte or gibigyte for memory"
+msgstr "Peut utiliser des gigaoctets ou des gibioctets pour la mémoire"
+
+msgid "Storage measurement"
+msgstr "Mesure du stockage"
+
+msgid "Can use use gigabyte or gibigyte for storage"
+msgstr "Peut utiliser des gigaoctets ou des gibioctets pour le stockage"
+
+msgid "Battery slot to monitor"
+msgstr "Batterie a surveiller"
+
+msgid "Which numerical battery slot should vitals monitor"
+msgstr "Quel batterie Vitals doit-il surveiller"
+
+msgid "Use fixed widths in top bar"
+msgstr "Utiliser des largeurs fixes dans la barre supérieure"
+
+msgid "Keep sensors in top bar from jumping around"
+msgstr "Empêchez les capteurs de la barre supérieure de sauter"
+
+msgid "Keep top bar clean by only showing sensor values"
+msgstr "Gardez la barre supérieure propre en affichant uniquement les valeurs des capteurs"
