@@ -11,6 +11,7 @@ locale/pt/LC_MESSAGES/vitals.po export-ignore
 locale/nl/LC_MESSAGES/vitals.po export-ignore
 locale/es/LC_MESSAGES/vitals.po export-ignore
 locale/tr/LC_MESSAGES/vitals.po export-ignore
+locale/oc/LC_MESSAGES/vitals.po export-ignore
 locale/vitals.pot export-ignore
 zip.sh export-ignore
 README.md export-ignore
