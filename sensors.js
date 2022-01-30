@@ -233,7 +233,7 @@ var Sensors = GObject.registerClass({
             }
 
             let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
-            let sum = freqs.reduce(function(a, b) { return a + b; });
+            let sum = freqs.reduce((a, b) => a + b);
             let hertz = (sum / freqs.length) * 1000 * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
             this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
