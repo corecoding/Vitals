@@ -121,5 +121,10 @@
       <summary>Hide icons in top bar</summary>
       <description>Keep top bar clean by only showing sensor values</description>
     </key>
+    <key type="b" name="include-lo">
+      <default>false</default>
+      <summary>Include lo in aggregate</summary>
+      <description>Include lo in Maximum counter</description>
+    </key>
   </schema>
 </schemalist>
