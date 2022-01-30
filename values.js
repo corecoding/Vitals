@@ -253,8 +253,7 @@ var Values = GObject.registerClass({
 		if (type == 'fan') {
 		  filtered = vals.filter(item => item !== 0);
 		  vals = filtered;
-		}
-		else if (type == 'temperature') {
+		} else if (type == 'temperature') {
 		  filtered = vals.filter(item => item >= 0 && item < 130000);
 		  vals = filtered;
 		}
@@ -266,7 +265,13 @@ var Values = GObject.registerClass({
                 output.push(['Average', avg, type, '__' + type + '_avg__']);
                 output.push([type, avg, type + '-group', '']);
             } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
+
+
+                let vals = Object.keys(this._history[type])
+                    .filter(k => k.substr(0, 12) != '_network_lo_')
+                    .map(k => parseFloat( this._history[type][k][1]   ));
+
+
                 let max = Math.getMaxOfArray(vals);
                 max = this._legible(max, format);
                 output.push(['Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, '__' + type + '_max__']);
