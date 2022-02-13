@@ -59,7 +59,7 @@ var MenuItem = GObject.registerClass({
 
     // prevents menu from being closed
     activate(event) {
-	this._checked = !this._checked;
+    this._checked = !this._checked;
         this._updateOrnament();
         this.emit('toggle', event);
     }
