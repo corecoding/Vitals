@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the
 # gnome-shell-extension-vitals package.
 #
-# Jose Riha <jose1711 gmail com>, 2019
+# Jose Riha <jose1711 gmail com>, 2019-2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-28 23:48+0200\n"
-"PO-Revision-Date: 2021-03-14 20:41+0100\n"
+"POT-Creation-Date: 2022-02-11 22:06+0100\n"
+"PO-Revision-Date: 2022-02-11 22:48+0100\n"
 "Last-Translator: Jose Riha <jose1711@gmail.com>\n"
 "Language-Team: \n"
 "Language: sk_SK\n"
@@ -29,75 +29,87 @@ msgstr ""
 "X-Poedit-SearchPath-5: extension.js\n"
 "X-Poedit-SearchPath-6: schemas/prefs.ui\n"
 
-#: extension.js:113
-msgid "Preferences"
-msgstr "Predvoľby"
-
-#: extension.js:120
-msgid "System Monitor"
-msgstr "Sledovanie systému"
-
-#: extension.js:127
+#: extension.js:133
 msgid "Refresh"
 msgstr "Obnoviť"
 
-#: schemas/prefs.ui:40
+#: extension.js:142
+msgid "System Monitor"
+msgstr "Sledovanie systému"
+
+#: extension.js:150
+msgid "Preferences"
+msgstr "Predvoľby"
+
+#: prefs.js:127
+msgid " Preferences"
+msgstr " Predvoľby"
+
+#: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Zahrnúť verejnú IP adresu"
 
-#: schemas/prefs.ui:81
+#: prefs.ui:70
 msgid "Format"
 msgstr "Formát"
 
-#: schemas/prefs.ui:95
+#: prefs.ui:78
 msgid "Bytes"
 msgstr "Bajtov"
 
-#: schemas/prefs.ui:96
+#: prefs.ui:79
 msgid "Bits"
 msgstr "Bitov"
 
-#: schemas/prefs.ui:154
+#: prefs.ui:121
 msgid "General"
 msgstr "Všeobecné"
 
-#: schemas/prefs.ui:194
+#: prefs.ui:149 schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
 msgid "Seconds between updates"
 msgstr "Počet sekúnd medzi meraniami"
 
-#: schemas/prefs.ui:244
+#: prefs.ui:184 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
 msgid "Position in panel"
 msgstr "Umiestnenie na paneli"
 
-#: schemas/prefs.ui:259
+#: prefs.ui:193
 msgid "Left"
 msgstr "Vľavo"
 
-#: schemas/prefs.ui:260
+#: prefs.ui:194
 msgid "Center"
 msgstr "V strede"
 
-#: schemas/prefs.ui:261
+#: prefs.ui:195
 msgid "Right"
 msgstr "Vpravo"
 
-#: schemas/prefs.ui:293
+#: prefs.ui:218 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
 msgstr "Použiť vyššiu presnosť"
 
-#: schemas/prefs.ui:335
+#: prefs.ui:245 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
 msgstr "Abecedne zoradiť senzory"
 
-#: schemas/prefs.ui:377
+#: prefs.ui:272 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
 msgstr "Skryť nulové hodnoty"
 
-#: schemas/prefs.ui:419
+#: prefs.ui:299
+msgid "Use fixed widths"
+msgstr "Použiť pevné šírky"
+
+#: prefs.ui:326 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+msgid "Hide icons in top bar"
+msgstr "Skryť ikony v hornej lište"
+
+#: prefs.ui:350
 msgid "About"
 msgstr "O programe"
 
-#: schemas/prefs.ui:444
+#: prefs.ui:365
 msgid ""
 "Feature requests or bugs? Please visit <a href=\"https://github.com/"
 "corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
@@ -110,207 +122,300 @@ msgstr ""
 "\"https://corecoding.com/donate.php\">Prispejte</a>, ak si to podľa Vás toto "
 "rozšírenie zaslúži."
 
-#: schemas/prefs.ui:485
+#: prefs.ui:392
 msgid "Sensors"
 msgstr "Senzory"
 
-#: schemas/prefs.ui:529
+#: prefs.ui:420 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
 msgstr "Sledovať teplotu"
 
-#: schemas/prefs.ui:610
+#: prefs.ui:471 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
 msgstr "Sledovať napätie"
 
-#: schemas/prefs.ui:653
+#: prefs.ui:499 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
 msgstr "Sledovať ventilátory"
 
-#: schemas/prefs.ui:696
+#: prefs.ui:527 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
 msgstr "Sledovať pamäť"
 
-#: schemas/prefs.ui:739
+#: prefs.ui:578 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
 msgstr "Sledovať procesor"
 
-#: schemas/prefs.ui:782
+#: prefs.ui:606 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
 msgstr "Sledovať systém"
 
-#: schemas/prefs.ui:825
+#: prefs.ui:634 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
 msgstr "Sledovať sieť"
 
-#: schemas/prefs.ui:906
+#: prefs.ui:685 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
 msgstr "Sledovať úložisko"
 
-#: schemas/prefs.ui:1031
+#: prefs.ui:736 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+msgid "Monitor battery"
+msgstr "Sledovať batériu"
+
+#: prefs.ui:815
 msgid "Path"
 msgstr "Cesta"
 
-#: schemas/prefs.ui:1104
+#: prefs.ui:847 prefs.ui:956
+msgid "Measurement"
+msgstr "Meranie"
+
+#: prefs.ui:901
 msgid "Unit"
 msgstr "Jednotka"
 
-#: sensors.js:120
-msgid "Usage"
-msgstr "Použitie"
+#: prefs.ui:1010
+msgid "Display Battery"
+msgstr "Zobraziť batériu"
 
-#: sensors.js:121
-msgid "Memory"
-msgstr "Pamäť"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
+msgid "Sensors to show in panel"
+msgstr "Senzori na paneli"
 
-#: sensors.js:122
-msgid "Physical"
-msgstr "Fyzická"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
+msgid "List of sensors to be shown in the panel"
+msgstr "Zoznam senzorov na paneli"
 
-#: sensors.js:123
-msgid "Available"
-msgstr "Dostupná"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
+msgid "Delay between sensor polling"
+msgstr "Čas medzi meraniami senzorov"
 
-#: sensors.js:124
-msgid "Allocated"
-msgstr "Obsadená"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
+msgid "Position in Panel ('left', 'center', 'right')"
+msgstr "Umiestnenie na paneli ('Vľavo', 'V strede', 'Vpravo')"
 
-#: sensors.js:125
-msgid "Swap Used"
-msgstr "Využitie swapu"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
+msgid "Show one extra digit after decimal"
+msgstr "Zobraziť jedno číslo za desatinnou čiarkou"
 
-#: sensors.js:165 values.js:183
-msgid "Average"
-msgstr "Priemer"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
+msgid "Display sensors in alphabetical order"
+msgstr "Triediť senzory podľa abecedy"
 
-#: sensors.js:166
-msgid "Processor"
-msgstr "Procesor"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
+msgid "Hide data from sensors that are invalid"
+msgstr "Skryť údaje senzorov, ktoré sú neplatné"
 
-#: sensors.js:168
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
+msgid "Display temperature of various components"
+msgstr "Zobraziť teplotu rôznych komponentov"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
+msgid "Temperature unit"
+msgstr "Jednotka teploty"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
+msgid ""
+"The unit ('centigrade' or 'fahrenheit') the extension should display the "
+"temperature in"
+msgstr ""
+"Jednotka (stupne Celzia alebo Fahrenheita), ktoré má toto rozšírenie používať "
+"pri zobrazení teploty"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
+msgid "Display voltage of various components"
+msgstr "Zobraziť napätie rôznych komponentov"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
+msgid "Display fan rotation per minute"
+msgstr "Zobraziť otáčky ventilátora (za minútu)"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
+msgid "Display memory information"
+msgstr "Zobraziť informácie o pamäti"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
+msgid "Display processor information"
+msgstr "Zobraziť informácie o procesore"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
+msgid "Display system information"
+msgstr "Zobraziť systémové informácie"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
+msgid "Display storage information"
+msgstr "Zobraziť informácie o úložisku"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
+msgid "Display network information"
+msgstr "Zobraziť informácie o sieti"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
+msgid "Display public IP address of internet connection"
+msgstr "Zobraziť verejnú IP adresu internetového pripojenia"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
+msgid "Network speed format"
+msgstr "Formát rýchlosti siete"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
+msgid "Should speed display in bits or bytes?"
+msgstr "Majú sa použiť bity alebo bajty?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
+msgid "Storage path"
+msgstr "Cesta k úložisku"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
+msgid "Storage path for monitoring"
+msgstr "Sledovaná cesta k úložisku"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
+msgid "Monitor battery health"
+msgstr "Sledovať stav batérie"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
+msgid "Memory measurement"
+msgstr "Meranie pamäte"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
+msgid "Can use use gigabyte or gibigyte for memory"
+msgstr "Ako jednotku veľkosti pamäte môžete použiť gigabajty alebo gibibajty"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
+msgid "Storage measurement"
+msgstr "Meranie úložiska"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
+msgid "Can use use gigabyte or gibigyte for storage"
+msgstr "Ako jednotku veľkosti úložiska môžete použiť gigabajty alebo gibibajty"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
+msgid "Battery slot to monitor"
+msgstr "Slot batérie, ktorá sa má sledovať"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
+msgid "Which numerical battery slot should vitals monitor"
+msgstr "Ktoré číslo slotu batérie má vitals sledovať"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
+msgid "Use fixed widths in top bar"
+msgstr "Použiť pevné šírky v hornej lište"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+msgid "Keep sensors in top bar from jumping around"
+msgstr "Zabráň tomu, aby senzory v hornej lište náhodne menili poradie"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+msgid "Keep top bar clean by only showing sensor values"
+msgstr "Zachovaj si hornú lištu čistú tak, že senzory budú ukazovať len hodnoty"
+
+#: sensors.js:194
 #, javascript-format
 msgid "Core %d"
 msgstr "Jadro %d"
 
-#: sensors.js:207
-msgid "Frequency"
-msgstr "Frekvencia"
+#~ msgid "Usage"
+#~ msgstr "Použitie"
 
-#: sensors.js:208
-msgid "Boost"
-msgstr "Boost"
+#~ msgid "Memory"
+#~ msgstr "Pamäť"
 
-#: sensors.js:203
-msgid "Load 1m"
-msgstr "Záťaž (load) 1m"
+#~ msgid "Physical"
+#~ msgstr "Fyzická"
 
-#: sensors.js:204
-msgid "System"
-msgstr "Systém"
+#~ msgid "Available"
+#~ msgstr "Dostupná"
 
-#: sensors.js:205
-msgid "Load 5m"
-msgstr "Záťaž (load) 5m"
+#~ msgid "Allocated"
+#~ msgstr "Obsadená"
 
-#: sensors.js:206
-msgid "Load 15m"
-msgstr "Záťaž (load) 15m"
+#~ msgid "Swap Used"
+#~ msgstr "Využitie swapu"
 
-#: sensors.js:207
-msgid "Threads Active"
-msgstr "Aktívne vlákna"
+#~ msgid "Average"
+#~ msgstr "Priemer"
 
-#: sensors.js:208
-msgid "Threads Total"
-msgstr "Vlákna celkom"
+#~ msgid "Processor"
+#~ msgstr "Procesor"
 
-#: sensors.js:216
-msgid "Uptime"
-msgstr "Čas od štartu"
+#~ msgid "Frequency"
+#~ msgstr "Frekvencia"
 
-#: sensors.js:220
-msgid "Process Time"
-msgstr "Procesorový čas"
+#~ msgid "Boost"
+#~ msgstr "Boost"
 
-#: sensors.js:277
-msgid "Public IP"
-msgstr "Verejná IP adresa"
+#~ msgid "Load 1m"
+#~ msgstr "Záťaž (load) 1m"
 
-#: sensors.js:298
-msgid "Total"
-msgstr "Celkom"
+#~ msgid "System"
+#~ msgstr "Systém"
 
-#: sensors.js:299
-msgid "Used"
-msgstr "Použité"
+#~ msgid "Load 5m"
+#~ msgstr "Záťaž (load) 5m"
 
-#: sensors.js:300
-msgid "Reserved"
-msgstr "Vyhradené"
+#~ msgid "Load 15m"
+#~ msgstr "Záťaž (load) 15m"
 
-#: sensors.js:301
-msgid "Free"
-msgstr "Voľné"
+#~ msgid "Threads Active"
+#~ msgstr "Aktívne vlákna"
 
-#: sensors.js:302
-msgid "Storage"
-msgstr "Úložisko"
+#~ msgid "Threads Total"
+#~ msgstr "Vlákna celkom"
 
-#: values.js:189
-msgid "Maximum "
-msgstr "Maximum "
+#~ msgid "Uptime"
+#~ msgstr "Čas od štartu"
 
-msgid "Temperature"
-msgstr "Teplota"
+#~ msgid "Process Time"
+#~ msgstr "Procesorový čas"
 
-msgid "Voltage"
-msgstr "Napätie"
+#~ msgid "Public IP"
+#~ msgstr "Verejná IP adresa"
 
-msgid "Fan"
-msgstr "Ventilátor"
+#~ msgid "Total"
+#~ msgstr "Celkom"
 
-msgid "Network"
-msgstr "Sieť"
+#~ msgid "Used"
+#~ msgstr "Použité"
 
-msgid "Temperature Preferences"
-msgstr "Predvoľby teploty"
+#~ msgid "Reserved"
+#~ msgstr "Vyhradené"
 
-msgid "Network Preferences"
-msgstr "Predvoľby siete"
+#~ msgid "Free"
+#~ msgstr "Voľné"
 
-msgid "Storage Preferences"
-msgstr "Predvoľby úložiska"
+#~ msgid "Maximum "
+#~ msgstr "Maximum "
 
-msgid " Preferences"
-msgstr " Predvoľby"
+#~ msgid "Voltage"
+#~ msgstr "Napätie"
 
-msgid "Use fixed widths"
-msgstr "Použiť pevné šírky"
+#~ msgid "Fan"
+#~ msgstr "Ventilátor"
 
-msgid "Monitor battery"
-msgstr "Sledovať batériu"
+#~ msgid "Network"
+#~ msgstr "Sieť"
 
-msgid "Measurement"
-msgstr "Merania"
+#~ msgid "Temperature Preferences"
+#~ msgstr "Predvoľby teploty"
 
-msgid "Display battery"
-msgstr "Zobraziť batériu"
+#~ msgid "Network Preferences"
+#~ msgstr "Predvoľby siete"
 
-#: sensors.js:226
-msgid "Open Files"
-msgstr "Otvorené súbory"
+#~ msgid "Storage Preferences"
+#~ msgstr "Predvoľby úložiska"
 
-#: sensors.js:430
-msgid "Data read"
-msgstr "Prečítaných dát"
+#~ msgid "Open Files"
+#~ msgstr "Otvorené súbory"
 
-#: sensors.js:431
-msgid "Data written"
-msgstr "Zapísaných dát"
+#~ msgid "Data read"
+#~ msgstr "Prečítaných dát"
 
-#: sensors.js:432
-msgid "Data read/sec"
-msgstr "Čítanie dát/s"
+#~ msgid "Data written"
+#~ msgstr "Zapísaných dát"
 
-#: sensors.js:433
-msgid "Data written/sec"
-msgstr "Zápis dát/s"
+#~ msgid "Data read/sec"
+#~ msgstr "Čítanie dát/s"
+
+#~ msgid "Data written/sec"
+#~ msgstr "Zápis dát/s"
