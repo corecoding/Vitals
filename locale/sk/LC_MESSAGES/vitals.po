@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-11 22:06+0100\n"
-"PO-Revision-Date: 2022-02-11 22:48+0100\n"
+"POT-Creation-Date: 2022-02-13 23:15+0100\n"
+"PO-Revision-Date: 2022-02-13 23:20+0100\n"
 "Last-Translator: Jose Riha <jose1711@gmail.com>\n"
 "Language-Team: \n"
 "Language: sk_SK\n"
@@ -29,19 +29,19 @@ msgstr ""
 "X-Poedit-SearchPath-5: extension.js\n"
 "X-Poedit-SearchPath-6: schemas/prefs.ui\n"
 
-#: extension.js:133
+#: extension.js:132
 msgid "Refresh"
 msgstr "Obnoviť"
 
-#: extension.js:142
+#: extension.js:141
 msgid "System Monitor"
 msgstr "Sledovanie systému"
 
-#: extension.js:150
+#: extension.js:149
 msgid "Preferences"
 msgstr "Predvoľby"
 
-#: prefs.js:127
+#: prefs.js:115
 msgid " Preferences"
 msgstr " Predvoľby"
 
@@ -219,8 +219,8 @@ msgid ""
 "The unit ('centigrade' or 'fahrenheit') the extension should display the "
 "temperature in"
 msgstr ""
-"Jednotka (stupne Celzia alebo Fahrenheita), ktoré má toto rozšírenie používať "
-"pri zobrazení teploty"
+"Jednotka (stupne Celzia alebo Fahrenheita), ktoré má toto rozšírenie "
+"používať pri zobrazení teploty"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
 msgid "Display voltage of various components"
@@ -279,7 +279,7 @@ msgid "Memory measurement"
 msgstr "Meranie pamäte"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
-msgid "Can use use gigabyte or gibigyte for memory"
+msgid "Can use gigabyte or gibibyte for memory"
 msgstr "Ako jednotku veľkosti pamäte môžete použiť gigabajty alebo gibibajty"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
@@ -287,7 +287,7 @@ msgid "Storage measurement"
 msgstr "Meranie úložiska"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
-msgid "Can use use gigabyte or gibigyte for storage"
+msgid "Can use gigabyte or gibibyte for storage"
 msgstr "Ako jednotku veľkosti úložiska môžete použiť gigabajty alebo gibibajty"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
@@ -308,7 +308,8 @@ msgstr "Zabráň tomu, aby senzory v hornej lište náhodne menili poradie"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
 msgid "Keep top bar clean by only showing sensor values"
-msgstr "Zachovaj si hornú lištu čistú tak, že senzory budú ukazovať len hodnoty"
+msgstr ""
+"Zachovaj si hornú lištu čistú tak, že senzory budú ukazovať len hodnoty"
 
 #: sensors.js:194
 #, javascript-format
