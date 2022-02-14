@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2022-02-11 22:06+0100\n"
+"POT-Creation-Date: 2022-02-13 23:15+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Chris Monahan <cmonahan@corecoding.com>\n"
 "Language-Team: \n"
@@ -23,19 +23,19 @@ msgstr ""
 "vitals.gschema.xml\n"
 "X-Poedit-SearchPath-6: prefs.ui\n"
 
-#: extension.js:133
+#: extension.js:132
 msgid "Refresh"
 msgstr ""
 
-#: extension.js:142
+#: extension.js:141
 msgid "System Monitor"
 msgstr ""
 
-#: extension.js:150
+#: extension.js:149
 msgid "Preferences"
 msgstr ""
 
-#: prefs.js:127
+#: prefs.js:115
 msgid " Preferences"
 msgstr ""
 
@@ -282,7 +282,7 @@ msgid "Memory measurement"
 msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
-msgid "Can use use gigabyte or gibigyte for memory"
+msgid "Can use gigabyte or gibibyte for memory"
 msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
@@ -290,7 +290,7 @@ msgid "Storage measurement"
 msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
-msgid "Can use use gigabyte or gibigyte for storage"
+msgid "Can use gigabyte or gibibyte for storage"
 msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111

@@ -9,199 +9,381 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: \n"
-"PO-Revision-Date: \n"
+"POT-Creation-Date: 2022-02-13 23:15+0100\n"
+"PO-Revision-Date: 2022-02-13 23:38+0100\n"
+"Last-Translator: Jacopo Cassinis <jacopo@a-centauri.com>\n"
 "Language-Team: \n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.2.4\n"
-"Last-Translator: Jacopo Cassinis <jacopo@a-centauri.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: it\n"
 
-#: general
-msgid "Average"
-msgstr "Media"
+#: extension.js:132
+msgid "Refresh"
+msgstr ""
 
-#: main menu
-msgid "Temperature"
-msgstr "Temperatura"
-
-msgid "Voltage"
-msgstr "Tensione"
-
-msgid "Fan"
-msgstr "Ventola"
-
-msgid "Memory"
-msgstr "Memoria"
-
-msgid "Processor"
-msgstr "Processore"
-
-msgid "System"
+#: extension.js:141
+#, fuzzy
+msgid "System Monitor"
 msgstr "Sistema"
 
-msgid "Network"
-msgstr "Rete"
+#: extension.js:149
+#, fuzzy
+msgid "Preferences"
+msgstr "Preferenze rete"
 
-msgid "Storage"
-msgstr "Archiviazione"
+#: prefs.js:115
+msgid " Preferences"
+msgstr " Preferenze rete"
 
-#: temperature
-msgid "Core %d"
-msgstr "Core %d"
-
-#: voltage fan memory
-msgid "Usage"
-msgstr "Utilizzo"
-
-msgid "Physical"
-msgstr "Fisica"
-
-msgid "Available"
-msgstr "Disponibile"
-
-msgid "Allocated"
-msgstr "Allocata"
-
-msgid "Swap Used"
-msgstr "Swap Usato"
-
-#: processor
-msgid "Frequency"
-msgstr "Frequenza"
-
-#: system
-msgid "Load 1m"
-msgstr "Carico (1 min)"
-
-msgid "Load 5m"
-msgstr "Carico (5 min)"
-
-msgid "Load 15m"
-msgstr "Carico (15 min)"
-
-msgid "Threads Active"
-msgstr "Thread Attivi"
-
-msgid "Threads Total"
-msgstr "Thread Totali"
-
-#: network
-msgid "Maximum rx"
-msgstr "Totale ric"
-
-msgid "Maximum tx"
-msgstr "Totale trasm"
-
-msgid "Public IP"
-msgstr "IP Pubblico"
-
-#: storage
-msgid "Total"
-msgstr "Totale"
-
-msgid "Used"
-msgstr "Occupato"
-
-msgid "Reserved"
-msgstr "Riservato"
-
-msgid "Free"
-msgstr "Libero"
-
-#: prefs general
-msgid "Seconds between updates"
-msgstr "Secondi tra gli aggiornamenti"
-
-msgid "Position in panel"
-msgstr "Posizione sul pannello"
-
-msgid "Right"
-msgstr "Destra"
-
-msgid "Center"
-msgstr "Centro"
-
-msgid "Left"
-msgstr "Sinistra"
-
-msgid "Use higher precision"
-msgstr "Utilizza una maggiore precisione"
-
-msgid "Alphabetize sensors"
-msgstr "Ordine alfabetico per i sensori"
-
-msgid "Hide zero values"
-msgstr "Nascondi valori nulli"
-
-msgid "Format"
-msgstr "Formato"
-
-#: prefs about
-msgid ""
-"Feature requests or bugs? Please visit <a href=\"https://github.com/"
-"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or "
-"implied. <a href=\"https://corecoding.com/donate.php\">Donate</a> if you "
-"found this useful."
-msgstr ""
-"Ti piace ciò che vedi? Supporta lo sviluppo di questa estensione via <a "
-"href=\"https://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"Nessuna garanzia, espressa o implicita. Suggerimenti o errori da "
-"segnalare? Visita la pagina del progetto su <a href=\"https://github.com/"
-"corecoding/Vitals\">GitHub</a>."
-
-#: prefs sensors
-msgid "Monitor temperature"
-msgstr "Sensori termici"
-
-msgid "Unit"
-msgstr "Unità"
-
-msgid "Monitor voltage"
-msgstr "Monitora la tensione"
-
-msgid "Monitor fan"
-msgstr "Monitora le ventole"
-
-msgid "Monitor memory"
-msgstr "Monitora la memoria"
-
-msgid "Monitor processor"
-msgstr "Monitora il processore"
-
-msgid "Monitor system"
-msgstr "Monitora il sistema"
-
-msgid "Monitor network"
-msgstr "Monitora la rete"
-
+#: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Includi l'indirizzo IP pubblico"
 
-msgid "Monitor storage"
-msgstr "Monitora l'archiviazione"
+#: prefs.ui:70
+msgid "Format"
+msgstr "Formato"
 
-msgid "Temperature Preferences"
-msgstr "Preferenze temperatura"
+#: prefs.ui:78
+msgid "Bytes"
+msgstr ""
 
-msgid "Network Preferences"
-msgstr "Preferenze rete"
+#: prefs.ui:79
+msgid "Bits"
+msgstr ""
 
-msgid "Storage Preferences"
-msgstr "Preferenze archiviazione"
-
-msgid "Path"
-msgstr "Percorso"
-
+#: prefs.ui:121
 msgid "General"
 msgstr "Generale"
 
+#: prefs.ui:149 schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
+msgid "Seconds between updates"
+msgstr "Secondi tra gli aggiornamenti"
+
+#: prefs.ui:184 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
+msgid "Position in panel"
+msgstr "Posizione sul pannello"
+
+#: prefs.ui:193
+msgid "Left"
+msgstr "Sinistra"
+
+#: prefs.ui:194
+msgid "Center"
+msgstr "Centro"
+
+#: prefs.ui:195
+msgid "Right"
+msgstr "Destra"
+
+#: prefs.ui:218 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
+msgid "Use higher precision"
+msgstr "Utilizza una maggiore precisione"
+
+#: prefs.ui:245 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
+msgid "Alphabetize sensors"
+msgstr "Ordine alfabetico per i sensori"
+
+#: prefs.ui:272 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
+msgid "Hide zero values"
+msgstr "Nascondi valori nulli"
+
+#: prefs.ui:299
+msgid "Use fixed widths"
+msgstr ""
+
+#: prefs.ui:326 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+msgid "Hide icons in top bar"
+msgstr ""
+
+#: prefs.ui:350
 msgid "About"
 msgstr "A proposito"
 
+#: prefs.ui:365
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
+"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
+"useful."
+msgstr ""
+"Ti piace ciò che vedi? Supporta lo sviluppo di questa estensione via <a href="
+"\"https://corecoding.com/donate.php\">PayPal</a>.\n"
+"\n"
+"Nessuna garanzia, espressa o implicita. Suggerimenti o errori da segnalare? "
+"Visita la pagina del progetto su <a href=\"https://github.com/corecoding/"
+"Vitals\">GitHub</a>."
+
+#: prefs.ui:392
 msgid "Sensors"
 msgstr "Sensori"
+
+#: prefs.ui:420 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+msgid "Monitor temperature"
+msgstr "Sensori termici"
+
+#: prefs.ui:471 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+msgid "Monitor voltage"
+msgstr "Monitora la tensione"
+
+#: prefs.ui:499 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+msgid "Monitor fan"
+msgstr "Monitora le ventole"
+
+#: prefs.ui:527 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+msgid "Monitor memory"
+msgstr "Monitora la memoria"
+
+#: prefs.ui:578 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+msgid "Monitor processor"
+msgstr "Monitora il processore"
+
+#: prefs.ui:606 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+msgid "Monitor system"
+msgstr "Monitora il sistema"
+
+#: prefs.ui:634 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+msgid "Monitor network"
+msgstr "Monitora la rete"
+
+#: prefs.ui:685 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+msgid "Monitor storage"
+msgstr "Monitora l'archiviazione"
+
+#: prefs.ui:736 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+#, fuzzy
+msgid "Monitor battery"
+msgstr "Monitora la memoria"
+
+#: prefs.ui:815
+msgid "Path"
+msgstr "Percorso"
+
+#: prefs.ui:847 prefs.ui:956
+msgid "Measurement"
+msgstr ""
+
+#: prefs.ui:901
+msgid "Unit"
+msgstr "Unità"
+
+#: prefs.ui:1010
+msgid "Display Battery"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
+#, fuzzy
+msgid "Sensors to show in panel"
+msgstr "Posizione sul pannello"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
+msgid "List of sensors to be shown in the panel"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
+msgid "Delay between sensor polling"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
+msgid "Position in Panel ('left', 'center', 'right')"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
+msgid "Show one extra digit after decimal"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
+msgid "Display sensors in alphabetical order"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
+msgid "Hide data from sensors that are invalid"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
+msgid "Display temperature of various components"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
+#, fuzzy
+msgid "Temperature unit"
+msgstr "Temperatura"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
+msgid ""
+"The unit ('centigrade' or 'fahrenheit') the extension should display the "
+"temperature in"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
+msgid "Display voltage of various components"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
+msgid "Display fan rotation per minute"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
+msgid "Display memory information"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
+msgid "Display processor information"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
+msgid "Display system information"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
+msgid "Display storage information"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
+msgid "Display network information"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
+msgid "Display public IP address of internet connection"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
+msgid "Network speed format"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
+msgid "Should speed display in bits or bytes?"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
+#, fuzzy
+msgid "Storage path"
+msgstr "Archiviazione"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
+msgid "Storage path for monitoring"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
+#, fuzzy
+msgid "Monitor battery health"
+msgstr "Sensori termici"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
+msgid "Memory measurement"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
+msgid "Can use gigabyte or gibibyte for memory"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
+#, fuzzy
+msgid "Storage measurement"
+msgstr "Preferenze archiviazione"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
+msgid "Can use gigabyte or gibibyte for storage"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
+msgid "Battery slot to monitor"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
+msgid "Which numerical battery slot should vitals monitor"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
+msgid "Use fixed widths in top bar"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+msgid "Keep sensors in top bar from jumping around"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+msgid "Keep top bar clean by only showing sensor values"
+msgstr ""
+
+#: sensors.js:194
+#, javascript-format
+msgid "Core %d"
+msgstr "Core %d"
+
+#~ msgid "Average"
+#~ msgstr "Media"
+
+#~ msgid "Voltage"
+#~ msgstr "Tensione"
+
+#~ msgid "Fan"
+#~ msgstr "Ventola"
+
+#~ msgid "Memory"
+#~ msgstr "Memoria"
+
+#~ msgid "Processor"
+#~ msgstr "Processore"
+
+#~ msgid "Network"
+#~ msgstr "Rete"
+
+#~ msgid "Usage"
+#~ msgstr "Utilizzo"
+
+#~ msgid "Physical"
+#~ msgstr "Fisica"
+
+#~ msgid "Available"
+#~ msgstr "Disponibile"
+
+#~ msgid "Allocated"
+#~ msgstr "Allocata"
+
+#~ msgid "Swap Used"
+#~ msgstr "Swap Usato"
+
+#~ msgid "Frequency"
+#~ msgstr "Frequenza"
+
+#~ msgid "Load 1m"
+#~ msgstr "Carico (1 min)"
+
+#~ msgid "Load 5m"
+#~ msgstr "Carico (5 min)"
+
+#~ msgid "Load 15m"
+#~ msgstr "Carico (15 min)"
+
+#~ msgid "Threads Active"
+#~ msgstr "Thread Attivi"
+
+#~ msgid "Threads Total"
+#~ msgstr "Thread Totali"
+
+#~ msgid "Maximum rx"
+#~ msgstr "Totale ric"
+
+#~ msgid "Maximum tx"
+#~ msgstr "Totale trasm"
+
+#~ msgid "Public IP"
+#~ msgstr "IP Pubblico"
+
+#~ msgid "Total"
+#~ msgstr "Totale"
+
+#~ msgid "Used"
+#~ msgstr "Occupato"
+
+#~ msgid "Reserved"
+#~ msgstr "Riservato"
+
+#~ msgid "Free"
+#~ msgstr "Libero"
+
+#~ msgid "Temperature Preferences"
+#~ msgstr "Preferenze temperatura"
