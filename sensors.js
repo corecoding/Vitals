@@ -431,6 +431,25 @@ var Sensors = GObject.registerClass({
     }
 
     _queryStorage(callback, diff) {
+        // display zfs arc status, if available
+        new FileModule.File('/proc/spl/kstat/zfs/arcstats').read().then(lines => {
+            let target = 0, maximum = 0, current = 0;
+
+            let values = lines.match(/c(\s+)(\d+)(\s+)(\d+)/);
+            if (values) target = values[4];
+
+            values = lines.match(/c_max(\s+)(\d+)(\s+)(\d+)/);
+            if (values) maximum = values[4];
+
+            values = lines.match(/size(\s+)(\d+)(\s+)(\d+)/);
+            if (values) current = values[4];
+            global.log('arc current', current);
+
+            this._returnValue(callback, 'ARC Target', target, 'storage', 'storage');
+            this._returnValue(callback, 'ARC Maximum', maximum, 'storage', 'storage');
+            this._returnValue(callback, 'ARC Current', current, 'storage', 'storage');
+        }).catch(err => { });
+
         // check disk performance stats
         new FileModule.File('/proc/diskstats').read().then(lines => {
             lines = lines.split("\n");
