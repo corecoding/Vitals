@@ -119,7 +119,9 @@ var Sensors = GObject.registerClass({
 
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, label, value, sensor['type'], sensor['format']);
-            }).catch(err => { });
+            }).catch(err => {
+                this._returnValue(callback, label, 'disabled', sensor['type'], sensor['format']);
+            });
         }
     }
 
