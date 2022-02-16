@@ -431,23 +431,7 @@ var Sensors = GObject.registerClass({
     }
 
     _queryStorage(callback, diff) {
-        if (!hasGTop) return;
-
-        GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
-
-        let total = this.storage.blocks * this.storage.block_size;
-        let avail = this.storage.bavail * this.storage.block_size;
-        let free = this.storage.bfree * this.storage.block_size;
-        let used = total - free;
-        let reserved = (total - avail) - used;
-
-        this._returnValue(callback, 'Total', total, 'storage', 'storage');
-        this._returnValue(callback, 'Used', used, 'storage', 'storage');
-        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
-        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
-        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
-
-        // check disk stats
+        // check disk performance stats
         new FileModule.File('/proc/diskstats').read().then(lines => {
             lines = lines.split("\n");
             for (let line of Object.values(lines)) {
@@ -465,6 +449,23 @@ var Sensors = GObject.registerClass({
                 }
             }
         }).catch(err => { });
+
+        // skip rest of stats if gtop not available
+        if (!hasGTop) return;
+
+        GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
+
+        let total = this.storage.blocks * this.storage.block_size;
+        let avail = this.storage.bavail * this.storage.block_size;
+        let free = this.storage.bfree * this.storage.block_size;
+        let used = total - free;
+        let reserved = (total - avail) - used;
+
+        this._returnValue(callback, 'Total', total, 'storage', 'storage');
+        this._returnValue(callback, 'Used', used, 'storage', 'storage');
+        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
+        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
+        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     }
 
     _returnValue(callback, label, value, type, format) {
