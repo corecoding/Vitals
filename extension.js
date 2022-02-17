@@ -214,7 +214,9 @@ var VitalsMenuButton = GObject.registerClass({
         let update_time = this._settings.get_int('update-time');
         this._sensors.update_time = update_time;
         this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, (self) => {
-            this._querySensors();
+            // only update menu if we have hot sensors
+            if (Object.values(this._hotLabels).length > 0)
+                this._querySensors();
 
             // keep the timer running
             return true;
