@@ -210,9 +210,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _initializeTimer() {
-        // start off with fresh sensors
-        this._querySensors();
-
         // used to query sensors and update display
         let update_time = this._settings.get_int('update-time');
         this._sensors.update_time = update_time;
