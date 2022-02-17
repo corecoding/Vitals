@@ -84,6 +84,11 @@ var VitalsMenuButton = GObject.registerClass({
             this._addSettingChangedSignal('show-' + sensor, this._showHideSensorsChanged.bind(this));
 
         this._initializeMenu();
+
+        // start off with fresh sensors
+        this._querySensors();
+
+        // start monitoring sensors
         this._initializeTimer();
     }
 
