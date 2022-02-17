@@ -164,6 +164,12 @@ var VitalsMenuButton = GObject.registerClass({
 
         // add buttons
         this.menu.addMenuItem(item);
+
+        // query sensors on menu open
+        this._menuStateChangeId = this.menu.connect('open-state-changed', (self, isMenuOpen) => {
+            if (isMenuOpen)
+                this._querySensors();
+        });
     }
 
     _createRoundButton(iconName) {
@@ -500,6 +506,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
+
 
         super.destroy();
     }
