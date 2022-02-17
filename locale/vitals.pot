@@ -317,3 +317,13 @@ msgstr ""
 #, javascript-format
 msgid "Core %d"
 msgstr ""
+
+#: sensors.js:447
+msgid "ARC Target"
+msgstr ""
+
+msgid "ARC Maximum"
+msgstr ""
+
+msgid "ARC Current"
+msgstr ""
