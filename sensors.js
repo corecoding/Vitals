@@ -362,42 +362,33 @@ var Sensors = GObject.registerClass({
 
     _queryNetwork(callback, diff) {
         // check network speed
+        let directions = ['tx', 'rx'];
         let netbase = '/sys/class/net/';
-        new FileModule.File(netbase).list().then(files => {
-            for (let key in files) {
-                let file = files[key];
 
-                if (typeof this._last_network[file] == 'undefined')
-                    this._last_network[file] = {};
+        new FileModule.File(netbase).list().then(interfaces => {
+            for (let iface of interfaces) {
+                if (typeof this._last_network[iface] == 'undefined')
+                    this._last_network[iface] = {};
 
-                new FileModule.File(netbase + file + '/statistics/tx_bytes').read().then(value => {
-                    let speed = 0;
-                    if (typeof this._last_network[file]['tx'] != 'undefined') {
-                        speed = (value - this._last_network[file]['tx']) / diff;
-                    }
+                for (let direction of directions) {
+                    // lo tx and rx are the same
+                    if (iface == 'lo' && direction == 'rx') continue;
 
-                    // don't append tx to lo
-                    let name = file + ((file == 'lo')?'':' tx');
-                    this._returnValue(callback, name, speed, 'network-upload', 'speed');
+                    new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
+                        let speed = 0;
+                        if (typeof this._last_network[iface][direction] != 'undefined') {
+                            speed = (value - this._last_network[iface][direction]) / diff;
+                        }
 
-                    if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                        this._last_network[file]['tx'] = value;
-                }).catch(err => { });
+                        // don't append tx to lo
+                        let name = iface + ((iface == 'lo')?'':' ' + direction);
+                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
+                        this._returnValue(callback, name, speed, type, 'speed');
 
-                // lo tx and rx are the same
-                if (file == 'lo') continue;
-
-                new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
-                    let speed = 0;
-                    if (typeof this._last_network[file]['rx'] != 'undefined') {
-                        speed = (value - this._last_network[file]['rx']) / diff;
-                    }
-
-                    this._returnValue(callback, file + ' rx', speed, 'network-download', 'speed');
-
-                    if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                        this._last_network[file]['rx'] = value;
-                }).catch(err => { });
+                        if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                            this._last_network[iface][direction] = value;
+                    }).catch(err => { });
+                }
             }
         }).catch(err => { });
 

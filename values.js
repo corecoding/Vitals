@@ -231,7 +231,7 @@ var Values = GObject.registerClass({
 
                 output.push(['Average', avg, type, '__' + type + '_avg__']);
                 output.push([type, avg, type + '-group', '']);
-            } else if ((type == 'network-download' || type == 'network-upload') && format == 'speed') {
+            } else if ((type == 'network-rx' || type == 'network-tx') && format == 'speed') {
                 // issue #217 - don't include 'lo' traffic in Maximum
                 let vals = Object.keys(this._history[type])
                     .filter(k => k.substr(0, 12) != '_network_lo_')
@@ -239,9 +239,9 @@ var Values = GObject.registerClass({
 
                 // get highest bandwidth using interface
                 let max = this._legible(Math.getMaxOfArray(vals), format);
-                output.push(['Maximum ' + (type.includes('-upload')?'tx':'rx'), max, type, '__' + type + '_max__']);
+                output.push(['Maximum ' + (type.includes('-tx')?'tx':'rx'), max, type, '__' + type + '_max__']);
 
-                if (type == 'network-download')
+                if (type == 'network-rx')
                     output.push([type, max, type + '-group', '']);
             }
         }
@@ -261,8 +261,8 @@ var Values = GObject.registerClass({
             this._history[sensor + '-group'] = {};
 
             if (sensor == 'network') {
-                this._history[sensor + '-download'] = {};
-                this._history[sensor + '-upload'] = {};
+                this._history[sensor + '-rx'] = {};
+                this._history[sensor + '-tx'] = {};
             }
         }
     }
