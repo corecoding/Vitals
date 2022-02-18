@@ -232,14 +232,13 @@ var Values = GObject.registerClass({
                 output.push(['Average', avg, type, '__' + type + '_avg__']);
                 output.push([type, avg, type + '-group', '']);
             } else if ((type == 'network-rx' || type == 'network-tx') && format == 'speed') {
-                // issue #217 - don't include 'lo' traffic in Maximum
-                let vals = Object.keys(this._history[type])
-                    .filter(k => k.substr(0, 12) != '_network_lo_')
-                    .map(k => parseFloat(this._history[type][k][1]));
+                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
                 // get highest bandwidth using interface
                 let max = this._legible(Math.getMaxOfArray(vals), format);
-                output.push(['Maximum ' + (type.includes('-tx')?'tx':'rx'), max, type, '__' + type + '_max__']);
+
+                // appends rx or tx to Maximum
+                output.push(['Maximum ' + type.split('-')[1], max, type, '__' + type + '_max__']);
 
                 if (type == 'network-rx')
                     output.push([type, max, type + '-group', '']);

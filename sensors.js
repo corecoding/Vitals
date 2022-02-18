@@ -382,6 +382,9 @@ var Sensors = GObject.registerClass({
 
                         // don't append tx to lo
                         let name = iface + ((iface == 'lo')?'':' ' + direction);
+
+                        // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
+                        // by not using network-rx or network-tx
                         let type = 'network' + ((iface=='lo')?'':'-' + direction);
                         this._returnValue(callback, name, speed, type, 'speed');
 
