@@ -25,26 +25,17 @@ var VitalsMenuButton = GObject.registerClass({
         this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vitals');
 
         this._sensorIcons = {
-            'temperature' : { 'icon': 'temperature-symbolic.svg',
-                       'alphabetize': true },
-                'voltage' : { 'icon': 'voltage-symbolic.svg',
-                       'alphabetize': true },
-                    'fan' : { 'icon': 'fan-symbolic.svg',
-                       'alphabetize': true },
-                 'memory' : { 'icon': 'memory-symbolic.svg',
-                       'alphabetize': true },
-              'processor' : { 'icon': 'cpu-symbolic.svg',
-                       'alphabetize': true },
-                 'system' : { 'icon': 'system-symbolic.svg',
-                       'alphabetize': true },
+            'temperature' : { 'icon': 'temperature-symbolic.svg' },
+                'voltage' : { 'icon': 'voltage-symbolic.svg' },
+                    'fan' : { 'icon': 'fan-symbolic.svg' },
+                 'memory' : { 'icon': 'memory-symbolic.svg' },
+              'processor' : { 'icon': 'cpu-symbolic.svg' },
+                 'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
-                       'alphabetize': true,
                      'icon-download': 'network-download-symbolic.svg',
                        'icon-upload': 'network-upload-symbolic.svg' },
-                'storage' : { 'icon': 'storage-symbolic.svg',
-                       'alphabetize': true },
-                'battery' : { 'icon': 'battery-symbolic.svg',
-                       'alphabetize': true }
+                'storage' : { 'icon': 'storage-symbolic.svg' },
+                'battery' : { 'icon': 'battery-symbolic.svg' }
         }
 
         this._warnings = [];
@@ -421,7 +412,7 @@ var VitalsMenuButton = GObject.registerClass({
         let i = Object.keys(this._sensorMenuItems[key]).length;
 
         // alphabetize the sensors for these categories
-        if (this._sensorIcons[type]['alphabetize'] && this._settings.get_boolean('alphabetize')) {
+        if (this._settings.get_boolean('alphabetize')) {
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 // use natural sort order for system load, etc
