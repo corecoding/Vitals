@@ -129,7 +129,7 @@ var VitalsMenuButton = GObject.registerClass({
         refreshButton.connect('clicked', (self) => {
             this._sensors.resetHistory();
             this._values.resetHistory();
-            this._updateTimeChanged();
+            this._querySensors();
         });
         customButtonBox.add_actor(refreshButton);
 
