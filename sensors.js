@@ -376,11 +376,16 @@ var Sensors = GObject.registerClass({
                         speed = (value - this._last_network[file]['tx']) / diff;
                     }
 
-                    this._returnValue(callback, file + ' tx', speed, 'network-upload', 'speed');
+                    // don't append tx to lo
+                    let name = file + ((file == 'lo')?'':' tx');
+                    this._returnValue(callback, name, speed, 'network-upload', 'speed');
 
                     if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
                         this._last_network[file]['tx'] = value;
                 }).catch(err => { });
+
+                // lo tx and rx are the same
+                if (file == 'lo') continue;
 
                 new FileModule.File(netbase + file + '/statistics/rx_bytes').read().then(value => {
                     let speed = 0;
