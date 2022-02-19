@@ -1,5 +1,5 @@
 #!/bin/bash
-FILE=vitals.zip
+FILE=~/Desktop/vitals.zip
 if [ -f $FILE ]; then
     rm $FILE
 fi
