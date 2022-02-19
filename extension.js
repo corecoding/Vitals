@@ -127,8 +127,14 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round refresh button
         let refreshButton = this._createRoundButton('view-refresh-symbolic', _('Refresh'));
         refreshButton.connect('clicked', (self) => {
+            // force refresh by clearing history
             this._sensors.resetHistory();
             this._values.resetHistory();
+
+            // make sure timer fires at next full interval
+            this._updateTimeChanged();
+
+            // refresh sensors now
             this._querySensors();
         });
         customButtonBox.add_actor(refreshButton);
@@ -466,6 +472,7 @@ var VitalsMenuButton = GObject.registerClass({
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
                 this._sensorMenuItems[key].setSensitive((value!='disabled'));
+
                 // don't continue below, last known value is shown
                 if (value == 'disabled') return;
             }
