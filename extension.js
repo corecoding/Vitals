@@ -422,8 +422,9 @@ var VitalsMenuButton = GObject.registerClass({
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 // use natural sort order for system load, etc
-                if (typeof menuItems[i] != 'undefined' && typeof menuItems[i].key != 'undefined' && menuItems[i].key.localeCompare(key, undefined, { numeric: true, sensitivity: 'base' }) > 0)
-                    break;
+                if (typeof menuItems[i] != 'undefined' && typeof menuItems[i].label != 'undefined' &&
+                    menuItems[i].label.localeCompare(item.label, undefined, { numeric: true, sensitivity: 'base' }) > 0)
+                        break;
         }
 
         this._groups[type].menu.addMenuItem(item, i);

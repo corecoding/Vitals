@@ -71,4 +71,7 @@ var MenuItem = GObject.registerClass({
             this.setOrnament(PopupMenu.Ornament.NONE);
     }
 
+    get label() {
+        return this._labelActor.text;
+    }
 });
