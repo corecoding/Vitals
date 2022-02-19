@@ -368,6 +368,7 @@ var VitalsMenuButton = GObject.registerClass({
                 this._sensorMenuItems[type] = this._groups[group];
             }
         } else {
+            // add item to group for the first time
             let sensor = { 'label': label, 'value': value, 'type': type }
             this._appendMenuItem(sensor, key);
         }
