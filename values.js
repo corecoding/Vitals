@@ -216,15 +216,6 @@ var Values = GObject.registerClass({
             // process average values
             if (type == 'temperature' || type == 'voltage' || type == 'fan') {
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
-/*
-        if (type == 'fan') {
-          filtered = vals.filter(item => item !== 0);
-          vals = filtered;
-        } else if (type == 'temperature') {
-          filtered = vals.filter(item => item >= 0 && item < 130000);
-          vals = filtered;
-        }
-*/
                 let sum = vals.reduce((a, b) => a + b);
                 let avg = sum / vals.length;
                 avg = this._legible(avg, format);
@@ -240,8 +231,14 @@ var Values = GObject.registerClass({
                 // appends rx or tx to Maximum
                 output.push(['Maximum ' + type.split('-')[1], max, type, '__' + type + '_max__']);
 
+                // append download speed to group itself
                 if (type == 'network-rx')
                     output.push([type, max, type + '-group', '']);
+
+                // appends total upload and download for all interfaces for #216
+                let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
+                output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_sum__']);
+
             }
         }
 
