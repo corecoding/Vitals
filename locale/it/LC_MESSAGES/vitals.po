@@ -364,10 +364,10 @@ msgstr "Core %d"
 #~ msgid "Threads Total"
 #~ msgstr "Thread Totali"
 
-#~ msgid "Maximum rx"
+#~ msgid "Total rx"
 #~ msgstr "Totale ric"
 
-#~ msgid "Maximum tx"
+#~ msgid "Total tx"
 #~ msgstr "Totale trasm"
 
 #~ msgid "Public IP"

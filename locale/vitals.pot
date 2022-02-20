@@ -329,12 +329,6 @@ msgid "ARC Current"
 msgstr ""
 
 #: values.js:225
-msgid "Maximum rx"
-msgstr ""
-
-msgid "Maximum tx"
-msgstr ""
-
 msgid "Total rx"
 msgstr ""
 

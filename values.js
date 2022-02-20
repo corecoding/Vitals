@@ -225,20 +225,13 @@ var Values = GObject.registerClass({
             } else if ((type == 'network-rx' || type == 'network-tx') && format == 'speed') {
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
-                // get highest bandwidth using interface
-                let max = this._legible(Math.getMaxOfArray(vals), format);
-
-                // appends rx or tx to Maximum
-                output.push(['Maximum ' + type.split('-')[1], max, type, '__' + type + '_max__']);
+                // appends total upload and download for all interfaces for #216
+                let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
+                output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_max__']);
 
                 // append download speed to group itself
                 if (type == 'network-rx')
-                    output.push([type, max, type + '-group', '']);
-
-                // appends total upload and download for all interfaces for #216
-                let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-                output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_sum__']);
-
+                    output.push([type, sum, type + '-group', '']);
             }
         }
 
