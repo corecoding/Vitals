@@ -114,13 +114,13 @@ var Sensors = GObject.registerClass({
     }
 
     _queryTempVoltFan(callback) {
-        for (let label in this._tempVoltFanSensors) {
-            let sensor = this._tempVoltFanSensors[label];
+        for (let path in this._tempVoltFanSensors) {
+            let sensor = this._tempVoltFanSensors[path];
 
-            new FileModule.File(sensor['path']).read().then(value => {
-                this._returnValue(callback, label, value, sensor['type'], sensor['format']);
+            new FileModule.File(path).read().then(value => {
+                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
             }).catch(err => {
-                this._returnValue(callback, label, 'disabled', sensor['type'], sensor['format']);
+                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format']);
             });
         }
     }
@@ -556,12 +556,12 @@ var Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            this._addTempVoltFan(callback, obj, label, extra, value);
+                            this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
                             // label file reading sometimes returns Invalid argument in which case we default to the name
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
-                                this._addTempVoltFan(callback, obj, label, extra, value);
+                                this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
                         });
                     }
@@ -570,22 +570,21 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _addTempVoltFan(callback, obj, label, extra, value) {
+    _addTempVoltFan(callback, obj, name, label, extra, value) {
         // prepend module that provided sensor data
-        //if (name != label) label = name + ' ' + label;
-        label = label + extra;
+        if (name != label) {
+            if (name == 'coretemp') name = 'CPU';
+            label = name + ' ' + label;
+        }
 
-        // if we have a sensor with a duplicate name, append ' 2' at the end
-        // could be written to support more than one duplicate, perhaps later
-        if (typeof this._tempVoltFanSensors[label] != 'undefined')
-            label = label + ' 2';
+        label = label + extra;
 
         // update screen on initial build to prevent delay on update
         this._returnValue(callback, label, value, obj['type'], obj['format']);
 
-        this._tempVoltFanSensors[label] = {'type': obj['type'],
+        this._tempVoltFanSensors[obj['input']] = {'type': obj['type'],
             'format': obj['format'],
-            'path': obj['input']};
+            'label': label};
     }
 
     resetHistory() {

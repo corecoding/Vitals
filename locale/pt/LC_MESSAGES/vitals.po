@@ -385,7 +385,7 @@ msgstr "Núcleo %d"
 #~ msgid "Free"
 #~ msgstr "Livre"
 
-#~ msgid "Maximum "
+#~ msgid "Total "
 #~ msgstr "Máximo"
 
 #~ msgid "Voltage"
