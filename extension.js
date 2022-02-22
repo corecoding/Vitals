@@ -94,11 +94,11 @@ var VitalsMenuButton = GObject.registerClass({
 
             // hide menu items that user has requested to not include
             if (!this._settings.get_boolean('show-' + sensor))
-                this._groups[sensor].actor.hide(); // 3.34?
+                this._groups[sensor].actor.hide();
 
             if (!this._groups[sensor].status) {
                 this._groups[sensor].status = this._defaultLabel();
-                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4); // 3.34?
+                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
                 this._groups[sensor].status.text = 'No Data';
             }
 
@@ -151,13 +151,7 @@ var VitalsMenuButton = GObject.registerClass({
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-
-            // Gnome 3.36 has a fancier way of opening preferences
-            if (typeof ExtensionUtils.openPrefs === 'function') {
-                ExtensionUtils.openPrefs();
-            } else {
-                Util.spawn(['gnome-shell-extension-prefs', Me.metadata.uuid]);
-            }
+            ExtensionUtils.openPrefs();
         });
         customButtonBox.add_actor(prefsButton);
 
