@@ -259,16 +259,17 @@ var VitalsMenuButton = GObject.registerClass({
 
     _positionInPanelChanged() {
         this.container.get_parent().remove_actor(this.container);
+        let position = this.positionInPanel();
 
-        // small HACK with private boxes
+        // allows easily addressable boxes
         let boxes = {
             left: Main.panel._leftBox,
             center: Main.panel._centerBox,
             right: Main.panel._rightBox
         };
 
-        let p = this.positionInPanel;
-        boxes[p].insert_child_at_index(this.container, p == 'right' ? 0 : -1)
+        // update position when changed from preferences
+        boxes[position[0]].insert_child_at_index(this.container, position[1]);
     }
 
     _removeHotLabel(key) {
@@ -462,9 +463,34 @@ var VitalsMenuButton = GObject.registerClass({
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    get positionInPanel() {
-        let positions = [ 'left', 'center', 'right' ];
-        return positions[this._settings.get_int('position-in-panel')];
+    positionInPanel() {
+        let alignment = '';
+        let gravity = 0;
+
+        switch (this._settings.get_int('position-in-panel')) {
+            case 0: // left
+                alignment = 'left';
+                gravity = -1;
+                break;
+            case 1: // center
+                alignment = 'center';
+                gravity = -1;
+                break;
+            case 2: // right
+                alignment = 'right';
+                gravity = 0;
+                break;
+            case 3: // far left
+                alignment = 'left';
+                gravity = 0;
+                break;
+            case 4: // far right
+                alignment = 'right';
+                gravity = -1;
+                break;
+        }
+
+        return [alignment, gravity];
     }
 
     _querySensors() {
@@ -514,8 +540,8 @@ function init() {
 
 function enable() {
     vitalsMenu = new VitalsMenuButton();
-    let positionInPanel = vitalsMenu.positionInPanel;
-    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, positionInPanel == 'right' ? 1 : -1, positionInPanel);
+    let position = vitalsMenu.positionInPanel();
+    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, position[1], position[0]);
 }
 
 function disable() {
