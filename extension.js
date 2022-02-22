@@ -259,7 +259,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _positionInPanelChanged() {
         this.container.get_parent().remove_actor(this.container);
-        let position = this.positionInPanel();
+        let position = this._positionInPanel();
 
         // allows easily addressable boxes
         let boxes = {
@@ -463,7 +463,7 @@ var VitalsMenuButton = GObject.registerClass({
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    positionInPanel() {
+    _positionInPanel() {
         let alignment = '';
         let gravity = 0;
 
@@ -540,7 +540,7 @@ function init() {
 
 function enable() {
     vitalsMenu = new VitalsMenuButton();
-    let position = vitalsMenu.positionInPanel();
+    let position = vitalsMenu._positionInPanel();
     Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, position[1], position[0]);
 }
 
