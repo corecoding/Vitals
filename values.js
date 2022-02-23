@@ -203,12 +203,12 @@ var Values = GObject.registerClass({
         let output = [];
 
         // no sense in continuing when the raw value has not changed
-        if (typeof this._history[type][key] != 'undefined' && this._history[type][key][1] == value)
+        if (key in this._history[type] && this._history[type][key][1] == value)
             return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
-        if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
+        if (!(key in this._history[type]) || this._history[type][key][0] != legible) {
             this._history[type][key] = [legible, value];
 
             output.push([label, legible, type, key]);
