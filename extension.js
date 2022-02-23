@@ -187,6 +187,7 @@ var VitalsMenuButton = GObject.registerClass({
             // make sure default icon (if any) stays visible
             if (sensor == '_default_icon_') continue;
 
+            // removes sensors that are no longer available
             if (!this._sensorMenuItems[sensor]) {
                 hotSensors.splice(i, 1);
                 this._removeHotLabel(sensor);
@@ -311,8 +312,13 @@ var VitalsMenuButton = GObject.registerClass({
     _drawMenu() {
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
-        for (let key of Object.values(hotSensors))
+        for (let key of Object.values(hotSensors)) {
+            // fixes issue #225 which started when _max_ was moved to the end
+            if (key == '__max_network-download__') key = '__network-rx_max__';
+            if (key == '__max_network-upload__') key = '__network-tx_max__';
+
             this._createHotItem(key);
+        }
     }
 
     _destroyTimer() {
@@ -442,10 +448,10 @@ var VitalsMenuButton = GObject.registerClass({
             reactive: true
         });
 
-        // support for hide icons #80
-        if (type == 'default') {
+        // second condition prevents crash due to issue #225, which started when _max_ was moved to the end
+        if (type == 'default' || !(type in this._sensorIcons)) {
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons['system']['icon']);
-        } else if (!this._settings.get_boolean('hide-icons')) {
+        } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
             let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
