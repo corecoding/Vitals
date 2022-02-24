@@ -239,6 +239,10 @@ var VitalsMenuButton = GObject.registerClass({
         label.get_clutter_text().ellipsize = 0;
 
         this._hotLabels[key] = label;
+
+        // support for fixed widths #55, save label (text) width
+        this._widths[key] = label.width;
+
         this._menuLayout.add_actor(label);
     }
 
@@ -345,9 +349,7 @@ var VitalsMenuButton = GObject.registerClass({
 
             // support for fixed widths #55
             if (this._settings.get_boolean('fixed-widths')) {
-                if (!(key in this._widths))
-                    this._widths[key] = this._hotLabels[key].width;
-
+                // grab text box width and see if new text is wider than old text
                 let width2 = this._hotLabels[key].get_clutter_text().width;
                 if (width2 > this._widths[key]) {
                     this._hotLabels[key].set_width(width2);
