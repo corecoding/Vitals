@@ -577,6 +577,10 @@ var Sensors = GObject.registerClass({
             label = name + ' ' + label;
         }
 
+        //if (label == 'acpitz') label = 'ACPI Thermal Zone';
+        //if (label == 'pch_cannonlake') label = 'Platform Controller Hub';
+        //if (label == 'iwlwifi_1') label = 'Wireless Adapter';
+
         label = label + extra;
 
         // update screen on initial build to prevent delay on update
