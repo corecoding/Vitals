@@ -443,6 +443,7 @@ var Sensors = GObject.registerClass({
             values = lines.match(/size(\s+)(\d+)(\s+)(\d+)/);
             if (values) current = values[4];
 
+            // ZFS statistics
             this._returnValue(callback, 'ARC Target', target, 'storage', 'storage');
             this._returnValue(callback, 'ARC Maximum', maximum, 'storage', 'storage');
             this._returnValue(callback, 'ARC Current', current, 'storage', 'storage');
