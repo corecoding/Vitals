@@ -400,10 +400,10 @@ msgstr "Coeur %d"
 #~ msgid "Data written"
 #~ msgstr "Données écrites"
 
-#~ msgid "Data read/sec"
+#~ msgid "Read rate"
 #~ msgstr "Données lues / sec"
 
-#~ msgid "Data written/sec"
+#~ msgid "Write rate"
 #~ msgstr "Données écrites / sec"
 
 #~ msgid "Display battery"

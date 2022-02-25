@@ -459,8 +459,8 @@ var Sensors = GObject.registerClass({
                     var write = (loadArray[9] * 512);
                     this._returnValue(callback, 'Data read', read, 'storage', 'storage');
                     this._returnValue(callback, 'Data written', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Data read/sec', (read - this._lastRead) / diff, 'storage', 'storage');
-                    this._returnValue(callback, 'Data written/sec', (write - this._lastWrite) / diff, 'storage', 'storage');
+                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / diff, 'storage', 'storage');
+                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / diff, 'storage', 'storage');
                     this._lastRead = read;
                     this._lastWrite = write;
                     break;

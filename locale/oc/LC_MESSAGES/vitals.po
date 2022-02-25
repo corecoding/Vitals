@@ -406,8 +406,8 @@ msgstr "Còs %d"
 #~ msgid "Data written"
 #~ msgstr "Donadas escrichas"
 
-#~ msgid "Data read/sec"
+#~ msgid "Read rate"
 #~ msgstr "Donadas legidas/seg"
 
-#~ msgid "Data written/sec"
+#~ msgid "Write rate"
 #~ msgstr "Donadas escrichas/seg"
