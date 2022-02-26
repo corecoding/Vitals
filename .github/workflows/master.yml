@@ -23,23 +23,9 @@ jobs:
       run: echo "VERSION=$(jq .version metadata.json)" >> $GITHUB_ENV
 
     - name: Debug Output
-      run: echo "Version $VERSION"
+      run: git tag v$VERSION
 
 #    - name: Zip release folder
 #      run: |
 #        zip vitals.zip *
-
-#    - name: Bump version and push tag
-#      uses: anothrNick/github-tag-action@master
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-#        REPO_OWNER: corecoding
-
-
-    - name: Bump version and push tag
-      #uses: anothrNick/github-tag-action@1.36.0
-      uses: anothrNick/github-tag-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        WITH_V: true
 
