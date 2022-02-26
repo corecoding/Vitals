@@ -35,11 +35,11 @@ jobs:
         # get current commit hash
         commit=$(git rev-parse HEAD)
 
-        if [ "$tag_commit" == "$commit" ]; then
-            echo "No new commits since previous tag. Skipping..."
-            echo ::set-output name=tag::$TAG
-            exit 0
-        fi
+#        if [ "$tag_commit" == "$commit" ]; then
+#            echo "No new commits since previous tag. Skipping..."
+#            echo ::set-output name=tag::$TAG
+#            exit 0
+#        fi
 
         # push new tag ref to github
         dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
