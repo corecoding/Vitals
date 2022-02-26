@@ -11,18 +11,24 @@ jobs:
     - name: Create Release Folder
       run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
 
-    - name: Debug Output
-      env:
-        BLAH: ${{ secrets.FOOBAR }}
-        REPO_OWNER: corecoding
-      run: echo "Token $BLAH"
+#    - name: Debug Output
+#      env:
+#        BLAH: ${{ secrets.FOOBAR }}
+#        REPO_OWNER: corecoding
+#      run: echo "Token $BLAH"
 
     - name: Switch to Release Folder
       run: |
         cd release
         ls -la
-    - name: Bump version and push tag
-      uses: anothrNick/github-tag-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        REPO_OWNER: corecoding
+
+    - name: Zip release folder
+      run: |
+        zip vitals.zip *
+
+
+#    - name: Bump version and push tag
+#      uses: anothrNick/github-tag-action@master
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+#        REPO_OWNER: corecoding
