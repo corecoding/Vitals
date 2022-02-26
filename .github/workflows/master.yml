@@ -50,7 +50,7 @@ jobs:
         git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 
         echo "::debug::${git_refs_response}"
-        if [ "${git_ref_posted}" = "refs/tags/${new}" ]; then
+        if [ "${git_ref_posted}" = "refs/tags/${TAG}" ]; then
           exit 0
         else
           echo "::error::Tag was not created properly."
