@@ -341,3 +341,9 @@ msgstr ""
 
 msgid "Write total"
 msgstr ""
+
+msgid "Read rate"
+msgstr ""
+
+msgid "Write rate"
+msgstr ""

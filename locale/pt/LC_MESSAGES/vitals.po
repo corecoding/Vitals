@@ -412,8 +412,8 @@ msgstr "Núcleo %d"
 #~ msgid "Write total"
 #~ msgstr "Dados gravados"
 
-#~ msgid "Data read/sec"
+#~ msgid "Read rate"
 #~ msgstr "Dados lidos/s"
 
-#~ msgid "Data written/sec"
+#~ msgid "Write rate"
 #~ msgstr "Dados gravados/s"

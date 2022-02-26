@@ -406,10 +406,10 @@ msgstr "Kern %d"
 #~ msgid "Write total"
 #~ msgstr "Weggeschreven gegevens"
 
-#~ msgid "Data read/sec"
+#~ msgid "Read rate"
 #~ msgstr "Uitgelezen/sec."
 
-#~ msgid "Data written/sec"
+#~ msgid "Write rate"
 #~ msgstr "Weggeschreven/sec."
 
 #~ msgid "Maximum tx"

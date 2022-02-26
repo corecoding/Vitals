@@ -408,8 +408,8 @@ msgstr "Ydin %d"
 #~ msgid "Write total"
 #~ msgstr "Dataa kirjoitettu"
 
-#~ msgid "Data read/sec"
+#~ msgid "Read rate"
 #~ msgstr "Dataa luettu/sekunti"
 
-#~ msgid "Data written/sec"
+#~ msgid "Write rate"
 #~ msgstr "Dataa kirjoitettu/sekunti"
