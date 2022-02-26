@@ -14,21 +14,20 @@ jobs:
     - name: Create Release Folder
       run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
 
-#    - name: Debug Output
-#      env:
-#        BLAH: ${{ secrets.FOOBAR }}
-#        REPO_OWNER: corecoding
-#      run: echo "Token $BLAH"
-
     - name: Switch to Release Folder
       run: |
         cd release
         ls -la
 
+    - name: Grab version from meta data
+      run: echo "VERSION=$(jq .version metadata.json)" >> $GITHUB_ENV
+
+    - name: Debug Output
+      run: echo "Version $VERSION"
+
 #    - name: Zip release folder
 #      run: |
 #        zip vitals.zip *
-
 
 #    - name: Bump version and push tag
 #      uses: anothrNick/github-tag-action@master
@@ -36,9 +35,11 @@ jobs:
 #        GITHUB_TOKEN: ${{ secrets.TOKEN }}
 #        REPO_OWNER: corecoding
 
+
     - name: Bump version and push tag
       #uses: anothrNick/github-tag-action@1.36.0
       uses: anothrNick/github-tag-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true
+
