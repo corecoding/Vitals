@@ -13,7 +13,7 @@ jobs:
 
     - name: Debug Output
       env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.FOOBAR }}
         REPO_OWNER: corecoding
       run: echo "Token $GITHUB_TOKEN"
 
