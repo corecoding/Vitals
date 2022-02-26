@@ -43,8 +43,6 @@ jobs:
       run: git tag $TAG
 
     - name: Push Tag
-      with:
-        path: release/
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -78,3 +76,9 @@ jobs:
           echo "::error::Tag was not created properly."
           exit 1
         fi
+
+    - name: Create artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: esp32_nodemcu_firmware
+        path: output/
