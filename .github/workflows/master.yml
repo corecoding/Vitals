@@ -1,4 +1,6 @@
-name: MasterDeployCI
+# Ideas borrowed from https://github.com/anothrNick/github-tag-action
+
+name: Master Zipper Upper
 on:
   push:
     branches:
