@@ -35,8 +35,10 @@ jobs:
 #        semver $TAG
 #        #echo $TAG
 
-    - name: Tag release
-      run: git tag -d $TAG
+    - name: Remove previous tag
+      run: |
+        git tag -d $TAG
+        git push --delete origin $TAG
 
     - name: Tag release
       run: git tag $TAG
