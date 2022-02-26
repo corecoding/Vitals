@@ -32,11 +32,12 @@ jobs:
 #        #echo $TAG
 
     - name: Remove previous tag
+      continue-on-error: true
       run: |
         git tag -d $TAG
         git push --delete origin $TAG
 
-    - name: Tag release
+    - name: Tag this release
       run: git tag $TAG
 
     - name: Push Tag
