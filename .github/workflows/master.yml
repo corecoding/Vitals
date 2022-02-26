@@ -26,10 +26,6 @@ jobs:
 #        echo "TAG=$(git tag --format='%(refname:short)' --merged master '$VERSION*' | tail -n 1)" >> $GITHUB_ENV
 #        echo $TAG
 
-#    - name: Install semver
-#      run: |
-#        npm install -g semver
-
 #    - name: Find next tag
 #      run: |
 #        semver $TAG
