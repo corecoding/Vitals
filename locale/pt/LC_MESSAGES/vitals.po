@@ -406,10 +406,10 @@ msgstr "Núcleo %d"
 #~ msgid "Open Files"
 #~ msgstr "Ficheiros abertos"
 
-#~ msgid "Data read"
+#~ msgid "Read total"
 #~ msgstr "Dados lidos"
 
-#~ msgid "Data written"
+#~ msgid "Write total"
 #~ msgstr "Dados gravados"
 
 #~ msgid "Read rate"

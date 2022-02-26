@@ -402,10 +402,10 @@ msgstr "Ydin %d"
 #~ msgid "Open Files"
 #~ msgstr "Tiedostoja Avoinna"
 
-#~ msgid "Data read"
+#~ msgid "Read total"
 #~ msgstr "Dataa luettu"
 
-#~ msgid "Data written"
+#~ msgid "Write total"
 #~ msgstr "Dataa kirjoitettu"
 
 #~ msgid "Read rate"

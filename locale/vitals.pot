@@ -336,6 +336,12 @@ msgid "Total tx"
 msgstr ""
 
 #: sensors.js:462
+msgid "Read total"
+msgstr ""
+
+msgid "Write total"
+msgstr ""
+
 msgid "Read rate"
 msgstr ""
 
