@@ -1,20 +1,12 @@
-name: Create zip artifact
-
+name: MasterDeployCI
 on:
   push:
     branches:
       - master
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-#    - uses: actions/checkout@v1
-#    - name: Zip Folder
-#      run: zip release.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
-#    - name: Release to Github
-#      run: echo "Release"
-
     - uses: actions/checkout@v1
     - name: Create Release Folder
       run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
@@ -25,5 +17,5 @@ jobs:
     - name: Bump version and push tag
       uses: anothrNick/github-tag-action@master
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REPO_OWNER: keithweaver
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        REPO_OWNER: corecoding
