@@ -19,56 +19,55 @@ jobs:
         ls -la
 
     - name: Grab version from meta data
-      run: echo "TAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
-
-    - name: Tag release
-      run: git tag $TAG
-
-    - name: Push Tag
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # get current commit hash for tag
-        #tag_commit=$(git rev-list -n 1 $TAG)
+        echo "VERSION=v$(jq .version metadata.json)" >> $GITHUB_ENV
+        echo $VERSION
 
-        # get current commit hash
-        commit=$(git rev-parse HEAD)
+    - name: See if tag exists
+      run: |
+        echo "TAG=$(git tag --format='%(refname:short)' --merged master '$VERSION*' | tail -n 1)" >> $GITHUB_ENV
+        echo $TAG
 
-        #if [ "$tag_commit" == "$commit" ]; then
-        #    echo "No new commits since previous tag. Skipping..."
-        #    echo ::set-output name=tag::$TAG
-        #    exit 0
-        #fi
+    - name: Find next tag
+      run: |
+        semver $TAG
+        #echo $TAG
 
-        # push new tag ref to github
-        dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
-        full_name=$GITHUB_REPOSITORY
-        git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
-
-        echo "$dt: **pushing tag $TAG to repo $full_name"
-
-        git_refs_response=$(
-        curl -s -X POST $git_refs_url \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -d @- << EOF
-        {
-          "ref": "refs/tags/$TAG",
-          "sha": "$commit"
-        }
-        EOF
-        )
-
-        git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
-
-        echo "::debug::${git_refs_response}"
-        if [ "${git_ref_posted}" = "refs/tags/${TAG}" ]; then
-          exit 0
-        else
-          echo "::error::Tag was not created properly."
-          exit 1
-        fi
-
-#    - name: Zip release folder
+#    - name: Tag release
+#      run: git tag $TAG
+#
+#    - name: Push Tag
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #      run: |
-#        zip vitals.zip *
-
+#
+#        # get current commit hash
+#        commit=$(git rev-parse HEAD)
+#
+#        # push new tag ref to github
+#        dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
+#        full_name=$GITHUB_REPOSITORY
+#        git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
+#
+#        echo "$dt: **pushing tag $TAG to repo $full_name"
+#
+#        git_refs_response=$(
+#        curl -s -X POST $git_refs_url \
+#        -H "Authorization: token $GITHUB_TOKEN" \
+#        -d @- << EOF
+#        {
+#          "ref": "refs/tags/$TAG",
+#          "sha": "$commit"
+#        }
+#        EOF
+#        )
+#
+#        git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
+#
+#        echo "::debug::${git_refs_response}"
+#        if [ "${git_ref_posted}" = "refs/tags/${TAG}" ]; then
+#          exit 0
+#        else
+#          echo "::error::Tag was not created properly."
+#          exit 1
+#        fi
