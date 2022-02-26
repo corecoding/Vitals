@@ -13,9 +13,9 @@ jobs:
 
     - name: Debug Output
       env:
-        GITHUB_TOKEN: ${{ secrets.FOOBAR }}
+        BLAH: ${{ secrets.FOOBAR }}
         REPO_OWNER: corecoding
-      run: echo "Token $GITHUB_TOKEN"
+      run: echo "Token $BLAH"
 
     - name: Switch to Release Folder
       run: |
