@@ -10,6 +10,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: Create Release Folder
       run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
+    - name: Debug
+      run: echo "Token ${{ secrets.TOKEN }}"
     - name: Switch to Release Folder
       run: |
         cd release
