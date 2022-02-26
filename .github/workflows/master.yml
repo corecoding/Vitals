@@ -7,7 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+#    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
     - name: Create Release Folder
       run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
 
@@ -22,9 +25,9 @@ jobs:
         cd release
         ls -la
 
-    - name: Zip release folder
-      run: |
-        zip vitals.zip *
+#    - name: Zip release folder
+#      run: |
+#        zip vitals.zip *
 
 
 #    - name: Bump version and push tag
@@ -32,3 +35,10 @@ jobs:
 #      env:
 #        GITHUB_TOKEN: ${{ secrets.TOKEN }}
 #        REPO_OWNER: corecoding
+
+    - name: Bump version and push tag
+      #uses: anothrNick/github-tag-action@1.36.0
+      uses: anothrNick/github-tag-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
