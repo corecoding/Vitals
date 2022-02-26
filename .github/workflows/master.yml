@@ -10,12 +10,12 @@ jobs:
     - uses: actions/checkout@v1
     - name: Create Release Folder
       run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
-    - name: Debug
-      run: echo "Token $GITHUB_TOKEN"
+
+    - name: Debug Output
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
         REPO_OWNER: corecoding
-
+      run: echo "Token $GITHUB_TOKEN"
 
     - name: Switch to Release Folder
       run: |
