@@ -26,6 +26,8 @@ jobs:
       run: git tag $TAG
 
     - name: Push Tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # push new tag ref to github
         dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
