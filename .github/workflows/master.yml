@@ -11,7 +11,12 @@ jobs:
     - name: Create Release Folder
       run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
     - name: Debug
-      run: echo "Token ${{ secrets.TOKEN }}"
+      run: echo "Token $GITHUB_TOKEN"
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        REPO_OWNER: corecoding
+
+
     - name: Switch to Release Folder
       run: |
         cd release
