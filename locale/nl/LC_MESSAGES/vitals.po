@@ -400,10 +400,10 @@ msgstr "Kern %d"
 #~ msgid "Open Files"
 #~ msgstr "Geopende bestanden"
 
-#~ msgid "Data read"
+#~ msgid "Read total"
 #~ msgstr "Uitgelezen gegevens"
 
-#~ msgid "Data written"
+#~ msgid "Write total"
 #~ msgstr "Weggeschreven gegevens"
 
 #~ msgid "Data read/sec"

@@ -394,10 +394,10 @@ msgstr "Coeur %d"
 #~ msgid "Open Files"
 #~ msgstr "Fichiers ouverts"
 
-#~ msgid "Data read"
+#~ msgid "Read total"
 #~ msgstr "Données lues"
 
-#~ msgid "Data written"
+#~ msgid "Write total"
 #~ msgstr "Données écrites"
 
 #~ msgid "Data read/sec"

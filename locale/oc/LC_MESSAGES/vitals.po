@@ -400,10 +400,10 @@ msgstr "Còs %d"
 #~ msgid "Open Files"
 #~ msgstr "Dobrir los fichièrs"
 
-#~ msgid "Data read"
+#~ msgid "Read total"
 #~ msgstr "Donadas legidas"
 
-#~ msgid "Data written"
+#~ msgid "Write total"
 #~ msgstr "Donadas escrichas"
 
 #~ msgid "Data read/sec"

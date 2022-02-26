@@ -409,10 +409,10 @@ msgstr "Jadro %d"
 #~ msgid "Open Files"
 #~ msgstr "Otvorené súbory"
 
-#~ msgid "Data read"
+#~ msgid "Read total"
 #~ msgstr "Prečítaných dát"
 
-#~ msgid "Data written"
+#~ msgid "Write total"
 #~ msgstr "Zapísaných dát"
 
 #~ msgid "Data read/sec"
