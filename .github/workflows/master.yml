@@ -43,7 +43,8 @@ jobs:
       run: git tag $TAG
 
     - name: Push Tag
-      path: release/
+      with:
+        path: release/
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
