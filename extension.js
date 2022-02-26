@@ -32,8 +32,8 @@ var VitalsMenuButton = GObject.registerClass({
               'processor' : { 'icon': 'cpu-symbolic.svg' },
                  'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
-                     'icon-rx': 'network-download-symbolic.svg',
-                     'icon-tx': 'network-upload-symbolic.svg' },
+                           'icon-rx': 'network-download-symbolic.svg',
+                           'icon-tx': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' }
         }
@@ -131,6 +131,9 @@ var VitalsMenuButton = GObject.registerClass({
             this._sensors.resetHistory();
             this._values.resetHistory();
 
+            // removes any sensors that may not currently be available
+            this._removeMissingHotSensors();
+
             // make sure timer fires at next full interval
             this._updateTimeChanged();
 
@@ -186,7 +189,9 @@ var VitalsMenuButton = GObject.registerClass({
         return button;
     }
 
-    _removeMissingHotSensors(hotSensors) {
+    _removeMissingHotSensors() {
+        let hotSensors = this._settings.get_strv('hot-sensors');
+
         for (let i = hotSensors.length - 1; i >= 0; i--) {
             let sensor = hotSensors[i];
 
@@ -201,7 +206,8 @@ var VitalsMenuButton = GObject.registerClass({
             }
         }
 
-        return hotSensors;
+        // save hotSensors for next round
+        this._saveHotSensors(hotSensors);
     }
 
     _saveHotSensors(hotSensors) {
@@ -415,9 +421,6 @@ var VitalsMenuButton = GObject.registerClass({
                     this._removeHotIcon('_default_icon_');
                 }
             }
-
-            // removes any sensors that may not currently be available
-            hotSensors = this._removeMissingHotSensors(hotSensors);
 
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
