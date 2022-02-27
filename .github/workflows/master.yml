@@ -67,15 +67,29 @@ jobs:
         git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 
         echo "::debug::${git_refs_response}"
-        if [ "${git_ref_posted}" != "xrefs/tags/${TAG}" ]; then
-        #  exit 0
-        #else
+        if [ "${git_ref_posted}" != "refs/tags/${TAG}" ]; then
           echo "::error::Tag was not created properly."
           exit 1
         fi
 
-    - name: Create artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: esp32_nodemcu_firmware
-        path: release/
+    - name: Create release from tag $TAG
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git_refs_response=$(
+        curl -s -X POST https://api.github.com/repos/corecoding/Vitals/releases \
+        -H "Authorization: token $GITHUB_TOKEN" \
+        -d @- << EOF
+        {
+          "tag_name": "$TAG"
+        }
+        EOF
+        )
+
+        git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
+
+        echo "::debug::${git_refs_response}"
+        #if [ "${git_ref_posted}" != "refs/tags/${TAG}" ]; then
+        #  echo "::error::Tag was not created properly."
+        #  exit 1
+        #fi
