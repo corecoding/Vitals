@@ -15,7 +15,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Compile schemas
-        run: /usr/bin/glib-compile-schemas --strict schemas2/
+        run: /usr/bin/glib-compile-schemas --strict schemas/
+
+      - name: Compile message catalogs
+        run: |
+          for i in locale/*/
+              do /usr/bin/msgfmt $i/LC_MESSAGES/vitals.po -o $i/LC_MESSAGES/vitals.mo
+          done
 
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
