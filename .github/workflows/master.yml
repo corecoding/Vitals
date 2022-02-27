@@ -52,9 +52,11 @@ jobs:
         # push new tag ref to github
         dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
         git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
+        git_refs_url2=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"')
 
         echo "$dt: **pushing tag $TAG to repo $GITHUB_REPOSITORY"
         echo $git_refs_url
+        echo $git_refs_url2
 
         git_refs_response=$(
         curl -s -X POST $git_refs_url \
