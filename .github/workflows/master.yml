@@ -50,16 +50,11 @@ jobs:
         commit=$(git rev-parse HEAD)
 
         # push new tag ref to github
-        dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
-        git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
-        git_refs_url2=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"')
 
-        echo "$dt: **pushing tag $TAG to repo $GITHUB_REPOSITORY"
-        echo $git_refs_url
-        echo $git_refs_url2
+        echo "Pushing tag $TAG to repo $GITHUB_REPOSITORY"
 
         git_refs_response=$(
-        curl -s -X POST $git_refs_url \
+        curl -s -X POST https://api.github.com/repos/corecoding/Vitals/git/refs \
         -H "Authorization: token $GITHUB_TOKEN" \
         -d @- << EOF
         {
@@ -72,9 +67,9 @@ jobs:
         git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
 
         echo "::debug::${git_refs_response}"
-        if [ "${git_ref_posted}" = "refs/tags/${TAG}" ]; then
-          exit 0
-        else
+        if [ "${git_ref_posted}" != "refs/tags/${TAG}" ]; then
+        #  exit 0
+        #else
           echo "::error::Tag was not created properly."
           exit 1
         fi
