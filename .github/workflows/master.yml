@@ -1,95 +1,38 @@
-# Ideas borrowed from https://github.com/anothrNick/github-tag-action
-
-name: Master Zipper Upper
 on:
   push:
-    branches:
-      - master
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Upload Release Asset
+
 jobs:
   build:
+    name: Upload Release Asset
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '0'
-    - name: Create Release Folder
-      run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
-
-    - name: Switch to Release Folder
-      run: |
-        cd release
-        ls -la
-
-    - name: Grab version from meta data
-      run: echo "TAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
-
-#    - name: See if tag exists
-#      run: |
-#        echo "TAG=$(git tag --format='%(refname:short)' --merged master '$VERSION*' | tail -n 1)" >> $GITHUB_ENV
-#        echo $TAG
-
-#    - name: Find next tag
-#      run: |
-#        semver $TAG
-#        #echo $TAG
-
-    - name: Remove previous tag
-      continue-on-error: true
-      run: |
-        git tag -d $TAG
-        git push --delete origin $TAG
-
-    - name: Tag this release
-      run: git tag $TAG
-
-    - name: Push Tag
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        # get current commit hash
-        commit=$(git rev-parse HEAD)
-
-        # push new tag ref to github
-
-        echo "Pushing tag $TAG to repo $GITHUB_REPOSITORY"
-
-        git_refs_response=$(
-        curl -s -X POST https://api.github.com/repos/corecoding/Vitals/git/refs \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -d @- << EOF
-        {
-          "ref": "refs/tags/$TAG",
-          "sha": "$commit"
-        }
-        EOF
-        )
-
-        git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
-
-        echo "::debug::${git_refs_response}"
-        if [ "${git_ref_posted}" != "refs/tags/${TAG}" ]; then
-          echo "::error::Tag was not created properly."
-          exit 1
-        fi
-
-    - name: Create release from tag $TAG
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git_refs_response=$(
-        curl -s -X POST https://api.github.com/repos/corecoding/Vitals/releases \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -d @- << EOF
-        {
-          "tag_name": "$TAG"
-        }
-        EOF
-        )
-
-        git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
-
-        echo "::debug::${git_refs_response}"
-        #if [ "${git_ref_posted}" != "refs/tags/${TAG}" ]; then
-        #  echo "::error::Tag was not created properly."
-        #  exit 1
-        #fi
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build project # This would actually build your project, using zip for an example artifact
+        run: |
+          zip --junk-paths my-artifact README.md
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./my-artifact.zip
+          asset_name: my-artifact.zip
+          asset_content_type: application/zip
