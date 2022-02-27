@@ -17,6 +17,9 @@ jobs:
       - name: Compile schemas
         run: /usr/bin/glib-compile-schemas --strict schemas/
 
+      - name: Install msgfmt command
+        run: apt install gettext
+
       - name: Compile message catalogs
         run: |
           for i in locale/*/
