@@ -20,6 +20,7 @@ jobs:
           if [ -x /usr/bin/glib-compile-schemas ]; then
               # check if schemas directory exists
               if [ -d ./schemas/ ]; then
+                  echo "HERE!!"
                   /usr/bin/glib-compile-schemas --strict schemas/
               fi
           fi
