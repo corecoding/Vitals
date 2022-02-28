@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.0\n"
+"X-Generator: Poedit 3.0.1\n"
 
 #: extension.js:132
 msgid "Refresh"
@@ -32,9 +32,8 @@ msgid "Preferences"
 msgstr "Voorkeuren"
 
 #: prefs.js:115
-#, fuzzy
 msgid " Preferences"
-msgstr "Voorkeuren"
+msgstr "-voorkeuren"
 
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
@@ -90,11 +89,11 @@ msgstr "Nulwaarden verbergen"
 
 #: prefs.ui:299
 msgid "Use fixed widths"
-msgstr ""
+msgstr "Vaste afmetingen gebruiken"
 
 #: prefs.ui:326 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Hide icons in top bar"
-msgstr ""
+msgstr "Pictogrammen op bovenbalk verbergen"
 
 #: prefs.ui:350
 msgid "About"
@@ -150,9 +149,8 @@ msgid "Monitor storage"
 msgstr "Opslagmonitor"
 
 #: prefs.ui:736 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
-#, fuzzy
 msgid "Monitor battery"
-msgstr "Geheugenmonitor"
+msgstr "Accumonitor"
 
 #: prefs.ui:815
 msgid "Path"
@@ -160,7 +158,7 @@ msgstr "Locatie"
 
 #: prefs.ui:847 prefs.ui:956
 msgid "Measurement"
-msgstr ""
+msgstr "Metingen"
 
 #: prefs.ui:901
 msgid "Unit"
@@ -168,147 +166,174 @@ msgstr "Eenheid"
 
 #: prefs.ui:1010
 msgid "Display Battery"
-msgstr ""
+msgstr "Accu tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
-#, fuzzy
 msgid "Sensors to show in panel"
-msgstr "Paneelpositie"
+msgstr "Te tonen sensors op bovenbalk"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
-msgstr ""
+msgstr "Een lijst met te tonen sensors op de bovenbalk"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
 msgid "Delay between sensor polling"
-msgstr ""
+msgstr "Wachttijd tussen sensoruitlezingen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
 msgid "Position in Panel ('left', 'center', 'right')"
-msgstr ""
+msgstr "Positie op bovenbalk ('left', 'center', 'right')"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
 msgid "Show one extra digit after decimal"
-msgstr ""
+msgstr "Eén extra getal achter de komma tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
 msgid "Display sensors in alphabetical order"
-msgstr ""
+msgstr "Sensors op alfabetische volgorde tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
 msgid "Hide data from sensors that are invalid"
-msgstr ""
+msgstr "Gegevens van ongeldige sensors verbergen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
 msgid "Display temperature of various components"
-msgstr ""
+msgstr "Temperatuur van verscheidene onderdelen tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
-#, fuzzy
 msgid "Temperature unit"
-msgstr "Temperatuur"
+msgstr "Temperatuureenheid"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
 "The unit ('centigrade' or 'fahrenheit') the extension should display the "
 "temperature in"
 msgstr ""
+"De eenheid ('centigrade' of 'fahrenheit') waarin de temperatuur moet worden "
+"getoond"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
 msgid "Display voltage of various components"
-msgstr ""
+msgstr "Temperatuur van verscheidene onderdelen tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
 msgid "Display fan rotation per minute"
-msgstr ""
+msgstr "Ventilatortoerental tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
 msgid "Display memory information"
-msgstr ""
+msgstr "Geheugeninformatie tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
 msgid "Display processor information"
-msgstr ""
+msgstr "Processorinformatie tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
 msgid "Display system information"
-msgstr ""
+msgstr "Systeeminformatie tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
 msgid "Display storage information"
-msgstr ""
+msgstr "Opslaginformatie tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
 msgid "Display network information"
-msgstr ""
+msgstr "Netwerkinformatie tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
 msgid "Display public IP address of internet connection"
-msgstr ""
+msgstr "Publiek ip-adres van internetverbinding tonen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
 msgid "Network speed format"
-msgstr ""
+msgstr "Netwerksnelheid"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
 msgid "Should speed display in bits or bytes?"
-msgstr ""
+msgstr "Moet de snelheid in bits of bytes worden getoond?"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
-#, fuzzy
 msgid "Storage path"
-msgstr "Opslag"
+msgstr "Opslaglocatie"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
 msgid "Storage path for monitoring"
-msgstr ""
+msgstr "De te monitoren opslaglocatie"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
-#, fuzzy
 msgid "Monitor battery health"
-msgstr "Temperatuurmonitor"
+msgstr "Accugezondheid monitoren"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
 msgid "Memory measurement"
-msgstr ""
+msgstr "Geheugenmeting"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
 msgid "Can use gigabyte or gibibyte for memory"
-msgstr ""
+msgstr "U kunt kiezen uit gigabyte of gibibyte"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
-#, fuzzy
 msgid "Storage measurement"
-msgstr "Opslagvoorkeuren"
+msgstr "Opslagmeting"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
-msgstr ""
+msgstr "U kunt kiezen uit gigabyte of gibibyte"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
 msgid "Battery slot to monitor"
-msgstr ""
+msgstr "Te monitoren accu"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Which numerical battery slot should vitals monitor"
-msgstr ""
+msgstr "Welke accu deze uitbreiding moet monitoren"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Use fixed widths in top bar"
-msgstr ""
+msgstr "Vaste afmetingen gebruiken op bovenbalk"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
 msgid "Keep sensors in top bar from jumping around"
-msgstr ""
+msgstr "Voorkom dat de sensoren op de bovenbalk verspringen"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
 msgid "Keep top bar clean by only showing sensor values"
-msgstr ""
+msgstr "Houd de bovenbalk overzichtelijk door alleen sensorwaarden te tonen"
 
 #: sensors.js:194
 #, javascript-format
 msgid "Core %d"
 msgstr "Kern %d"
+
+#: sensors.js:447
+msgid "ARC Target"
+msgstr "ARC-doel"
+
+msgid "ARC Maximum"
+msgstr "ARC-maximum"
+
+msgid "ARC Current"
+msgstr "ARC (huidig)"
+
+#: values.js:225
+msgid "Total rx"
+msgstr "Totaal rx"
+
+msgid "Total tx"
+msgstr "Totaal tx"
+
+#: sensors.js:462
+msgid "Read total"
+msgstr "Uitgelezen gegevens"
+
+msgid "Write total"
+msgstr "Weggeschreven gegevens"
+
+msgid "Read rate"
+msgstr "Uitleessnelheid"
+
+msgid "Write rate"
+msgstr "Wegschrijfsnelheid"
 
 #~ msgid "Usage"
 #~ msgstr "Gebruik"
@@ -367,9 +392,6 @@ msgstr "Kern %d"
 #~ msgid "Public IP"
 #~ msgstr "Publiek ip-adres"
 
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
 #~ msgid "Used"
 #~ msgstr "Gebruikt"
 
@@ -378,9 +400,6 @@ msgstr "Kern %d"
 
 #~ msgid "Free"
 #~ msgstr "Vrij"
-
-#~ msgid "Maximum "
-#~ msgstr "Maximum "
 
 #~ msgid "Voltage"
 #~ msgstr "Voltage"
@@ -399,18 +418,6 @@ msgstr "Kern %d"
 
 #~ msgid "Open Files"
 #~ msgstr "Geopende bestanden"
-
-#~ msgid "Read total"
-#~ msgstr "Uitgelezen gegevens"
-
-#~ msgid "Write total"
-#~ msgstr "Weggeschreven gegevens"
-
-#~ msgid "Read rate"
-#~ msgstr "Uitgelezen/sec."
-
-#~ msgid "Write rate"
-#~ msgstr "Weggeschreven/sec."
 
 #~ msgid "Maximum tx"
 #~ msgstr "Maximum tx"
