@@ -60,7 +60,6 @@ var Values = GObject.registerClass({
 
         var decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
         var binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
-
         var hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
         switch (sensorClass) {
@@ -227,7 +226,7 @@ var Values = GObject.registerClass({
 
                 // appends total upload and download for all interfaces for #216
                 let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-                output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_max__']);
+                output.push(['Device ' + type.split('-')[1], sum, type, '__' + type + '_max__']);
 
                 // append download speed to group itself
                 if (type == 'network-rx')
