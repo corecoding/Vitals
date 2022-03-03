@@ -208,7 +208,12 @@ var Values = GObject.registerClass({
 
         // is the value different from last time?
         let legible = this._legible(value, format);
-        //if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
+
+        // only update when we are coming through for the first time, or if a value has changed
+        if (key in this._history[type])
+            global.log('values comparing', this._history[type][key][0], 'to', legible);
+
+        if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
             this._history[type][key] = [legible, value];
 
             // process average values
@@ -278,7 +283,7 @@ var Values = GObject.registerClass({
                 // add label as it was sent from sensors class
                 output.push([label, legible, type, key]);
             }
-        //}
+        }
 
         return output;
     }
