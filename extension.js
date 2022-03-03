@@ -479,8 +479,11 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _querySensors() {
+        global.log('*********************************');
         this._sensors.query((label, value, type, format) => {
             let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
+            if (key.substr(0, 8) == '_network' || key.substr(0, 4) == '_fan')
+                global.log('extension incoming label', label, 'value', value, 'type', type, 'format', format);
 
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
@@ -491,8 +494,12 @@ var VitalsMenuButton = GObject.registerClass({
             }
 
             let items = this._values.returnIfDifferent(label, value, type, format, key);
-            for (let item of Object.values(items))
+            for (let item of Object.values(items)) {
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
+
+                if (key.substr(0, 8) == '_network' || key.substr(0, 4) == '_fan')
+                    global.log('extension outcoming label', item[0], 'value', item[1], 'type', item[2], 'key', item[3]);
+            }
         });
 
         if (this._warnings.length > 0) {

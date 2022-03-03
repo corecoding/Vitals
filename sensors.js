@@ -52,7 +52,6 @@ var Sensors = GObject.registerClass({
 
         this._last_query = 0;
         this._last_processor = {};
-        this._last_network = {};
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -367,29 +366,19 @@ var Sensors = GObject.registerClass({
 
         new FileModule.File(netbase).list().then(interfaces => {
             for (let iface of interfaces) {
-                if (typeof this._last_network[iface] == 'undefined')
-                    this._last_network[iface] = {};
-
                 for (let direction of directions) {
+                    global.log('sensors iface', iface, 'direction', direction);
+
                     // lo tx and rx are the same
                     if (iface == 'lo' && direction == 'rx') continue;
 
                     new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
-                        let speed = 0;
-                        if (typeof this._last_network[iface][direction] != 'undefined') {
-                            speed = (value - this._last_network[iface][direction]) / diff;
-                        }
-
-                        // don't append tx to lo
-                        let name = iface + ((iface == 'lo')?'':' ' + direction);
-
                         // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
                         // by not using network-rx or network-tx
-                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
-                        this._returnValue(callback, name, speed, type, 'speed');
+                        let name = iface + ((iface == 'lo')?'':' ' + direction);
 
-                        if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                            this._last_network[iface][direction] = value;
+                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
+                        this._returnValue(callback, name, value, type, 'storage');
                     }).catch(err => { });
                 }
             }
@@ -407,6 +396,7 @@ var Sensors = GObject.registerClass({
             this._next_public_ip_check -= diff;
         }
 
+        // wireless interface statistics
         new FileModule.File('/proc/net/wireless').read().then(lines => {
             lines = lines.split("\n");
             let counter = 0;

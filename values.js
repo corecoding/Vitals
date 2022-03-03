@@ -44,6 +44,7 @@ var Values = GObject.registerClass({
         this._sensorIcons = sensorIcons;
 
         this.resetHistory();
+        this._last_network = {};
     }
 
     _legible(value, sensorClass) {
@@ -207,10 +208,8 @@ var Values = GObject.registerClass({
 
         // is the value different from last time?
         let legible = this._legible(value, format);
-        if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
+        //if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
             this._history[type][key] = [legible, value];
-
-            output.push([label, legible, type, key]);
 
             // process average values
             if (type == 'temperature' || type == 'voltage' || type == 'fan') {
@@ -221,18 +220,65 @@ var Values = GObject.registerClass({
 
                 output.push(['Average', avg, type, '__' + type + '_avg__']);
                 output.push([type, avg, type + '-group', '']);
-            } else if ((type == 'network-rx' || type == 'network-tx') && format == 'speed') {
+
+                // add label as it was sent from sensors class
+                output.push([label, legible, type, key]);
+            } else if (type == 'network-rx' || type == 'network-tx') {
+                let direction = type.split('-')[1];
+
+                if (!(direction in this._last_network))
+                    this._last_network[direction] = {};
+
+                if (!(label in this._last_network[direction]))
+                    this._last_network[direction][label] = 0;
+
+                let diff = 5;
+                //let speed = (value - this._last_network[direction][label]) / diff;
+
+                let speed = 0;
+                if (typeof this._last_network[direction][label] != 'undefined') {
+                    speed = (value - this._last_network[direction][label]) / diff;
+                }
+
+                legible = this._legible(speed, 'speed');
+                output.push([label, legible, type, key]); // this one
+
+                //output.push([label, legible, type, key]);
+                global.log('values label', label, 'value', value, 'type', type, 'key', key);
+
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
                 // appends total upload and download for all interfaces for #216
                 let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-                output.push(['Device ' + type.split('-')[1], sum, type, '__' + type + '_max__']);
+                output.push(['Session ' + type.split('-')[1], sum, type, '__' + type + '_max__']);
 
                 // append download speed to group itself
                 if (type == 'network-rx')
                     output.push([type, sum, type + '-group', '']);
+
+                // store value for next go around
+                if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                    this._last_network[direction][label] = value;
+
+                // calculate total upload and download here instead of inside above loop
+                // could be delayed by one interval, but uses less CPU this way
+
+                for (let direction in this._last_network) {
+                    let sum = 0;
+                    for (let iface in this._last_network[direction]) {
+                        sum += parseFloat(this._last_network[direction][iface]);
+                    }
+
+                    //global.log('network-' + direction);
+                    //this._returnValue(callback, 'Session ' + direction, sum, 'network-' + direction, 'storage');
+                    //this._returnValue(callback, 'Session ' + direction, sum, 'network', 'storage');
+                    //output.push(['Device ' + type.split('-')[1], sum, type, '__' + type + '_device__']);
+                }
+            } else {
+                // add label as it was sent from sensors class
+                output.push([label, legible, type, key]);
             }
-        }
+        //}
 
         return output;
     }
