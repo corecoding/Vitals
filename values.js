@@ -288,10 +288,6 @@ var Values = GObject.registerClass({
         return output;
     }
 
-    _getSensorValuesFor(type) {
-        return this._history[type];
-    }
-
     resetHistory() {
         this._history = {};
 
