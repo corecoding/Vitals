@@ -202,6 +202,9 @@ var Values = GObject.registerClass({
     returnIfDifferent(label, value, type, format, key) {
         let output = [];
 
+        if (key in this._history[type])
+            global.log('values comparing(1)', this._history[type][key][1], 'to', value);
+
         // no sense in continuing when the raw value has not changed
         if (typeof this._history[type][key] != 'undefined' && this._history[type][key][1] == value)
             return output;
@@ -211,7 +214,7 @@ var Values = GObject.registerClass({
 
         // only update when we are coming through for the first time, or if a value has changed
         if (key in this._history[type])
-            global.log('values comparing', this._history[type][key][0], 'to', legible);
+            global.log('values comparing(0)', this._history[type][key][0], 'to', legible);
 
         if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
             this._history[type][key] = [legible, value];
@@ -284,6 +287,20 @@ var Values = GObject.registerClass({
                 output.push([label, legible, type, key]);
             }
         }
+
+        // [label, legible, type, key]
+        /*
+        for (let i = output.length - 1; i >= 0; i--) {
+            let sensor = output[i];
+
+            // removes sensors that are no longer available
+            //if (!this._sensorMenuItems[sensor]) {
+            //    hotSensors.splice(i, 1);
+            //    this._removeHotLabel(sensor);
+            //    this._removeHotIcon(sensor);
+            //}
+        }
+        */
 
         return output;
     }
