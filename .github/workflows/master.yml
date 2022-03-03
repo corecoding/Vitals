@@ -38,7 +38,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v{{ env.TAG }}
+          #"ref": "refs/tags/$TAG",
+          #tag_name: v{{ env.TAG }}
+          tag_name: testing
           release_name: Release {{ env.TAG }}
           draft: false
           prerelease: false
