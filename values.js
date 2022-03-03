@@ -202,11 +202,11 @@ var Values = GObject.registerClass({
     returnIfDifferent(label, value, type, format, key) {
         let output = [];
 
-        if (key in this._history[type])
+        if (type in this._history && key in this._history[type])
             global.log('values comparing(1)', this._history[type][key][1], 'to', value);
 
         // no sense in continuing when the raw value has not changed
-        if (typeof this._history[type][key] != 'undefined' && this._history[type][key][1] == value)
+        if (type in this._history && key in this._history[type] && this._history[type][key][1] == value)
             return output;
 
         // is the value different from last time?
