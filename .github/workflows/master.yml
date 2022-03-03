@@ -30,7 +30,7 @@ jobs:
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
 
       - name: Grab version from meta data
-        run: echo "TAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
+        run: echo "TAG=$(jq .version metadata.json)" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
