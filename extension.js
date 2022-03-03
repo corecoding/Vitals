@@ -87,7 +87,7 @@ var VitalsMenuButton = GObject.registerClass({
         // display sensor categories
         for (let sensor in this._sensorIcons) {
             // groups associated sensors under accordion menu
-            if (typeof this._groups[sensor] != 'undefined') continue;
+            if (sensor in this._groups) continue;
 
             this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
             this._groups[sensor].icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[sensor]['icon']);
@@ -283,7 +283,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _removeHotLabel(key) {
-        if (typeof this._hotLabels[key] != 'undefined') {
+        if (key in this._hotLabels) {
             let label = this._hotLabels[key];
             delete this._hotLabels[key];
             // make sure set_label is not called on non existant actor
@@ -297,7 +297,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _removeHotIcon(key) {
-        if (typeof this._hotIcons[key] != 'undefined') {
+        if (key in this._hotIcons) {
             this._hotIcons[key].destroy();
             delete this._hotIcons[key];
         }

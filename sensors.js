@@ -167,10 +167,10 @@ var Sensors = GObject.registerClass({
                 if (reverse_data) {
                     let cpu = reverse_data[1].trim();
 
-                    if (typeof statistics[cpu] == 'undefined')
+                    if (!(cpu in statistics))
                         statistics[cpu] = {};
 
-                    if (typeof this._last_processor[cpu] == 'undefined')
+                    if (!(cpu in this._last_processor))
                         this._last_processor[cpu] = 0;
 
                     let stats = reverse_data[2].trim().split(' ').reverse();
@@ -525,7 +525,7 @@ var Sensors = GObject.registerClass({
                         if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-(key.length+1)) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
 
-                            if (typeof trisensors[key2] == 'undefined') {
+                            if (!(key2 in trisensors)) {
                                 trisensors[key2] = { 'type': sensor_types[sensor_type],
                                                    'format': sensor_type,
                                                     'label': path + '/name' };
@@ -538,7 +538,7 @@ var Sensors = GObject.registerClass({
             }
 
             for (let obj of Object.values(trisensors)) {
-                if (typeof obj['input'] == 'undefined')
+                if (!('input' in obj))
                     continue;
 
                 new FileModule.File(obj['input']).read().then(value => {
