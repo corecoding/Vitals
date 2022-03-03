@@ -367,8 +367,6 @@ var Sensors = GObject.registerClass({
         new FileModule.File(netbase).list().then(interfaces => {
             for (let iface of interfaces) {
                 for (let direction of directions) {
-                    global.log('sensors iface', iface, 'direction', direction);
-
                     // lo tx and rx are the same
                     if (iface == 'lo' && direction == 'rx') continue;
 
