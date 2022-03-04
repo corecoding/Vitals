@@ -206,7 +206,7 @@ var Values = GObject.registerClass({
         if (!(type in this._history)) this._history[type] = {};
         if (!(key in this._history[type])) this._history[type][key] = [0, 0];
 
-        global.log('values comparing(1)', this._history[type][key][1], 'to', value);
+        //global.log('values comparing(1)', this._history[type][key][1], 'to', value);
 
         // no sense in continuing when the raw value has not changed
         if (value > 0 && this._history[type][key][1] == value) return output;
@@ -215,7 +215,7 @@ var Values = GObject.registerClass({
         let legible = this._legible(value, format);
 
         // only update when we are coming through for the first time, or if a value has changed
-        global.log('values comparing(0)', this._history[type][key][0], 'to', legible);
+        //global.log('values comparing(0)', this._history[type][key][0], 'to', legible);
 
         //if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
 
@@ -236,7 +236,6 @@ var Values = GObject.registerClass({
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
                 let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
                 output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
-                global.log(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
 
                 // calculate speed for this interface
                 let diff = 5;
@@ -258,10 +257,8 @@ var Values = GObject.registerClass({
 
                     sum = this._legible(sum, 'speed');
                     output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_device__']);
-                    global.log(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_device__']);
                     // append download speed to group itself
                     if (direction == 'rx') output.push([type, sum, type + '-group', '']);
-                    global.log([type, sum, type + '-group', '']);
                 }
 
                 // store value for next go around
