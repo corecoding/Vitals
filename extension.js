@@ -44,6 +44,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._hotIcons = {};
         this._groups = {};
         this._widths = {};
+        this._last_query = new Date().getTime();
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
@@ -221,7 +222,6 @@ var VitalsMenuButton = GObject.registerClass({
     _initializeTimer() {
         // used to query sensors and update display
         let update_time = this._settings.get_int('update-time');
-        this._sensors.update_time = update_time;
         this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, (self) => {
             // only update menu if we have hot sensors
             if (Object.values(this._hotLabels).length > 0)
@@ -479,6 +479,13 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _querySensors() {
+        // figure out last run time
+        let now = new Date().getTime();
+        let diff = (now - this._last_query) / 1000;
+        this._last_query = now;
+
+        global.log('diff(1)', diff);
+
         this._sensors.query((label, value, type, format) => {
             let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
@@ -493,7 +500,7 @@ var VitalsMenuButton = GObject.registerClass({
             let items = this._values.returnIfDifferent(label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
-        });
+        }, diff);
 
         if (this._warnings.length > 0) {
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');

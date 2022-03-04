@@ -44,13 +44,11 @@ var Sensors = GObject.registerClass({
 }, class Sensors extends GObject.Object {
     _init(settings, sensorIcons) {
         this._settings = settings;
-        this._update_time = this._settings.get_int('update-time');
         this._sensorIcons = sensorIcons;
 
         this.resetHistory();
         this._trisensorsScanned = false;
 
-        this._last_query = 0;
         this._last_processor = {};
 
         if (hasGTop) {
@@ -84,15 +82,8 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback) {
-        // figure out last run time
-        let diff = this._update_time;
-        let now = new Date().getTime();
-
-        if (this._last_query)
-            diff = (now - this._last_query) / 1000;
-
-        this._last_query = now;
+    query(callback, diff) {
+        global.log('diff(incoming)', diff);
 
         if (this._trisensorsScanned) {
             this._queryTempVoltFan(callback);
@@ -475,10 +466,6 @@ var Sensors = GObject.registerClass({
 
     _returnValue(callback, label, value, type, format) {
         callback(label, value, type, format);
-    }
-
-    set update_time(update_time) {
-        this._update_time = update_time;
     }
 
     _discoverHardwareMonitors(callback) {
