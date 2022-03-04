@@ -83,8 +83,6 @@ var Sensors = GObject.registerClass({
     }
 
     query(callback, diff) {
-        global.log('diff(incoming)', diff);
-
         if (this._trisensorsScanned) {
             this._queryTempVoltFan(callback);
         } else {

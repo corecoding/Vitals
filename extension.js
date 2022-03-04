@@ -484,8 +484,6 @@ var VitalsMenuButton = GObject.registerClass({
         let diff = (now - this._last_query) / 1000;
         this._last_query = now;
 
-        global.log('diff(1)', diff);
-
         this._sensors.query((label, value, type, format) => {
             let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
@@ -497,7 +495,7 @@ var VitalsMenuButton = GObject.registerClass({
                 if (value == 'disabled') return;
             }
 
-            let items = this._values.returnIfDifferent(label, value, type, format, key);
+            let items = this._values.returnIfDifferent(diff, label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
         }, diff);

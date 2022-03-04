@@ -199,7 +199,7 @@ var Values = GObject.registerClass({
         return format.format(value, ending);
     }
 
-    returnIfDifferent(label, value, type, format, key) {
+    returnIfDifferent(diff, label, value, type, format, key) {
         let output = [];
 
         // make sure the keys exist
@@ -238,7 +238,6 @@ var Values = GObject.registerClass({
                 output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
 
                 // calculate speed for this interface
-                let diff = 5;
                 let speed = (value - this._history[type][key][1]) / diff;
                 output.push([label, this._legible(speed, 'speed'), type, key]);
 
