@@ -202,22 +202,22 @@ var Values = GObject.registerClass({
     returnIfDifferent(label, value, type, format, key) {
         let output = [];
 
-        if (type in this._history && key in this._history[type])
-            global.log('values comparing(1)', this._history[type][key][1], 'to', value);
+        // make sure the keys exist
+        if (!(type in this._history)) this._history[type] = {};
+        if (!(key in this._history[type])) this._history[type][key] = [0, 0];
+
+        global.log('values comparing(1)', this._history[type][key][1], 'to', value);
 
         // no sense in continuing when the raw value has not changed
-        if (type in this._history && key in this._history[type] && this._history[type][key][1] == value)
-            return output;
+        if (value > 0 && this._history[type][key][1] == value) return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
 
         // only update when we are coming through for the first time, or if a value has changed
-        if (key in this._history[type])
-            global.log('values comparing(0)', this._history[type][key][0], 'to', legible);
+        global.log('values comparing(0)', this._history[type][key][0], 'to', legible);
 
-        if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
-            this._history[type][key] = [legible, value];
+        //if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
 
             // process average values
             if (type == 'temperature' || type == 'voltage' || type == 'fan') {
@@ -234,43 +234,38 @@ var Values = GObject.registerClass({
             } else if (type == 'network-rx' || type == 'network-tx') {
                 let direction = type.split('-')[1];
 
-                if (!(direction in this._last_network))
-                    this._last_network[direction] = {};
-
-                if (!(label in this._last_network[direction]))
-                    this._last_network[direction][label] = 0;
+                //if (!(direction in this._last_network)) this._last_network[direction] = {};
+                //if (!(label in this._last_network[direction])) this._last_network[direction][label] = 0;
 
                 let diff = 5;
-                //let speed = (value - this._last_network[direction][label]) / diff;
 
-                let speed = 0;
-                if (typeof this._last_network[direction][label] != 'undefined') {
-                    speed = (value - this._last_network[direction][label]) / diff;
-                }
+                let speed = (value - this._history[type][key][1]) / diff;
 
                 legible = this._legible(speed, 'speed');
-                output.push([label, legible, type, key]); // this one
+                output.push([label, legible, type, key]);
 
                 //output.push([label, legible, type, key]);
-                global.log('values label', label, 'value', value, 'type', type, 'key', key);
+                //global.log('values label', label, 'value', value, 'type', type, 'key', key);
 
                 let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
                 // appends total upload and download for all interfaces for #216
                 let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-                output.push(['Session ' + type.split('-')[1], sum, type, '__' + type + '_max__']);
+                output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
+                global.log(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
 
                 // append download speed to group itself
                 if (type == 'network-rx')
                     output.push([type, sum, type + '-group', '']);
 
                 // store value for next go around
-                if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                    this._last_network[direction][label] = value;
+                //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                //    this._last_network[direction][label] = value;
 
                 // calculate total upload and download here instead of inside above loop
                 // could be delayed by one interval, but uses less CPU this way
 
+/*
                 for (let direction in this._last_network) {
                     let sum = 0;
                     for (let iface in this._last_network[direction]) {
@@ -280,13 +275,18 @@ var Values = GObject.registerClass({
                     //global.log('network-' + direction);
                     //this._returnValue(callback, 'Session ' + direction, sum, 'network-' + direction, 'storage');
                     //this._returnValue(callback, 'Session ' + direction, sum, 'network', 'storage');
-                    //output.push(['Device ' + type.split('-')[1], sum, type, '__' + type + '_device__']);
+                    output.push(['Device ' + direction, this._legible(sum, 'speed'), 'network-' + direction, '__network-' + direction + '_device__']);
+                    global.log(['Device ' + direction, this._legible(sum, 'speed'), 'network-' + direction, '__network-' + direction + '_device__']);
                 }
+*/
             } else {
                 // add label as it was sent from sensors class
                 output.push([label, legible, type, key]);
             }
-        }
+
+            // save previous values for efficiency
+            this._history[type][key] = [legible, value];
+        //}
 
         // [label, legible, type, key]
         /*
