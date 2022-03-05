@@ -173,8 +173,13 @@ var VitalsMenuButton = GObject.registerClass({
 
         // query sensors on menu open
         this._menuStateChangeId = this.menu.connect('open-state-changed', (self, isMenuOpen) => {
-            if (isMenuOpen)
+            if (isMenuOpen) {
+                // make sure timer fires at next full interval
+                this._updateTimeChanged();
+
+                // refresh sensors now
                 this._querySensors();
+            }
         });
     }
 
