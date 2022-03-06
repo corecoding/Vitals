@@ -39,9 +39,8 @@ var Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
 
-    _init(settings, sensorIcons) {
+    _init(settings) {
         this._settings = settings;
-        this._sensorIcons = sensorIcons;
 
         this.resetHistory();
         this._networkSpeeds = {};
@@ -206,16 +205,17 @@ var Values = GObject.registerClass({
         if (!(type in this._history)) this._history[type] = {};
         if (!(key in this._history[type])) this._history[type][key] = [0, 0];
 
-        //global.log('values comparing(1)', this._history[type][key][1], 'to', value);
+        global.log('comparing raw', this._history[type][key][1], 'to', value);
 
         // no sense in continuing when the raw value has not changed
-        if (value > 0 && this._history[type][key][1] == value) return output;
+        //if (value > 0 && this._history[type][key][1] == value) return output;
+        if (this._history[type][key][1] == value) return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
 
         // only update when we are coming through for the first time, or if a value has changed
-        //global.log('values comparing(0)', this._history[type][key][0], 'to', legible);
+        global.log('      legible', this._history[type][key][0], 'to', legible);
 
         //if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
 
@@ -277,15 +277,5 @@ var Values = GObject.registerClass({
 
     resetHistory() {
         this._history = {};
-
-        for (let sensor in this._sensorIcons) {
-            this._history[sensor] = {};
-            this._history[sensor + '-group'] = {};
-
-            if (sensor == 'network') {
-                this._history[sensor + '-rx'] = {};
-                this._history[sensor + '-tx'] = {};
-            }
-        }
     }
 });
