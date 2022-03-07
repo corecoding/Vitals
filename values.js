@@ -246,8 +246,15 @@ var Values = GObject.registerClass({
 
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
-            let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-            output.push(['Total ' + direction, sum, type, '__' + type + '_total__']);
+            let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
+            output.push(['Total ' + direction, this._legible(sum, format), type, '__' + type + '_total__']);
+
+            // keeps track of session start point
+            if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
+                this._networkSpeedOffset[key] = sum;
+
+            // outputs session upload and download for all interfaces for #234
+            output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
 
             // prevents initial spike in network speed calculations
             if (!previousValue[1]) previousValue[1] = value;
@@ -287,6 +294,6 @@ var Values = GObject.registerClass({
 
     resetHistory() {
         this._history = {};
-        this._networkSpeedOffset = 0;
+        this._networkSpeedOffset = {};
     }
 });
