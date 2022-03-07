@@ -242,10 +242,12 @@ var Values = GObject.registerClass({
             // add label as it was sent from sensors class
             output.push([label, legible, type, key]);
         } else if (type == 'network-rx' || type == 'network-tx') {
+            let direction = type.split('-')[1];
+
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-            output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
+            output.push(['Total ' + direction, sum, type, '__' + type + '_total__']);
 
             // prevents initial spike in network speed calculations
             if (!previousValue[1]) previousValue[1] = value;
@@ -255,7 +257,6 @@ var Values = GObject.registerClass({
             output.push([label, this._legible(speed, 'speed'), type, key]);
 
             // store speed for Device report
-            let direction = type.split('-')[1];
             if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
             if (!(label in this._networkSpeeds[direction])) this._networkSpeeds[direction][label] = 0;
             this._networkSpeeds[direction][label] = speed;
@@ -286,5 +287,6 @@ var Values = GObject.registerClass({
 
     resetHistory() {
         this._history = {};
+        this._networkSpeedOffset = 0;
     }
 });
