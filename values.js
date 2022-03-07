@@ -203,9 +203,9 @@ var Values = GObject.registerClass({
 
         // make sure the keys exist
         if (!(type in this._history)) this._history[type] = {};
-        if (!(key in this._history[type])) this._history[type][key] = [0, 0];
+        if (!(key in this._history[type])) this._history[type][key] = ['', ''];
 
-        global.log('comparing raw', this._history[type][key][1], 'to', value);
+        //global.log('comparing raw', this._history[type][key][1], 'to', value);
 
         // no sense in continuing when the raw value has not changed
         //if (value > 0 && this._history[type][key][1] == value) return output;
@@ -215,62 +215,68 @@ var Values = GObject.registerClass({
         let legible = this._legible(value, format);
 
         // only update when we are coming through for the first time, or if a value has changed
-        global.log('      legible', this._history[type][key][0], 'to', legible);
+        //global.log('      legible', this._history[type][key][0], 'to', legible);
 
-        //if (typeof this._history[type][key] == 'undefined' || this._history[type][key][0] != legible) {
 
-            // process average values
-            if (type == 'temperature' || type == 'voltage' || type == 'fan') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
-                let sum = vals.reduce((a, b) => a + b);
-                let avg = sum / vals.length;
-                avg = this._legible(avg, format);
 
-                output.push(['Average', avg, type, '__' + type + '_avg__']);
-                output.push([type, avg, type + '-group', '']);
+        if (this._history[type][key][0] == legible && type != 'network-rx' && type != 'network-tx') {
+            return output;
+        }
 
-                // add label as it was sent from sensors class
-                output.push([label, legible, type, key]);
-            } else if (type == 'network-rx' || type == 'network-tx') {
-                // appends total upload and download for all interfaces for #216
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
-                let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-                output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
+        //global.log('   updating screen');
 
-                // calculate speed for this interface
-                let speed = (value - this._history[type][key][1]) / diff;
-                output.push([label, this._legible(speed, 'speed'), type, key]);
+        // save previous values to update screen on chnages only
+        let previousValue = this._history[type][key];
+        this._history[type][key] = [legible, value];
 
-                // store speed for Device report
-                let direction = type.split('-')[1];
-                if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
-                if (!(label in this._networkSpeeds[direction])) this._networkSpeeds[direction][label] = 0;
-                this._networkSpeeds[direction][label] = speed;
+        // process average values
+        if (type == 'temperature' || type == 'voltage' || type == 'fan') {
+            let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
+            let sum = vals.reduce((a, b) => a + b);
+            let avg = sum / vals.length;
+            avg = this._legible(avg, format);
 
-                // calculate total upload and download device speed
-                for (let direction in this._networkSpeeds) {
-                    let sum = 0;
-                    for (let iface in this._networkSpeeds[direction]) {
-                        sum += parseFloat(this._networkSpeeds[direction][iface]);
-                    }
+            output.push(['Average', avg, type, '__' + type + '_avg__']);
+            output.push([type, avg, type + '-group', '']);
 
-                    sum = this._legible(sum, 'speed');
-                    output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_device__']);
-                    // append download speed to group itself
-                    if (direction == 'rx') output.push([type, sum, type + '-group', '']);
+            // add label as it was sent from sensors class
+            output.push([label, legible, type, key]);
+        } else if (type == 'network-rx' || type == 'network-tx') {
+            // appends total upload and download for all interfaces for #216
+            let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
+            let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
+            output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
+
+            // calculate speed for this interface
+            let speed = (value - previousValue[1]) / diff;
+            output.push([label, this._legible(speed, 'speed'), type, key]);
+
+            // store speed for Device report
+            let direction = type.split('-')[1];
+            if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
+            if (!(label in this._networkSpeeds[direction])) this._networkSpeeds[direction][label] = 0;
+            this._networkSpeeds[direction][label] = speed;
+
+            // calculate total upload and download device speed
+            for (let direction in this._networkSpeeds) {
+                let sum = 0;
+                for (let iface in this._networkSpeeds[direction]) {
+                    sum += parseFloat(this._networkSpeeds[direction][iface]);
                 }
 
-                // store value for next go around
-                //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                //    this._networkSpeeds[direction][label] = value;
-            } else {
-                // add label as it was sent from sensors class
-                output.push([label, legible, type, key]);
+                sum = this._legible(sum, 'speed');
+                output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_device__']);
+                // append download speed to group itself
+                if (direction == 'rx') output.push([type, sum, type + '-group', '']);
             }
 
-            // save previous values for efficiency
-            this._history[type][key] = [legible, value];
-        //}
+            // store value for next go around
+            //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+            //    this._networkSpeeds[direction][label] = value;
+        } else {
+            // add label as it was sent from sensors class
+            output.push([label, legible, type, key]);
+        }
 
         return output;
     }
