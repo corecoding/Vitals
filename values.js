@@ -247,6 +247,9 @@ var Values = GObject.registerClass({
             let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
             output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_total__']);
 
+            // prevents initial spike in network speed calculations
+            if (!previousValue[1]) previousValue[1] = value;
+
             // calculate speed for this interface
             let speed = (value - previousValue[1]) / diff;
             output.push([label, this._legible(speed, 'speed'), type, key]);
