@@ -217,10 +217,18 @@ var Values = GObject.registerClass({
         // only update when we are coming through for the first time, or if a value has changed
         //global.log('      legible', this._history[type][key][0], 'to', legible);
 
+        // store value for next go around
+        //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+        //    this._networkSpeeds[direction][label] = value;
 
+        // don't return early when dealing with network traffic
+        if (type != 'network-rx' && type != 'network-tx') {
+            // if value has not hcanged since last time, return early
+            if (this._history[type][key][0] == legible)
+                return output;
 
-        if (this._history[type][key][0] == legible && type != 'network-rx' && type != 'network-tx') {
-            return output;
+            // add label as it was sent from sensors class
+            output.push([label, legible, type, key]);
         }
 
         //global.log('   updating screen');
@@ -238,9 +246,6 @@ var Values = GObject.registerClass({
 
             output.push(['Average', avg, type, '__' + type + '_avg__']);
             output.push([type, avg, type + '-group', '']);
-
-            // add label as it was sent from sensors class
-            output.push([label, legible, type, key]);
         } else if (type == 'network-rx' || type == 'network-tx') {
             let direction = type.split('-')[1];
 
@@ -280,13 +285,6 @@ var Values = GObject.registerClass({
                 // append download speed to group itself
                 if (direction == 'rx') output.push([type, sum, type + '-group', '']);
             }
-
-            // store value for next go around
-            //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-            //    this._networkSpeeds[direction][label] = value;
-        } else {
-            // add label as it was sent from sensors class
-            output.push([label, legible, type, key]);
         }
 
         return output;
