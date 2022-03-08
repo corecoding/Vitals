@@ -130,7 +130,6 @@ var VitalsMenuButton = GObject.registerClass({
         refreshButton.connect('clicked', (self) => {
             // force refresh by clearing history
             this._sensors.resetHistory();
-            this._values.resetHistory();
 
             // removes any sensors that may not currently be available
             this._removeMissingHotSensors();
@@ -265,7 +264,6 @@ var VitalsMenuButton = GObject.registerClass({
 
     _higherPrecisionChanged() {
         this._sensors.resetHistory();
-        this._values.resetHistory();
         this._querySensors();
     }
 
@@ -325,7 +323,6 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._drawMenu();
         this._sensors.resetHistory();
-        this._values.resetHistory();
         this._querySensors();
     }
 

@@ -42,7 +42,8 @@ var Values = GObject.registerClass({
     _init(settings) {
         this._settings = settings;
 
-        this.resetHistory();
+        this._history = {};
+        this._networkSpeedOffset = {};
         this._networkSpeeds = {};
     }
 
@@ -288,10 +289,5 @@ var Values = GObject.registerClass({
         }
 
         return output;
-    }
-
-    resetHistory() {
-        this._history = {};
-        this._networkSpeedOffset = {};
     }
 });
