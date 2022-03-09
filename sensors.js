@@ -463,7 +463,8 @@ var Sensors = GObject.registerClass({
     }
 
     _returnValue(callback, label, value, type, format) {
-        callback(label, value, type, format);
+        let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
+        callback(label, value, type, format, key);
     }
 
     _discoverHardwareMonitors(callback) {
@@ -541,6 +542,7 @@ var Sensors = GObject.registerClass({
                 }).catch(err => { });
             }
         }).catch(err => { });
+
     }
 
     _addTempVoltFan(callback, obj, name, label, extra, value) {
