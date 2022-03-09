@@ -47,7 +47,6 @@ var Sensors = GObject.registerClass({
         this._sensorIcons = sensorIcons;
 
         this.resetHistory();
-        this._trisensorsScanned = false;
 
         this._last_processor = {};
 
