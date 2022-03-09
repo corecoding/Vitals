@@ -393,7 +393,7 @@ var VitalsMenuButton = GObject.registerClass({
     _appendMenuItem(sensor, key) {
         let split = sensor.type.split('-');
         let type = split[0];
-        let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+        let icon = (split.length == 2)?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
@@ -464,7 +464,7 @@ var VitalsMenuButton = GObject.registerClass({
         if (type == 'default' || !(type in this._sensorIcons)) {
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons['system']['icon']);
         } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
-            let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+            let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
 
