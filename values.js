@@ -204,19 +204,20 @@ var Values = GObject.registerClass({
 
         // make sure the keys exist
         if (!(type in this._history)) this._history[type] = {};
-        if (!(key in this._history[type])) this._history[type][key] = ['', ''];
 
-        //global.log('comparing raw', this._history[type][key][1], 'to', value);
+        if (type in this._history && key in this._history[type])
+        global.log('comparing raw', this._history[type][key][1], 'to', value);
 
         // no sense in continuing when the raw value has not changed
         //if (value > 0 && this._history[type][key][1] == value) return output;
-        if (this._history[type][key][1] == value) return output;
+        if (key in this._history[type] && this._history[type][key][1] == value) return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
 
         // only update when we are coming through for the first time, or if a value has changed
-        //global.log('      legible', this._history[type][key][0], 'to', legible);
+        if (type in this._history && key in this._history[type])
+        global.log('      legible', this._history[type][key][0], 'to', legible);
 
         // store value for next go around
         //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
@@ -225,16 +226,17 @@ var Values = GObject.registerClass({
         // don't return early when dealing with network traffic
         if (type != 'network-rx' && type != 'network-tx') {
             // if value has not hcanged since last time, return early
-            if (this._history[type][key][0] == legible)
+            if (key in this._history[type] && this._history[type][key][0] == legible)
                 return output;
 
             // add label as it was sent from sensors class
             output.push([label, legible, type, key]);
         }
 
-        //global.log('   updating screen');
+        global.log('   updating screen');
 
         // save previous values to update screen on chnages only
+        //if (!(key in this._history[type]) || this._history[type][key][0] != legible) {
         let previousValue = this._history[type][key];
         this._history[type][key] = [legible, value];
 
@@ -263,7 +265,7 @@ var Values = GObject.registerClass({
             output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
 
             // prevents initial spike in network speed calculations
-            if (!previousValue[1]) previousValue[1] = value;
+            //if (!previousValue[1]) previousValue[1] = value;
 
             // calculate speed for this interface
             let speed = (value - previousValue[1]) / diff;
