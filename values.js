@@ -39,11 +39,12 @@ var Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
 
-    _init(settings, sensorIcons) {
+    _init(settings) {
         this._settings = settings;
-        this._sensorIcons = sensorIcons;
 
-        this.resetHistory();
+        this._history = {};
+        this._networkSpeedOffset = {};
+        this._networkSpeeds = {};
     }
 
     _legible(value, sensorClass) {
@@ -198,60 +199,86 @@ var Values = GObject.registerClass({
         return format.format(value, ending);
     }
 
-    returnIfDifferent(label, value, type, format, key) {
+    returnIfDifferent(diff, label, value, type, format, key) {
         let output = [];
 
+        // make sure the keys exist
+        if (!(type in this._history)) this._history[type] = {};
+
         // no sense in continuing when the raw value has not changed
-        if (key in this._history[type] && this._history[type][key][1] == value)
-            return output;
+        //if (value > 0 && this._history[type][key][1] == value) return output;
+        if (key in this._history[type] && this._history[type][key][1] == value) return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
-        if (!(key in this._history[type]) || this._history[type][key][0] != legible) {
-            this._history[type][key] = [legible, value];
 
+        // only update when we are coming through for the first time, or if a value has changed
+
+        // store value for next go around
+        //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+        //    this._networkSpeeds[direction][label] = value;
+
+        // don't return early when dealing with network traffic
+        if (type != 'network-rx' && type != 'network-tx') {
+            // if value has not hcanged since last time, return early
+            if (key in this._history[type] && this._history[type][key][0] == legible)
+                return output;
+
+            // add label as it was sent from sensors class
             output.push([label, legible, type, key]);
+        }
 
-            // process average values
-            if (type == 'temperature' || type == 'voltage' || type == 'fan') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
-                let sum = vals.reduce((a, b) => a + b);
-                let avg = sum / vals.length;
-                avg = this._legible(avg, format);
+        // save previous values to update screen on chnages only
+        let previousValue = this._history[type][key];
+        this._history[type][key] = [legible, value];
 
-                output.push(['Average', avg, type, '__' + type + '_avg__']);
-                output.push([type, avg, type + '-group', '']);
-            } else if ((type == 'network-rx' || type == 'network-tx') && format == 'speed') {
-                let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
+        // process average values
+        if (type == 'temperature' || type == 'voltage' || type == 'fan') {
+            let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
+            let sum = vals.reduce((a, b) => a + b);
+            let avg = sum / vals.length;
+            avg = this._legible(avg, format);
 
-                // appends total upload and download for all interfaces for #216
-                let sum = this._legible(vals.reduce((partialSum, a) => partialSum + a, 0), format);
-                output.push(['Total ' + type.split('-')[1], sum, type, '__' + type + '_max__']);
+            output.push(['Average', avg, type, '__' + type + '_avg__']);
+            output.push([type, avg, type + '-group', '']);
+        } else if (type == 'network-rx' || type == 'network-tx') {
+            let direction = type.split('-')[1];
 
+            // appends total upload and download for all interfaces for #216
+            let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
+            let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
+            output.push(['Total ' + direction, this._legible(sum, format), type, '__' + type + '_total__']);
+
+            // keeps track of session start point
+            if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
+                this._networkSpeedOffset[key] = sum;
+
+            // outputs session upload and download for all interfaces for #234
+            output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
+
+            // calculate speed for this interface
+            let speed = (value - previousValue[1]) / diff;
+            output.push([label, this._legible(speed, 'speed'), type, key]);
+
+            // store speed for Device report
+            if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
+            if (!(label in this._networkSpeeds[direction])) this._networkSpeeds[direction][label] = 0;
+            this._networkSpeeds[direction][label] = speed;
+
+            // calculate total upload and download device speed
+            for (let direction in this._networkSpeeds) {
+                let sum = 0;
+                for (let iface in this._networkSpeeds[direction]) {
+                    sum += parseFloat(this._networkSpeeds[direction][iface]);
+                }
+
+                sum = this._legible(sum, 'speed');
+                output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_device__']);
                 // append download speed to group itself
-                if (type == 'network-rx')
-                    output.push([type, sum, type + '-group', '']);
+                if (direction == 'rx') output.push([type, sum, type + '-group', '']);
             }
         }
 
         return output;
-    }
-
-    _getSensorValuesFor(type) {
-        return this._history[type];
-    }
-
-    resetHistory() {
-        this._history = {};
-
-        for (let sensor in this._sensorIcons) {
-            this._history[sensor] = {};
-            this._history[sensor + '-group'] = {};
-
-            if (sensor == 'network') {
-                this._history[sensor + '-rx'] = {};
-                this._history[sensor + '-tx'] = {};
-            }
-        }
     }
 });

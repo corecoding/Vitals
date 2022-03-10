@@ -44,15 +44,11 @@ var Sensors = GObject.registerClass({
 }, class Sensors extends GObject.Object {
     _init(settings, sensorIcons) {
         this._settings = settings;
-        this._update_time = this._settings.get_int('update-time');
         this._sensorIcons = sensorIcons;
 
         this.resetHistory();
-        this._trisensorsScanned = false;
 
-        this._last_query = 0;
         this._last_processor = {};
-        this._last_network = {};
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -85,16 +81,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback) {
-        // figure out last run time
-        let diff = this._update_time;
-        let now = new Date().getTime();
-
-        if (this._last_query)
-            diff = (now - this._last_query) / 1000;
-
-        this._last_query = now;
-
+    query(callback, diff) {
         if (this._trisensorsScanned) {
             this._queryTempVoltFan(callback);
         } else {
@@ -118,9 +105,9 @@ var Sensors = GObject.registerClass({
             let sensor = this._tempVoltFanSensors[path];
 
             new FileModule.File(path).read().then(value => {
-                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
+                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format'], sensor['id']);
             }).catch(err => {
-                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format']);
+                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format'], sensor['id']);
             });
         }
     }
@@ -367,29 +354,17 @@ var Sensors = GObject.registerClass({
 
         new FileModule.File(netbase).list().then(interfaces => {
             for (let iface of interfaces) {
-                if (!(iface in this._last_network))
-                    this._last_network[iface] = {};
-
                 for (let direction of directions) {
                     // lo tx and rx are the same
                     if (iface == 'lo' && direction == 'rx') continue;
 
                     new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
-                        let speed = 0;
-                        if (direction in this._last_network[iface]) {
-                            speed = (value - this._last_network[iface][direction]) / diff;
-                        }
-
-                        // don't append tx to lo
-                        let name = iface + ((iface == 'lo')?'':' ' + direction);
-
                         // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
                         // by not using network-rx or network-tx
-                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
-                        this._returnValue(callback, name, speed, type, 'speed');
+                        let name = iface + ((iface == 'lo')?'':' ' + direction);
 
-                        if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                            this._last_network[iface][direction] = value;
+                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
+                        this._returnValue(callback, name, value, type, 'storage');
                     }).catch(err => { });
                 }
             }
@@ -407,6 +382,7 @@ var Sensors = GObject.registerClass({
             this._next_public_ip_check -= diff;
         }
 
+        // wireless interface statistics
         new FileModule.File('/proc/net/wireless').read().then(lines => {
             lines = lines.split("\n");
             let counter = 0;
@@ -486,12 +462,12 @@ var Sensors = GObject.registerClass({
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     }
 
-    _returnValue(callback, label, value, type, format) {
-        callback(label, value, type, format);
-    }
+    _returnValue(callback, label, value, type, format, id = '') {
+        // when no id is specified, revert to old way of creating key from label
+        if (!id) id = label.replace(' ', '_').toLowerCase();
 
-    set update_time(update_time) {
-        this._update_time = update_time;
+        let key = '_' + type.replace('-group', '') + '_' + id + '_';
+        callback(label, value, type, format, key);
     }
 
     _discoverHardwareMonitors(callback) {
@@ -548,7 +524,9 @@ var Sensors = GObject.registerClass({
                 }
             }
 
-            for (let obj of Object.values(trisensors)) {
+            for (let id in trisensors) {
+                let obj = trisensors[id];
+
                 if (!('input' in obj))
                     continue;
 
@@ -557,12 +535,12 @@ var Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            this._addTempVoltFan(callback, obj, name, label, extra, value);
+                            this._addTempVoltFan(callback, id, obj, name, label, extra, value);
                         }).catch(err => {
                             // label file reading sometimes returns Invalid argument in which case we default to the name
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
-                                this._addTempVoltFan(callback, obj, name, label, extra, value);
+                                this._addTempVoltFan(callback, id, obj, name, label, extra, value);
                             }).catch(err => { });
                         });
                     }
@@ -571,7 +549,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _addTempVoltFan(callback, obj, name, label, extra, value) {
+    _addTempVoltFan(callback, id, obj, name, label, extra, value) {
         // prepend module that provided sensor data
         if (name != label) {
             if (name == 'coretemp') name = 'CPU';
@@ -585,11 +563,14 @@ var Sensors = GObject.registerClass({
         label = label + extra;
 
         // update screen on initial build to prevent delay on update
-        this._returnValue(callback, label, value, obj['type'], obj['format']);
+        this._returnValue(callback, label, value, obj['type'], obj['format'], id);
 
-        this._tempVoltFanSensors[obj['input']] = {'type': obj['type'],
-            'format': obj['format'],
-            'label': label};
+        this._tempVoltFanSensors[obj['input']] = {
+            'type': obj['type'],
+          'format': obj['format'],
+           'label': label,
+              'id': id
+        };
     }
 
     resetHistory() {

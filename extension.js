@@ -32,8 +32,8 @@ var VitalsMenuButton = GObject.registerClass({
               'processor' : { 'icon': 'cpu-symbolic.svg' },
                  'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
-                     'icon-rx': 'network-download-symbolic.svg',
-                     'icon-tx': 'network-upload-symbolic.svg' },
+                           'icon-rx': 'network-download-symbolic.svg',
+                           'icon-tx': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' }
         }
@@ -44,9 +44,10 @@ var VitalsMenuButton = GObject.registerClass({
         this._hotIcons = {};
         this._groups = {};
         this._widths = {};
+        this._last_query = new Date().getTime();
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
-        this._values = new Values.Values(this._settings, this._sensorIcons);
+        this._values = new Values.Values(this._settings);
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
@@ -129,7 +130,9 @@ var VitalsMenuButton = GObject.registerClass({
         refreshButton.connect('clicked', (self) => {
             // force refresh by clearing history
             this._sensors.resetHistory();
-            this._values.resetHistory();
+
+            // removes any sensors that may not currently be available
+            this._removeMissingHotSensors();
 
             // make sure timer fires at next full interval
             this._updateTimeChanged();
@@ -163,8 +166,13 @@ var VitalsMenuButton = GObject.registerClass({
 
         // query sensors on menu open
         this._menuStateChangeId = this.menu.connect('open-state-changed', (self, isMenuOpen) => {
-            if (isMenuOpen)
+            if (isMenuOpen) {
+                // make sure timer fires at next full interval
+                this._updateTimeChanged();
+
+                // refresh sensors now
                 this._querySensors();
+            }
         });
     }
 
@@ -180,7 +188,9 @@ var VitalsMenuButton = GObject.registerClass({
         return button;
     }
 
-    _removeMissingHotSensors(hotSensors) {
+    _removeMissingHotSensors() {
+        let hotSensors = this._settings.get_strv('hot-sensors');
+
         for (let i = hotSensors.length - 1; i >= 0; i--) {
             let sensor = hotSensors[i];
 
@@ -195,7 +205,8 @@ var VitalsMenuButton = GObject.registerClass({
             }
         }
 
-        return hotSensors;
+        // save hotSensors for next round
+        this._saveHotSensors(hotSensors);
     }
 
     _saveHotSensors(hotSensors) {
@@ -209,7 +220,6 @@ var VitalsMenuButton = GObject.registerClass({
     _initializeTimer() {
         // used to query sensors and update display
         let update_time = this._settings.get_int('update-time');
-        this._sensors.update_time = update_time;
         this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, (self) => {
             // only update menu if we have hot sensors
             if (Object.values(this._hotLabels).length > 0)
@@ -248,7 +258,6 @@ var VitalsMenuButton = GObject.registerClass({
 
     _higherPrecisionChanged() {
         this._sensors.resetHistory();
-        this._values.resetHistory();
         this._querySensors();
     }
 
@@ -309,7 +318,6 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._drawMenu();
         this._sensors.resetHistory();
-        this._values.resetHistory();
         this._querySensors();
     }
 
@@ -380,7 +388,7 @@ var VitalsMenuButton = GObject.registerClass({
     _appendMenuItem(sensor, key) {
         let split = sensor.type.split('-');
         let type = split[0];
-        let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+        let icon = (split.length == 2)?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
@@ -411,9 +419,6 @@ var VitalsMenuButton = GObject.registerClass({
                 }
             }
 
-            // removes any sensors that may not currently be available
-            hotSensors = this._removeMissingHotSensors(hotSensors);
-
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
         });
@@ -426,9 +431,8 @@ var VitalsMenuButton = GObject.registerClass({
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 // use natural sort order for system load, etc
-                if (typeof menuItems[i] != 'undefined' && typeof menuItems[i].label != 'undefined' &&
-                    menuItems[i].label.localeCompare(item.label, undefined, { numeric: true, sensitivity: 'base' }) > 0)
-                        break;
+                if (menuItems[i].label.localeCompare(item.label, undefined, { numeric: true, sensitivity: 'base' }) > 0)
+                    break;
         }
 
         this._groups[type].menu.addMenuItem(item, i);
@@ -454,7 +458,7 @@ var VitalsMenuButton = GObject.registerClass({
         if (type == 'default' || !(type in this._sensorIcons)) {
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons['system']['icon']);
         } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
-            let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+            let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
 
@@ -505,9 +509,12 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _querySensors() {
-        this._sensors.query((label, value, type, format) => {
-            let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
+        // figure out last run time
+        let now = new Date().getTime();
+        let diff = (now - this._last_query) / 1000;
+        this._last_query = now;
 
+        this._sensors.query((label, value, type, format, key) => {
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
                 this._sensorMenuItems[key].setSensitive((value!='disabled'));
@@ -516,10 +523,10 @@ var VitalsMenuButton = GObject.registerClass({
                 if (value == 'disabled') return;
             }
 
-            let items = this._values.returnIfDifferent(label, value, type, format, key);
+            let items = this._values.returnIfDifferent(diff, label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
-        });
+        }, diff);
 
         if (this._warnings.length > 0) {
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
