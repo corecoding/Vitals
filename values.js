@@ -243,7 +243,7 @@ var Values = GObject.registerClass({
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
-            output.push(['Total ' + direction, this._legible(sum, format), type, '__' + type + '_total__']);
+            output.push(['Boot ' + direction, this._legible(sum, format), type, '__' + type + '_boot__']);
 
             // keeps track of session start point
             if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
