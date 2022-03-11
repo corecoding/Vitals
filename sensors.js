@@ -555,6 +555,9 @@ var Sensors = GObject.registerClass({
             label = name + ' ' + label;
         }
 
+        if (label == 'nvme Composite') label = 'NVMe';
+        if (label == 'nouveau') label = 'Nvidia';
+
         label = label + extra;
 
         // in the future we will read /etc/sensors3.conf
