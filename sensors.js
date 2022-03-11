@@ -556,11 +556,14 @@ var Sensors = GObject.registerClass({
             label = name + ' ' + label;
         }
 
-        if (label == 'acpitz') label = 'ACPI Thermal Zone';
-        if (label == 'pch_cannonlake') label = 'Platform Controller Hub';
-        if (label == 'iwlwifi_1') label = 'Wireless Adapter';
-
         label = label + extra;
+
+        // in the future we will read /etc/sensors3.conf
+        if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
+        if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
+        if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
+        if (label == 'CPU Package id 0') label = 'Processor 0';
+        if (label == 'CPU Package id 1') label = 'Processor 1';
 
         // update screen on initial build to prevent delay on update
         this._returnValue(callback, label, value, obj['type'], obj['format'], id);
