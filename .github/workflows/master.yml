@@ -32,6 +32,9 @@ jobs:
       - name: Grab version from meta data
         run: echo "TAG=$(jq .version metadata.json)" >> $GITHUB_ENV
 
+      - name: Get latest tag that looks like a semver (with or without v)
+        run: .github/workflows/get_latest_tag.sh
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
