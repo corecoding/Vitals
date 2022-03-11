@@ -33,7 +33,7 @@ jobs:
         run: echo "TAG=$(jq .version metadata.json)" >> $GITHUB_ENV
 
       - name: Install semver command
-        run: sudo apk add --update nodejs npm && npm install -g semver
+        run: sudo npm install -g semver
 
       - name: Get latest tag that looks like a semver (with or without v)
         run: .github/workflows/get_latest_tag.sh
