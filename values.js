@@ -39,12 +39,15 @@ var Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
 
-    _init(settings) {
+    _init(settings, sensorIcons) {
         this._settings = settings;
+        this._sensorIcons = sensorIcons;
 
-        this._history = {};
         this._networkSpeedOffset = {};
         this._networkSpeeds = {};
+
+        this._history = {};
+        this.resetHistory();
     }
 
     _legible(value, sensorClass) {
@@ -275,5 +278,14 @@ var Values = GObject.registerClass({
         }
 
         return output;
+    }
+
+    resetHistory() {
+        // don't call this._history = {}, as we want to keep network-rx and network-tx
+        // otherwise network history statistics will start over
+        for (let sensor in this._sensorIcons) {
+            this._history[sensor] = {};
+            this._history[sensor + '-group'] = {};
+        }
     }
 });
