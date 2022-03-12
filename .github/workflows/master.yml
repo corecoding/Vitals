@@ -56,8 +56,11 @@ jobs:
             esac
 
             echo $taglist
+            echo "here 1"
             tag=$(semver "$taglist" | tail -n 1)
+            echo "here 2"
             echo "incoming !$tag!"
+            echo "here 3"
 
             # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
             if [ -z "$tag" ]; then
