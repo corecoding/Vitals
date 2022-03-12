@@ -48,7 +48,7 @@ jobs:
             echo "here 0"
             git tag --sort=v:refname
             echo "here 1"
-            git tag --sort=v:refname | { grep "v$METATAG\." || true; }
+            git tag --sort=v:refname | { grep "v51\." || true; }
             echo "here 2"
 
             tag=$(git tag --sort=v:refname | { grep "v$METATAG\." || true; } | tail -n 1)
