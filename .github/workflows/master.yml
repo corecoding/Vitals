@@ -26,6 +26,10 @@ jobs:
               do /usr/bin/msgfmt $i/LC_MESSAGES/vitals.po -o $i/LC_MESSAGES/vitals.mo
           done
 
+# at some point we either need to upload assets, or update arch batch script with above compile cmds
+#      - name: Push compiled assets
+#        run: git commit && git push
+
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
 
@@ -56,36 +60,3 @@ jobs:
           asset_path: ./vitals.zip
           asset_name: vitals.zip
           asset_content_type: application/zip
-
-#      - name: Push tag
-#        run: git push origin $TAG
-
-#
-#      - name: Push Tag
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        run: |
-#          # get current commit hash
-#          commit=$(git rev-parse HEAD)
-#
-#          echo "Pushing tag $TAG to repo $GITHUB_REPOSITORY"
-#
-#          # push new tag ref to github
-#          git_refs_response=$(
-#          curl -s -X POST https://api.github.com/repos/corecoding/Vitals/git/refs \
-#          -H "Authorization: token $GITHUB_TOKEN" \
-#          -d @- << EOF
-#          {
-#            "ref": "refs/tags/$TAG",
-#            "sha": "$commit"
-#          }
-#          EOF
-#          )
-#
-#          git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
-#
-#          echo "::debug::${git_refs_response}"
-#          if [ "${git_ref_posted}" != "refs/tags/${TAG}" ]; then
-#            echo "::error::Tag was not created properly."
-#            exit 1
-#          fi
