@@ -7,11 +7,12 @@ echo $tag_context
 case "$tag_context" in
     *repo*)
         echo "here 1"
-        export taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt")"
-        export tag="$(semver $taglist | tail -n 1)"
+taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt")"
+        tag="$(semver $taglist | tail -n 1)"
+        echo $taglist
 
-        export pre_taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt")"
-        export pre_tag="$(semver "$pre_taglist" | tail -n 1)"
+        pre_taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt")"
+        pre_tag="$(semver "$pre_taglist" | tail -n 1)"
         ;;
     *branch*)
         echo "here 2"
@@ -24,5 +25,7 @@ case "$tag_context" in
     * ) echo "Unrecognized context"; exit 1;;
 esac
 
-echo *$tag*
-echo *$pre_tag*
+echo "FOO"
+echo $tag
+echo $pre_tag
+echo "BAR"
