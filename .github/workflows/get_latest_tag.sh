@@ -1,8 +1,9 @@
 #!/bin/bash
 
-set -o pipefail
+#set -o pipefail
 
 tag_context=${TAG_CONTEXT:-repo}
+echo $tag_context
 case "$tag_context" in
     *repo*)
         echo "here 1"
