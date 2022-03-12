@@ -56,3 +56,33 @@ jobs:
           asset_path: ./vitals.zip
           asset_name: vitals.zip
           asset_content_type: application/zip
+
+      - name: Push Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # get current commit hash
+          commit=$(git rev-parse HEAD)
+
+          # push new tag ref to github
+
+          echo "Pushing tag $TAG to repo $GITHUB_REPOSITORY"
+
+          git_refs_response=$(
+          curl -s -X POST https://api.github.com/repos/corecoding/Vitals/git/refs \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -d @- << EOF
+          {
+            "ref": "refs/tags/$TAG",
+            "sha": "$commit"
+          }
+          EOF
+          )
+
+          git_ref_posted=$( echo "${git_refs_response}" | jq .ref | tr -d '"' )
+
+          echo "::debug::${git_refs_response}"
+          if [ "${git_ref_posted}" != "refs/tags/${TAG}" ]; then
+            echo "::error::Tag was not created properly."
+            exit 1
+          fi
