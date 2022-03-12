@@ -11,6 +11,13 @@ case "$tag_context" in
         echo $taglist
         tag="$(semver $taglist | tail -n 1)"
         echo $tag
+        echo "---"
+        semver
+        echo "---"
+        semver $taglist
+        echo "---"
+        semver $taglist | tail -n 1
+        echo "---"
 
         pre_taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt")"
         pre_tag="$(semver "$pre_taglist" | tail -n 1)"
