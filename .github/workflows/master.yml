@@ -38,7 +38,7 @@ jobs:
 
       - name: Get next available tag
         run: |
-            set -o pipefail
+            #set -o pipefail
 
             # fetch tags
             git fetch --tags
