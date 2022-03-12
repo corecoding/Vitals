@@ -22,6 +22,9 @@ else
     tag="$(semver -i minor $tag)"
 fi
 
+# export env var for subsequent steps
+echo "{tag}={$tag}" >> $GITHUB_ENV
+
 echo "---"
 echo $tag
 echo "---"
