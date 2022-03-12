@@ -37,7 +37,6 @@ jobs:
         run: echo "METATAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
 
       - name: Get next available tag
-        #continue-on-error: true
         run: |
             # fetch tags
             git fetch --tags
