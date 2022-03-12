@@ -3,6 +3,7 @@
 set -o pipefail
 
 # get latest tag that looks like a semver (with or without v)
+tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
 tag_context=${TAG_CONTEXT:-repo}
 case "$tag_context" in
     *repo*)
