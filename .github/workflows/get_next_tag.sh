@@ -27,6 +27,7 @@ esac
 if [ -z "$tag" ]; then
     echo "there 1"
     tag="$(jq .version metadata.json).0.0"
+    jq .version metadata.json
 else
     echo "there 2"
     tag="$(semver -i minor $tag)"
