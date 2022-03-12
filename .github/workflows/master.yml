@@ -41,11 +41,10 @@ jobs:
             # fetch tags
             #git fetch --tags
 
-            METATAG=v$(jq .version metadata.json)
-            echo $METATAG
+            METATAG=$(jq .version metadata.json)
 
             # get latest tag, could also be empty
-            tag="$(git tag --sort=v:refname | { grep \"v$METATAG\.\" || true; } | tail -n 1)"
+            tag=$(git tag --sort=v:refname | { grep "v$METATAG\." || true; } | tail -n 1)
 
             echo "incoming !$tag!"
 
