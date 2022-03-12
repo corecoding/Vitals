@@ -33,8 +33,8 @@ jobs:
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
 
-      - name: Install semver command
-        run: sudo npm install -g semver
+      - name: Grab version from meta data
+        run: echo "METATAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
 
       - name: Get next available tag
         run: |
@@ -43,25 +43,10 @@ jobs:
             # fetch tags
             git fetch --tags
 
-            # get latest tag that looks like a semver (with or without v)
-            tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
-            tag_context=${TAG_CONTEXT:-repo}
-            case "$tag_context" in
-                *repo*)
-                    taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt")"
-                    ;;
-                *branch*)
-                    taglist="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt")"
-                    ;;
-            esac
+            # get latest tag, could also be empty
+            tag=$(git tag --sort=v:refname | grep "v$METATAG\." | tail -n 1)
 
-            echo $taglist
-            echo "here 1"
-            semver "$taglist"
-            tag=$(semver "$taglist" | tail -n 1)
-            echo "here 2"
             echo "incoming !$tag!"
-            echo "here 3"
 
             # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
             if [ -z "$tag" ]; then
@@ -69,7 +54,11 @@ jobs:
                 tag="$(jq .version metadata.json).0.0"
             else
                 echo "there 2 - $tag"
-                tag="$(semver -i patch $tag)"
+
+                local delimiter=.
+                local array=($(echo "$tag" | tr $delimiter '\n'))
+                array[2]=$((array[2]+1))
+                tag=$(local IFS=$delimiter ; echo "${array[*]}")
             fi
 
             echo "outgoing @$tag@"
