@@ -6,19 +6,21 @@ set -o pipefail
 git fetch --tags
 
 # get latest tag that looks like a semver (with or without v)
+tag=""
 tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
 tag_context=${TAG_CONTEXT:-repo}
 case "$tag_context" in
     *repo*)
         taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt")"
-        tag="$(semver \"$taglist\" | tail -n 1)"
+        if [ -z "$taglist" ]; then
+            tag="$(semver $taglist | tail -n 1)"
+        fi
         ;;
     *branch*)
         taglist="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt")"
         tag="$(semver $taglist | tail -n 1)"
         ;;
 esac
-
 
 echo "!$tag!"
 
