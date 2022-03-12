@@ -2,6 +2,9 @@
 
 set -o pipefail
 
+# fetch tags
+git fetch --tags
+
 # get latest tag that looks like a semver (with or without v)
 tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
 tag_context=${TAG_CONTEXT:-repo}
@@ -25,11 +28,11 @@ esac
 
 # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
 if [ -z "$tag" ]; then
-    echo "there 1"
+    echo "there 1 - $tag"
     tag="$(jq .version metadata.json).0.0"
     jq .version metadata.json
 else
-    echo "there 2"
+    echo "there 2 - $tag"
     tag="$(semver -i minor $tag)"
 fi
 
