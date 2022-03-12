@@ -40,7 +40,7 @@ jobs:
         #continue-on-error: true
         run: |
             # fetch tags
-            #git fetch --tags
+            git fetch --tags
 
             METATAG=$(jq .version metadata.json)
             METATAG=51
