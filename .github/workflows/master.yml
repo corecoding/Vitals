@@ -57,8 +57,8 @@ jobs:
           asset_name: vitals.zip
           asset_content_type: application/zip
 
-      - name: Push tag
-        run: git push origin $TAG
+#      - name: Push tag
+#        run: git push origin $TAG
 
 #
 #      - name: Push Tag
