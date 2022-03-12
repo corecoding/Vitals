@@ -38,15 +38,11 @@ jobs:
 
       - name: Get next available tag
         run: |
-            #set -o pipefail
-
             # fetch tags
-            git fetch --tags
+            #git fetch --tags
 
             # get latest tag, could also be empty
-            echo "here 1"
             tag=$(git tag --sort=v:refname | { grep "v$METATAG\." || true; } | tail -n 1)
-            echo "here 2"
 
             echo "incoming !$tag!"
 
