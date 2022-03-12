@@ -29,9 +29,6 @@ jobs:
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
 
-      - name: Grab version from meta data
-        run: echo "TAG=$(jq .version metadata.json)" >> $GITHUB_ENV
-
       - name: Install semver command
         run: sudo npm install -g semver
 
@@ -39,10 +36,10 @@ jobs:
         run: .github/workflows/get_next_tag.sh
 
       - name: Debug TAG
-        run: echo $TAG
+        run: echo ${{ env.TAG }}
 
-      - name: Debug tag
-        run: echo ${{ env.tag }}
+      - name: Debug TAG again
+        run: echo $TAG
 
       - name: Create Release
         id: create_release
