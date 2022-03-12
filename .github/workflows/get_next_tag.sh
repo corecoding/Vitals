@@ -20,7 +20,6 @@ esac
 
 tag=$(semver "$taglist" | tail -n 1)
 echo "!$tag!"
-echo "!$tag!"
 
 # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
 if [ -z "$tag" ]; then
