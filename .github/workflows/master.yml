@@ -41,7 +41,7 @@ jobs:
             set -o pipefail
 
             # fetch tags
-            #git fetch --tags
+            git fetch --tags
 
             # get latest tag that looks like a semver (with or without v)
             tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
@@ -57,7 +57,7 @@ jobs:
 
             echo $taglist
             echo "here 1"
-            tag="$(semver \"$taglist\" | tail -n 1)"
+            tag=$(semver "$taglist" | tail -n 1)"
             echo "here 2"
             echo "incoming !$tag!"
             echo "here 3"
