@@ -39,7 +39,7 @@ jobs:
       - name: Get next available tag
         run: |
             # fetch tags
-            #git fetch --tags
+            git fetch --tags
 
             # get latest tag, could also be empty
             tag=$(git tag --sort=v:refname | { grep "v$METATAG\." || true; } | tail -n 1)
