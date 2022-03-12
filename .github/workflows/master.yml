@@ -36,6 +36,12 @@ jobs:
       #- name: Grab version from meta data
       #  run: echo "METATAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
 
+      - name: Switch to Release Folder
+        run: |
+          ls -la
+          cd release
+          ls -la
+
       - name: Get next available tag
         run: |
             # fetch tags
