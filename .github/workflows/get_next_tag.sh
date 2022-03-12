@@ -17,7 +17,7 @@ esac
 
 # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
 if [ -z "$tag" ]; then
-    tag="v$(jq .version metadata.json).0.0"
+    tag="$(jq .version metadata.json).0.0"
 else
     tag="$(semver -i minor $tag)"
 fi
