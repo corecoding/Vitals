@@ -14,6 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Fetch tags
+        run: git fetch --tags
+
       - name: Compile schemas
         run: /usr/bin/glib-compile-schemas --strict schemas/
 
@@ -38,27 +41,17 @@ jobs:
 
       - name: Get next available tag
         run: |
-            # fetch tags
-            git fetch --tags
-
             # get latest tag, could also be empty
             tag=$(git tag --sort=v:refname | grep "v$METATAG\." | tail -n 1)
 
-            echo "incoming !$tag!"
-
             # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
             if [ -z "$tag" ]; then
-                echo "there 1 - $tag"
                 tag="v$METATAG.0.0"
             else
-                echo "there 2 - $tag"
-
                 array=($(echo "$tag" | tr . '\n'))
                 array[2]=$((array[2]+1))
                 tag=$(IFS=.; echo "${array[*]}")
             fi
-
-            echo "outgoing @$tag@"
 
             # export env var for subsequent steps
             echo "TAG=$tag" >> $GITHUB_ENV
