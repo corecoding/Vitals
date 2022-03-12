@@ -38,10 +38,10 @@ jobs:
 
       - name: Get next available tag
         run: |
-            set -o pipefail
+            #set -o pipefail
 
             # fetch tags
-            git fetch --tags
+            #git fetch --tags
 
             # get latest tag that looks like a semver (with or without v)
             tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
