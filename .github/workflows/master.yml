@@ -45,6 +45,10 @@ jobs:
             echo $METATAG
 
             # get latest tag, could also be empty
+            echo "here 1"
+            git tag --sort=v:refname | { grep "v$METATAG\." || true; }
+            echo "here 2"
+
             tag=$(git tag --sort=v:refname | { grep "v$METATAG\." || true; } | tail -n 1)
 
             echo "incoming !$tag!"
