@@ -44,7 +44,7 @@ jobs:
             METATAG=$(jq .version metadata.json)
 
             # get latest tag, could also be empty
-            echo $METATAG
+            echo "$METATAG\."
             git tag --sort=v:refname | { grep "$METATAG\." || true; }
             tag=$(git tag --sort=v:refname | { grep "$METATAG\." || true; } | tail -n 1)
 
