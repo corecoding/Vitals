@@ -35,8 +35,8 @@ jobs:
       - name: Install semver command
         run: sudo npm install -g semver
 
-      - name: Get latest tag that looks like a semver (with or without v)
-        run: .github/workflows/get_latest_tag.sh
+      - name: Get next available tag
+        run: .github/workflows/get_next_tag.sh
 
       - name: Create Release
         id: create_release
