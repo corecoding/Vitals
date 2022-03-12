@@ -4,10 +4,9 @@ tag_context=${TAG_CONTEXT:-repo}
 case "$tag_context" in
     *repo*)
         echo "here 1"
-        taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt")"
+        echo "taglist=$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E '$tagFmt')" >> $GITHUB_ENV
         echo $taglist
-        tag="$(semver $taglist | tail -n 1)"
-        semver $taglist | tail -n 1
+        echo "tag=$(semver $taglist | tail -n 1)" >> $GITHUB_ENV
         echo $tag
 
         pre_taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt")"
