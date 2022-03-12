@@ -39,7 +39,7 @@ jobs:
       - name: Get next available tag
         run: |
             # fetch tags
-            git fetch --tags
+            #git fetch --tags
 
             METATAG=v$(jq .version metadata.json)
             echo $METATAG
@@ -51,7 +51,7 @@ jobs:
             git tag --sort=v:refname | { grep "v51\." || true; }
             echo "here 2"
 
-            tag=$(git tag --sort=v:refname | { grep "v$METATAG\." || true; } | tail -n 1)
+            tag=$(git tag --sort=v:refname | { grep "v51\." || true; } | tail -n 1)
 
             echo "incoming !$tag!"
 
