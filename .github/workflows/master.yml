@@ -35,12 +35,6 @@ jobs:
       - name: Get next available tag
         run: .github/workflows/get_next_tag.sh
 
-      - name: Debug TAG
-        run: echo ${{ env.TAG }}
-
-      - name: Debug TAG again
-        run: echo $TAG
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
