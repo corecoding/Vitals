@@ -58,7 +58,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Push tag
-        run: git push origin $TAG
+        run: git push origin v$TAG
 
 #
 #      - name: Push Tag
