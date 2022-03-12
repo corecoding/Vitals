@@ -45,7 +45,7 @@ jobs:
             METATAG=$(jq .version metadata.json)
 
             # get latest tag, could also be empty
-            tag=$(git tag --sort=v:refname | grep "v$METATAG" | tail -n 1)
+            tag=$(git tag --sort=v:refname | grep "v$METATAG\." | tail -n 1)
 
             echo "incoming !$tag!"
 
@@ -58,7 +58,7 @@ jobs:
 
                 array=($(echo "$tag" | tr . '\n'))
                 array[2]=$((array[2]+1))
-                tag=$(local IFS=. ; echo "${array[*]}")
+                tag=$(IFS=.; echo "${array[*]}")
             fi
 
             echo "outgoing @$tag@"
