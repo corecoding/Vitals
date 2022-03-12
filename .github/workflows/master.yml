@@ -33,13 +33,16 @@ jobs:
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
 
-      - name: Grab version from meta data
-        run: echo "METATAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
+      #- name: Grab version from meta data
+      #  run: echo "METATAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
 
       - name: Get next available tag
         run: |
             # fetch tags
             git fetch --tags
+
+            METATAG=v$(jq .version metadata.json)
+            echo $METATAG
 
             # get latest tag, could also be empty
             tag=$(git tag --sort=v:refname | { grep "v$METATAG\." || true; } | tail -n 1)
