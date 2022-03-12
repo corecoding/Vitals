@@ -43,10 +43,9 @@ jobs:
             git fetch --tags
 
             METATAG=$(jq .version metadata.json)
-            #METATAG=51
 
             # get latest tag, could also be empty
-            tag=$(git tag --sort=v:refname | grep "$METATAG" | tail -n 1)
+            tag=$(git tag --sort=v:refname | grep "v$METATAG" | tail -n 1)
 
             echo "incoming !$tag!"
 
@@ -57,10 +56,9 @@ jobs:
             else
                 echo "there 2 - $tag"
 
-                local delimiter=.
-                local array=($(echo "$tag" | tr $delimiter '\n'))
+                array=($(echo "$tag" | tr . '\n'))
                 array[2]=$((array[2]+1))
-                tag=$(local IFS=$delimiter ; echo "${array[*]}")
+                tag=$(local IFS=. ; echo "${array[*]}")
             fi
 
             echo "outgoing @$tag@"
