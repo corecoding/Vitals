@@ -37,15 +37,16 @@ jobs:
       #  run: echo "METATAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
 
       - name: Get next available tag
-        continue-on-error: true
+        #continue-on-error: true
         run: |
             # fetch tags
             #git fetch --tags
 
             METATAG=$(jq .version metadata.json)
+            METATAG=51
 
             # get latest tag, could also be empty
-            tag=$(git tag --sort=v:refname | grep "$METATAG\." | tail -n 1)
+            tag=$(git tag --sort=v:refname | grep "v$METATAG\." | tail -n 1)
 
             echo "incoming !$tag!"
 
