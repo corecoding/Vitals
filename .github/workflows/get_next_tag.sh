@@ -19,6 +19,7 @@ case "$tag_context" in
         ;;
 esac
 
+
 echo "!$tag!"
 
 # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
