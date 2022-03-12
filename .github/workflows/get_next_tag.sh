@@ -10,17 +10,10 @@ tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
 tag_context=${TAG_CONTEXT:-repo}
 case "$tag_context" in
     *repo*)
-        echo "here 1"
         taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt")"
-        echo "---"
-        echo $taglist
-        echo "---"
-        tag=$(semver "$taglist" | tail -n 1)
-        echo $tag
-        echo "---"
+        tag="$(semver \"$taglist\" | tail -n 1)"
         ;;
     *branch*)
-        echo "here 2"
         taglist="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt")"
         tag="$(semver $taglist | tail -n 1)"
         ;;
@@ -32,15 +25,12 @@ echo "!$tag!"
 if [ -z "$tag" ]; then
     echo "there 1 - $tag"
     tag="$(jq .version metadata.json).0.0"
-    jq .version metadata.json
 else
     echo "there 2 - $tag"
     tag="$(semver -i minor $tag)"
 fi
 
-echo "---"
-echo $tag
-echo "---"
+echo "@$tag@"
 
 # export env var for subsequent steps
 echo "TAG=$tag" >> $GITHUB_ENV
