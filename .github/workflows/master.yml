@@ -34,7 +34,7 @@ jobs:
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "zip.sh" -x "schemas/org.gnome.shell.extensions.vitals.gschema.xml"
 
       - name: Grab version from meta data
-        run: echo "METATAG=v$(jq .version metadata.json)" >> $GITHUB_ENV
+        run: echo "METATAG=$(jq .version metadata.json)" >> $GITHUB_ENV
 
       - name: Get next available tag
         run: |
@@ -49,7 +49,7 @@ jobs:
             # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
             if [ -z "$tag" ]; then
                 echo "there 1 - $tag"
-                tag="$METATAG.0.0"
+                tag="v$METATAG.0.0"
             else
                 echo "there 2 - $tag"
 
