@@ -15,7 +15,7 @@ case "$tag_context" in
         echo "---"
         echo $taglist
         echo "---"
-        tag="$(semver $taglist | tail -n 1)"
+        tag=$(semver "$taglist" | tail -n 1)
         echo $tag
         echo "---"
         ;;
