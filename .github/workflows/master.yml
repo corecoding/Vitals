@@ -42,7 +42,7 @@ jobs:
         run: echo $TAG
 
       - name: Debug tag
-        run: echo $tag
+        run: echo ${{ env.tag }}
 
       - name: Create Release
         id: create_release
