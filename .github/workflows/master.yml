@@ -64,10 +64,9 @@ jobs:
           # get current commit hash
           commit=$(git rev-parse HEAD)
 
-          # push new tag ref to github
-
           echo "Pushing tag $TAG to repo $GITHUB_REPOSITORY"
 
+          # push new tag ref to github
           git_refs_response=$(
           curl -s -X POST https://api.github.com/repos/corecoding/Vitals/git/refs \
           -H "Authorization: token $GITHUB_TOKEN" \
