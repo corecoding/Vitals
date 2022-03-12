@@ -57,7 +57,8 @@ jobs:
 
             echo $taglist
             echo "here 1"
-            tag=$(semver "$taglist" | tail -n 1)"
+            semver "$taglist"
+            tag=$(semver "$taglist" | tail -n 1)
             echo "here 2"
             echo "incoming !$tag!"
             echo "here 3"
