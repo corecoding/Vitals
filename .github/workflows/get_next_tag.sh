@@ -12,13 +12,13 @@ tag_context=${TAG_CONTEXT:-repo}
 case "$tag_context" in
     *repo*)
         taglist="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt")"
-        if [ -z "$taglist" ]; then
-            tag="$(semver $taglist | tail -n 1)"
-        fi
+        echo $taglist
+        tag="$(semver \"$taglist\" | tail -n 1)"
+        echo $tag
         ;;
     *branch*)
         taglist="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt")"
-        tag="$(semver $taglist | tail -n 1)"
+        tag="$(semver \"$taglist\" | tail -n 1)"
         ;;
 esac
 
