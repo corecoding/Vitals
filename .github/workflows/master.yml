@@ -38,7 +38,7 @@ jobs:
 
       - name: Get next available tag
         run: |
-            #set -o pipefail
+            set -o pipefail
 
             # fetch tags
             #git fetch --tags
@@ -57,7 +57,7 @@ jobs:
 
             echo $taglist
             echo "here 1"
-            tag=$(semver "$taglist" | tail -n 1)
+            tag="$(semver \"$taglist\" | tail -n 1)"
             echo "here 2"
             echo "incoming !$tag!"
             echo "here 3"
