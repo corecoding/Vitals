@@ -1,4 +1,4 @@
-name: Upload Release Asset
+name: Build Release Asset
 
 on:
   push:
