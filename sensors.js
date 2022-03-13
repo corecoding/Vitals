@@ -555,17 +555,17 @@ var Sensors = GObject.registerClass({
             label = name + ' ' + label;
         }
 
-        if (label == 'nvme Composite') label = 'NVMe';
-        if (label == 'nouveau') label = 'Nvidia';
+        //if (label == 'nvme Composite') label = 'NVMe';
+        //if (label == 'nouveau') label = 'Nvidia';
 
         label = label + extra;
 
         // in the future we will read /etc/sensors3.conf
-        if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
-        if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
-        if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
-        if (label == 'CPU Package id 0') label = 'Processor 0';
-        if (label == 'CPU Package id 1') label = 'Processor 1';
+        //if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
+        //if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
+        //if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
+        //if (label == 'CPU Package id 0') label = 'Processor 0';
+        //if (label == 'CPU Package id 1') label = 'Processor 1';
 
         // update screen on initial build to prevent delay on update
         this._returnValue(callback, label, value, obj['type'], obj['format'], id);
