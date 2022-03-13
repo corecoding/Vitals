@@ -39,12 +39,15 @@ var Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
 
-    _init(settings) {
+    _init(settings, sensorIcons) {
         this._settings = settings;
+        this._sensorIcons = sensorIcons;
 
-        this._history = {};
         this._networkSpeedOffset = {};
         this._networkSpeeds = {};
+
+        this._history = {};
+        this.resetHistory();
     }
 
     _legible(value, sensorClass) {
@@ -206,21 +209,16 @@ var Values = GObject.registerClass({
         if (!(type in this._history)) this._history[type] = {};
 
         // no sense in continuing when the raw value has not changed
-        //if (value > 0 && this._history[type][key][1] == value) return output;
-        if (key in this._history[type] && this._history[type][key][1] == value) return output;
+        if (type != 'network-rx' && type != 'network-tx' &&
+            key in this._history[type] && this._history[type][key][1] == value)
+                return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
 
-        // only update when we are coming through for the first time, or if a value has changed
-
-        // store value for next go around
-        //if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-        //    this._networkSpeeds[direction][label] = value;
-
         // don't return early when dealing with network traffic
         if (type != 'network-rx' && type != 'network-tx') {
-            // if value has not hcanged since last time, return early
+            // only update when we are coming through for the first time, or if a value has changed
             if (key in this._history[type] && this._history[type][key][0] == legible)
                 return output;
 
@@ -247,7 +245,7 @@ var Values = GObject.registerClass({
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
-            output.push(['Total ' + direction, this._legible(sum, format), type, '__' + type + '_total__']);
+            output.push(['Boot ' + direction, this._legible(sum, format), type, '__' + type + '_boot__']);
 
             // keeps track of session start point
             if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
@@ -263,14 +261,16 @@ var Values = GObject.registerClass({
             // store speed for Device report
             if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
             if (!(label in this._networkSpeeds[direction])) this._networkSpeeds[direction][label] = 0;
-            this._networkSpeeds[direction][label] = speed;
+
+            // store value for next go around
+            if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                this._networkSpeeds[direction][label] = speed;
 
             // calculate total upload and download device speed
             for (let direction in this._networkSpeeds) {
                 let sum = 0;
-                for (let iface in this._networkSpeeds[direction]) {
+                for (let iface in this._networkSpeeds[direction])
                     sum += parseFloat(this._networkSpeeds[direction][iface]);
-                }
 
                 sum = this._legible(sum, 'speed');
                 output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_device__']);
@@ -280,5 +280,14 @@ var Values = GObject.registerClass({
         }
 
         return output;
+    }
+
+    resetHistory() {
+        // don't call this._history = {}, as we want to keep network-rx and network-tx
+        // otherwise network history statistics will start over
+        for (let sensor in this._sensorIcons) {
+            this._history[sensor] = {};
+            this._history[sensor + '-group'] = {};
+        }
     }
 });

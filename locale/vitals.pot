@@ -329,10 +329,10 @@ msgid "ARC Current"
 msgstr ""
 
 #: values.js:225
-msgid "Total rx"
+msgid "Boot rx"
 msgstr ""
 
-msgid "Total tx"
+msgid "Boot tx"
 msgstr ""
 
 #: sensors.js:462

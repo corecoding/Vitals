@@ -47,7 +47,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._last_query = new Date().getTime();
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
-        this._values = new Values.Values(this._settings);
+        this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
@@ -130,6 +130,7 @@ var VitalsMenuButton = GObject.registerClass({
         refreshButton.connect('clicked', (self) => {
             // force refresh by clearing history
             this._sensors.resetHistory();
+            this._values.resetHistory();
 
             // removes any sensors that may not currently be available
             this._removeMissingHotSensors();
@@ -258,6 +259,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _higherPrecisionChanged() {
         this._sensors.resetHistory();
+        this._values.resetHistory();
         this._querySensors();
     }
 
@@ -318,6 +320,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._drawMenu();
         this._sensors.resetHistory();
+        this._values.resetHistory();
         this._querySensors();
     }
 

@@ -372,10 +372,10 @@ msgstr "Rdzeń %d"
 #~ msgid "Free"
 #~ msgstr "Wolne"
 
-#~ msgid "Total rx"
+#~ msgid "Boot rx"
 #~ msgstr "Maksimum rx"
 
-#~ msgid "Total tx"
+#~ msgid "Boot tx"
 #~ msgstr "Maksimum tx"
 
 #~ msgid "Voltage"
