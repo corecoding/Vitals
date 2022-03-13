@@ -209,7 +209,9 @@ var Values = GObject.registerClass({
         if (!(type in this._history)) this._history[type] = {};
 
         // no sense in continuing when the raw value has not changed
-        if (key in this._history[type] && this._history[type][key][1] == value) return output;
+        if (type != 'network-rx' && type != 'network-tx' &&
+            key in this._history[type] && this._history[type][key][1] == value)
+                return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
