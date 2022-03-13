@@ -47,6 +47,7 @@ var Values = GObject.registerClass({
         this._networkSpeeds = {};
 
         this._history = {};
+        this._history2 = {};
         this.resetHistory();
     }
 
@@ -279,6 +280,34 @@ var Values = GObject.registerClass({
             }
         }
 
+
+
+        /*
+        global.log('before', JSON.stringify(output));
+        for (let i = output.length - 1; i >= 0; i--) {
+            let sensor = output[i];
+            // sensor[0]=label, sensor[1]=value, sensor[2]=type, sensor[3]=key)
+
+            //["CPU Core 5","46°C","temperature","_temperature_hwmon8temp7_"]
+
+            // make sure the keys exist
+            if (!(sensor[2] in this._history2)) this._history2[sensor[2]] = {};
+
+            if (sensor[3] in this._history2[sensor[2]]) {
+                if (this._history2[sensor[2]][sensor[3]] == sensor[1]) {
+                    output.splice(i, 1);
+                }
+            }
+
+            this._history2[sensor[2]][sensor[3]] = sensor[1];
+        }
+
+        global.log(' after', JSON.stringify(output));
+        global.log('***************************');
+        */
+
+
+
         return output;
     }
 
@@ -288,6 +317,8 @@ var Values = GObject.registerClass({
         for (let sensor in this._sensorIcons) {
             this._history[sensor] = {};
             this._history[sensor + '-group'] = {};
+            this._history2[sensor] = {};
+            this._history2[sensor + '-group'] = {};
         }
     }
 });
