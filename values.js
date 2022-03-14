@@ -273,7 +273,7 @@ var Values = GObject.registerClass({
                     sum += parseFloat(this._networkSpeeds[direction][iface]);
 
                 sum = this._legible(sum, 'speed');
-                output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_device__']);
+                output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_max__']);
                 // append download speed to group itself
                 if (direction == 'rx') output.push([type, sum, type + '-group', '']);
             }
