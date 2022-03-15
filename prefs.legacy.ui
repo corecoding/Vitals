@@ -266,6 +266,8 @@
                                   <item translatable="yes">Left</item>
                                   <item translatable="yes">Center</item>
                                   <item translatable="yes">Right</item>
+                                  <item translatable="yes">Far Left</item>
+                                  <item translatable="yes">Far Right</item>
                                 </items>
                               </object>
                               <packing>
