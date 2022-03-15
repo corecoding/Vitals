@@ -5,6 +5,7 @@
   "name": "Vitals",
   "settings-schema": "org.gnome.shell.extensions.vitals",
   "shell-version": [
+    "3.38",
     "40",
     "41",
     "42"

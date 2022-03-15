@@ -36,7 +36,12 @@ const Settings = new GObject.Class({
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(Me.metadata['gettext-domain']);
-        this.builder.add_from_file(Me.path + '/prefs.ui');
+
+        if (shellVersion < 40)
+            this.builder.add_from_file(Me.path + '/prefs.legacy.ui');
+        else
+            this.builder.add_from_file(Me.path + '/prefs.ui');
+
         this.widget = this.builder.get_object('prefs-container');
 
         this._bind_settings();
