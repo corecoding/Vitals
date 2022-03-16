@@ -7,7 +7,7 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 ## Installation
 
-### 1) Install these packages
+### 1) Install support packages (if you already installed Vitals, you will need to restart your session)
 
 #### Ubuntu/Debian
 
@@ -19,15 +19,31 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
     
 #### Arch/Manjaro
 
-    sudo pacman -Syu libgtop lm_sensors gnome-icon-theme-symbolic
+    sudo pacman -Syu libgtop lm_sensors gnome-icon-theme-symbolic gnome-icon-theme git
 
-### 2) Install from extensions.gnome.org
+### 2) Install extension
 
-https://extensions.gnome.org/extension/1460/vitals/
+#### Ubuntu/Debian/Fedora
+
+    Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon
+
+#### Arch/Manjaro
+
+    git clone https://aur.archlinux.org/gnome-shell-extension-vitals-git.git/
+    cd gnome-shell-extension-vitals-git
+    less PKGBUILD
+    makepkg
+    pacman -U gnome-shell-extension-vitals-git-v52.0.4.r0.gb446cfc-1-any.pkg.tar.zst # example filename, different each release
 
 ### 3) Activate after installation
 
-Restart GNOME Shell (`Alt+F2`, `r`, `Enter`) and enable the extension through gnome-tweak-tool.
+#### Ubuntu/Debian/Fedora
+
+    At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
+   
+#### Arch/Manjaro
+
+    Open the Extensions application and toggle on Vitals
 
 ## Beta testing
 
