@@ -7,7 +7,7 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 ## Installation
 
-### 1) Install support packages (if you already installed Vitals, you will need to restart your session)
+### 1) Install support packages
 
 #### Ubuntu/Debian
 
