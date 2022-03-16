@@ -44,21 +44,21 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian/Fedora
 
-  At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
+##### At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
    
 #### Arch/Manjaro
 
-  Open the Extensions application and toggle on Vitals
+##### Open the Extensions application and toggle on Vitals
 
 ## Beta testing
 
-Advanced users requesting bug fixes or asking for new features may occasionally be asked to help QA. 
+##### Advanced users requesting bug fixes or asking for new features may occasionally be asked to help QA. 
 
 ### 1) Remove existing copy of Vitals
 
-Check to see if ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com exists, and if so, remove the directory.
+##### Check to see if ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com exists, and if so, remove the directory.
 
-I am hesitant to give an rm command here, in case someone copies and pastes it incorrectly. Again, beta testing is for advanced users so if you don't know how to remove a directory, please stop here.
+##### I am hesitant to give an rm command here, in case someone copies and pastes it incorrectly. Again, beta testing is for advanced users so if you don't know how to remove a directory, please stop here.
 
 ### 2) Clone from GitHub
 
