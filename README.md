@@ -25,15 +25,20 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian/Fedora
 
-    Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon
+Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon
 
 #### Arch/Manjaro
 
     git clone https://aur.archlinux.org/gnome-shell-extension-vitals-git.git/
     cd gnome-shell-extension-vitals-git
+    
+    # always verify content before installing
     less PKGBUILD
     makepkg
-    pacman -U gnome-shell-extension-vitals-git-v52.0.4.r0.gb446cfc-1-any.pkg.tar.zst # example filename, different each release
+    
+    # example filename, different each release
+    pacman -U gnome-shell-extension-vitals-git-v52.0.4.r0.gb446cfc-1-any.pkg.tar.zst
+    
 
 ### 3) Activate after installation
 
