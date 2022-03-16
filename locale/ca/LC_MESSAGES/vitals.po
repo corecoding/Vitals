@@ -397,3 +397,6 @@ msgstr "Nucli %d"
 
 #~ msgid "Maximum tx"
 #~ msgstr "Màxim tx"
+
+msgid "Chris"
+msgstr "Chris2"
