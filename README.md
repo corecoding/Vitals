@@ -25,7 +25,7 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian/Fedora
 
-Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon
+  Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon
 
 #### Arch/Manjaro
 
@@ -44,11 +44,11 @@ Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vit
 
 #### Ubuntu/Debian/Fedora
 
-    At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
+  At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
    
 #### Arch/Manjaro
 
-    Open the Extensions application and toggle on Vitals
+  Open the Extensions application and toggle on Vitals
 
 ## Beta testing
 
