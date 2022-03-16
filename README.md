@@ -25,7 +25,7 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian/Fedora
 
-##### &nbsp;&nbsp;Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon
+##### &nbsp;&nbsp;&nbsp;&nbsp;Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon
 
 #### Arch/Manjaro
 
@@ -44,11 +44,11 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian/Fedora
 
-##### &nbsp;&nbsp;At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
+##### &nbsp;&nbsp;&nbsp;&nbsp;At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
    
 #### Arch/Manjaro
 
-##### &nbsp;&nbsp;Open the Extensions application and toggle on Vitals
+##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Vitals
 
 ## Beta testing
 
@@ -56,9 +56,9 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 ### 1) Remove existing copy of Vitals
 
-##### &nbsp;&nbsp;Check to see if ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com exists, and if so, remove the directory.
+##### &nbsp;&nbsp;&nbsp;&nbsp;Check to see if ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com exists, and if so, remove the directory.
 
-##### &nbsp;&nbsp;I am hesitant to give an rm command here, in case someone copies and pastes it incorrectly. Again, beta testing is for advanced users so if you don't know how to remove a directory, please stop here.
+##### &nbsp;&nbsp;&nbsp;&nbsp;I am hesitant to give an rm command here, in case someone copies and pastes it incorrectly. Again, beta testing is for advanced users so if you don't know how to remove a directory, please stop here.
 
 ### 2) Clone from GitHub
 
