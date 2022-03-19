@@ -203,7 +203,7 @@ var Values = GObject.registerClass({
         return format.format(value, ending);
     }
 
-    returnIfDifferent(diff, label, value, type, format, key) {
+    returnIfDifferent(dwell, label, value, type, format, key) {
         let output = [];
 
         // make sure the keys exist
@@ -256,7 +256,7 @@ var Values = GObject.registerClass({
             output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
 
             // calculate speed for this interface
-            let speed = (value - previousValue[1]) / diff;
+            let speed = (value - previousValue[1]) / dwell;
             output.push([label, this._legible(speed, 'speed'), type, key]);
 
             // store speed for Device report

@@ -17,7 +17,7 @@ const MenuItem = Me.imports.menuItem;
 let vitalsMenu;
 
 var VitalsMenuButton = GObject.registerClass({
-       GTypeName: 'VitalsMenuButton',
+    GTypeName: 'VitalsMenuButton',
 }, class VitalsMenuButton extends PanelMenu.Button {
     _init() {
         super._init(St.Align.START);
@@ -514,7 +514,7 @@ var VitalsMenuButton = GObject.registerClass({
     _querySensors() {
         // figure out last run time
         let now = new Date().getTime();
-        let diff = (now - this._last_query) / 1000;
+        let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
         this._sensors.query((label, value, type, format, key) => {
@@ -526,10 +526,10 @@ var VitalsMenuButton = GObject.registerClass({
                 if (value == 'disabled') return;
             }
 
-            let items = this._values.returnIfDifferent(diff, label, value, type, format, key);
+            let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
-        }, diff);
+        }, dwell);
 
         if (this._warnings.length > 0) {
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');

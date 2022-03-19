@@ -81,7 +81,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, diff) {
+    query(callback, dwell) {
         if (this._trisensorsScanned) {
             this._queryTempVoltFan(callback);
         } else {
@@ -95,7 +95,7 @@ var Sensors = GObject.registerClass({
 
             if (this._settings.get_boolean('show-' + sensor)) {
                 let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                this[method](callback, diff);
+                this[method](callback, dwell);
             }
         }
     }
@@ -141,7 +141,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _queryProcessor(callback, diff) {
+    _queryProcessor(callback, dwell) {
         let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
         // check processor usage
@@ -172,7 +172,7 @@ var Sensors = GObject.registerClass({
 
                 // make sure we have data to report
                 if (this._last_processor[cpu] > 0) {
-                    let delta = (total - this._last_processor[cpu]) / diff;
+                    let delta = (total - this._last_processor[cpu]) / dwell;
 
                     let label = cpu;
                     if (cpu == 'cpu') {
@@ -347,7 +347,7 @@ var Sensors = GObject.registerClass({
         });
     }
 
-    _queryNetwork(callback, diff) {
+    _queryNetwork(callback, dwell) {
         // check network speed
         let directions = ['tx', 'rx'];
         let netbase = '/sys/class/net/';
@@ -379,7 +379,7 @@ var Sensors = GObject.registerClass({
                 this._refreshIPAddress(callback);
             }
 
-            this._next_public_ip_check -= diff;
+            this._next_public_ip_check -= dwell;
         }
 
         // wireless interface statistics
@@ -405,7 +405,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _queryStorage(callback, diff) {
+    _queryStorage(callback, dwell) {
         // display zfs arc status, if available
         new FileModule.File('/proc/spl/kstat/zfs/arcstats').read().then(lines => {
             let target = 0, maximum = 0, current = 0;
@@ -435,8 +435,8 @@ var Sensors = GObject.registerClass({
                     var write = (loadArray[9] * 512);
                     this._returnValue(callback, 'Read total', read, 'storage', 'storage');
                     this._returnValue(callback, 'Write total', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / diff, 'storage', 'storage');
-                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / diff, 'storage', 'storage');
+                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
+                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
                     this._lastRead = read;
                     this._lastWrite = write;
                     break;
