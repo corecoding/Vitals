@@ -65,9 +65,8 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
-        this._addSettingChangedSignal('use-higher-precision', this._higherPrecisionChanged.bind(this));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'fixed-widths', 'hide-icons' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -255,12 +254,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._widths[key] = label.width;
 
         this._menuLayout.add_actor(label);
-    }
-
-    _higherPrecisionChanged() {
-        this._sensors.resetHistory();
-        this._values.resetHistory();
-        this._querySensors();
     }
 
     _showHideSensorsChanged(self, sensor) {
