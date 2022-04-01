@@ -85,13 +85,16 @@ Vitals was originally forked from [gnome-shell-extension-freon](https://github.c
 Sensor data is obtained from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
 
 ## Development Commands
-* Reload extension `gnome-shell-extension-tool -r Vitals@CoreCoding.com`
-  - Note: This command is no longer supported as of GNOME 3.34
-* Launch preferences `gnome-shell-extension-prefs Vitals@CoreCoding.com`
-* View logs ```journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f | grep Vitals```
-* Compile schemas `glib-compile-schemas --strict schemas/`
-* Compile translation file `msgfmt vitals.po -o vitals.mo`
-* Launch Wayland virtual window `dbus-run-session -- gnome-shell --nested --wayland`
+
+| Description | Command |
+| --- | --- |
+| Launch preferences | `gnome-shell-extension-prefs Vitals@CoreCoding.com` |
+| View logs | `journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f | grep Vitals` |
+| Compile schemas | `glib-compile-schemas --strict schemas/` |
+| Compile translation file | `msgfmt vitals.po -o vitals.mo` |
+| Launch Wayland virtual window | `dbus-run-session -- gnome-shell --nested --wayland` |
+| Read hot-sensors value | `dconf read /org/gnome/shell/extensions/vitals/hot-sensors` |
+| Write hot-sensors value | `dconf write /org/gnome/shell/extensions/vitals/hot-sensors "['_memory_usage_', '_system_load_1m_']"` |
 
 ## Donations
 [Please consider donating if you find this extension useful.](https://corecoding.com/donate.php)
