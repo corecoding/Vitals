@@ -105,9 +105,9 @@ var Sensors = GObject.registerClass({
             let sensor = this._tempVoltFanSensors[path];
 
             new FileModule.File(path).read().then(value => {
-                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format'], sensor['id']);
+                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
             }).catch(err => {
-                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format'], sensor['id']);
+                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format']);
             });
         }
     }
@@ -462,12 +462,8 @@ var Sensors = GObject.registerClass({
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     }
 
-    _returnValue(callback, label, value, type, format, id = '') {
-        // when no id is specified, revert to old way of creating key from label
-        if (!id) id = label.replace(' ', '_').toLowerCase();
-
-        let key = '_' + type.replace('-group', '') + '_' + id + '_';
-        callback(label, value, type, format, key);
+    _returnValue(callback, label, value, type, format) {
+        callback(label, value, type, format);
     }
 
     _discoverHardwareMonitors(callback) {
@@ -524,9 +520,7 @@ var Sensors = GObject.registerClass({
                 }
             }
 
-            for (let id in trisensors) {
-                let obj = trisensors[id];
-
+            for (let obj of Object.values(trisensors)) {
                 if (!('input' in obj))
                     continue;
 
@@ -535,12 +529,12 @@ var Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            this._addTempVoltFan(callback, id, obj, name, label, extra, value);
+                            this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
                             // label file reading sometimes returns Invalid argument in which case we default to the name
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
-                                this._addTempVoltFan(callback, id, obj, name, label, extra, value);
+                                this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
                         });
                     }
@@ -549,7 +543,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _addTempVoltFan(callback, id, obj, name, label, extra, value) {
+    _addTempVoltFan(callback, obj, name, label, extra, value) {
         // prepend module that provided sensor data
         if (name != label) {
             if (name == 'coretemp') name = 'CPU';
@@ -569,13 +563,12 @@ var Sensors = GObject.registerClass({
         //if (label == 'CPU Package id 1') label = 'Processor 1';
 
         // update screen on initial build to prevent delay on update
-        this._returnValue(callback, label, value, obj['type'], obj['format'], id);
+        this._returnValue(callback, label, value, obj['type'], obj['format']);
 
         this._tempVoltFanSensors[obj['input']] = {
             'type': obj['type'],
           'format': obj['format'],
-           'label': label,
-              'id': id
+           'label': label
         };
     }
 

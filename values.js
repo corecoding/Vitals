@@ -47,7 +47,7 @@ var Values = GObject.registerClass({
         this._networkSpeeds = {};
 
         this._history = {};
-        this._history2 = {};
+        //this._history2 = {};
         this.resetHistory();
     }
 
@@ -280,9 +280,7 @@ var Values = GObject.registerClass({
             }
         }
 
-
-
-        /*
+/*
         global.log('before', JSON.stringify(output));
         for (let i = output.length - 1; i >= 0; i--) {
             let sensor = output[i];
@@ -304,9 +302,7 @@ var Values = GObject.registerClass({
 
         global.log(' after', JSON.stringify(output));
         global.log('***************************');
-        */
-
-
+*/
 
         return output;
     }
@@ -317,8 +313,8 @@ var Values = GObject.registerClass({
         for (let sensor in this._sensorIcons) {
             this._history[sensor] = {};
             this._history[sensor + '-group'] = {};
-            this._history2[sensor] = {};
-            this._history2[sensor + '-group'] = {};
+            //this._history2[sensor] = {};
+            //this._history2[sensor + '-group'] = {};
         }
     }
 });

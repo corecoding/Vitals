@@ -510,7 +510,9 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
-        this._sensors.query((label, value, type, format, key) => {
+        this._sensors.query((label, value, type, format) => {
+            let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
+
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
                 this._sensorMenuItems[key].setSensitive((value!='disabled'));
