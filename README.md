@@ -38,13 +38,12 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
     
     # example filename, different each release
     pacman -U gnome-shell-extension-vitals-git-v52.0.4.r0.gb446cfc-1-any.pkg.tar.zst
-    
 
 ### 3) Activate after installation
 
 #### Ubuntu/Debian/Fedora
 
-##### &nbsp;&nbsp;&nbsp;&nbsp;At this point, Vitals should be running. If you reversed steps #1 and #2 above, you will need to restart your session by logging out and then back in.
+##### &nbsp;&nbsp;&nbsp;&nbsp;At this point, Vitals should be running. If you reversed steps 1 and 2 above, you will need to restart your session by logging out and then back in.
    
 #### Arch/Manjaro
 
@@ -69,6 +68,16 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
     cd ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
     git checkout develop
+
+### 4) Activate develop version
+
+#### Ubuntu/Debian/Fedora
+
+##### &nbsp;&nbsp;&nbsp;&nbsp;You will need to restart your session by logging out and then back in.
+   
+#### Arch/Manjaro
+
+##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Vitals
 
 ## Credits
 Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured system monitoring tool. My biggest pet peeve was random system delays becaus of I/O blocking polls, and thus, the idea for Vitals was born! It has been refactored several times over, so most of the code is new or different.
