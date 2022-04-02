@@ -131,9 +131,6 @@ var VitalsMenuButton = GObject.registerClass({
             this._sensors.resetHistory();
             this._values.resetHistory();
 
-            // removes any sensors that may not currently be available
-            this._removeMissingHotSensors();
-
             // make sure timer fires at next full interval
             this._updateTimeChanged();
 
@@ -188,9 +185,7 @@ var VitalsMenuButton = GObject.registerClass({
         return button;
     }
 
-    _removeMissingHotSensors() {
-        let hotSensors = this._settings.get_strv('hot-sensors');
-
+    _removeMissingHotSensors(hotSensors) {
         for (let i = hotSensors.length - 1; i >= 0; i--) {
             let sensor = hotSensors[i];
 
@@ -205,11 +200,13 @@ var VitalsMenuButton = GObject.registerClass({
             }
         }
 
-        // save hotSensors for next round
-        this._saveHotSensors(hotSensors);
+        return hotSensors;
     }
 
     _saveHotSensors(hotSensors) {
+        // removes any sensors that may not currently be available
+        hotSensors = this._removeMissingHotSensors(hotSensors);
+
         this._settings.set_strv('hot-sensors', hotSensors.filter(
             function(item, pos) {
                 return hotSensors.indexOf(item) == pos;
