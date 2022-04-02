@@ -195,6 +195,9 @@ var Values = GObject.registerClass({
                 value = value / 1000000000000;
                 ending = 'Wh';
                 break;
+            case 'load':
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                break;
             default:
                 format = '%s';
                 break;

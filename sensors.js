@@ -246,10 +246,10 @@ var Sensors = GObject.registerClass({
             let loadArray = contents.split(' ');
             let proc = loadArray[3].split('/');
 
-            this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'string');
-            this._returnValue(callback, 'system', loadArray[0], 'system-group', 'string');
-            this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'string');
-            this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'string');
+            this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'load');
+            this._returnValue(callback, 'system', loadArray[0], 'system-group', 'load');
+            this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'load');
+            this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'load');
             this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
             this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
         }).catch(err => { });
