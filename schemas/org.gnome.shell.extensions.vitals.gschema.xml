@@ -2,7 +2,7 @@
 <schemalist gettext-domain="gnome-shell-extensions">
   <schema id="org.gnome.shell.extensions.vitals" path="/org/gnome/shell/extensions/vitals/">
     <key name="hot-sensors" type="as">
-      <default>['_memory_usage_', '_system_load_1m_']</default>
+      <default>['_memory_usage_', '_system_load_1m_', '__network-rx_max__']</default>
       <summary>Sensors to show in panel</summary>
       <description>List of sensors to be shown in the panel</description>
     </key>
