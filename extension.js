@@ -17,7 +17,7 @@ const MenuItem = Me.imports.menuItem;
 let vitalsMenu;
 
 var VitalsMenuButton = GObject.registerClass({
-       GTypeName: 'VitalsMenuButton',
+    GTypeName: 'VitalsMenuButton',
 }, class VitalsMenuButton extends PanelMenu.Button {
     _init() {
         super._init(St.Align.START);
@@ -65,9 +65,8 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
-        this._addSettingChangedSignal('use-higher-precision', this._higherPrecisionChanged.bind(this));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'fixed-widths', 'hide-icons' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -132,9 +131,6 @@ var VitalsMenuButton = GObject.registerClass({
             this._sensors.resetHistory();
             this._values.resetHistory();
 
-            // removes any sensors that may not currently be available
-            this._removeMissingHotSensors();
-
             // make sure timer fires at next full interval
             this._updateTimeChanged();
 
@@ -189,9 +185,7 @@ var VitalsMenuButton = GObject.registerClass({
         return button;
     }
 
-    _removeMissingHotSensors() {
-        let hotSensors = this._settings.get_strv('hot-sensors');
-
+    _removeMissingHotSensors(hotSensors) {
         for (let i = hotSensors.length - 1; i >= 0; i--) {
             let sensor = hotSensors[i];
 
@@ -206,11 +200,13 @@ var VitalsMenuButton = GObject.registerClass({
             }
         }
 
-        // save hotSensors for next round
-        this._saveHotSensors(hotSensors);
+        return hotSensors;
     }
 
     _saveHotSensors(hotSensors) {
+        // removes any sensors that may not currently be available
+        hotSensors = this._removeMissingHotSensors(hotSensors);
+
         this._settings.set_strv('hot-sensors', hotSensors.filter(
             function(item, pos) {
                 return hotSensors.indexOf(item) == pos;
@@ -255,12 +251,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._widths[key] = label.width;
 
         this._menuLayout.add_actor(label);
-    }
-
-    _higherPrecisionChanged() {
-        this._sensors.resetHistory();
-        this._values.resetHistory();
-        this._querySensors();
     }
 
     _showHideSensorsChanged(self, sensor) {
@@ -514,10 +504,12 @@ var VitalsMenuButton = GObject.registerClass({
     _querySensors() {
         // figure out last run time
         let now = new Date().getTime();
-        let diff = (now - this._last_query) / 1000;
+        let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
-        this._sensors.query((label, value, type, format, key) => {
+        this._sensors.query((label, value, type, format) => {
+            let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
+
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
                 this._sensorMenuItems[key].setSensitive((value!='disabled'));
@@ -526,10 +518,10 @@ var VitalsMenuButton = GObject.registerClass({
                 if (value == 'disabled') return;
             }
 
-            let items = this._values.returnIfDifferent(diff, label, value, type, format, key);
+            let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
-        }, diff);
+        }, dwell);
 
         if (this._warnings.length > 0) {
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');

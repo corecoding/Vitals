@@ -90,7 +90,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, diff) {
+    query(callback, dwell) {
         if (this._trisensorsScanned) {
             this._queryTempVoltFan(callback);
         } else {
@@ -104,7 +104,7 @@ var Sensors = GObject.registerClass({
 
             if (this._settings.get_boolean('show-' + sensor)) {
                 let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                this[method](callback, diff);
+                this[method](callback, dwell);
             }
         }
     }
@@ -114,9 +114,9 @@ var Sensors = GObject.registerClass({
             let sensor = this._tempVoltFanSensors[path];
 
             new FileModule.File(path).read().then(value => {
-                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format'], sensor['id']);
+                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
             }).catch(err => {
-                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format'], sensor['id']);
+                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format']);
             });
         }
     }
@@ -150,7 +150,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _queryProcessor(callback, diff) {
+    _queryProcessor(callback, dwell) {
         let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
         // check processor usage
@@ -181,7 +181,7 @@ var Sensors = GObject.registerClass({
 
                 // make sure we have data to report
                 if (this._last_processor[cpu] > 0) {
-                    let delta = (total - this._last_processor[cpu]) / diff;
+                    let delta = (total - this._last_processor[cpu]) / dwell;
 
                     let label = cpu;
                     if (cpu == 'cpu') {
@@ -255,10 +255,10 @@ var Sensors = GObject.registerClass({
             let loadArray = contents.split(' ');
             let proc = loadArray[3].split('/');
 
-            this._returnValue(callback, _('Load 1m'), loadArray[0], 'system', 'string');
-            this._returnValue(callback, _('system'), loadArray[0], 'system-group', 'string');
-            this._returnValue(callback, _('Load 5m'), loadArray[1], 'system', 'string');
-            this._returnValue(callback, _('Load 15m'), loadArray[2], 'system', 'string');
+            this._returnValue(callback, _('Load 1m'), loadArray[0], 'system', 'load');
+            this._returnValue(callback, _('system'), loadArray[0], 'system-group', 'load');
+            this._returnValue(callback, _('Load 5m'), loadArray[1], 'system', 'load');
+            this._returnValue(callback, _('Load 15m'), loadArray[2], 'system', 'load');
             this._returnValue(callback, _('Threads Active'), proc[0], 'system', 'string');
             this._returnValue(callback, _('Threads Total'), proc[1], 'system', 'string');
         }).catch(err => { });
@@ -356,7 +356,7 @@ var Sensors = GObject.registerClass({
         });
     }
 
-    _queryNetwork(callback, diff) {
+    _queryNetwork(callback, dwell) {
         // check network speed
         let directions = ['tx', 'rx'];
         let netbase = '/sys/class/net/';
@@ -388,7 +388,7 @@ var Sensors = GObject.registerClass({
                 this._refreshIPAddress(callback);
             }
 
-            this._next_public_ip_check -= diff;
+            this._next_public_ip_check -= dwell;
         }
 
         // wireless interface statistics
@@ -414,7 +414,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _queryStorage(callback, diff) {
+    _queryStorage(callback, dwell) {
         // display zfs arc status, if available
         new FileModule.File('/proc/spl/kstat/zfs/arcstats').read().then(lines => {
             let target = 0, maximum = 0, current = 0;
@@ -442,10 +442,12 @@ var Sensors = GObject.registerClass({
                 if ('/dev/' + loadArray[2] == this._storageDevice) {
                     var read = (loadArray[5] * 512);
                     var write = (loadArray[9] * 512);
+
                     this._returnValue(callback, _('Read total'), read, 'storage', 'storage');
                     this._returnValue(callback, _('Write total'), write, 'storage', 'storage');
-                    this._returnValue(callback, _('Read rate'), (read - this._lastRead) / diff, 'storage', 'storage');
-                    this._returnValue(callback, _('Write rate'), (write - this._lastWrite) / diff, 'storage', 'storage');
+                    this._returnValue(callback, _('Read rate'), (read - this._lastRead) / dwell, 'storage', 'storage');
+                    this._returnValue(callback, _('Write rate'), (write - this._lastWrite) / dwell, 'storage', 'storage');
+
                     this._lastRead = read;
                     this._lastWrite = write;
                     break;
@@ -471,12 +473,8 @@ var Sensors = GObject.registerClass({
         this._returnValue(callback, _('storage'), avail, 'storage-group', 'storage');
     }
 
-    _returnValue(callback, label, value, type, format, id = '') {
-        // when no id is specified, revert to old way of creating key from label
-        if (!id) id = label.replace(' ', '_').toLowerCase();
-
-        let key = '_' + type.replace('-group', '') + '_' + id + '_';
-        callback(label, value, type, format, key);
+    _returnValue(callback, label, value, type, format) {
+        callback(label, value, type, format);
     }
 
     _discoverHardwareMonitors(callback) {
@@ -533,9 +531,7 @@ var Sensors = GObject.registerClass({
                 }
             }
 
-            for (let id in trisensors) {
-                let obj = trisensors[id];
-
+            for (let obj of Object.values(trisensors)) {
                 if (!('input' in obj))
                     continue;
 
@@ -544,12 +540,12 @@ var Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            this._addTempVoltFan(callback, id, obj, name, label, extra, value);
+                            this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
                             // label file reading sometimes returns Invalid argument in which case we default to the name
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
-                                this._addTempVoltFan(callback, id, obj, name, label, extra, value);
+                                this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
                         });
                     }
@@ -558,7 +554,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _addTempVoltFan(callback, id, obj, name, label, extra, value) {
+    _addTempVoltFan(callback, obj, name, label, extra, value) {
         // prepend module that provided sensor data
         if (name != label) {
             if (name == 'coretemp') name = 'CPU';
@@ -571,20 +567,19 @@ var Sensors = GObject.registerClass({
         label = label + extra;
 
         // in the future we will read /etc/sensors3.conf
-        //if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
-        //if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
-        //if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
-        //if (label == 'CPU Package id 0') label = 'Processor 0';
-        //if (label == 'CPU Package id 1') label = 'Processor 1';
+        if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
+        if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
+        if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
+        if (label == 'CPU Package id 0') label = 'Processor 0';
+        if (label == 'CPU Package id 1') label = 'Processor 1';
 
         // update screen on initial build to prevent delay on update
-        this._returnValue(callback, label, value, obj['type'], obj['format'], id);
+        this._returnValue(callback, label, value, obj['type'], obj['format']);
 
         this._tempVoltFanSensors[obj['input']] = {
             'type': obj['type'],
           'format': obj['format'],
-           'label': label,
-              'id': id
+           'label': label
         };
     }
 
