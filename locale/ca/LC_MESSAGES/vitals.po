@@ -8,7 +8,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2022-02-13 23:15+0100\n"
+"POT-Creation-Date: 2022-04-10 21:29+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Federico Trillo\n"
 "Language-Team: \n"
@@ -19,15 +19,15 @@ msgstr ""
 "X-Generator: Poedit 2.2.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: extension.js:132
+#: extension.js:129
 msgid "Refresh"
 msgstr "Actualitza"
 
-#: extension.js:141
+#: extension.js:147
 msgid "System Monitor"
 msgstr "Monitor de sistema"
 
-#: extension.js:149
+#: extension.js:155
 msgid "Preferences"
 msgstr "Preferències"
 
@@ -76,31 +76,41 @@ msgstr "Centre"
 msgid "Right"
 msgstr "Dreta"
 
-#: prefs.ui:218 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
+#: prefs.ui:196
+#, fuzzy
+msgid "Far Left"
+msgstr "Esquerra"
+
+#: prefs.ui:197
+#, fuzzy
+msgid "Far Right"
+msgstr "Dreta"
+
+#: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
 msgstr "Utilitzar una major precisió"
 
-#: prefs.ui:245 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
+#: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
 msgstr "Ordenar sensors alfabèticament"
 
-#: prefs.ui:272 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
+#: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
 msgstr "Amaga els valors zero"
 
-#: prefs.ui:299
+#: prefs.ui:301
 msgid "Use fixed widths"
 msgstr ""
 
-#: prefs.ui:326 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Hide icons in top bar"
 msgstr ""
 
-#: prefs.ui:350
+#: prefs.ui:352
 msgid "About"
 msgstr "Quant a"
 
-#: prefs.ui:365
+#: prefs.ui:367
 msgid ""
 "Feature requests or bugs? Please visit <a href=\"https://github.com/"
 "corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
@@ -114,60 +124,60 @@ msgstr ""
 "errors? Per favor visiti el nostre projecte a <a href=\"https://github.com/"
 "corecoding/Vitals\">GitHub</a>."
 
-#: prefs.ui:392
+#: prefs.ui:394
 msgid "Sensors"
 msgstr "Sensors"
 
-#: prefs.ui:420 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+#: prefs.ui:422 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
 msgstr "Monitor de temperatura"
 
-#: prefs.ui:471 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+#: prefs.ui:473 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
 msgstr "Monitor de voltatge"
 
-#: prefs.ui:499 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+#: prefs.ui:501 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
 msgstr "Monitor de ventilador"
 
-#: prefs.ui:527 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+#: prefs.ui:529 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
 msgstr "Monitor de memòria"
 
-#: prefs.ui:578 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+#: prefs.ui:580 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
 msgstr "Monitor de processador"
 
-#: prefs.ui:606 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+#: prefs.ui:608 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
 msgstr "Monitor de sistema"
 
-#: prefs.ui:634 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+#: prefs.ui:636 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
 msgstr "Monitor de xarxa"
 
-#: prefs.ui:685 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+#: prefs.ui:687 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
 msgstr "Monitor d'emmagatzematge"
 
-#: prefs.ui:736 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+#: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 #, fuzzy
 msgid "Monitor battery"
 msgstr "Monitor de memòria"
 
-#: prefs.ui:815
+#: prefs.ui:817
 msgid "Path"
 msgstr "Ruta"
 
-#: prefs.ui:847 prefs.ui:956
+#: prefs.ui:849 prefs.ui:958
 msgid "Measurement"
 msgstr ""
 
-#: prefs.ui:901
+#: prefs.ui:903
 msgid "Unit"
 msgstr "Unitat"
 
-#: prefs.ui:1010
+#: prefs.ui:1012
 msgid "Display Battery"
 msgstr ""
 
@@ -306,88 +316,239 @@ msgstr ""
 msgid "Keep top bar clean by only showing sensor values"
 msgstr ""
 
-#: sensors.js:194
+#: sensors.js:42
+#, fuzzy
+msgid "Temperature"
+msgstr "Temperatura"
+
+#: sensors.js:43 sensors.js:307 sensors.js:337
+msgid "Voltage"
+msgstr "Voltatge"
+
+#: sensors.js:44
+msgid "Fan"
+msgstr "Ventilador"
+
+#: sensors.js:45
+msgid "Memory"
+msgstr "Memòria"
+
+#: sensors.js:46
+msgid "Processor"
+msgstr "Processador"
+
+#: sensors.js:47
+msgid "System"
+msgstr "Sistema"
+
+#: sensors.js:48
+msgid "Network"
+msgstr "Xarxa"
+
+#: sensors.js:49
+#, fuzzy
+msgid "Storage"
+msgstr "Emmagatzematge"
+
+#: sensors.js:76
+msgid "Public IP"
+msgstr "IP pública"
+
+#: sensors.js:144
+msgid "Usage"
+msgstr "Ús"
+
+#: sensors.js:145
+#, fuzzy
+msgid "memory"
+msgstr "Memòria"
+
+#: sensors.js:146
+msgid "Physical"
+msgstr "Física"
+
+#: sensors.js:147
+msgid "Available"
+msgstr "Disponible"
+
+#: sensors.js:148
+msgid "Allocated"
+msgstr "Assignada"
+
+#: sensors.js:149
+msgid "Swap Used"
+msgstr "Intercanvi utilitzada"
+
+#: sensors.js:189
+msgid "Average"
+msgstr "Mitjana"
+
+#: sensors.js:190
+#, fuzzy
+msgid "processor"
+msgstr "Processador"
+
+#: sensors.js:192
 #, javascript-format
 msgid "Core %d"
 msgstr "Nucli %d"
 
-#~ msgid "Usage"
-#~ msgstr "Ús"
+#: sensors.js:236
+msgid "Frequency"
+msgstr "Freqüència mitjana"
 
-#~ msgid "Memory"
-#~ msgstr "Memòria"
+#: sensors.js:237
+msgid "Boost"
+msgstr "Turbo"
 
-#~ msgid "Physical"
-#~ msgstr "Física"
+#: sensors.js:238
+msgid "Vendor"
+msgstr ""
 
-#~ msgid "Available"
-#~ msgstr "Disponible"
+#: sensors.js:239
+msgid "Bogomips"
+msgstr ""
 
-#~ msgid "Allocated"
-#~ msgstr "Assignada"
+#: sensors.js:240
+msgid "Sockets"
+msgstr ""
 
-#~ msgid "Swap Used"
-#~ msgstr "Intercanvi utilitzada"
+#: sensors.js:241
+msgid "Cache"
+msgstr ""
 
-#~ msgid "Average"
-#~ msgstr "Mitjana"
+#: sensors.js:250
+msgid "Open Files"
+msgstr ""
 
-#~ msgid "Processor"
-#~ msgstr "Processador"
+#: sensors.js:258
+msgid "Load 1m"
+msgstr "Càrrega (1m)"
 
-#~ msgid "Frequency"
-#~ msgstr "Freqüència mitjana"
+#: sensors.js:259
+#, fuzzy
+msgid "system"
+msgstr "Sistema"
 
-#~ msgid "Boost"
-#~ msgstr "Turbo"
+#: sensors.js:260
+msgid "Load 5m"
+msgstr "Càrrega (5m)"
 
-#~ msgid "Load 1m"
-#~ msgstr "Càrrega (1m)"
+#: sensors.js:261
+msgid "Load 15m"
+msgstr "Càrrega (15m)"
 
-#~ msgid "System"
-#~ msgstr "Sistema"
+#: sensors.js:262
+msgid "Threads Active"
+msgstr "Fils actius"
 
-#~ msgid "Load 5m"
-#~ msgstr "Càrrega (5m)"
+#: sensors.js:263
+msgid "Threads Total"
+msgstr "Total de fils"
 
-#~ msgid "Load 15m"
-#~ msgstr "Càrrega (15m)"
+#: sensors.js:269
+msgid "Uptime"
+msgstr ""
 
-#~ msgid "Threads Active"
-#~ msgstr "Fils actius"
+#: sensors.js:273
+msgid "Process Time"
+msgstr "Temps actiu mitjà"
 
-#~ msgid "Threads Total"
-#~ msgstr "Total de fils"
+#: sensors.js:290
+msgid "State"
+msgstr ""
 
-#~ msgid "Process Time"
-#~ msgstr "Temps actiu mitjà"
+#: sensors.js:295
+msgid "Cycles"
+msgstr ""
 
-#~ msgid "Public IP"
-#~ msgstr "IP pública"
+#: sensors.js:300 sensors.js:330
+msgid "Energy (full)"
+msgstr ""
 
-#~ msgid "Total"
-#~ msgstr "Total"
+#: sensors.js:302 sensors.js:332
+msgid "Capacity"
+msgstr ""
 
-#~ msgid "Used"
-#~ msgstr "Usat"
+#: sensors.js:303 sensors.js:333
+msgid "Energy (design)"
+msgstr ""
 
-#~ msgid "Reserved"
-#~ msgstr "Reservat"
+#: sensors.js:311 sensors.js:340
+msgid "Rate"
+msgstr ""
 
-#~ msgid "Free"
-#~ msgstr "Lliure"
+#: sensors.js:312 sensors.js:341
+#, fuzzy
+msgid "battery"
+msgstr "Monitor de memòria"
 
-#~ msgid "Maximum "
-#~ msgstr "Màxim "
+#: sensors.js:316 sensors.js:344
+msgid "Energy (now)"
+msgstr ""
 
-#~ msgid "Voltage"
-#~ msgstr "Voltatge"
+#: sensors.js:322 sensors.js:350
+msgid "Percentage"
+msgstr ""
 
-#~ msgid "Fan"
-#~ msgstr "Ventilador"
+#: sensors.js:411
+msgid "WiFi Link Quality"
+msgstr ""
 
-#~ msgid "Network"
-#~ msgstr "Xarxa"
+#: sensors.js:412
+msgid "WiFi Signal Level"
+msgstr ""
+
+#: sensors.js:432
+msgid "ARC Target"
+msgstr ""
+
+#: sensors.js:433
+#, fuzzy
+msgid "ARC Maximum"
+msgstr "Màxim "
+
+#: sensors.js:434
+msgid "ARC Current"
+msgstr ""
+
+#: sensors.js:445
+#, fuzzy
+msgid "Read total"
+msgstr "Total de fils"
+
+#: sensors.js:446
+msgid "Write total"
+msgstr ""
+
+#: sensors.js:447
+msgid "Read rate"
+msgstr ""
+
+#: sensors.js:448
+msgid "Write rate"
+msgstr ""
+
+#: sensors.js:467
+msgid "Total"
+msgstr "Total"
+
+#: sensors.js:468
+msgid "Used"
+msgstr "Usat"
+
+#: sensors.js:469
+msgid "Reserved"
+msgstr "Reservat"
+
+#: sensors.js:470
+msgid "Free"
+msgstr "Lliure"
+
+#: sensors.js:471
+#, fuzzy
+msgid "storage"
+msgstr "Monitor d'emmagatzematge"
 
 #~ msgid "Temperature Preferences"
 #~ msgstr "Preferències de temperatura"
