@@ -47,7 +47,7 @@ var Values = GObject.registerClass({
         this._networkSpeeds = {};
 
         this._history = {};
-        this._history2 = {};
+        //this._history2 = {};
         this.resetHistory();
     }
 
@@ -195,6 +195,9 @@ var Values = GObject.registerClass({
                 value = value / 1000000000000;
                 ending = 'Wh';
                 break;
+            case 'load':
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                break;
             default:
                 format = '%s';
                 break;
@@ -203,7 +206,7 @@ var Values = GObject.registerClass({
         return format.format(value, ending);
     }
 
-    returnIfDifferent(diff, label, value, type, format, key) {
+    returnIfDifferent(dwell, label, value, type, format, key) {
         let output = [];
 
         // make sure the keys exist
@@ -256,7 +259,7 @@ var Values = GObject.registerClass({
             output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
 
             // calculate speed for this interface
-            let speed = (value - previousValue[1]) / diff;
+            let speed = (value - previousValue[1]) / dwell;
             output.push([label, this._legible(speed, 'speed'), type, key]);
 
             // store speed for Device report
@@ -280,9 +283,7 @@ var Values = GObject.registerClass({
             }
         }
 
-
-
-        /*
+/*
         global.log('before', JSON.stringify(output));
         for (let i = output.length - 1; i >= 0; i--) {
             let sensor = output[i];
@@ -304,9 +305,7 @@ var Values = GObject.registerClass({
 
         global.log(' after', JSON.stringify(output));
         global.log('***************************');
-        */
-
-
+*/
 
         return output;
     }
@@ -317,8 +316,8 @@ var Values = GObject.registerClass({
         for (let sensor in this._sensorIcons) {
             this._history[sensor] = {};
             this._history[sensor + '-group'] = {};
-            this._history2[sensor] = {};
-            this._history2[sensor + '-group'] = {};
+            //this._history2[sensor] = {};
+            //this._history2[sensor + '-group'] = {};
         }
     }
 });
