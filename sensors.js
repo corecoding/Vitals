@@ -39,15 +39,6 @@ try {
     hasGTop = false;
 }
 
-let _translate_strings = [_('Temperature'),
-	                  _('Voltage'),
-	                  _('Fan'),
-	                  _('Memory'),
-	                  _('Processor'),
-	                  _('System'),
-	                  _('Network'),
-	                  _('Storage')];
-
 var Sensors = GObject.registerClass({
        GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
@@ -73,7 +64,7 @@ var Sensors = GObject.registerClass({
         // check IP address
         new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
             let obj = JSON.parse(contents);
-            this._returnValue(callback, _('Public IP'), obj['IPv4'], 'network', 'string');
+            this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
         }).catch(err => { });
     }
 
@@ -141,12 +132,12 @@ var Sensors = GObject.registerClass({
             let used = total - avail
             let utilized = used / total;
 
-            this._returnValue(callback, _('Usage'), utilized, 'memory', 'percent');
-            this._returnValue(callback, _('memory'), utilized, 'memory-group', 'percent');
-            this._returnValue(callback, _('Physical'), total, 'memory', 'memory');
-            this._returnValue(callback, _('Available'), avail, 'memory', 'memory');
-            this._returnValue(callback, _('Allocated'), used, 'memory', 'memory');
-            this._returnValue(callback, _('Swap Used'), swapTotal - swapFree, 'memory', 'memory');
+            this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
+            this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
+            this._returnValue(callback, 'Physical', total, 'memory', 'memory');
+            this._returnValue(callback, 'Available', avail, 'memory', 'memory');
+            this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'memory');
         }).catch(err => { });
     }
 
@@ -186,8 +177,8 @@ var Sensors = GObject.registerClass({
                     let label = cpu;
                     if (cpu == 'cpu') {
                         delta = delta / (Object.keys(statistics).length - 1);
-                        label = _('Average');
-                        this._returnValue(callback, _('processor'), delta / 100, 'processor-group', 'percent');
+                        label = 'Average';
+                        this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                     } else
                         label = _('Core %d').format(cpu.substr(3));
 
@@ -233,12 +224,12 @@ var Sensors = GObject.registerClass({
             let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
             let sum = freqs.reduce((a, b) => a + b);
             let hertz = (sum / freqs.length) * 1000 * 1000;
-            this._returnValue(callback, _('Frequency'), hertz, 'processor', 'hertz');
-            this._returnValue(callback, _('Boost'), max_hertz, 'processor', 'hertz');
-            this._returnValue(callback, _('Vendor'), vendor_id, 'processor', 'string');
-            this._returnValue(callback, _('Bogomips'), bogomips, 'processor', 'string');
-            this._returnValue(callback, _('Sockets'), Object.keys(sockets).length, 'processor', 'string');
-            this._returnValue(callback, _('Cache'), cache, 'processor', 'memory');
+            this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
+            this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
+            this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
+            this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
+            this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
+            this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
         }).catch(err => { });
     }
 
@@ -247,7 +238,7 @@ var Sensors = GObject.registerClass({
         new FileModule.File('/proc/sys/fs/file-nr').read().then(contents => {
             let loadArray = contents.split('\t');
 
-            this._returnValue(callback, _('Open Files'), loadArray[0], 'system', 'string');
+            this._returnValue(callback, 'Open Files', loadArray[0], 'system', 'string');
         }).catch(err => { });
 
         // check load average
@@ -255,22 +246,22 @@ var Sensors = GObject.registerClass({
             let loadArray = contents.split(' ');
             let proc = loadArray[3].split('/');
 
-            this._returnValue(callback, _('Load 1m'), loadArray[0], 'system', 'load');
-            this._returnValue(callback, _('system'), loadArray[0], 'system-group', 'load');
-            this._returnValue(callback, _('Load 5m'), loadArray[1], 'system', 'load');
-            this._returnValue(callback, _('Load 15m'), loadArray[2], 'system', 'load');
-            this._returnValue(callback, _('Threads Active'), proc[0], 'system', 'string');
-            this._returnValue(callback, _('Threads Total'), proc[1], 'system', 'string');
+            this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'load');
+            this._returnValue(callback, 'system', loadArray[0], 'system-group', 'load');
+            this._returnValue(callback, 'Load 5m', loadArray[1], 'system', 'load');
+            this._returnValue(callback, 'Load 15m', loadArray[2], 'system', 'load');
+            this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
+            this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
         }).catch(err => { });
 
         // check uptime
         new FileModule.File('/proc/uptime').read().then(contents => {
             let upArray = contents.split(' ');
-            this._returnValue(callback, _('Uptime'), upArray[0], 'system', 'duration');
+            this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
 
             let cores = Object.keys(this._last_processor).length - 1;
             if (cores > 0)
-                this._returnValue(callback, _('Process Time'), upArray[0] - upArray[1] / cores, 'processor', 'duration');
+                this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
         }).catch(err => { });
     }
 
@@ -287,39 +278,39 @@ var Sensors = GObject.registerClass({
         let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/';
 
         new FileModule.File(battery_path + 'status').read().then(value => {
-            this._returnValue(callback, _('State'), value, 'battery', '');
+            this._returnValue(callback, 'State', value, 'battery', '');
         }).catch(err => { });
 
         new FileModule.File(battery_path + 'cycle_count').read().then(value => {
             if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                this._returnValue(callback, _('Cycles'), value, 'battery', '');
+                this._returnValue(callback, 'Cycles', value, 'battery', '');
         }).catch(err => { });
 
         new FileModule.File(battery_path + 'charge_full').read().then(charge_full => {
             new FileModule.File(battery_path + 'voltage_min_design').read().then(voltage_min_design => {
-                this._returnValue(callback, _('Energy (full)'), charge_full * voltage_min_design, 'battery', 'watt-hour');
+                this._returnValue(callback, 'Energy (full)', charge_full * voltage_min_design, 'battery', 'watt-hour');
                 new FileModule.File(battery_path + 'charge_full_design').read().then(charge_full_design => {
-                    this._returnValue(callback, _('Capacity'), (charge_full / charge_full_design), 'battery', 'percent');
-                    this._returnValue(callback, _('Energy (design)'), charge_full_design * voltage_min_design, 'battery', 'watt-hour');
+                    this._returnValue(callback, 'Capacity', (charge_full / charge_full_design), 'battery', 'percent');
+                    this._returnValue(callback, 'Energy (design)', charge_full_design * voltage_min_design, 'battery', 'watt-hour');
                 }).catch(err => { });
 
                 new FileModule.File(battery_path + 'voltage_now').read().then(voltage_now => {
-                    this._returnValue(callback, _('Voltage'), voltage_now / 1000, 'battery', 'in');
+                    this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
 
                     new FileModule.File(battery_path + 'current_now').read().then(current_now => {
                         let watt = current_now * voltage_now;
-                        this._returnValue(callback, _('Rate'), watt, 'battery', 'watt');
-                        this._returnValue(callback, _('battery'), watt, 'battery-group', 'watt');
+                        this._returnValue(callback, 'Rate', watt, 'battery', 'watt');
+                        this._returnValue(callback, 'battery', watt, 'battery-group', 'watt');
 
                         new FileModule.File(battery_path + 'charge_now').read().then(charge_now => {
                             let rest_pwr = voltage_min_design * charge_now;
-                            this._returnValue(callback, _('Energy (now)'), rest_pwr, 'battery', 'watt-hour');
+                            this._returnValue(callback, 'Energy (now)', rest_pwr, 'battery', 'watt-hour');
 
                             //let time_left_h = rest_pwr / last_pwr;
                             //this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
 
                             let level = charge_now / charge_full;
-                            this._returnValue(callback, _('Percentage'), level, 'battery', 'percent');
+                            this._returnValue(callback, 'Percentage', level, 'battery', 'percent');
                         }).catch(err => { });
                     }).catch(err => { });
                 }).catch(err => { });
@@ -327,27 +318,27 @@ var Sensors = GObject.registerClass({
         }).catch(err => {
             new FileModule.File(battery_path + 'energy_full').read().then(energy_full => {
                 new FileModule.File(battery_path + 'voltage_min_design').read().then(voltage_min_design => {
-                    this._returnValue(callback, _('Energy (full)'), energy_full * 1000000, 'battery', 'watt-hour');
+                    this._returnValue(callback, 'Energy (full)', energy_full * 1000000, 'battery', 'watt-hour');
                     new FileModule.File(battery_path + 'energy_full_design').read().then(energy_full_design => {
-                        this._returnValue(callback, _('Capacity'), (energy_full / energy_full_design), 'battery', 'percent');
-                        this._returnValue(callback, _('Energy (design)'), energy_full_design * 1000000, 'battery', 'watt-hour');
+                        this._returnValue(callback, 'Capacity', (energy_full / energy_full_design), 'battery', 'percent');
+                        this._returnValue(callback, 'Energy (design)', energy_full_design * 1000000, 'battery', 'watt-hour');
                     }).catch(err => { });
 
                     new FileModule.File(battery_path + 'voltage_now').read().then(voltage_now => {
-                        this._returnValue(callback, _('Voltage'), voltage_now / 1000, 'battery', 'in');
+                        this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
 
                         new FileModule.File(battery_path + 'power_now').read().then(power_now => {
-                            this._returnValue(callback, _('Rate'), power_now * 1000000, 'battery', 'watt');
-                            this._returnValue(callback, _('battery'), power_now * 1000000, 'battery-group', 'watt');
+                            this._returnValue(callback, 'Rate', power_now * 1000000, 'battery', 'watt');
+                            this._returnValue(callback, 'battery', power_now * 1000000, 'battery-group', 'watt');
 
                             new FileModule.File(battery_path + 'energy_now').read().then(energy_now => {
-                                this._returnValue(callback, _('Energy (now)'), energy_now * 1000000, 'battery', 'watt-hour');
+                                this._returnValue(callback, 'Energy (now)', energy_now * 1000000, 'battery', 'watt-hour');
 
                                 //let time_left_h = energy_now / last_pwr;
                                 //this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
 
                                 let level = energy_now / energy_full;
-                                this._returnValue(callback, _('Percentage'), level, 'battery', 'percent');
+                                this._returnValue(callback, 'Percentage', level, 'battery', 'percent');
                             }).catch(err => { });
                         }).catch(err => { });
                     }).catch(err => { });
@@ -408,8 +399,8 @@ var Sensors = GObject.registerClass({
                 let signal = netArray[3].substr(0, netArray[3].length-1);
                 //let signal_pct = (signal + 110) * 10 / 7
 
-                this._returnValue(callback, _('WiFi Link Quality'), quality_pct, 'network', 'percent');
-                this._returnValue(callback, _('WiFi Signal Level'), signal, 'network', 'string');
+                this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
+                this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
             }
         }).catch(err => { });
     }
@@ -429,9 +420,9 @@ var Sensors = GObject.registerClass({
             if (values) current = values[4];
 
             // ZFS statistics
-            this._returnValue(callback, _('ARC Target'), target, 'storage', 'storage');
-            this._returnValue(callback, _('ARC Maximum'), maximum, 'storage', 'storage');
-            this._returnValue(callback, _('ARC Current'), current, 'storage', 'storage');
+            this._returnValue(callback, 'ARC Target', target, 'storage', 'storage');
+            this._returnValue(callback, 'ARC Maximum', maximum, 'storage', 'storage');
+            this._returnValue(callback, 'ARC Current', current, 'storage', 'storage');
         }).catch(err => { });
 
         // check disk performance stats
@@ -442,12 +433,10 @@ var Sensors = GObject.registerClass({
                 if ('/dev/' + loadArray[2] == this._storageDevice) {
                     var read = (loadArray[5] * 512);
                     var write = (loadArray[9] * 512);
-
-                    this._returnValue(callback, _('Read total'), read, 'storage', 'storage');
-                    this._returnValue(callback, _('Write total'), write, 'storage', 'storage');
-                    this._returnValue(callback, _('Read rate'), (read - this._lastRead) / dwell, 'storage', 'storage');
-                    this._returnValue(callback, _('Write rate'), (write - this._lastWrite) / dwell, 'storage', 'storage');
-
+                    this._returnValue(callback, 'Read total', read, 'storage', 'storage');
+                    this._returnValue(callback, 'Write total', write, 'storage', 'storage');
+                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
+                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
                     this._lastRead = read;
                     this._lastWrite = write;
                     break;
@@ -466,11 +455,11 @@ var Sensors = GObject.registerClass({
         let used = total - free;
         let reserved = (total - avail) - used;
 
-        this._returnValue(callback, _('Total'), total, 'storage', 'storage');
-        this._returnValue(callback, _('Used'), used, 'storage', 'storage');
-        this._returnValue(callback, _('Reserved'), reserved, 'storage', 'storage');
-        this._returnValue(callback, _('Free'), avail, 'storage', 'storage');
-        this._returnValue(callback, _('storage'), avail, 'storage-group', 'storage');
+        this._returnValue(callback, 'Total', total, 'storage', 'storage');
+        this._returnValue(callback, 'Used', used, 'storage', 'storage');
+        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
+        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
+        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     }
 
     _returnValue(callback, label, value, type, format) {
