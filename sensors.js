@@ -562,6 +562,11 @@ var Sensors = GObject.registerClass({
         if (label == 'CPU Package id 0') label = 'Processor 0';
         if (label == 'CPU Package id 1') label = 'Processor 1';
 
+        // if we have a sensor with a duplicate name, append ' 2' at the end
+        // could be written to support more than one duplicate, perhaps later
+        if (label in this._tempVoltFanSensors)
+            label = label + ' 2';
+
         // update screen on initial build to prevent delay on update
         this._returnValue(callback, label, value, obj['type'], obj['format']);
 
