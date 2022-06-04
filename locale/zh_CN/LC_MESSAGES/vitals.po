@@ -2,24 +2,24 @@
 #
 # This file is distributed under the same license as the
 # gnome-shell-extension-vitals package.
-#
-# Yuehao Sui <tigersui@sina.com>, 2019
+# Yuehao Sui <tigersui@sina.com>, 2019-2022.
+# Dingzhong Chen <wsxy162@gmail.com>, 2022.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: gnome-shell-extension-vitals master\n"
 "POT-Creation-Date: 2022-04-10 21:29+0200\n"
-"PO-Revision-Date: \n"
-"Last-Translator: Yuehao Sui <tigersui@sina.com>\n"
-"Language-Team: \n"
+"PO-Revision-Date: 2022-06-04 15:12+0800\n"
+"Last-Translator: Dingzhong Chen <wsxy162@gmail.com>\n"
+"Language-Team: Chinese - China <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
 "POT-Revision-Date: 2019-09-05 15:06+0000\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Gtranslator 42.0\n"
 "X-Poedit-Basepath: ..\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Poedit-SearchPath-0: values.js\n"
 "X-Poedit-SearchPath-1: sensors.js\n"
 "X-Poedit-SearchPath-2: prefs.js\n"
@@ -41,7 +41,6 @@ msgid "Preferences"
 msgstr "首选项"
 
 #: prefs.js:115
-#, fuzzy
 msgid " Preferences"
 msgstr "首选项"
 
@@ -86,14 +85,12 @@ msgid "Right"
 msgstr "靠右"
 
 #: prefs.ui:196
-#, fuzzy
 msgid "Far Left"
-msgstr "靠左"
+msgstr "最左"
 
 #: prefs.ui:197
-#, fuzzy
 msgid "Far Right"
-msgstr "靠右"
+msgstr "最右"
 
 #: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
@@ -109,11 +106,11 @@ msgstr "隐藏零值项"
 
 #: prefs.ui:301
 msgid "Use fixed widths"
-msgstr ""
+msgstr "使用固定宽度"
 
 #: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Hide icons in top bar"
-msgstr ""
+msgstr "隐藏顶栏的图标"
 
 #: prefs.ui:352
 msgid "About"
@@ -126,11 +123,9 @@ msgid ""
 "href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
 "useful."
 msgstr ""
-"喜欢你所看到的吗？请支持这个插件的开发 <a href=\"https://corecoding.com/"
-"donate.php\">PayPal</a>.\n"
-"\n"
-"本插件无任何明暗担保. 功能性需求或者错误改进? 请访问我们的 <a href=\"https://"
-"github.com/corecoding/Vitals\">GitHub</a> 项目."
+"功能请求或者缺陷报告？请访问 <a href=\"https://github.com/corecoding/Vitals/"
+"issues\">GitHub</a>。不对插件作任何明示或暗示的担保。如果你觉得好用，可以<a "
+"href=\"https://corecoding.com/donate.php\">捐款</a>。"
 
 #: prefs.ui:394
 msgid "Sensors"
@@ -138,40 +133,39 @@ msgstr "传感器"
 
 #: prefs.ui:422 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
-msgstr "监控温度"
+msgstr "监测温度"
 
 #: prefs.ui:473 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
-msgstr "监控电压"
+msgstr "监测电压"
 
 #: prefs.ui:501 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
-msgstr "监控扇速"
+msgstr "监测扇速"
 
 #: prefs.ui:529 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
-msgstr "监控内存"
+msgstr "监测内存"
 
 #: prefs.ui:580 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
-msgstr "监控处理器"
+msgstr "监测处理器"
 
 #: prefs.ui:608 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
-msgstr "监控系统"
+msgstr "监测系统"
 
 #: prefs.ui:636 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
-msgstr "监控网络"
+msgstr "监测网络"
 
 #: prefs.ui:687 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
-msgstr "监控存储"
+msgstr "监测存储"
 
 #: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
-#, fuzzy
 msgid "Monitor battery"
-msgstr "监控内存"
+msgstr "监测电池"
 
 #: prefs.ui:817
 msgid "Path"
@@ -179,7 +173,7 @@ msgstr "路径"
 
 #: prefs.ui:849 prefs.ui:958
 msgid "Measurement"
-msgstr ""
+msgstr "度量单位"
 
 #: prefs.ui:903
 msgid "Unit"
@@ -187,145 +181,139 @@ msgstr "单位"
 
 #: prefs.ui:1012
 msgid "Display Battery"
-msgstr ""
+msgstr "显示电池"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
-#, fuzzy
 msgid "Sensors to show in panel"
-msgstr "面板位置"
+msgstr "面板显示的传感器"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
-msgstr ""
+msgstr "要在面板中显示的传感器列表"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
 msgid "Delay between sensor polling"
-msgstr ""
+msgstr "传感器轮询间隔"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
 msgid "Position in Panel ('left', 'center', 'right')"
-msgstr ""
+msgstr "在面板中的位置（“靠左”“居中”“靠右”）"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
 msgid "Show one extra digit after decimal"
-msgstr ""
+msgstr "小数点后多显示一位"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
 msgid "Display sensors in alphabetical order"
-msgstr ""
+msgstr "以字母顺序显示传感器"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
 msgid "Hide data from sensors that are invalid"
-msgstr ""
+msgstr "隐藏传感器中无效的数据"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
 msgid "Display temperature of various components"
-msgstr ""
+msgstr "显示各个组件的温度"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
-#, fuzzy
 msgid "Temperature unit"
-msgstr "温度"
+msgstr "温度单位"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
 "The unit ('centigrade' or 'fahrenheit') the extension should display the "
 "temperature in"
-msgstr ""
+msgstr "此扩展显示温度应使用的单位（“摄氏度”或“华氏度”）"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
 msgid "Display voltage of various components"
-msgstr ""
+msgstr "显示各个组件的电压"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
 msgid "Display fan rotation per minute"
-msgstr ""
+msgstr "显示风扇每分钟转速"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
 msgid "Display memory information"
-msgstr ""
+msgstr "显示内存信息"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
 msgid "Display processor information"
-msgstr ""
+msgstr "显示处理器信息"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
 msgid "Display system information"
-msgstr ""
+msgstr "显示系统信息"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
 msgid "Display storage information"
-msgstr ""
+msgstr "显示存储信息"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
 msgid "Display network information"
-msgstr ""
+msgstr "显示网络信息"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
 msgid "Display public IP address of internet connection"
-msgstr ""
+msgstr "显示网络连接的公用 IP 地址"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
 msgid "Network speed format"
-msgstr ""
+msgstr "网络速度格式"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
 msgid "Should speed display in bits or bytes?"
-msgstr ""
+msgstr "应该以位还是字节显示速度？"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
-#, fuzzy
 msgid "Storage path"
-msgstr "存储"
+msgstr "存储路径"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
 msgid "Storage path for monitoring"
-msgstr ""
+msgstr "要监视的存储路径"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
-#, fuzzy
 msgid "Monitor battery health"
-msgstr "监控温度"
+msgstr "监测电池健康"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
 msgid "Memory measurement"
-msgstr ""
+msgstr "内存度量单位"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
 msgid "Can use gigabyte or gibibyte for memory"
-msgstr ""
+msgstr "内存可以使用 gigabyte 或者 gibibyte"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
-#, fuzzy
 msgid "Storage measurement"
-msgstr "存储首选项"
+msgstr "存储度量单位"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
-msgstr ""
+msgstr "存储可以使用 gigabyte 或者 gibibyte"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
 msgid "Battery slot to monitor"
-msgstr ""
+msgstr "监测的电池槽"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Which numerical battery slot should vitals monitor"
-msgstr ""
+msgstr "Vitals 应监测哪个电池槽"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Use fixed widths in top bar"
-msgstr ""
+msgstr "在顶栏使用固定宽度"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
 msgid "Keep sensors in top bar from jumping around"
-msgstr ""
+msgstr "防止顶栏的传感器信息跳来跳去"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
 msgid "Keep top bar clean by only showing sensor values"
-msgstr ""
+msgstr "之显示传感器数值以保持顶栏整洁"
 
 #: sensors.js:42
-#, fuzzy
 msgid "Temperature"
 msgstr "温度"
 
@@ -354,26 +342,24 @@ msgid "Network"
 msgstr "网络"
 
 #: sensors.js:49
-#, fuzzy
 msgid "Storage"
 msgstr "存储"
 
 #: sensors.js:76
 msgid "Public IP"
-msgstr "公共IP"
+msgstr "公共 IP"
 
 #: sensors.js:144
 msgid "Usage"
-msgstr "使用量"
+msgstr "使用率"
 
 #: sensors.js:145
-#, fuzzy
 msgid "memory"
 msgstr "内存"
 
 #: sensors.js:146
 msgid "Physical"
-msgstr "物理内存"
+msgstr "物理"
 
 #: sensors.js:147
 msgid "Available"
@@ -385,14 +371,13 @@ msgstr "已分配"
 
 #: sensors.js:149
 msgid "Swap Used"
-msgstr "交换分区已使用"
+msgstr "交换区已用"
 
 #: sensors.js:189
 msgid "Average"
-msgstr "平均值"
+msgstr "平均"
 
 #: sensors.js:190
-#, fuzzy
 msgid "processor"
 msgstr "处理器"
 
@@ -411,40 +396,39 @@ msgstr "睿频"
 
 #: sensors.js:238
 msgid "Vendor"
-msgstr ""
+msgstr "厂商"
 
 #: sensors.js:239
 msgid "Bogomips"
-msgstr ""
+msgstr "BogoMips"
 
 #: sensors.js:240
 msgid "Sockets"
-msgstr ""
+msgstr "插槽数"
 
 #: sensors.js:241
 msgid "Cache"
-msgstr ""
+msgstr "缓存"
 
 #: sensors.js:250
 msgid "Open Files"
-msgstr ""
+msgstr "打开文件数"
 
 #: sensors.js:258
 msgid "Load 1m"
-msgstr "Load 1m"
+msgstr "1分钟负载"
 
 #: sensors.js:259
-#, fuzzy
 msgid "system"
 msgstr "系统"
 
 #: sensors.js:260
 msgid "Load 5m"
-msgstr "Load 5m"
+msgstr "5分钟负载"
 
 #: sensors.js:261
 msgid "Load 15m"
-msgstr "Load 15m"
+msgstr "15分钟负载"
 
 #: sensors.js:262
 msgid "Threads Active"
@@ -464,78 +448,75 @@ msgstr "处理时间"
 
 #: sensors.js:290
 msgid "State"
-msgstr ""
+msgstr "状态"
 
 #: sensors.js:295
 msgid "Cycles"
-msgstr ""
+msgstr "周期"
 
 #: sensors.js:300 sensors.js:330
 msgid "Energy (full)"
-msgstr ""
+msgstr "电量（充满）"
 
 #: sensors.js:302 sensors.js:332
 msgid "Capacity"
-msgstr ""
+msgstr "容量"
 
 #: sensors.js:303 sensors.js:333
 msgid "Energy (design)"
-msgstr ""
+msgstr "电量（设计值）"
 
 #: sensors.js:311 sensors.js:340
 msgid "Rate"
-msgstr ""
+msgstr "速率"
 
 #: sensors.js:312 sensors.js:341
-#, fuzzy
 msgid "battery"
-msgstr "监控内存"
+msgstr "电池"
 
 #: sensors.js:316 sensors.js:344
 msgid "Energy (now)"
-msgstr ""
+msgstr "电量（即时）"
 
 #: sensors.js:322 sensors.js:350
 msgid "Percentage"
-msgstr ""
+msgstr "百分比"
 
 #: sensors.js:411
 msgid "WiFi Link Quality"
-msgstr ""
+msgstr "WiFi 链路质量"
 
 #: sensors.js:412
 msgid "WiFi Signal Level"
-msgstr ""
+msgstr "WiFi 信号级别"
 
 #: sensors.js:432
 msgid "ARC Target"
-msgstr ""
+msgstr "ARC 目标值"
 
 #: sensors.js:433
-#, fuzzy
 msgid "ARC Maximum"
-msgstr "最大值 "
+msgstr "ARC 最大值 "
 
 #: sensors.js:434
 msgid "ARC Current"
-msgstr ""
+msgstr "ARC 当前值"
 
 #: sensors.js:445
-#, fuzzy
 msgid "Read total"
-msgstr "总线程"
+msgstr "读取总量"
 
 #: sensors.js:446
 msgid "Write total"
-msgstr ""
+msgstr "写入总量"
 
 #: sensors.js:447
 msgid "Read rate"
-msgstr ""
+msgstr "读取速率"
 
 #: sensors.js:448
 msgid "Write rate"
-msgstr ""
+msgstr "写入速率"
 
 #: sensors.js:467
 msgid "Total"
@@ -543,7 +524,7 @@ msgstr "总量"
 
 #: sensors.js:468
 msgid "Used"
-msgstr "已使用"
+msgstr "已用"
 
 #: sensors.js:469
 msgid "Reserved"
@@ -554,9 +535,8 @@ msgid "Free"
 msgstr "剩余"
 
 #: sensors.js:471
-#, fuzzy
 msgid "storage"
-msgstr "监控存储"
+msgstr "存储"
 
 #~ msgid "Temperature Preferences"
 #~ msgstr "温度首选项"
