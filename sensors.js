@@ -101,13 +101,13 @@ var Sensors = GObject.registerClass({
     }
 
     _queryTempVoltFan(callback) {
-        for (let path in this._tempVoltFanSensors) {
-            let sensor = this._tempVoltFanSensors[path];
+        for (let label in this._tempVoltFanSensors) {
+            let sensor = this._tempVoltFanSensors[label];
 
-            new FileModule.File(path).read().then(value => {
-                this._returnValue(callback, sensor['label'], value, sensor['type'], sensor['format']);
+            new FileModule.File(sensor['path']).read().then(value => {
+                this._returnValue(callback, label, value, sensor['type'], sensor['format']);
             }).catch(err => {
-                this._returnValue(callback, sensor['label'], 'disabled', sensor['type'], sensor['format']);
+                this._returnValue(callback, label, 'disabled', sensor['type'], sensor['format']);
             });
         }
     }
@@ -579,10 +579,10 @@ var Sensors = GObject.registerClass({
         // update screen on initial build to prevent delay on update
         this._returnValue(callback, label, value, obj['type'], obj['format']);
 
-        this._tempVoltFanSensors[obj['input']] = {
+        this._tempVoltFanSensors[label] = {
             'type': obj['type'],
           'format': obj['format'],
-           'label': label
+           'path': obj['input']
         };
     }
 
