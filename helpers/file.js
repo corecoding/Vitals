@@ -25,10 +25,6 @@ function File(path) {
         this.file = Gio.File.new_for_uri(path);
 }
 
-function fileComparator(l, r) {
-    return l.localeCompare(r);
-}
-
 File.prototype.read = function() {
     return new Promise((resolve, reject) => {
         try {
@@ -64,10 +60,6 @@ File.prototype.list = function() {
 
                             if (files.length == 0) {
                                 enumerator.close_async(GLib.PRIORITY_LOW, null, function(){});
-
-                                // sort contents before returning
-                                results.sort(fileComparator);
-
                                 resolve(results);
                             } else {
                                 enumerator.next_files_async(max_items, GLib.PRIORITY_LOW, null, callback);
