@@ -44,7 +44,7 @@ File.prototype.read = function() {
 
 File.prototype.list = function() {
     return new Promise((resolve, reject) => {
-        let max_items = 100, results = [];
+        let max_items = 125, results = [];
 
         try {
             this.file.enumerate_children_async(Gio.FILE_ATTRIBUTE_STANDARD_NAME, Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_LOW, null, function(file, res) {
@@ -55,8 +55,7 @@ File.prototype.list = function() {
                         try {
                             let files = enumerator.next_files_finish(res);
                             for (let i = 0; i < files.length; i++) {
-                                let file_info = files[i];
-                                results.push(file_info.get_attribute_as_string(Gio.FILE_ATTRIBUTE_STANDARD_NAME));
+                                results.push(files[i].get_attribute_as_string(Gio.FILE_ATTRIBUTE_STANDARD_NAME));
                             }
 
                             if (files.length == 0) {
