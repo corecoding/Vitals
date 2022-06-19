@@ -482,9 +482,7 @@ var Sensors = GObject.registerClass({
 
         // a little informal, but this code has zero I/O block
         new FileModule.File(hwbase).list().then(files => {
-            for (let key in files) {
-                let file = files[key];
-
+            for (let file of files) {
                 new FileModule.File(hwbase + file + '/name').read().then(name => {
                     this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
                 }).catch(err => {
@@ -502,19 +500,29 @@ var Sensors = GObject.registerClass({
         new FileModule.File(path).list().then(files2 => {
             let trisensors = {};
 
+            let prefix = '';
+            if (name == 'coretemp') {
+                new FileModule.File(path + '/temp1_label').read().then(value => {
+                    prefix = value + ' ';
+                }).catch(err => { });
+            }
+
             for (let file2 of Object.values(files2)) {
                 for (let key of Object.values(sensor_files)) {
                     for (let sensor_type in sensor_types) {
                         if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-(key.length+1)) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
 
-                            if (!(key2 in trisensors)) {
-                                trisensors[key2] = { 'type': sensor_types[sensor_type],
-                                                   'format': sensor_type,
-                                                    'label': path + '/name' };
-                            }
+                            if (!(name == 'coretemp' && file2 == 'temp1_label')) {
+                            //if (name != 'coretemp' || file2 != 'temp1_label') 
+                                if (!(key2 in trisensors)) {
+                                    trisensors[key2] = { 'type': sensor_types[sensor_type],
+                                                       'format': sensor_type,
+                                                        'label': path + '/name' };
+                                }
 
-                            trisensors[key2][key] = path + '/' + file2;
+                                trisensors[key2][key] = path + '/' + file2;
+                            }
                         }
                     }
                 }
@@ -529,7 +537,8 @@ var Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            this._addTempVoltFan(callback, obj, name, label, extra, value);
+                            //global.log('foobar', prefix, label, extra);
+                            this._addTempVoltFan(callback, obj, name, prefix + label, extra, value);
                         }).catch(err => {
                             // label file reading sometimes returns Invalid argument in which case we default to the name
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
@@ -559,8 +568,10 @@ var Sensors = GObject.registerClass({
         if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
         if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
         if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
-        if (label == 'CPU Package id 0') label = 'Processor 0';
-        if (label == 'CPU Package id 1') label = 'Processor 1';
+        //if (label == 'CPU Package id 0') label = 'Processor 0';
+        //if (label == 'CPU Package id 1') label = 'Processor 1';
+        //label = label.replace('CPU Package id', 'Processor');
+        label = label.replace('CPU Package id', '');
 
         // check if this label already exists
         if (label in this._tempVoltFanSensors) {
@@ -582,7 +593,7 @@ var Sensors = GObject.registerClass({
         this._tempVoltFanSensors[label] = {
             'type': obj['type'],
           'format': obj['format'],
-           'path': obj['input']
+            'path': obj['input']
         };
     }
 
