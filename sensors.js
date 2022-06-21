@@ -513,16 +513,16 @@ var Sensors = GObject.registerClass({
                         if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-(key.length+1)) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
 
-                            if (!(name == 'coretemp' && file2 == 'temp1_label')) {
-                            //if (name != 'coretemp' || file2 != 'temp1_label') 
-                                if (!(key2 in trisensors)) {
-                                    trisensors[key2] = { 'type': sensor_types[sensor_type],
-                                                       'format': sensor_type,
-                                                        'label': path + '/name' };
-                                }
+                            if (name == 'coretemp' && file2 == 'temp1_label')
+                                continue;
 
-                                trisensors[key2][key] = path + '/' + file2;
+                            if (!(key2 in trisensors)) {
+                                trisensors[key2] = { 'type': sensor_types[sensor_type],
+                                    'format': sensor_type,
+                                    'label': path + '/name' };
                             }
+
+                            trisensors[key2][key] = path + '/' + file2;
                         }
                     }
                 }
