@@ -513,8 +513,8 @@ var Sensors = GObject.registerClass({
                         if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-(key.length+1)) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
 
-                            if (name == 'coretemp' && file2 == 'temp1_label')
-                                continue;
+                            //if (name == 'coretemp' && file2 == 'temp1_label')
+                            //    continue;
 
                             if (!(key2 in trisensors)) {
                                 trisensors[key2] = { 'type': sensor_types[sensor_type],
@@ -537,7 +537,6 @@ var Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            //global.log('foobar', prefix, label, extra);
                             this._addTempVoltFan(callback, obj, name, prefix + label, extra, value);
                         }).catch(err => {
                             // label file reading sometimes returns Invalid argument in which case we default to the name
@@ -571,7 +570,7 @@ var Sensors = GObject.registerClass({
         //if (label == 'CPU Package id 0') label = 'Processor 0';
         //if (label == 'CPU Package id 1') label = 'Processor 1';
         //label = label.replace('CPU Package id', 'Processor');
-        label = label.replace('CPU Package id', '');
+        label = label.replace('CPU Package id', 'CPU');
 
         // check if this label already exists
         if (label in this._tempVoltFanSensors) {
