@@ -483,8 +483,18 @@ var Sensors = GObject.registerClass({
         // a little informal, but this code has zero I/O block
         new FileModule.File(hwbase).list().then(files => {
             for (let file of files) {
+                // grab name of sensor
                 new FileModule.File(hwbase + file + '/name').read().then(name => {
-                    this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
+                    // are we dealing with a CPU?
+                    if (name == 'coretemp') {
+                        // determine which processor (socket) we are dealing with
+                        new FileModule.File(hwbase + file + '/temp1_label').read().then(prefix => {
+                            this._processTempVoltFan(callback, sensor_types, prefix, hwbase + file, file);
+                        }).catch(err => { });
+                    } else {
+                        // not a CPU, process all other sensors
+                        this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
+                    }
                 }).catch(err => {
                     new FileModule.File(hwbase + file + '/device/name').read().then(name => {
                         this._processTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
@@ -500,26 +510,18 @@ var Sensors = GObject.registerClass({
         new FileModule.File(path).list().then(files2 => {
             let trisensors = {};
 
-            let prefix = '';
-            if (name == 'coretemp') {
-                new FileModule.File(path + '/temp1_label').read().then(value => {
-                    prefix = value + ' ';
-                }).catch(err => { });
-            }
-
             for (let file2 of Object.values(files2)) {
                 for (let key of Object.values(sensor_files)) {
                     for (let sensor_type in sensor_types) {
                         if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-(key.length+1)) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
 
-                            //if (name == 'coretemp' && file2 == 'temp1_label')
-                            //    continue;
-
                             if (!(key2 in trisensors)) {
-                                trisensors[key2] = { 'type': sensor_types[sensor_type],
-                                    'format': sensor_type,
-                                    'label': path + '/name' };
+                                trisensors[key2] = {
+                                    'type': sensor_types[sensor_type],
+                                  'format': sensor_type,
+                                   'label': path + '/name'
+                                };
                             }
 
                             trisensors[key2][key] = path + '/' + file2;
@@ -537,7 +539,7 @@ var Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            this._addTempVoltFan(callback, obj, name, prefix + label, extra, value);
+                            this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
                             // label file reading sometimes returns Invalid argument in which case we default to the name
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
@@ -553,10 +555,7 @@ var Sensors = GObject.registerClass({
 
     _addTempVoltFan(callback, obj, name, label, extra, value) {
         // prepend module that provided sensor data
-        if (name != label) {
-            if (name == 'coretemp') name = 'CPU';
-            label = name + ' ' + label;
-        }
+        if (name != label) label = name + ' ' + label;
 
         //if (label == 'nvme Composite') label = 'NVMe';
         //if (label == 'nouveau') label = 'Nvidia';
@@ -567,10 +566,9 @@ var Sensors = GObject.registerClass({
         if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
         if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
         if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
-        //if (label == 'CPU Package id 0') label = 'Processor 0';
-        //if (label == 'CPU Package id 1') label = 'Processor 1';
-        //label = label.replace('CPU Package id', 'Processor');
-        label = label.replace('CPU Package id', 'CPU');
+        if (label == 'Package id 0') label = 'Processor 0';
+        if (label == 'Package id 1') label = 'Processor 1';
+        label = label.replace('Package id', 'CPU');
 
         // check if this label already exists
         if (label in this._tempVoltFanSensors) {
