@@ -507,11 +507,15 @@ var Sensors = GObject.registerClass({
     _processTempVoltFan(callback, sensor_types, name, path, file) {
         let sensor_files = [ 'input', 'label' ];
 
+        // grab files from directory
         new FileModule.File(path).list().then(files2 => {
             let trisensors = {};
 
+            // loop over files from directory
             for (let file2 of Object.values(files2)) {
+                // simple way of processing input and label (from above)
                 for (let key of Object.values(sensor_files)) {
+                    // process toggled on sensors from extension preferences
                     for (let sensor_type in sensor_types) {
                         if (file2.substr(0, sensor_type.length) == sensor_type && file2.substr(-(key.length+1)) == '_' + key) {
                             let key2 = file + file2.substr(0, file2.indexOf('_'));
