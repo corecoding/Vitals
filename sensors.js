@@ -391,12 +391,8 @@ var Sensors = GObject.registerClass({
                     continue;
 
                 let netArray = line.trim().split(/\s+/);
-                //let iface = netArray[0].substr(0, netArray[0].length-1);
-
-                let quality = netArray[2].substr(0, netArray[2].length-1);
-                let quality_pct = quality / 70;
+                let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
                 let signal = netArray[3].substr(0, netArray[3].length-1);
-                //let signal_pct = (signal + 110) * 10 / 7
 
                 this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
                 this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
