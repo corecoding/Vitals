@@ -398,6 +398,19 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
             }
         }).catch(err => { });
+
+        // IPv4 address information
+        new FileModule.File('/proc/net/route').read().then(lines => {
+            lines = lines.split("\n");
+            let counter = 0;
+            for (let line of Object.values(lines)) {
+                if (counter++ <= 1)
+                    continue;
+
+                let netArray = line.trim().split(/\s+/);
+                this._returnValue(callback, netArray[0], netArray[1], 'network', 'percent');
+            }
+        }).catch(err => { });
     }
 
     _queryStorage(callback, dwell) {
