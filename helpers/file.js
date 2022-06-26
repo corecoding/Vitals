@@ -4,18 +4,10 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
 
-function contentsCleaner(contents) {
-    // are we running gnome 3.30 or higher?
-    if (contents instanceof Uint8Array)
-        return ByteArray.toString(contents).trim();
-    else
-        return contents.toString().trim();
-}
-
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
-    return contentsCleaner(contents);
+    return ByteArray.toString(contents).trim();
 }
 
 function File(path) {
@@ -25,13 +17,25 @@ function File(path) {
         this.file = Gio.File.new_for_uri(path);
 }
 
-File.prototype.read = function() {
+File.prototype.read = function(delimiter = '', strip_header = false) {
     return new Promise((resolve, reject) => {
         try {
             this.file.load_contents_async(null, function(file, res) {
                 try {
+                    // grab contents of file or website
                     let contents = file.load_contents_finish(res)[1];
-                    resolve(contentsCleaner(contents));
+
+                    // convert contents to string
+                    contents = ByteArray.toString(contents).trim();
+
+                    // split contents by delimiter if passed in
+                    if (delimiter) contents = contents.split(delimiter);
+
+                    // convert to list if requested
+                    if (strip_header) contents.shift();
+
+                    // return results
+                    resolve(contents);
                 } catch (e) {
                     reject(e.message);
                 }

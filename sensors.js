@@ -69,8 +69,7 @@ var Sensors = GObject.registerClass({
     }
 
     _findStorageDevice() {
-        new FileModule.File('/proc/mounts').read().then(lines => {
-            lines = lines.split("\n");
+        new FileModule.File('/proc/mounts').read("\n").then(lines => {
             for (let line of Object.values(lines)) {
                 let loadArray = line.trim().split(/\s+/);
                 if (loadArray[1] == this._settings.get_string('storage-path')) {
@@ -145,8 +144,7 @@ var Sensors = GObject.registerClass({
         let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
         // check processor usage
-        new FileModule.File('/proc/stat').read().then(lines => {
-            lines = lines.split("\n");
+        new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
             let reverse_data;
 
@@ -190,9 +188,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
 
         // grab CPU information including frequency
-        new FileModule.File('/proc/cpuinfo').read().then(lines => {
-            lines = lines.split("\n");
-
+        new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
             let vendor_id = '';
             let sockets = {};
             let bogomips = '';
@@ -235,15 +231,12 @@ var Sensors = GObject.registerClass({
 
     _querySystem(callback) {
         // check load average
-        new FileModule.File('/proc/sys/fs/file-nr').read().then(contents => {
-            let loadArray = contents.split('\t');
-
+        new FileModule.File('/proc/sys/fs/file-nr').read("\t").then(loadArray => {
             this._returnValue(callback, 'Open Files', loadArray[0], 'system', 'string');
         }).catch(err => { });
 
         // check load average
-        new FileModule.File('/proc/loadavg').read().then(contents => {
-            let loadArray = contents.split(' ');
+        new FileModule.File('/proc/loadavg').read(' ').then(loadArray => {
             let proc = loadArray[3].split('/');
 
             this._returnValue(callback, 'Load 1m', loadArray[0], 'system', 'load');
@@ -255,8 +248,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
 
         // check uptime
-        new FileModule.File('/proc/uptime').read().then(contents => {
-            let upArray = contents.split(' ');
+        new FileModule.File('/proc/uptime').read(' ').then(upArray => {
             this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
 
             let cores = Object.keys(this._last_processor).length - 1;
@@ -383,13 +375,8 @@ var Sensors = GObject.registerClass({
         }
 
         // wireless interface statistics
-        new FileModule.File('/proc/net/wireless').read().then(lines => {
-            lines = lines.split("\n");
-            let counter = 0;
+        new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
             for (let line of Object.values(lines)) {
-                if (counter++ <= 1)
-                    continue;
-
                 let netArray = line.trim().split(/\s+/);
                 let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
                 let signal = netArray[3].substr(0, netArray[3].length-1);
@@ -400,15 +387,10 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
 
         // IPv4 address information
-        new FileModule.File('/proc/net/route').read().then(lines => {
-            lines = lines.split("\n");
-            let counter = 0;
+        new FileModule.File('/proc/net/route').read("\n", true).then(lines => {
             for (let line of Object.values(lines)) {
-                if (counter++ <= 1)
-                    continue;
-
                 let netArray = line.trim().split(/\s+/);
-                this._returnValue(callback, netArray[0], netArray[1], 'network', 'percent');
+                this._returnValue(callback, netArray[0], netArray[1], 'network', 'string');
             }
         }).catch(err => { });
     }
@@ -434,8 +416,7 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
 
         // check disk performance stats
-        new FileModule.File('/proc/diskstats').read().then(lines => {
-            lines = lines.split("\n");
+        new FileModule.File('/proc/diskstats').read("\n").then(lines => {
             for (let line of Object.values(lines)) {
                 let loadArray = line.trim().split(/\s+/);
                 if ('/dev/' + loadArray[2] == this._storageDevice) {
