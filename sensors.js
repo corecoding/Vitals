@@ -395,7 +395,6 @@ var Sensors = GObject.registerClass({
 
                 let quality = netArray[2].substr(0, netArray[2].length-1);
                 let quality_pct = quality / 70;
-
                 let signal = netArray[3].substr(0, netArray[3].length-1);
                 //let signal_pct = (signal + 110) * 10 / 7
 
@@ -545,11 +544,14 @@ var Sensors = GObject.registerClass({
                         new FileModule.File(obj['label']).read().then(label => {
                             this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
+                            // attempt to fix #260
                             // label file reading sometimes returns Invalid argument in which case we default to the name
+                            /*
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
                                 this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
+                            */
                         });
                     }
                 }).catch(err => { });
