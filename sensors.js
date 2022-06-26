@@ -386,6 +386,7 @@ var Sensors = GObject.registerClass({
             }
         }).catch(err => { });
 
+/*
         // IPv4 address information
         new FileModule.File('/proc/net/route').read("\n", true).then(lines => {
             for (let line of Object.values(lines)) {
@@ -393,6 +394,7 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, netArray[0], netArray[1], 'network', 'string');
             }
         }).catch(err => { });
+*/
     }
 
     _queryStorage(callback, dwell) {
