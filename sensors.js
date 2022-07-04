@@ -526,14 +526,10 @@ var Sensors = GObject.registerClass({
                         new FileModule.File(obj['label']).read().then(label => {
                             this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
-                            // attempt to fix #260
-                            // label file reading sometimes returns Invalid argument in which case we default to the name
-                            /*
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
                                 this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
-                            */
                         });
                     }
                 }).catch(err => { });
