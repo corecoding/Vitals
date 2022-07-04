@@ -31,7 +31,7 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
                     // split contents by delimiter if passed in
                     if (delimiter) contents = contents.split(delimiter);
 
-                    // convert to list if requested
+                    // optionally strip header when converting to a list
                     if (strip_header) contents.shift();
 
                     // return results
