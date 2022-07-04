@@ -471,7 +471,11 @@ var Sensors = GObject.registerClass({
                         // determine which processor (socket) we are dealing with
                         new FileModule.File(hwbase + file + '/temp1_label').read().then(prefix => {
                             this._processTempVoltFan(callback, sensor_types, prefix, hwbase + file, file);
-                        }).catch(err => { });
+                        }).catch(err => {
+                            // this shouldn't be necessary, but just in case temp1_label doesn't exist
+                            // attempt to fix #266
+                            this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
+                        });
                     } else {
                         // not a CPU, process all other sensors
                         this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
