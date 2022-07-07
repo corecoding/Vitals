@@ -48,7 +48,7 @@ var Sensors = GObject.registerClass({
 
         this.resetHistory();
 
-        this._last_processor = {};
+        this._last_processor = {'core': {}, 'speed': []};
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -149,15 +149,18 @@ var Sensors = GObject.registerClass({
             let reverse_data;
 
             for (let line of Object.values(lines)) {
+                //global.log('stat line:', line);
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
                 if (reverse_data) {
+                    //global.log('stat reverse_data:', reverse_data);
                     let cpu = reverse_data[1].trim();
+                    //global.log('stat cpu:', cpu);
 
                     if (!(cpu in statistics))
                         statistics[cpu] = {};
 
-                    if (!(cpu in this._last_processor))
-                        this._last_processor[cpu] = 0;
+                    if (!(cpu in this._last_processor['core']))
+                        this._last_processor['core'][cpu] = 0;
 
                     let stats = reverse_data[2].trim().split(' ').reverse();
                     for (let index in columns)
@@ -165,16 +168,18 @@ var Sensors = GObject.registerClass({
                 }
             }
 
+            let cores = Object.keys(statistics).length - 1;
+
             for (let cpu in statistics) {
                 let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
 
                 // make sure we have data to report
-                if (this._last_processor[cpu] > 0) {
-                    let delta = (total - this._last_processor[cpu]) / dwell;
+                if (this._last_processor['core'][cpu] > 0) {
+                    let delta = (total - this._last_processor['core'][cpu]) / dwell;
 
                     let label = cpu;
                     if (cpu == 'cpu') {
-                        delta = delta / (Object.keys(statistics).length - 1);
+                        delta = delta / cores;
                         label = 'Average';
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                     } else
@@ -183,9 +188,31 @@ var Sensors = GObject.registerClass({
                     this._returnValue(callback, label, delta / 100, 'processor', 'percent');
                 }
 
-                this._last_processor[cpu] = total;
+                this._last_processor['core'][cpu] = total;
+            }
+
+            global.log('core count =', cores);
+            for (let core = 0; core <= cores; core++) {
+                global.log('checking core', core);
+                new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
+                    this._last_processor['speed'][core] = parseInt(value);
+                    global.log('core cur_freq', core, 'value', value);
+                }).catch(err => { });
             }
         }).catch(err => { });
+
+        global.log('here 1');
+        if (Object.values(this._last_processor['speed']).length > 0) {
+        global.log('here 2', Object.values(this._last_processor['speed']).length);
+            //let vals = Object.values(this._last_processor['speed']).map(x => parseFloat(x[1]));
+            //let vals = Object.values(this._last_processor['speed']).map(x => parseFloat(x[1]));
+            //global.log('here 3 vals', vals);
+            let sum = this._last_processor['speed'].reduce((a, b) => a + b);
+            let avg_hertz2 = (sum / this._last_processor['speed'].length) * 1000;
+            this._returnValue(callback, 'Frequency NEW', avg_hertz2, 'processor', 'hertz');
+            let max_hertz2 = Math.getMaxOfArray(this._last_processor['speed']) * 1000;
+            this._returnValue(callback, 'Boost NEW', max_hertz2, 'processor', 'hertz');
+        }
 
         // grab CPU information including frequency
         new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
@@ -251,7 +278,7 @@ var Sensors = GObject.registerClass({
         new FileModule.File('/proc/uptime').read(' ').then(upArray => {
             this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
 
-            let cores = Object.keys(this._last_processor).length - 1;
+            let cores = Object.keys(this._last_processor['core']).length - 1;
             if (cores > 0)
                 this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
         }).catch(err => { });
