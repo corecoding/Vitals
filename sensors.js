@@ -149,12 +149,9 @@ var Sensors = GObject.registerClass({
             let reverse_data;
 
             for (let line of Object.values(lines)) {
-                //global.log('stat line:', line);
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
                 if (reverse_data) {
-                    //global.log('stat reverse_data:', reverse_data);
                     let cpu = reverse_data[1].trim();
-                    //global.log('stat cpu:', cpu);
 
                     if (!(cpu in statistics))
                         statistics[cpu] = {};
@@ -191,22 +188,14 @@ var Sensors = GObject.registerClass({
                 this._last_processor['core'][cpu] = total;
             }
 
-            global.log('core count =', cores);
             for (let core = 0; core <= cores; core++) {
-                global.log('checking core', core);
                 new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
                     this._last_processor['speed'][core] = parseInt(value);
-                    global.log('core cur_freq', core, 'value', value);
                 }).catch(err => { });
             }
         }).catch(err => { });
 
-        global.log('here 1');
         if (Object.values(this._last_processor['speed']).length > 0) {
-        global.log('here 2', Object.values(this._last_processor['speed']).length);
-            //let vals = Object.values(this._last_processor['speed']).map(x => parseFloat(x[1]));
-            //let vals = Object.values(this._last_processor['speed']).map(x => parseFloat(x[1]));
-            //global.log('here 3 vals', vals);
             let sum = this._last_processor['speed'].reduce((a, b) => a + b);
             let avg_hertz2 = (sum / this._last_processor['speed'].length) * 1000;
             this._returnValue(callback, 'Frequency NEW', avg_hertz2, 'processor', 'hertz');
