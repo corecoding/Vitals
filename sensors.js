@@ -40,7 +40,7 @@ try {
 }
 
 var Sensors = GObject.registerClass({
-       GTypeName: 'Sensors',
+    GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
     _init(settings, sensorIcons) {
         this._settings = settings;
@@ -146,7 +146,6 @@ var Sensors = GObject.registerClass({
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
-            let reverse_data;
 
             for (let line of Object.values(lines)) {
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
@@ -174,15 +173,14 @@ var Sensors = GObject.registerClass({
                 if (this._last_processor['core'][cpu] > 0) {
                     let delta = (total - this._last_processor['core'][cpu]) / dwell;
 
-                    let label = cpu;
+                    // /proc/stat provides overall usage for us under the 'cpu' heading
                     if (cpu == 'cpu') {
                         delta = delta / cores;
-                        label = 'Average';
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
-                    } else
-                        label = _('Core %d').format(cpu.substr(3));
-
-                    this._returnValue(callback, label, delta / 100, 'processor', 'percent');
+                        this._returnValue(callback, 'Average', delta / 100, 'processor', 'percent');
+                    } else {
+                        this._returnValue(callback, _('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
+                    }
                 }
 
                 this._last_processor['core'][cpu] = total;
