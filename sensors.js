@@ -81,10 +81,10 @@ var Sensors = GObject.registerClass({
     }
 
     query(callback, dwell) {
-        if (this._trisensorsScanned) {
+        if (this._hardware_detected) {
             this._queryTempVoltFan(callback);
         } else {
-            this._trisensorsScanned = true;
+            this._hardware_detected = true;
             this._discoverHardwareMonitors(callback);
         }
 
@@ -598,6 +598,6 @@ var Sensors = GObject.registerClass({
 
     resetHistory() {
         this._next_public_ip_check = 0;
-        this._trisensorsScanned = false;
+        this._hardware_detected = false;
     }
 });
