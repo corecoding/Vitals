@@ -48,7 +48,7 @@ var Sensors = GObject.registerClass({
 
         this.resetHistory();
 
-        this._last_processor = {'core': {}, 'speed': []};
+        this._last_processor = { 'core': {}, 'speed': [] };
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -497,7 +497,7 @@ var Sensors = GObject.registerClass({
 
             for (let line of Object.values(lines)) {
                 // grab cpu vendor
-                value = line.match(/^vendor_id(\s+): (\w+.*)/);
+                let value = line.match(/^vendor_id(\s+): (\w+.*)/);
                 if (value) vendor_id = value[2];
 
                 // grab bogomips
