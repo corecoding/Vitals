@@ -196,59 +196,32 @@ var Sensors = GObject.registerClass({
             }
         }).catch(err => { });
 
+        // if frequency scaling is disabled, use cpuinfo for speed
+        if (this._processor_uses_cpu_info) {
+            // grab CPU frequency
+            new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
+                let freqs = [];
+                for (let line of Object.values(lines)) {
+                    // grab megahertz
+                    let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
+                    if (value) freqs.push(parseFloat(value[2]));
+                }
+
+                let sum = freqs.reduce((a, b) => a + b);
+                let hertz = (sum / freqs.length) * 1000 * 1000;
+                this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
+
+                let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
+                this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
+            }).catch(err => { });
         // if frequency scaling is enabled, cpu-freq reports
-        if (!this._processor_uses_cpu_info) { // && Object.values(this._last_processor['speed']).length > 0) {
+        } else if (Object.values(this._last_processor['speed']).length > 0) {
             let sum = this._last_processor['speed'].reduce((a, b) => a + b);
             let avg_hertz2 = (sum / this._last_processor['speed'].length) * 1000;
             this._returnValue(callback, 'Frequency', avg_hertz2, 'processor', 'hertz');
             let max_hertz2 = Math.getMaxOfArray(this._last_processor['speed']) * 1000;
             this._returnValue(callback, 'Boost', max_hertz2, 'processor', 'hertz');
         }
-
-        // grab CPU information including frequency
-        new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
-            let vendor_id = '';
-            let sockets = {};
-            let bogomips = '';
-            let cache = '';
-
-            let freqs = [];
-            for (let line of Object.values(lines)) {
-                // grab megahertz
-                let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
-                if (value) freqs.push(parseFloat(value[2]));
-
-                // grab cpu vendor
-                value = line.match(/^vendor_id(\s+): (\w+.*)/);
-                if (value) vendor_id = value[2];
-
-                // grab bogomips
-                value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/);
-                if (value) bogomips = value[2];
-
-                // grab processor count
-                value = line.match(/^physical id(\s+): (\d+)$/);
-                if (value) sockets[value[2]] = 1;
-
-                // grab cache
-                value = line.match(/^cache size(\s+): (\d+) KB$/);
-                if (value) cache = value[2];
-            }
-
-            // if frequency scaling is disabled, use cpuinfo for speed
-            if (this._processor_uses_cpu_info) {
-                let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
-                let sum = freqs.reduce((a, b) => a + b);
-                let hertz = (sum / freqs.length) * 1000 * 1000;
-                this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-                this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
-            }
-
-            this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
-            this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
-            this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
-            this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
-        }).catch(err => { });
     }
 
     _querySystem(callback) {
@@ -513,6 +486,37 @@ var Sensors = GObject.registerClass({
         // does this system support cpu scaling? if so we will use it to grab Frequency and Boost below
         new FileModule.File('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq').read().then(value => {
             this._processor_uses_cpu_info = false;
+        }).catch(err => { });
+
+        // grab static CPU information
+        new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
+            let vendor_id = '';
+            let bogomips = '';
+            let sockets = {};
+            let cache = '';
+
+            for (let line of Object.values(lines)) {
+                // grab cpu vendor
+                value = line.match(/^vendor_id(\s+): (\w+.*)/);
+                if (value) vendor_id = value[2];
+
+                // grab bogomips
+                value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/);
+                if (value) bogomips = value[2];
+
+                // grab processor count
+                value = line.match(/^physical id(\s+): (\d+)$/);
+                if (value) sockets[value[2]] = 1;
+
+                // grab cache
+                value = line.match(/^cache size(\s+): (\d+) KB$/);
+                if (value) cache = value[2];
+            }
+
+            this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
+            this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
+            this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
+            this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
         }).catch(err => { });
     }
 
