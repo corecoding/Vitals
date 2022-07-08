@@ -186,19 +186,23 @@ var Sensors = GObject.registerClass({
                 this._last_processor['core'][cpu] = total;
             }
 
-            for (let core = 0; core <= cores; core++) {
-                new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
-                    this._last_processor['speed'][core] = parseInt(value);
-                }).catch(err => { });
+            // if frequency scaling is enabled, gather cpu-freq values
+            if (!this._processor_uses_cpu_info) {
+                for (let core = 0; core <= cores; core++) {
+                    new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
+                        this._last_processor['speed'][core] = parseInt(value);
+                    }).catch(err => { });
+                }
             }
         }).catch(err => { });
 
-        if (Object.values(this._last_processor['speed']).length > 0) {
+        // if frequency scaling is enabled, cpu-freq reports
+        if (!this._processor_uses_cpu_info) { // && Object.values(this._last_processor['speed']).length > 0) {
             let sum = this._last_processor['speed'].reduce((a, b) => a + b);
             let avg_hertz2 = (sum / this._last_processor['speed'].length) * 1000;
-            this._returnValue(callback, 'Frequency NEW', avg_hertz2, 'processor', 'hertz');
+            this._returnValue(callback, 'Frequency', avg_hertz2, 'processor', 'hertz');
             let max_hertz2 = Math.getMaxOfArray(this._last_processor['speed']) * 1000;
-            this._returnValue(callback, 'Boost NEW', max_hertz2, 'processor', 'hertz');
+            this._returnValue(callback, 'Boost', max_hertz2, 'processor', 'hertz');
         }
 
         // grab CPU information including frequency
@@ -231,11 +235,15 @@ var Sensors = GObject.registerClass({
                 if (value) cache = value[2];
             }
 
-            let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
-            let sum = freqs.reduce((a, b) => a + b);
-            let hertz = (sum / freqs.length) * 1000 * 1000;
-            this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-            this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
+            // if frequency scaling is disabled, use cpuinfo for speed
+            if (this._processor_uses_cpu_info) {
+                let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
+                let sum = freqs.reduce((a, b) => a + b);
+                let hertz = (sum / freqs.length) * 1000 * 1000;
+                this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
+                this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
+            }
+
             this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
             this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
             this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
@@ -501,6 +509,11 @@ var Sensors = GObject.registerClass({
                 });
             }
         }).catch(err => { });
+
+        // does this system support cpu scaling? if so we will use it to grab Frequency and Boost below
+        new FileModule.File('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq').read().then(value => {
+            this._processor_uses_cpu_info = false;
+        }).catch(err => { });
     }
 
     _processTempVoltFan(callback, sensor_types, name, path, file) {
@@ -599,5 +612,6 @@ var Sensors = GObject.registerClass({
     resetHistory() {
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
+        this._processor_uses_cpu_info = true;
     }
 });
