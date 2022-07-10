@@ -211,16 +211,16 @@ var Sensors = GObject.registerClass({
                 let hertz = (sum / freqs.length) * 1000 * 1000;
                 this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
 
-                let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
-                this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
+                //let max_hertz = Math.getMaxOfArray(freqs) * 1000 * 1000;
+                //this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
             }).catch(err => { });
         // if frequency scaling is enabled, cpu-freq reports
         } else if (Object.values(this._last_processor['speed']).length > 0) {
             let sum = this._last_processor['speed'].reduce((a, b) => a + b);
             let hertz = (sum / this._last_processor['speed'].length) * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-            let max_hertz = Math.getMaxOfArray(this._last_processor['speed']) * 1000;
-            this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
+            //let max_hertz = Math.getMaxOfArray(this._last_processor['speed']) * 1000;
+            //this._returnValue(callback, 'Boost', max_hertz, 'processor', 'hertz');
         }
     }
 
