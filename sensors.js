@@ -177,7 +177,7 @@ var Sensors = GObject.registerClass({
                     if (cpu == 'cpu') {
                         delta = delta / cores;
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
-                        this._returnValue(callback, 'Average', delta / 100, 'processor', 'percent');
+                        this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
                     } else {
                         this._returnValue(callback, _('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
                     }
