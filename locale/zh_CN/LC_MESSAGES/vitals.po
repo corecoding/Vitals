@@ -384,8 +384,8 @@ msgid "Allocated"
 msgstr "已分配"
 
 #: sensors.js:149
-msgid "Swap Used"
-msgstr "交换分区已使用"
+msgid "Swap"
+msgstr "交换"
 
 #: sensors.js:189
 msgid "Average"

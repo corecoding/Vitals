@@ -376,8 +376,8 @@ msgid "Allocated"
 msgstr "Assignada"
 
 #: sensors.js:149
-msgid "Swap Used"
-msgstr "Intercanvi utilitzada"
+msgid "Swap"
+msgstr "Intercanvi"
 
 #: sensors.js:189
 msgid "Average"

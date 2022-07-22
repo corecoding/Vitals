@@ -370,8 +370,8 @@ msgid "Allocated"
 msgstr "Toegewezen"
 
 #: sensors.js:149
-msgid "Swap Used"
-msgstr "Gebruikt wisselgeheugen"
+msgid "Swap"
+msgstr "Wisselgeheugen"
 
 #: sensors.js:189
 msgid "Average"

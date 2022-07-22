@@ -375,8 +375,8 @@ msgid "Allocated"
 msgstr "Alogat"
 
 #: sensors.js:149
-msgid "Swap Used"
-msgstr "Fichièr d’escambi utilizat"
+msgid "Swap"
+msgstr "Schimb"
 
 #: sensors.js:189
 msgid "Average"

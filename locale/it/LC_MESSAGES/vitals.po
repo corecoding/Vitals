@@ -379,8 +379,8 @@ msgid "Allocated"
 msgstr "Allocata"
 
 #: sensors.js:149
-msgid "Swap Used"
-msgstr "Swap Usato"
+msgid "Swap"
+msgstr "Scambio"
 
 #: sensors.js:189
 msgid "Average"

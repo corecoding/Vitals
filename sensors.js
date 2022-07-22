@@ -136,7 +136,7 @@ var Sensors = GObject.registerClass({
             this._returnValue(callback, 'Physical', total, 'memory', 'memory');
             this._returnValue(callback, 'Available', avail, 'memory', 'memory');
             this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
-            this._returnValue(callback, 'Swap Used', swapTotal - swapFree, 'memory', 'memory');
+            this._returnValue(callback, 'Swap', swapTotal - swapFree, 'memory', 'memory');
         }).catch(err => { });
     }
 
