@@ -373,8 +373,8 @@ msgid "Allocated"
 msgstr "Ayrılan"
 
 #: sensors.js:149
-msgid "Swap Used"
-msgstr "Takas Alanı"
+msgid "Swap"
+msgstr "Takas"
 
 #: sensors.js:189
 msgid "Average"

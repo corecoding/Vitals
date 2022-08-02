@@ -4,18 +4,10 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
 
-function contentsCleaner(contents) {
-    // are we running gnome 3.30 or higher?
-    if (contents instanceof Uint8Array)
-        return ByteArray.toString(contents).trim();
-    else
-        return contents.toString().trim();
-}
-
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
-    return contentsCleaner(contents);
+    return ByteArray.toString(contents).trim();
 }
 
 function File(path) {
@@ -25,13 +17,25 @@ function File(path) {
         this.file = Gio.File.new_for_uri(path);
 }
 
-File.prototype.read = function() {
+File.prototype.read = function(delimiter = '', strip_header = false) {
     return new Promise((resolve, reject) => {
         try {
             this.file.load_contents_async(null, function(file, res) {
                 try {
+                    // grab contents of file or website
                     let contents = file.load_contents_finish(res)[1];
-                    resolve(contentsCleaner(contents));
+
+                    // convert contents to string
+                    contents = ByteArray.toString(contents).trim();
+
+                    // split contents by delimiter if passed in
+                    if (delimiter) contents = contents.split(delimiter);
+
+                    // optionally strip header when converting to a list
+                    if (strip_header) contents.shift();
+
+                    // return results
+                    resolve(contents);
                 } catch (e) {
                     reject(e.message);
                 }
@@ -44,7 +48,7 @@ File.prototype.read = function() {
 
 File.prototype.list = function() {
     return new Promise((resolve, reject) => {
-        let max_items = 100, results = [];
+        let max_items = 125, results = [];
 
         try {
             this.file.enumerate_children_async(Gio.FILE_ATTRIBUTE_STANDARD_NAME, Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_LOW, null, function(file, res) {
@@ -55,13 +59,11 @@ File.prototype.list = function() {
                         try {
                             let files = enumerator.next_files_finish(res);
                             for (let i = 0; i < files.length; i++) {
-                                let file_info = files[i];
-                                results.push(file_info.get_attribute_as_string(Gio.FILE_ATTRIBUTE_STANDARD_NAME));
+                                results.push(files[i].get_attribute_as_string(Gio.FILE_ATTRIBUTE_STANDARD_NAME));
                             }
 
                             if (files.length == 0) {
                                 enumerator.close_async(GLib.PRIORITY_LOW, null, function(){});
-
                                 resolve(results);
                             } else {
                                 enumerator.next_files_async(max_items, GLib.PRIORITY_LOW, null, callback);

@@ -377,8 +377,8 @@ msgid "Allocated"
 msgstr "Varattu"
 
 #: sensors.js:149
-msgid "Swap Used"
-msgstr "Swap-muistia käytössä"
+msgid "Swap"
+msgstr "Vaihtaa"
 
 #: sensors.js:189
 msgid "Average"

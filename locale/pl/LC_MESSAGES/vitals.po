@@ -375,7 +375,7 @@ msgid "Allocated"
 msgstr "Przydzielona"
 
 #: sensors.js:149
-msgid "Swap Used"
+msgid "Swap"
 msgstr "Plik wymiany"
 
 #: sensors.js:189
