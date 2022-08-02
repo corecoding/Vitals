@@ -66,7 +66,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'monitor-cmd' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 

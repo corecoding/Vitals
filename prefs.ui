@@ -91,7 +91,7 @@
   </object>
   <object class="GtkBox" id="prefs-container">
     <property name="visible">0</property>
-    <property name="can_focus">1</property>
+    <property name="can_focus">0</property>
     <property name="margin-start">6</property>
     <property name="margin-end">6</property>
     <property name="margin_top">6</property>
@@ -100,13 +100,13 @@
     <property name="spacing">2</property>
     <child>
       <object class="GtkBox">
-        <property name="can_focus">1</property>
+        <property name="can_focus">0</property>
         <property name="hexpand">1</property>
         <property name="vexpand">1</property>
         <property name="homogeneous">1</property>
         <child>
           <object class="GtkBox">
-            <property name="can_focus">1</property>
+            <property name="can_focus">0</property>
             <property name="margin-start">12</property>
             <property name="margin-end">9</property>
             <property name="margin_top">12</property>
@@ -126,10 +126,10 @@
             </child>
             <child>
               <object class="GtkFrame">
-                <property name="can_focus">1</property>
+                <property name="can_focus">0</property>
                 <property name="child">
                   <object class="GtkListBox">
-                    <property name="can_focus">1</property>
+                    <property name="can_focus">0</property>
                     <property name="selection_mode">none</property>
                     <child>
                       <object class="GtkListBoxRow">
@@ -331,39 +331,6 @@
                             <child>
                               <object class="GtkSwitch" id="hide-icons">
                                 <property name="halign">end</property>
-                              </object>
-                            </child>
-                          </object>
-                        </property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkListBoxRow">
-                        <property name="width_request">100</property>
-                        <property name="hexpand">1</property>
-                        <property name="selectable">1</property>
-                        <property name="child">
-                          <object class="GtkBox">
-                            <property name="can_focus">1</property>
-                            <property name="margin_top">6</property>
-                            <property name="margin_bottom">6</property>
-                            <property name="margin_start">6</property>
-                            <property name="margin_end">6</property>
-                            <property name="spacing">12</property>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="hexpand">1</property>
-                                <property name="can_focus">1</property>
-                                <property name="halign">start</property>
-                                <property name="label" translatable="yes">System Monitor cmd</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkEntry" id="monitor-cmd">
-                                <property name="placeholder_text" translatable="no"></property>
-                                <property name="can_focus">1</property>
-                                <property name="editable">1</property>
-                                <property name="width_chars">24</property>
                               </object>
                             </child>
                           </object>
@@ -642,8 +609,31 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkSwitch" id="show-system">
-                                    <property name="halign">end</property>
+                                  <object class="GtkBox">
+                                    <property name="can_focus">0</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkButton" id="system-prefs">
+                                        <property name="receives_default">1</property>
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="can_focus">0</property>
+                                            <property name="icon_name">emblem-system-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <style>
+                                          <class name="circular"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSwitch" id="show-system">
+                                        <property name="halign">end</property>
+                                        <property name="valign">center</property>
+                                      </object>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -1055,6 +1045,58 @@
                           <item translatable="no">BAT2</item>
                           <item translatable="no">CMB0</item>
                         </items>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkBox" id="system_prefs">
+    <property name="can_focus">1</property>
+    <property name="margin_top">12</property>
+    <property name="margin_bottom">12</property>
+    <property name="margin_start">6</property>
+    <property name="margin_end">6</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkFrame">
+        <property name="can_focus">1</property>
+        <property name="child">
+          <object class="GtkListBox">
+            <property name="can_focus">1</property>
+            <property name="selection_mode">none</property>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">1</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">1</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Monitor command</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="monitor-cmd">
+                        <property name="placeholder_text" translatable="no">gnome-system-monitor</property>
+                        <property name="can_focus">1</property>
+                        <property name="editable">1</property>
+                        <property name="width_chars">24</property>
                       </object>
                     </child>
                   </object>
