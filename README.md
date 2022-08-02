@@ -15,7 +15,7 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Fedora
 
-    dnf install libgtop2-devel lm_sensors
+    sudo dnf install libgtop2-devel lm_sensors
     
 #### Arch/Manjaro
 
@@ -62,14 +62,9 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 ### 2) Clone from GitHub
 
     mkdir -p ~/.local/share/gnome-shell/extensions
-    git clone https://github.com/corecoding/Vitals.git ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
+    git clone https://github.com/corecoding/Vitals.git ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com -b develop
 
-### 3) Check out develop branch
-
-    cd ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
-    git checkout develop
-
-### 4) Activate develop version
+### 3) Activate develop version
 
 #### Ubuntu/Debian/Fedora
 

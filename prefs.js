@@ -83,7 +83,7 @@ const Settings = new GObject.Class({
         this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
 
         // process individual text entry sensor preferences
-        sensors = [ 'storage-path' ];
+        sensors = [ 'storage-path', 'monitor-cmd' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 

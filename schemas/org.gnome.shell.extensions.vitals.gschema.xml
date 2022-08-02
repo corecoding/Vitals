@@ -121,5 +121,10 @@
       <summary>Hide icons in top bar</summary>
       <description>Keep top bar clean by only showing sensor values</description>
     </key>
+    <key type="s" name="monitor-cmd">
+      <default>"my-gnome-monitor"</default>
+      <summary>System Monitor command</summary>
+      <description>The command run when system monitor button is clicked</description>
+    </key>
   </schema>
 </schemalist>
