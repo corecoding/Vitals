@@ -234,15 +234,30 @@ var Values = GObject.registerClass({
         let previousValue = this._history[type][key];
         this._history[type][key] = [legible, value];
 
-        // process average values
+        // process average, min and max values
         if (type == 'temperature' || type == 'voltage' || type == 'fan') {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((a, b) => a + b);
             let avg = sum / vals.length;
             avg = this._legible(avg, format);
 
+            let min = Math.min(...vals);
+            min = this._legible(min, format);
+
+            let max = Math.max(...vals);
+            max = this._legible(max, format);
+
             output.push(['Average', avg, type, '__' + type + '_avg__']);
-            output.push([type, avg, type + '-group', '']);
+            output.push([type, avg, type, '__' + type + '_avg__']);
+
+            // If only one value is present, don't display min and max
+            if (vals.length > 1) {
+                output.push(['Minimum', min, type, '__' + type + '_min__']);
+                output.push(['Maximum', max, type, '__' + type + '_max__']);
+
+                output.push([type, min, type, '__' + type + '_min__']);
+                output.push([type, max, type, '__' + type + '_max__']);
+            }
         } else if (type == 'network-rx' || type == 'network-tx') {
             let direction = type.split('-')[1];
 
