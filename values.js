@@ -248,15 +248,15 @@ var Values = GObject.registerClass({
             max = this._legible(max, format);
 
             output.push(['Average', avg, type, '__' + type + '_avg__']);
-            output.push([type, avg, type, '__' + type + '_avg__']);
+            output.push([type, avg, type + '-group', '']);
 
             // If only one value is present, don't display min and max
             if (vals.length > 1) {
                 output.push(['Minimum', min, type, '__' + type + '_min__']);
                 output.push(['Maximum', max, type, '__' + type + '_max__']);
 
-                output.push([type, min, type, '__' + type + '_min__']);
-                output.push([type, max, type, '__' + type + '_max__']);
+                output.push([type, min, type + '-group', '']);
+                output.push([type, max, type + '-group', '']);
             }
         } else if (type == 'network-rx' || type == 'network-tx') {
             let direction = type.split('-')[1];
