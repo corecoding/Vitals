@@ -237,16 +237,16 @@ var Values = GObject.registerClass({
         // process average, min and max values
         if (type == 'temperature' || type == 'voltage' || type == 'fan') {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
-            let sum = vals.reduce((a, b) => a + b);
-            let avg = sum / vals.length;
-            avg = this._legible(avg, format);
 
             // show value in group even if there is one value present
-            output.push(['Average', avg, type, '__' + type + '_avg__']);
+            let sum = vals.reduce((a, b) => a + b);
+            let avg = this._legible(sum / vals.length, format);
             output.push([type, avg, type + '-group', '']);
 
             // If only one value is present, don't display avg, min and max
             if (vals.length > 1) {
+                output.push(['Average', avg, type, '__' + type + '_avg__']);
+
                 // calculate Minimum value
                 let min = Math.min(...vals);
                 min = this._legible(min, format);
