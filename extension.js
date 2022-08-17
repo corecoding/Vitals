@@ -32,8 +32,8 @@ var VitalsMenuButton = GObject.registerClass({
               'processor' : { 'icon': 'cpu-symbolic.svg' },
                  'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
-                           'icon-rx': 'network-download-symbolic.svg',
-                           'icon-tx': 'network-upload-symbolic.svg' },
+                           'icon-rx': 'wlan-symbolic.svg',
+                           'icon-tx': 'wlan_symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' }
         }
@@ -235,8 +235,11 @@ var VitalsMenuButton = GObject.registerClass({
         // don't add a label when no sensors are in the panel
         if (key == '_default_icon_') return;
 
+        let split = key.replaceAll('_', ' ').trim().split(' ')[0].split('-');
+        let type = split[0];
+
         let label = new St.Label({
-            style_class: 'vitals-panel-label',
+            style_class: 'vitals-panel-label-' + type,
             text: (value)?value:'\u2026', // ...
             y_expand: true,
             y_align: Clutter.ActorAlign.START

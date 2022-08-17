@@ -3,51 +3,56 @@
 
 .vitals-panel-icon-temperature { 
     margin: 0px 0px 0px 0px; 
-    padding: 0px 0px 0px 1px;
-    box-shadow: 0px 24px #ff5555;
-    color: #ff5555;
+    padding: 0px 0px 0px 5px;
+    color: #1E1F29;
+    background-color:  #bf616a;
+/*    
+    border-top: 2px solid #2A2C39;
+    border-left: 2px solid #2A2C39;
+    border-bottom: 2px solid #2A2C39;
+*/
 }
 .vitals-panel-label-temperature { 
-    margin: 0px 4px 0px 0px; 
-    padding: 5px 1px 5px 3px;
-    box-shadow: 0px 24px #ff5555;
-    color: #ff5555;
+    margin: 0px 0px 0px 0px; 
+    padding: 5px 7px 5px 3px;
+    background-color: #bf616a;
+    color: #1E1F29;
 }
 .vitals-panel-icon-processor { 
     margin: 0px 0px 0px 0px; 
-    padding: 0px 0px 0px 1px; 
-    box-shadow: 0px 24px #8be9fd;
-    color: #8be9fd;
+    padding: 0px 0px 0px 5px; 
+    color: #1E1F29;
+    background-color: #8fbcbb;
 }
 .vitals-panel-label-processor {
-    margin: 0px 4px 0px 0px; 
-    padding: 5px 1px 5px 3px;
-    box-shadow: 0px 24px #8be9fd;
-    color: #8be9fd;
+    margin: 0px 0px 0px 0px; 
+    padding: 5px 7px 5px 3px;
+    background-color: #8fbcbb;
+    color: #1E1F29
 }
 .vitals-panel-icon-memory { 
     margin: 0px 0px 0px 0px; 
-    padding: 0px 0px 0px 1px;
-    box-shadow: 0px 24px #ffb86c;
-    color: #ffb86c;
+    padding: 0px 0px 0px 5px;
+    color: #1E1F29;
+    background-color: #d08770;
 }
 .vitals-panel-label-memory { 
-    margin: 0px 4px 0px 0px; 
-    padding: 5px 1px 5px 3px;
-    box-shadow: 0px 24px #ffb86c;
-    color: #ffb86c;
+    margin: 0px 0px 0px 0px; 
+    padding: 5px 7px 5px 3px;
+    background-color: #d08770;
+    color: #1E1F29
 }
 .vitals-panel-icon-network { 
     margin: 0px 0px 0px 0px; 
-    padding: 0px 0px 0px 1px; 
-    box-shadow: 0px 24px #ff79c6;
-    color: #ff79c6;
+    padding: 0px 0px 0px 5px; 
+    color: #1E1F29;
+    background-color: #b48ead;
 }
 .vitals-panel-label-network {
-    margin: 0px 4px 0px 0px; 
-    padding: 5px 1px 5px 3px;
-    box-shadow: 0px 24px #ff79c6;
-    color: #ff79c6;
+    margin: 0px 0px 0px 0px; 
+    padding: 5px 7px 5px 3px;
+    background-color: #b48ead;
+    color: #1E1F29
 }
 
 .vitals-panel-icon-voltage { margin: 0 0 0 8px; padding: 2px; }
@@ -81,15 +86,15 @@
         margin: 0px 0px 0px 0px; 
         padding: 0px 5px 0px 5px; 
         color: #1E1F29;
-        background-color: rgba(139, 243, 243, 0.85)
+        background-color: rgba(139, 233, 253, 0.85)
     }
     .vitals-panel-label-processor {
         margin: 0px 0px 0px 0px; 
         padding: 3px 5px 5px 5px;
         background-color: #1E1F29;
-        color: rgba(139, 243, 243, 0.85);
-        border-top: 2px solid rgba(139, 243, 243, 0.85);
-        border-right: 2px solid rgba(139, 243, 243, 0.85);
-        border-bottom: 2px solid rgba(139, 243, 243, 0.85);
+        color: rgba(139, 233, 253, 0.85);
+        border-top: 2px solid rgba(139, 233, 253, 0.85);
+        border-right: 2px solid rgba(139, 233, 253, 0.85);
+        border-bottom: 2px solid rgba(139, 233, 253, 0.85);
     }
 */
