@@ -90,8 +90,14 @@ var Sensors = GObject.registerClass({
 
         for (let sensor in this._sensorIcons) {
             if (this._settings.get_boolean('show-' + sensor)) {
-                let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                this[method](callback, dwell);
+                if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
+                    // for temp, volt, fan, we have a shared handler
+                    this._queryTempVoltFan(callback, sensor);
+                } else {
+                    // directly call queryFunction below
+                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+                    this[method](callback, dwell);
+                }
             }
         }
     }
@@ -106,18 +112,6 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, label, 'disabled', type, sensor['format']);
             });
         }
-    }
-
-    _queryTemperature(callback) {
-        this._queryTempVoltFan(callback, 'temperature');
-    }
-
-    _queryVoltage(callback) {
-        this._queryTempVoltFan(callback, 'voltage');
-    }
-
-    _queryFan(callback) {
-        this._queryTempVoltFan(callback, 'fan');
     }
 
     _queryMemory(callback) {
