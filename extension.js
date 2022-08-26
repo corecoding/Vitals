@@ -254,6 +254,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _showHideSensorsChanged(self, sensor) {
+        this._sensors.resetHistory();
         this._groups[sensor.substr(5)].visible = this._settings.get_boolean(sensor);
     }
 
