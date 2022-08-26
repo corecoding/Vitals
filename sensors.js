@@ -159,8 +159,8 @@ var Sensors = GObject.registerClass({
                         this._last_processor['core'][cpu] = 0;
 
                     let stats = reverse_data[2].trim().split(' ').reverse();
-                    for (let index in columns)
-                        statistics[cpu][columns[index]] = parseInt(stats.pop());
+                    for (let column of columns)
+                        statistics[cpu][column] = parseInt(stats.pop());
                 }
             }
 
