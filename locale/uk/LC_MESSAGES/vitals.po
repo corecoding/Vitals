@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
 "POT-Creation-Date: 2022-04-10 21:29+0200\n"
-"PO-Revision-Date: 2022-08-03 22:46+0300\n"
+"PO-Revision-Date: 2022-08-27 21:59+0300\n"
 "Last-Translator: Alex Volha <v.alex.lg@gmail.com>\n"
 "Language-Team: Ukrainian <v.alex.lg@gmail.com>\n"
 "Language: uk\n"
@@ -96,7 +96,7 @@ msgstr "Використовувати вищу точність"
 
 #: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
-msgstr "Розташувати датчики за алфавітом"
+msgstr "Розташувати сенсори за алфавітом"
 
 #: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
@@ -104,7 +104,7 @@ msgstr "Приховати нульові значення"
 
 #: prefs.ui:301
 msgid "Use fixed widths"
-msgstr "Використовуйте фіксовану ширину"
+msgstr "Використовувати фіксовану ширину"
 
 #: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Hide icons in top bar"
@@ -328,7 +328,7 @@ msgstr "Вентилятор"
 
 #: sensors.js:45
 msgid "Memory"
-msgstr "Пам'ть"
+msgstr "Пам'ять"
 
 #: sensors.js:46
 msgid "Processor"
@@ -352,7 +352,7 @@ msgstr "Загальнодоступна IP"
 
 #: sensors.js:144
 msgid "Usage"
-msgstr "Використання"
+msgstr "Використано"
 
 #: sensors.js:145
 msgid "memory"
@@ -360,11 +360,11 @@ msgstr "пам'ть"
 
 #: sensors.js:146
 msgid "Physical"
-msgstr "Фізичний"
+msgstr "Фізична"
 
 #: sensors.js:147
 msgid "Available"
-msgstr "Дійсний"
+msgstr "Доступно"
 
 #: sensors.js:148
 msgid "Allocated"
@@ -433,7 +433,7 @@ msgstr "Навантаження 15х"
 
 #: sensors.js:262
 msgid "Threads Active"
-msgstr "Активніх потоків"
+msgstr "Активних потоків"
 
 #: sensors.js:263
 msgid "Threads Total"
