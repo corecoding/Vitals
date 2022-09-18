@@ -117,7 +117,7 @@ var Sensors = GObject.registerClass({
     _queryMemory(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
-            let total = 0, avail = 0, swapTotal = 0, swapFree = 0;
+            let total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0;
 
             let values = lines.match(/MemTotal:(\s+)(\d+) kB/);
             if (values) total = values[2];
@@ -131,6 +131,9 @@ var Sensors = GObject.registerClass({
             values = lines.match(/SwapFree:(\s+)(\d+) kB/);
             if (values) swapFree = values[2];
 
+            values = lines.match(/Cached:(\s+)(\d+) kB/);
+            if (values) cached = values[2];
+
             let used = total - avail
             let utilized = used / total;
 
@@ -139,6 +142,7 @@ var Sensors = GObject.registerClass({
             this._returnValue(callback, 'Physical', total, 'memory', 'memory');
             this._returnValue(callback, 'Available', avail, 'memory', 'memory');
             this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
+            this._returnValue(callback, 'Cached', cached, 'memory', 'memory');
             this._returnValue(callback, 'Swap', swapTotal - swapFree, 'memory', 'memory');
         }).catch(err => { });
     }
