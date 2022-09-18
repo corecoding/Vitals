@@ -56,7 +56,8 @@ const Settings = new GObject.Class({
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
-                        'show-battery', 'fixed-widths', 'hide-icons' ];
+                        'show-battery', 'fixed-widths', 'hide-icons',
+                        'include-static-info' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
@@ -98,7 +99,7 @@ const Settings = new GObject.Class({
         }
 
         // makes individual sensor preference boxes appear
-        sensors = [ 'temperature', 'network', 'storage', 'memory', 'battery', 'system' ];
+        sensors = [ 'temperature', 'network', 'storage', 'memory', 'battery', 'system', 'processor' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 

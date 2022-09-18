@@ -581,8 +581,31 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkSwitch" id="show-processor">
-                                    <property name="halign">end</property>
+                                  <object class="GtkBox">
+                                    <property name="can_focus">0</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkButton" id="processor-prefs">
+                                        <property name="receives_default">1</property>
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                        <child>
+                                          <object class="GtkImage">
+                                            <property name="can_focus">0</property>
+                                            <property name="icon_name">emblem-system-symbolic</property>
+                                          </object>
+                                        </child>
+                                        <style>
+                                          <class name="circular"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSwitch" id="show-processor">
+                                        <property name="halign">end</property>
+                                        <property name="valign">center</property>
+                                      </object>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -1097,6 +1120,55 @@
                         <property name="can_focus">1</property>
                         <property name="editable">1</property>
                         <property name="width_chars">24</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkBox" id="processor_prefs">
+    <property name="can_focus">0</property>
+    <property name="margin_top">12</property>
+    <property name="margin_bottom">12</property>
+    <property name="margin_start">6</property>
+    <property name="margin_end">6</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkFrame">
+        <property name="can_focus">0</property>
+        <property name="child">
+          <object class="GtkListBox">
+            <property name="can_focus">0</property>
+            <property name="selection_mode">none</property>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Include static info</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="include-static-info">
+                        <property name="halign">end</property>
                       </object>
                     </child>
                   </object>

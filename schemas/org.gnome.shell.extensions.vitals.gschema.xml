@@ -126,5 +126,10 @@
       <summary>System Monitor command</summary>
       <description>The command run when system monitor button is clicked</description>
     </key>
+    <key type="b" name="include-static-info">
+      <default>false</default>
+      <summary>Include processor static information</summary>
+      <description>Display processor static information that doesn't change</description>
+    </key>
   </schema>
 </schemalist>

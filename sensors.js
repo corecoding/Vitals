@@ -502,36 +502,40 @@ var Sensors = GObject.registerClass({
             this._processor_uses_cpu_info = false;
         }).catch(err => { });
 
-        // grab static CPU information
-        new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
-            let vendor_id = '';
-            let bogomips = '';
-            let sockets = {};
-            let cache = '';
+        // is static CPU information enabled?
+        if (this._settings.get_boolean('include-static-info')) {
+            // grab static CPU information
+            new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
+                let vendor_id = '';
+                let bogomips = '';
+                let sockets = {};
+                let cache = '';
 
-            for (let line of Object.values(lines)) {
-                // grab cpu vendor
-                let value = line.match(/^vendor_id(\s+): (\w+.*)/);
-                if (value) vendor_id = value[2];
+                for (let line of Object.values(lines)) {
+                    // grab cpu vendor
+                    let value = line.match(/^vendor_id(\s+): (\w+.*)/);
+                    if (value) vendor_id = value[2];
 
-                // grab bogomips
-                value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/);
-                if (value) bogomips = value[2];
+                    // grab bogomips
+                    value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/);
+                    if (value) bogomips = value[2];
 
-                // grab processor count
-                value = line.match(/^physical id(\s+): (\d+)$/);
-                if (value) sockets[value[2]] = 1;
+                    // grab processor count
+                    value = line.match(/^physical id(\s+): (\d+)$/);
+                    if (value) sockets[value[2]] = 1;
 
-                // grab cache
-                value = line.match(/^cache size(\s+): (\d+) KB$/);
-                if (value) cache = value[2];
-            }
+                    // grab cache
+                    value = line.match(/^cache size(\s+): (\d+) KB$/);
+                    if (value) cache = value[2];
+                }
 
-            this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
-            this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
-            this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
-            this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
-        }).catch(err => { });
+                this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
+                this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
+                this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
+                this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
+
+            }).catch(err => { });
+        }
     }
 
     _processTempVoltFan(callback, sensor_types, name, path, file) {
