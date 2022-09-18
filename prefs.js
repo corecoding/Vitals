@@ -1,7 +1,6 @@
 // https://gjs.guide/extensions/upgrading/gnome-shell-40.html#contents
 const Config = imports.misc.config;
 const [major] = Config.PACKAGE_VERSION.split('.');
-const shellVersion = Number.parseInt(major);
 const {Gio, Gtk, GObject} = imports.gi;
 const Mainloop = imports.mainloop;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -36,12 +35,7 @@ const Settings = new GObject.Class({
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(Me.metadata['gettext-domain']);
-
-        if (shellVersion < 40)
-            this.builder.add_from_file(Me.path + '/prefs.legacy.ui');
-        else
-            this.builder.add_from_file(Me.path + '/prefs.ui');
-
+        this.builder.add_from_file(Me.path + '/prefs.ui');
         this.widget = this.builder.get_object('prefs-container');
 
         this._bind_settings();
@@ -105,12 +99,7 @@ const Settings = new GObject.Class({
 
             // create dialog for intelligent autohide advanced settings
             this.builder.get_object(sensor + '-prefs').connect('clicked', () => {
-                let transientObj;
-                if (shellVersion < 40)
-                    transientObj = this.widget.get_toplevel();
-                else
-                    transientObj = this.widget.get_root();
-
+                let transientObj = this.widget.get_root();
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
                 let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),
                                               transient_for: transientObj,
@@ -118,12 +107,7 @@ const Settings = new GObject.Class({
                                               modal: true });
 
                 let box = this.builder.get_object(sensor + '_prefs');
-
-                if (shellVersion < 40)
-                    dialog.get_content_area().add(box);
-                else
-                    dialog.get_content_area().append(box);
-
+                dialog.get_content_area().append(box);
                 dialog.connect('response', (dialog, id) => {
                     // remove the settings box so it doesn't get destroyed;
                     dialog.get_content_area().remove(box);
