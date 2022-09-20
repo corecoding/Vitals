@@ -16,10 +16,14 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 #### Fedora
 
     sudo dnf install libgtop2-devel lm_sensors
-    
+
 #### Arch/Manjaro
 
     sudo pacman -Syu libgtop lm_sensors gnome-icon-theme-symbolic gnome-icon-theme git
+
+#### openSUSE
+
+    sudo zypper install libgtop-devel
 
 ### 2) Install extension
 
@@ -31,11 +35,11 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
     git clone https://aur.archlinux.org/gnome-shell-extension-vitals-git.git/
     cd gnome-shell-extension-vitals-git
-    
+
     # always verify content before installing
     less PKGBUILD
     makepkg
-    
+
     # example filename, different each release
     pacman -U gnome-shell-extension-vitals-git-v52.0.4.r0.gb446cfc-1-any.pkg.tar.zst
 
@@ -44,14 +48,14 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 #### Ubuntu/Debian/Fedora
 
 ##### &nbsp;&nbsp;&nbsp;&nbsp;At this point, Vitals should be running. If you reversed steps 1 and 2 above, you will need to restart your session by logging out and then back in.
-   
+
 #### Arch/Manjaro
 
 ##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Vitals
 
 ## Beta testing
 
-##### Advanced users requesting bug fixes or asking for new features may occasionally be asked to help QA. 
+##### Advanced users requesting bug fixes or asking for new features may occasionally be asked to help QA.
 
 ### 1) Remove existing copy of Vitals
 
@@ -69,7 +73,7 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 #### Ubuntu/Debian/Fedora
 
 ##### &nbsp;&nbsp;&nbsp;&nbsp;You will need to restart your session by logging out and then back in.
-   
+
 #### Arch/Manjaro
 
 ##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Vitals
