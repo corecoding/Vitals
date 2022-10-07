@@ -397,7 +397,7 @@ msgstr "Производитель"
 
 #: sensors.js:239
 msgid "Bogomips"
-msgstr "Bogomips"
+msgstr "Богомипс"
 
 #: sensors.js:240
 msgid "Sockets"
