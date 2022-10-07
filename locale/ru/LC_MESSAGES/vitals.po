@@ -3,17 +3,17 @@ msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2022-04-10 21:29+0200\n"
 "PO-Revision-Date: \n"
-"Last-Translator: David Lapshin <ddaudix@gmail.com>\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"X-Generator: Poedit 2.2.4\n"
+"X-Poedit-Basepath: ..\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
-"POT-Revision-Date: 2018-12-29 10:26+0100\n"
-"X-Generator: Poedit 3.1.1\n"
-"X-Poedit-Basepath: ..\n"
 "X-Poedit-SearchPath-0: values.js\n"
 "X-Poedit-SearchPath-1: sensors.js\n"
 "X-Poedit-SearchPath-2: prefs.js\n"
@@ -32,11 +32,12 @@ msgstr "Системный монитор"
 
 #: extension.js:155
 msgid "Preferences"
-msgstr "Параметры"
+msgstr "Настройки"
 
 #: prefs.js:115
+#, fuzzy
 msgid " Preferences"
-msgstr " Параметры"
+msgstr "Настройки"
 
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
@@ -48,15 +49,15 @@ msgstr "Формат"
 
 #: prefs.ui:78
 msgid "Bytes"
-msgstr "Байты"
+msgstr ""
 
 #: prefs.ui:79
 msgid "Bits"
-msgstr "Биты"
+msgstr ""
 
 #: prefs.ui:121
 msgid "General"
-msgstr "Основное"
+msgstr "Общая"
 
 #: prefs.ui:149 schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
 msgid "Seconds between updates"
@@ -64,7 +65,7 @@ msgstr "Секунды между обновлениями"
 
 #: prefs.ui:184 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
 msgid "Position in panel"
-msgstr "Позиция в панели"
+msgstr "Позиция на панели"
 
 #: prefs.ui:193
 msgid "Left"
@@ -79,36 +80,38 @@ msgid "Right"
 msgstr "Справа"
 
 #: prefs.ui:196
+#, fuzzy
 msgid "Far Left"
-msgstr "Далеко слева"
+msgstr "Слева"
 
 #: prefs.ui:197
+#, fuzzy
 msgid "Far Right"
-msgstr "Далеко справа"
+msgstr "Справа"
 
 #: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
-msgstr "Использовать более высокую точность"
+msgstr "Используйте более высокую точность"
 
 #: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
-msgstr "Располагать датчики в алфавитном порядке"
+msgstr "Pасполагать в алфавитном порядке"
 
 #: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
-msgstr "Скрывать нулевые значения"
+msgstr "Скрыть нулевые значения"
 
 #: prefs.ui:301
 msgid "Use fixed widths"
-msgstr "Использовать фиксированную ширину"
+msgstr ""
 
 #: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Hide icons in top bar"
-msgstr "Скрывать иконки в верхней панеле"
+msgstr ""
 
 #: prefs.ui:352
 msgid "About"
-msgstr "О Расширении"
+msgstr "О программе"
 
 #: prefs.ui:367
 msgid ""
@@ -117,200 +120,201 @@ msgid ""
 "href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
 "useful."
 msgstr ""
-"Запросы функций или баги? Пожалуйста посетите <a href=\"https://github.com/"
-"corecoding/Vitals/issues\">GitHub</a>. Нет гарантии, выраженной или "
-"подразумеваемой. <a href=\"https://corecoding.com/donate.php\">Пожертвуйте</"
-"a> если вы нашли это полезным."
 
 #: prefs.ui:394
 msgid "Sensors"
-msgstr "Датчики"
+msgstr "Сенсор"
 
 #: prefs.ui:422 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
-msgstr "Мониторинг температуры"
+msgstr "Температура"
 
 #: prefs.ui:473 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
-msgstr "Мониторинг напряжения"
+msgstr "Напряжение"
 
 #: prefs.ui:501 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
-msgstr "Мониторинг вентилятора"
+msgstr "Кулер"
 
 #: prefs.ui:529 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
-msgstr "Мониторинг памяти"
+msgstr "Память"
 
 #: prefs.ui:580 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
-msgstr "Мониторинг процессора"
+msgstr "Процессор"
 
 #: prefs.ui:608 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
-msgstr "Мониторинг системы"
+msgstr "Система"
 
 #: prefs.ui:636 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
-msgstr "Мониторинг сети"
+msgstr "Сеть"
 
 #: prefs.ui:687 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
-msgstr "Мониторинг хранилища"
+msgstr "Диск"
 
 #: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+#, fuzzy
 msgid "Monitor battery"
-msgstr "Мониторинг батареи"
+msgstr "Память"
 
 #: prefs.ui:817
 msgid "Path"
-msgstr "Путь"
+msgstr ""
 
 #: prefs.ui:849 prefs.ui:958
 msgid "Measurement"
-msgstr "Измерение"
+msgstr ""
 
 #: prefs.ui:903
 msgid "Unit"
-msgstr "Единица"
+msgstr ""
 
 #: prefs.ui:1012
 msgid "Display Battery"
-msgstr "Отображать батарею"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
+#, fuzzy
 msgid "Sensors to show in panel"
-msgstr "Датчики отображаемые в панели"
+msgstr "Позиция на панели"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
-msgstr "Список датчиков которые будут показаны в панели"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
 msgid "Delay between sensor polling"
-msgstr "Задержка между опросом датчика"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
 msgid "Position in Panel ('left', 'center', 'right')"
-msgstr "Положение в панели ('слева', 'центр', 'справа')"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
 msgid "Show one extra digit after decimal"
-msgstr "Показать одну дополнительную цифру после десятичного"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
 msgid "Display sensors in alphabetical order"
-msgstr "Отображать датчики в алфавитном порядке"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
 msgid "Hide data from sensors that are invalid"
-msgstr "Скрывать данные от датчиков, которые недействительны"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
 msgid "Display temperature of various components"
-msgstr "Отображать температуру различных компонентов"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
+#, fuzzy
 msgid "Temperature unit"
-msgstr "Единица температуры"
+msgstr "Температура"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
 "The unit ('centigrade' or 'fahrenheit') the extension should display the "
 "temperature in"
 msgstr ""
-"Единица ('Цельсисфер' или 'Фаренгейт') в которой расширение должно "
-"отображать температуру"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
 msgid "Display voltage of various components"
-msgstr "Отображать напряжение различных компонентов"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
 msgid "Display fan rotation per minute"
-msgstr "Отображать обороты вентилятора в минуту"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
 msgid "Display memory information"
-msgstr "Отображать информацию памяти"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
 msgid "Display processor information"
-msgstr "Отображать информацию процессора"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
 msgid "Display system information"
-msgstr "Отображать информацию системы"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
 msgid "Display storage information"
-msgstr "Отображать информацию хранилища"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
 msgid "Display network information"
-msgstr "Отображать информацию сети"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
 msgid "Display public IP address of internet connection"
-msgstr "Отображать публичный IP-адрес интернет подключения"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
 msgid "Network speed format"
-msgstr "Формат скорости сети"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
 msgid "Should speed display in bits or bytes?"
-msgstr "Должена ли скорость отображаться в битах или байтах?"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
+#, fuzzy
 msgid "Storage path"
-msgstr "Путь хранилища"
+msgstr "Диск"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
 msgid "Storage path for monitoring"
-msgstr "Путь хранилища для мониторинга"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
+#, fuzzy
 msgid "Monitor battery health"
-msgstr "Мониторинг состояния батареи"
+msgstr "Температура"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
 msgid "Memory measurement"
-msgstr "Измерение памяти"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
 msgid "Can use gigabyte or gibibyte for memory"
-msgstr "Может использовать гигабайты или гибибайты для памяти"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
+#, fuzzy
 msgid "Storage measurement"
-msgstr "Измерение хранилища"
+msgstr "Диск"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
-msgstr "Может использовать гигабайты или гибибайты для хранилища"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
 msgid "Battery slot to monitor"
-msgstr "Слот батареи для мониторинга"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Which numerical battery slot should vitals monitor"
-msgstr "Какой численный слот аккумулятора нужно отслеживать"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Use fixed widths in top bar"
-msgstr "Использовать фиксированную ширину в верхней панели"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
 msgid "Keep sensors in top bar from jumping around"
-msgstr "Удерживать датчики в верхней панели от прыжков"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
 msgid "Keep top bar clean by only showing sensor values"
-msgstr "Держать верхнюю панель чистой, только показывая значения датчиков"
+msgstr ""
 
 #: sensors.js:42
+#, fuzzy
 msgid "Temperature"
 msgstr "Температура"
 
@@ -320,7 +324,7 @@ msgstr "Напряжение"
 
 #: sensors.js:44
 msgid "Fan"
-msgstr "Вентилятор"
+msgstr "Кулер"
 
 #: sensors.js:45
 msgid "Memory"
@@ -339,20 +343,22 @@ msgid "Network"
 msgstr "Сеть"
 
 #: sensors.js:49
+#, fuzzy
 msgid "Storage"
-msgstr "Хранилище"
+msgstr "Диск"
 
 #: sensors.js:76
 msgid "Public IP"
-msgstr "Публичный IP"
+msgstr "Публичный Ip"
 
 #: sensors.js:144
 msgid "Usage"
-msgstr "Использование"
+msgstr "Использовано"
 
 #: sensors.js:145
+#, fuzzy
 msgid "memory"
-msgstr "память"
+msgstr "Память"
 
 #: sensors.js:146
 msgid "Physical"
@@ -364,19 +370,20 @@ msgstr "Доступно"
 
 #: sensors.js:148
 msgid "Allocated"
-msgstr "Выделено"
+msgstr "Использовано"
 
 #: sensors.js:149
 msgid "Swap"
-msgstr "Swap"
+msgstr "менять"
 
 #: sensors.js:189
 msgid "Average"
-msgstr "В среднем"
+msgstr ""
 
 #: sensors.js:190
+#, fuzzy
 msgid "processor"
-msgstr "процессор"
+msgstr "Процессор"
 
 #: sensors.js:192
 #, javascript-format
@@ -389,35 +396,36 @@ msgstr "Частота"
 
 #: sensors.js:237
 msgid "Boost"
-msgstr "Разгон"
+msgstr ""
 
 #: sensors.js:238
 msgid "Vendor"
-msgstr "Производитель"
+msgstr ""
 
 #: sensors.js:239
 msgid "Bogomips"
-msgstr "Богомипс"
+msgstr ""
 
 #: sensors.js:240
 msgid "Sockets"
-msgstr "Сокеты"
+msgstr ""
 
 #: sensors.js:241
 msgid "Cache"
-msgstr "Кэш"
+msgstr ""
 
 #: sensors.js:250
 msgid "Open Files"
-msgstr "Открытые файлы"
+msgstr ""
 
 #: sensors.js:258
 msgid "Load 1m"
 msgstr "Нагрузка 1мин"
 
 #: sensors.js:259
+#, fuzzy
 msgid "system"
-msgstr "система"
+msgstr "Система"
 
 #: sensors.js:260
 msgid "Load 5m"
@@ -429,91 +437,93 @@ msgstr "Нагрузка 15мин"
 
 #: sensors.js:262
 msgid "Threads Active"
-msgstr "Активные потоки"
+msgstr ""
 
 #: sensors.js:263
 msgid "Threads Total"
-msgstr "Всего потоков"
+msgstr ""
 
 #: sensors.js:269
 msgid "Uptime"
-msgstr "Время работы"
+msgstr ""
 
 #: sensors.js:273
+#, fuzzy
 msgid "Process Time"
-msgstr "Время процесса"
+msgstr "Процессор"
 
 #: sensors.js:290
 msgid "State"
-msgstr "Состояние"
+msgstr ""
 
 #: sensors.js:295
 msgid "Cycles"
-msgstr "Циклы"
+msgstr ""
 
 #: sensors.js:300 sensors.js:330
 msgid "Energy (full)"
-msgstr "Энергия (полная)"
+msgstr ""
 
 #: sensors.js:302 sensors.js:332
 msgid "Capacity"
-msgstr "Ёмкость"
+msgstr ""
 
 #: sensors.js:303 sensors.js:333
 msgid "Energy (design)"
-msgstr "Энергия (изначально)"
+msgstr ""
 
 #: sensors.js:311 sensors.js:340
 msgid "Rate"
-msgstr "Оценка"
+msgstr ""
 
 #: sensors.js:312 sensors.js:341
+#, fuzzy
 msgid "battery"
-msgstr "батарея"
+msgstr "Память"
 
 #: sensors.js:316 sensors.js:344
 msgid "Energy (now)"
-msgstr "Энергия (сейчас)"
+msgstr ""
 
 #: sensors.js:322 sensors.js:350
 msgid "Percentage"
-msgstr "Процент"
+msgstr ""
 
 #: sensors.js:411
 msgid "WiFi Link Quality"
-msgstr "Качество соединения WiFi"
+msgstr ""
 
 #: sensors.js:412
 msgid "WiFi Signal Level"
-msgstr "Качество сигнала WiFi"
+msgstr ""
 
 #: sensors.js:432
 msgid "ARC Target"
-msgstr "Цель ARC"
+msgstr ""
 
 #: sensors.js:433
 msgid "ARC Maximum"
-msgstr "Максимум ARC"
+msgstr ""
 
 #: sensors.js:434
 msgid "ARC Current"
-msgstr "Текущий ARC"
+msgstr ""
 
 #: sensors.js:445
 msgid "Read total"
-msgstr "Чтение в итоге"
+msgstr ""
 
 #: sensors.js:446
 msgid "Write total"
-msgstr "Запись в итоге"
+msgstr ""
 
 #: sensors.js:447
 msgid "Read rate"
-msgstr "Частота чтения"
+msgstr ""
 
 #: sensors.js:448
 msgid "Write rate"
-msgstr "Частота записи"
+msgstr ""
 
 #: sensors.js:467
 msgid "Total"
@@ -532,8 +542,9 @@ msgid "Free"
 msgstr "Свободно"
 
 #: sensors.js:471
+#, fuzzy
 msgid "storage"
-msgstr "хранилище"
+msgstr "Диск"
 
 #~ msgid "Temperature Preferences"
 #~ msgstr "Температура"
