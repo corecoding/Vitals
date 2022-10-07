@@ -461,7 +461,7 @@ msgstr "Ёмкость"
 
 #: sensors.js:303 sensors.js:333
 msgid "Energy (design)"
-msgstr "Энергия (дизайн)"
+msgstr "Энергия (изначально)"
 
 #: sensors.js:311 sensors.js:340
 msgid "Rate"
@@ -473,7 +473,7 @@ msgstr "батарея"
 
 #: sensors.js:316 sensors.js:344
 msgid "Energy (now)"
-msgstr "Энергия (низкая)"
+msgstr "Энергия (сейчас)"
 
 #: sensors.js:322 sensors.js:350
 msgid "Percentage"
@@ -481,7 +481,7 @@ msgstr "Процент"
 
 #: sensors.js:411
 msgid "WiFi Link Quality"
-msgstr "Качество WiFi соединения"
+msgstr "Качество соединения WiFi"
 
 #: sensors.js:412
 msgid "WiFi Signal Level"

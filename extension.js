@@ -26,7 +26,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg' },
-                'voltage' : { 'icon': 'voltage-symbolic.svg' },
+                'voltage' : { 'icon': 'power-symbolic.svg' },
                     'fan' : { 'icon': 'fan-symbolic.svg' },
                  'memory' : { 'icon': 'memory-symbolic.svg' },
               'processor' : { 'icon': 'cpu-symbolic.svg' },
