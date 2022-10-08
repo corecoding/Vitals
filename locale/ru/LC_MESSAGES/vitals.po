@@ -469,7 +469,7 @@ msgstr "Оценка"
 
 #: sensors.js:312 sensors.js:341
 msgid "Battery"
-msgstr "батарея"
+msgstr "Батарея"
 
 #: sensors.js:316 sensors.js:344
 msgid "Energy (now)"
