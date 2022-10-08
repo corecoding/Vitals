@@ -468,7 +468,7 @@ msgid "Rate"
 msgstr "Оценка"
 
 #: sensors.js:312 sensors.js:341
-msgid "battery"
+msgid "Battery"
 msgstr "батарея"
 
 #: sensors.js:316 sensors.js:344
