@@ -230,7 +230,7 @@ var Values = GObject.registerClass({
             output.push([label, legible, type, key]);
         }
 
-        // save previous values to update screen on chnages only
+        // save previous values to update screen on changes only
         let previousValue = this._history[type][key];
         this._history[type][key] = [legible, value];
 
