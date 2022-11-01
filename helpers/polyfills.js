@@ -23,7 +23,7 @@ if (!Math.getMaxOfArray) {
     }
 }
 
-// newer verisons of Gnome have Promises built in
+// newer versions of Gnome have Promises built in
 // Credit goes to https://github.com/satya164/gjs-helpers
 if (typeof Promise === 'undefined') {
     const GLib = imports.gi.GLib;

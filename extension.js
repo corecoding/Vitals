@@ -277,7 +277,7 @@ var VitalsMenuButton = GObject.registerClass({
         if (key in this._hotLabels) {
             let label = this._hotLabels[key];
             delete this._hotLabels[key];
-            // make sure set_label is not called on non existant actor
+            // make sure set_label is not called on non existent actor
             label.destroy();
         }
     }
