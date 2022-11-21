@@ -533,7 +533,11 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
                 this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
                 this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
+            }).catch(err => { });
 
+            // grab static CPU information
+            new FileModule.File('/proc/version').read(' ').then(kernelArray => {
+                this._returnValue(callback, 'Kernel', kernelArray[2], 'processor', 'string');
             }).catch(err => { });
         }
     }
