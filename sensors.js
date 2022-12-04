@@ -537,7 +537,7 @@ var Sensors = GObject.registerClass({
 
             // grab static CPU information
             new FileModule.File('/proc/version').read(' ').then(kernelArray => {
-                this._returnValue(callback, 'Kernel', kernelArray[2], 'processor', 'string');
+                this._returnValue(callback, 'Kernel', kernelArray[2], 'system', 'string');
             }).catch(err => { });
         }
     }
