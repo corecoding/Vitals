@@ -157,6 +157,9 @@ var Values = GObject.registerClass({
                 }
 
                 break;
+            case 'duration_no_seconds':
+                use_higher_precision = false;
+                // don't break here - used to turn off seconds for battery runtime
             case 'duration':
                 let scale = [24, 60, 60];
                 let units = ['d ', 'h ', 'm '];
