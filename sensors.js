@@ -377,9 +377,8 @@ var Sensors = GObject.registerClass({
             battery_slot = 0;
         }
 
-        let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/';
-
-        new FileModule.File('/home/cmonahan/theirs').read("\n").then(lines => {
+        let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/uevent';
+        new FileModule.File(battery_path).read("\n").then(lines => {
             let output = {};
             for (let line of Object.values(lines)) {
                 let split = line.split('=');
@@ -402,12 +401,12 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Level', output['CAPACITY_LEVEL'], 'battery', '');
             }
 
-            if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output))) {
-                output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
-            }
-
             if ('CAPACITY' in output) {
                 this._returnValue(callback, 'Percentage', output['CAPACITY'] / 100, 'battery', 'percent');
+            }
+
+            if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output))) {
+                output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
             }
 
             if ('POWER_NOW' in output) {
