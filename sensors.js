@@ -410,9 +410,8 @@ var Sensors = GObject.registerClass({
             }
 
             if ('POWER_NOW' in output) {
-                let watt = output['POWER_NOW'] * 1000000;
-                this._returnValue(callback, 'Rate', watt, 'battery', 'watt');
-                this._returnValue(callback, 'battery', watt, 'battery-group', 'watt');
+                this._returnValue(callback, 'Rate', output['POWER_NOW'], 'battery', 'watt');
+                this._returnValue(callback, 'battery', output['POWER_NOW'], 'battery-group', 'watt');
             }
 
             if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output))) {
@@ -420,7 +419,7 @@ var Sensors = GObject.registerClass({
             }
 
             if ('ENERGY_FULL' in output) {
-                this._returnValue(callback, 'Energy (full)', output['ENERGY_FULL'] * 1000000, 'battery', 'watt-hour');
+                this._returnValue(callback, 'Energy (full)', output['ENERGY_FULL'], 'battery', 'watt-hour');
             }
 
             if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output))) {
@@ -432,7 +431,7 @@ var Sensors = GObject.registerClass({
             }
 
             if ('ENERGY_FULL_DESIGN' in output) {
-                this._returnValue(callback, 'Energy (design)', output['ENERGY_FULL_DESIGN'] * 1000000, 'battery', 'watt-hour');
+                this._returnValue(callback, 'Energy (design)', output['ENERGY_FULL_DESIGN'], 'battery', 'watt-hour');
             }
 
             if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output))) {
@@ -440,7 +439,7 @@ var Sensors = GObject.registerClass({
             }
 
             if ('ENERGY_NOW' in output) {
-                this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'] * 1000000, 'battery', 'watt-hour');
+                this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], 'battery', 'watt-hour');
             }
 
             if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
@@ -448,7 +447,7 @@ var Sensors = GObject.registerClass({
                     let timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']) * 3600;
                     this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
                 } else {
-                    let timeLeft = (output['ENERGY_NOW']/output['POWER_NOW']) * 3600;
+                    let timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']) * 3600;
                     this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
                 }
             } else {
