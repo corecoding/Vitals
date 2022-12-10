@@ -384,10 +384,14 @@ var Sensors = GObject.registerClass({
             let POWER_SUPPLY_ENERGY_FULL = 0;
             let POWER_SUPPLY_ENERGY_NOW = 0;
             let POWER_SUPPLY_POWER_NOW = 0;
+            let POWER_SUPPLY_STATUS = '';
 
             for (let line of Object.values(lines)) {
                 let value = line.match(/^POWER_SUPPLY_STATUS=(\w+.*)/);
-                if (value) this._returnValue(callback, 'State', value[1], 'battery', '');
+                if (value) {
+                    POWER_SUPPLY_STATUS = value[1];
+                    this._returnValue(callback, 'State', POWER_SUPPLY_STATUS, 'battery', '');
+                }
 
                 value = line.match(/^POWER_SUPPLY_CYCLE_COUNT=(\w+.*)/);
                 if (value) this._returnValue(callback, 'Cycles', value[1], 'battery', '');
@@ -431,15 +435,16 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Capacity', (POWER_SUPPLY_ENERGY_FULL / POWER_SUPPLY_ENERGY_FULL_DESIGN), 'battery', 'percent');
             }
 
-            let multiplier = 15000;
-            //if (state == 'Charging')
-            //    multiplier = 3500;
-
             //(POWER_SUPPLY_ENERGY_FULL - POWER_SUPPLY_ENERGY_NOW) / POWER_SUPPLY_POWER_NOW
             //(POWER_SUPPLY_CHARGE_FULL - POWER_SUPPLY_CHARGE_NOW) / POWER_SUPPLY_CURRENT_NOW
-            if (POWER_SUPPLY_ENERGY_FULL > 0 && POWER_SUPPLY_ENERGY_NOW > 0 && POWER_SUPPLY_POWER_NOW > 0) {
-                let timeLeft = ((POWER_SUPPLY_ENERGY_FULL - POWER_SUPPLY_ENERGY_NOW) / POWER_SUPPLY_POWER_NOW) * multiplier;
-                this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
+            if (POWER_SUPPLY_ENERGY_FULL > 0 && POWER_SUPPLY_ENERGY_NOW > 0 && POWER_SUPPLY_POWER_NOW > 0 && POWER_SUPPLY_STATUS.length > 0) {
+                if (POWER_SUPPLY_STATUS == 'Charging') {
+                    let timeLeft = ((POWER_SUPPLY_ENERGY_FULL - POWER_SUPPLY_ENERGY_NOW) / POWER_SUPPLY_POWER_NOW) * 3600;
+                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
+                } else {
+                    let timeLeft = (POWER_SUPPLY_ENERGY_NOW/POWER_SUPPLY_POWER_NOW) * 3600;
+                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
+                }
             }
         }).catch(err => { });
     }
