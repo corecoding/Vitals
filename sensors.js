@@ -391,14 +391,10 @@ var Sensors = GObject.registerClass({
 
             // second type of battery stats
             let POWER_SUPPLY_CURRENT_NOW = 0;
-
-
-
-
-//POWER_SUPPLY_CHARGE_FULL_DESIGN=7800000
-//POWER_SUPPLY_CHARGE_FULL=7800000
-//POWER_SUPPLY_CHARGE_NOW=6186000
-
+            let POWER_SUPPLY_CHARGE_FULL_DESIGN = 0;
+            let POWER_SUPPLY_VOLTAGE_MIN_DESIGN = 0;
+            //let POWER_SUPPLY_CHARGE_FULL = 0;
+            //let POWER_SUPPLY_CHARGE_NOW = 0;
 
             for (let line of Object.values(lines)) {
                 let value = 0;
@@ -413,7 +409,7 @@ var Sensors = GObject.registerClass({
                 }
 
                 if (value = line.match(/^POWER_SUPPLY_VOLTAGE_NOW=(\w+.*)/)) {
-                    POWER_SUPPLY_VOLTAGE_NOW = value[1] * 1;
+                    POWER_SUPPLY_VOLTAGE_NOW = value[1];
                     this._returnValue(callback, 'Voltage', POWER_SUPPLY_VOLTAGE_NOW / 1000, 'battery', 'in');
                 }
 
@@ -430,6 +426,14 @@ var Sensors = GObject.registerClass({
                 if (value = line.match(/^POWER_SUPPLY_ENERGY_FULL_DESIGN=(\w+.*)/)) {
                     POWER_SUPPLY_ENERGY_FULL_DESIGN = value[1] * 1000000;
                     this._returnValue(callback, 'Energy (design)', POWER_SUPPLY_ENERGY_FULL_DESIGN, 'battery', 'watt-hour');
+                }
+
+                if (value = line.match(/^POWER_SUPPLY_CHARGE_FULL_DESIGN=(\w+.*)/)) {
+                    POWER_SUPPLY_CHARGE_FULL_DESIGN = value[1];
+                }
+
+                if (value = line.match(/^POWER_SUPPLY_VOLTAGE_MIN_DESIGN=(\w+.*)/)) {
+                    POWER_SUPPLY_VOLTAGE_MIN_DESIGN = value[1];
                 }
 
                 if (value = line.match(/^POWER_SUPPLY_ENERGY_FULL=(\w+.*)/)) {
@@ -459,6 +463,10 @@ var Sensors = GObject.registerClass({
 
             if (POWER_SUPPLY_ENERGY_FULL_DESIGN > 0 && POWER_SUPPLY_ENERGY_FULL > 0) {
                 this._returnValue(callback, 'Capacity', (POWER_SUPPLY_ENERGY_FULL / POWER_SUPPLY_ENERGY_FULL_DESIGN), 'battery', 'percent');
+            }
+
+            if (POWER_SUPPLY_CHARGE_FULL_DESIGN > 0 && POWER_SUPPLY_VOLTAGE_MIN_DESIGN > 0) {
+                this._returnValue(callback, 'Energy (design)', POWER_SUPPLY_CHARGE_FULL_DESIGN * POWER_SUPPLY_VOLTAGE_MIN_DESIGN, 'battery', 'watt-hour');
             }
 
             //(POWER_SUPPLY_ENERGY_FULL - POWER_SUPPLY_ENERGY_NOW) / POWER_SUPPLY_POWER_NOW
