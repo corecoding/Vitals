@@ -371,13 +371,13 @@ var Sensors = GObject.registerClass({
         let battery_slot = this._settings.get_int('battery-slot');
 
         // addresses issue #161
-        let batt_key = 'BAT';
+        let battery_key = 'BAT';
         if (battery_slot == 3) {
-            batt_key = 'CMB';
+            battery_key = 'CMB';
             battery_slot = 0;
         }
 
-        let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/uevent';
+        let battery_path = '/sys/class/power_supply/' + battery_key + battery_slot + '/uevent';
         new FileModule.File(battery_path).read("\n").then(lines => {
             let output = {};
             for (let line of Object.values(lines)) {
