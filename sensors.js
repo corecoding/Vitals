@@ -255,11 +255,11 @@ var Sensors = GObject.registerClass({
 
         // check uptime
         new FileModule.File('/proc/uptime').read(' ').then(upArray => {
-            this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
+            this._returnValue(callback, 'Uptime', upArray[0], 'system', 'uptime');
 
             let cores = Object.keys(this._last_processor['core']).length - 1;
             if (cores > 0)
-                this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
+                this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'uptime');
         }).catch(err => { });
     }
 
@@ -445,10 +445,10 @@ var Sensors = GObject.registerClass({
             if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
                 if (output['STATUS'] == 'Charging') {
                     let timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']) * 3600;
-                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
+                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'runtime');
                 } else {
                     let timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']) * 3600;
-                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
+                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'runtime');
                 }
             } else {
                 this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');

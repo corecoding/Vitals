@@ -157,15 +157,13 @@ var Values = GObject.registerClass({
                 }
 
                 break;
-            case 'duration_no_seconds':
-                use_higher_precision = false;
-                // don't break here - used to turn off seconds for battery runtime
-            case 'duration':
+            case 'runtime':
+            case 'uptime':
                 let scale = [24, 60, 60];
                 let units = ['d ', 'h ', 'm '];
 
                 // show seconds on higher precision or if value under a minute
-                if (use_higher_precision || value < 60) {
+                if (sensorClass != 'runtime' && (use_higher_precision || value < 60)) {
                     scale.push(1);
                     units.push('s ');
                 }
