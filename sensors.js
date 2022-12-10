@@ -396,6 +396,9 @@ var Sensors = GObject.registerClass({
             //let POWER_SUPPLY_CHARGE_FULL = 0;
             //let POWER_SUPPLY_CHARGE_NOW = 0;
 
+
+            ///{
+
             for (let line of Object.values(lines)) {
                 let value = 0;
 
@@ -548,21 +551,19 @@ var Sensors = GObject.registerClass({
                 let cache = '';
 
                 for (let line of Object.values(lines)) {
+                    let value = '';
+
                     // grab cpu vendor
-                    let value = line.match(/^vendor_id(\s+): (\w+.*)/);
-                    if (value) vendor_id = value[2];
+                    if (value = line.match(/^vendor_id(\s+): (\w+.*)/)) vendor_id = value[2];
 
                     // grab bogomips
-                    value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/);
-                    if (value) bogomips = value[2];
+                    if (value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/)) bogomips = value[2];
 
                     // grab processor count
-                    value = line.match(/^physical id(\s+): (\d+)$/);
-                    if (value) sockets[value[2]] = 1;
+                    if (value = line.match(/^physical id(\s+): (\d+)$/)) sockets[value[2]] = 1;
 
                     // grab cache
-                    value = line.match(/^cache size(\s+): (\d+) KB$/);
-                    if (value) cache = value[2];
+                    if (value = line.match(/^cache size(\s+): (\d+) KB$/)) cache = value[2];
                 }
 
                 this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
