@@ -379,56 +379,82 @@ var Sensors = GObject.registerClass({
 
         let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/';
 
-        new FileModule.File(battery_path + 'uevent').read("\n").then(lines => {
+        new FileModule.File('/home/cmonahan/theirs').read("\n").then(lines => {
+            let POWER_SUPPLY_STATUS = '';
+            let POWER_SUPPLY_VOLTAGE_NOW = 0;
+
+            // first type of battery stats
+            let POWER_SUPPLY_POWER_NOW = 0;
             let POWER_SUPPLY_ENERGY_FULL_DESIGN = 0;
             let POWER_SUPPLY_ENERGY_FULL = 0;
             let POWER_SUPPLY_ENERGY_NOW = 0;
-            let POWER_SUPPLY_POWER_NOW = 0;
-            let POWER_SUPPLY_STATUS = '';
+
+            // second type of battery stats
+            let POWER_SUPPLY_CURRENT_NOW = 0;
+
+
+
+
+//POWER_SUPPLY_CHARGE_FULL_DESIGN=7800000
+//POWER_SUPPLY_CHARGE_FULL=7800000
+//POWER_SUPPLY_CHARGE_NOW=6186000
+
 
             for (let line of Object.values(lines)) {
-                let value = line.match(/^POWER_SUPPLY_STATUS=(\w+.*)/);
-                if (value) {
+                let value = 0;
+
+                if (value = line.match(/^POWER_SUPPLY_STATUS=(\w+.*)/)) {
                     POWER_SUPPLY_STATUS = value[1];
                     this._returnValue(callback, 'State', POWER_SUPPLY_STATUS, 'battery', '');
                 }
 
-                value = line.match(/^POWER_SUPPLY_CYCLE_COUNT=(\w+.*)/);
-                if (value) this._returnValue(callback, 'Cycles', value[1], 'battery', '');
+                if (value = line.match(/^POWER_SUPPLY_CYCLE_COUNT=(\w+.*)/)) {
+                    this._returnValue(callback, 'Cycles', value[1], 'battery', '');
+                }
 
-                value = line.match(/^POWER_SUPPLY_VOLTAGE_NOW=(\w+.*)/);
-                if (value) this._returnValue(callback, 'Voltage', value[1] / 1000, 'battery', 'in');
+                if (value = line.match(/^POWER_SUPPLY_VOLTAGE_NOW=(\w+.*)/)) {
+                    POWER_SUPPLY_VOLTAGE_NOW = value[1] * 1;
+                    this._returnValue(callback, 'Voltage', POWER_SUPPLY_VOLTAGE_NOW / 1000, 'battery', 'in');
+                }
 
-                value = line.match(/^POWER_SUPPLY_POWER_NOW=(\w+.*)/);
-                if (value) {
+                if (value = line.match(/^POWER_SUPPLY_POWER_NOW=(\w+.*)/)) {
                     POWER_SUPPLY_POWER_NOW = value[1] * 1000000;
                     this._returnValue(callback, 'Rate', POWER_SUPPLY_POWER_NOW, 'battery', 'watt');
                     this._returnValue(callback, 'battery', POWER_SUPPLY_POWER_NOW, 'battery-group', 'watt');
                 }
 
-                value = line.match(/^POWER_SUPPLY_ENERGY_FULL_DESIGN=(\w+.*)/);
-                if (value) {
+                if (value = line.match(/^POWER_SUPPLY_CURRENT_NOW=(\w+.*)/)) {
+                    POWER_SUPPLY_CURRENT_NOW = value[1];
+                }
+
+                if (value = line.match(/^POWER_SUPPLY_ENERGY_FULL_DESIGN=(\w+.*)/)) {
                     POWER_SUPPLY_ENERGY_FULL_DESIGN = value[1] * 1000000;
                     this._returnValue(callback, 'Energy (design)', POWER_SUPPLY_ENERGY_FULL_DESIGN, 'battery', 'watt-hour');
                 }
 
-                value = line.match(/^POWER_SUPPLY_ENERGY_FULL=(\w+.*)/);
-                if (value) {
+                if (value = line.match(/^POWER_SUPPLY_ENERGY_FULL=(\w+.*)/)) {
                     POWER_SUPPLY_ENERGY_FULL = value[1] * 1000000;
                     this._returnValue(callback, 'Energy (full)', POWER_SUPPLY_ENERGY_FULL, 'battery', 'watt-hour');
                 }
 
-                value = line.match(/^POWER_SUPPLY_ENERGY_NOW=(\w+.*)/);
-                if (value) {
+                if (value = line.match(/^POWER_SUPPLY_ENERGY_NOW=(\w+.*)/)) {
                     POWER_SUPPLY_ENERGY_NOW = value[1] * 1000000;
                     this._returnValue(callback, 'Energy (now)', POWER_SUPPLY_ENERGY_NOW, 'battery', 'watt-hour');
                 }
 
-                value = line.match(/^POWER_SUPPLY_CAPACITY=(\w+.*)/);
-                if (value) this._returnValue(callback, 'Percentage', value[1] / 100, 'battery', 'percent');
+                if (value = line.match(/^POWER_SUPPLY_CAPACITY=(\w+.*)/)) {
+                    this._returnValue(callback, 'Percentage', value[1] / 100, 'battery', 'percent');
+                }
 
-                value = line.match(/^POWER_SUPPLY_CAPACITY_LEVEL=(\w+.*)/);
-                if (value) this._returnValue(callback, 'Level', value[1], 'battery', '');
+                if (value = line.match(/^POWER_SUPPLY_CAPACITY_LEVEL=(\w+.*)/)) {
+                    this._returnValue(callback, 'Level', value[1], 'battery', '');
+                }
+            }
+
+            if (POWER_SUPPLY_VOLTAGE_NOW > 0 && POWER_SUPPLY_CURRENT_NOW > 0) {
+                let watt = POWER_SUPPLY_VOLTAGE_NOW * POWER_SUPPLY_CURRENT_NOW;
+                this._returnValue(callback, 'Rate', watt, 'battery', 'watt');
+                this._returnValue(callback, 'battery', watt, 'battery-group', 'watt');
             }
 
             if (POWER_SUPPLY_ENERGY_FULL_DESIGN > 0 && POWER_SUPPLY_ENERGY_FULL > 0) {
@@ -437,7 +463,7 @@ var Sensors = GObject.registerClass({
 
             //(POWER_SUPPLY_ENERGY_FULL - POWER_SUPPLY_ENERGY_NOW) / POWER_SUPPLY_POWER_NOW
             //(POWER_SUPPLY_CHARGE_FULL - POWER_SUPPLY_CHARGE_NOW) / POWER_SUPPLY_CURRENT_NOW
-            if (POWER_SUPPLY_ENERGY_FULL > 0 && POWER_SUPPLY_ENERGY_NOW > 0 && POWER_SUPPLY_POWER_NOW > 0 && POWER_SUPPLY_STATUS.length > 0) {
+            if (POWER_SUPPLY_ENERGY_FULL > 0 && POWER_SUPPLY_ENERGY_NOW > 0 && POWER_SUPPLY_POWER_NOW > 0 && (POWER_SUPPLY_STATUS == 'Charging' || POWER_SUPPLY_STATUS == 'Discharging')) {
                 if (POWER_SUPPLY_STATUS == 'Charging') {
                     let timeLeft = ((POWER_SUPPLY_ENERGY_FULL - POWER_SUPPLY_ENERGY_NOW) / POWER_SUPPLY_POWER_NOW) * 3600;
                     this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
