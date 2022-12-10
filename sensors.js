@@ -445,6 +445,8 @@ var Sensors = GObject.registerClass({
                     let timeLeft = (POWER_SUPPLY_ENERGY_NOW/POWER_SUPPLY_POWER_NOW) * 3600;
                     this._returnValue(callback, 'Time left', timeLeft, 'battery', 'duration_no_seconds');
                 }
+            } else {
+                this._returnValue(callback, 'Time left', POWER_SUPPLY_STATUS, 'battery', '');
             }
         }).catch(err => { });
     }
