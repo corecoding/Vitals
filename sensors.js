@@ -443,12 +443,39 @@ var Sensors = GObject.registerClass({
             }
 
             if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
+
+                let timeLeft = 0;
+
+                // two different formulas depending on if we are charging or discharging
                 if (output['STATUS'] == 'Charging') {
-                    let timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']) * 3600;
-                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'runtime');
+                    timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
                 } else {
-                    let timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']) * 3600;
-                    this._returnValue(callback, 'Time left', timeLeft, 'battery', 'runtime');
+                    timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']);
+                }
+
+                // don't process Infinity values
+                if (timeLeft !== Infinity) {
+                    if (this._battery_charge_status != output['STATUS']) {
+                        // clears history due to state change
+                        this._battery_time_left_history = [];
+
+                        // clear time left history when laptop goes in and out of charging
+                        this._battery_charge_status = output['STATUS'];
+                    }
+
+                    // add latest time left estimate to our history
+                    this._battery_time_left_history.push(parseInt(timeLeft * 3600));
+
+                    // keep track of last 15 time left estimates by erasing the first
+                    if (this._battery_time_left_history.length > 15)
+                        this._battery_time_left_history.shift();
+
+                    // sum up and create average of our time left history
+                    let sum = this._battery_time_left_history.reduce((a, b) => a + b);
+                    let avg = sum / this._battery_time_left_history.length;
+
+                    // use time left history to update screen
+                    this._returnValue(callback, 'Time left', parseInt(avg), 'battery', 'runtime');
                 }
             } else {
                 this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');
@@ -646,5 +673,7 @@ var Sensors = GObject.registerClass({
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
         this._processor_uses_cpu_info = true;
+        this._battery_time_left_history = [];
+        this._battery_charge_status = '';
     }
 });
