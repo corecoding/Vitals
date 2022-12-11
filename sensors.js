@@ -117,25 +117,14 @@ var Sensors = GObject.registerClass({
     _queryMemory(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
-            let total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
+            let values = '', total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
 
-            let values = lines.match(/MemTotal:(\s+)(\d+) kB/);
-            if (values) total = values[2];
-
-            values = lines.match(/MemAvailable:(\s+)(\d+) kB/);
-            if (values) avail = values[2];
-
-            values = lines.match(/SwapTotal:(\s+)(\d+) kB/);
-            if (values) swapTotal = values[2];
-
-            values = lines.match(/SwapFree:(\s+)(\d+) kB/);
-            if (values) swapFree = values[2];
-
-            values = lines.match(/Cached:(\s+)(\d+) kB/);
-            if (values) cached = values[2];
-
-            values = lines.match(/MemFree:(\s+)(\d+) kB/);
-            if (values) memFree = values[2];
+            if (values = lines.match(/MemTotal:(\s+)(\d+) kB/)) total = values[2];
+            if (values = lines.match(/MemAvailable:(\s+)(\d+) kB/)) avail = values[2];
+            if (values = lines.match(/SwapTotal:(\s+)(\d+) kB/)) swapTotal = values[2];
+            if (values = lines.match(/SwapFree:(\s+)(\d+) kB/)) swapFree = values[2];
+            if (values = lines.match(/Cached:(\s+)(\d+) kB/)) cached = values[2];
+            if (values = lines.match(/MemFree:(\s+)(\d+) kB/)) memFree = values[2];
 
             let used = total - avail
             let utilized = used / total;
@@ -314,16 +303,11 @@ var Sensors = GObject.registerClass({
     _queryStorage(callback, dwell) {
         // display zfs arc status, if available
         new FileModule.File('/proc/spl/kstat/zfs/arcstats').read().then(lines => {
-            let target = 0, maximum = 0, current = 0;
+            let values = '', target = 0, maximum = 0, current = 0;
 
-            let values = lines.match(/c(\s+)(\d+)(\s+)(\d+)/);
-            if (values) target = values[4];
-
-            values = lines.match(/c_max(\s+)(\d+)(\s+)(\d+)/);
-            if (values) maximum = values[4];
-
-            values = lines.match(/size(\s+)(\d+)(\s+)(\d+)/);
-            if (values) current = values[4];
+            if (values = lines.match(/c(\s+)(\d+)(\s+)(\d+)/)) target = values[4];
+            if (values = lines.match(/c_max(\s+)(\d+)(\s+)(\d+)/)) maximum = values[4];
+            if (values = lines.match(/size(\s+)(\d+)(\s+)(\d+)/)) current = values[4];
 
             // ZFS statistics
             this._returnValue(callback, 'ARC Target', target, 'storage', 'storage');
