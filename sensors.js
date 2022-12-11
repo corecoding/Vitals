@@ -451,7 +451,7 @@ var Sensors = GObject.registerClass({
                     this._battery_time_left_history.push(parseInt(timeLeft * 3600));
 
                     // keep track of last 15 time left estimates by erasing the first
-                    if (this._battery_time_left_history.length > 15)
+                    if (this._battery_time_left_history.length > 10)
                         this._battery_time_left_history.shift();
 
                     // sum up and create average of our time left history
