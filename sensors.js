@@ -361,8 +361,10 @@ var Sensors = GObject.registerClass({
             battery_slot = 0;
         }
 
-        let battery_path = '/sys/class/power_supply/' + battery_key + battery_slot + '/uevent';
-        new FileModule.File(battery_path).read("\n").then(lines => {
+        let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/';
+
+        // if uevent file exists, it is much more efficient to get battery info
+        new FileModule.File(battery_path + 'uevent').read("\n").then(lines => {
             let output = {};
             for (let line of Object.values(lines)) {
                 let split = line.split('=');
@@ -464,7 +466,77 @@ var Sensors = GObject.registerClass({
             } else {
                 this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');
             }
-        }).catch(err => { });
+        }).catch(err => {
+            // no uevent file exists, use old way of grabbing battery info
+            new FileModule.File(battery_path + 'status').read().then(value => {
+                this._returnValue(callback, 'State', value, 'battery', '');
+            }).catch(err => { });
+
+            new FileModule.File(battery_path + 'cycle_count').read().then(value => {
+                if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
+                    this._returnValue(callback, 'Cycles', value, 'battery', '');
+            }).catch(err => { });
+
+            new FileModule.File(battery_path + 'charge_full').read().then(charge_full => {
+                new FileModule.File(battery_path + 'voltage_min_design').read().then(voltage_min_design => {
+                    this._returnValue(callback, 'Energy (full)', charge_full * voltage_min_design, 'battery', 'watt-hour');
+                    new FileModule.File(battery_path + 'charge_full_design').read().then(charge_full_design => {
+                        this._returnValue(callback, 'Capacity', (charge_full / charge_full_design), 'battery', 'percent');
+                        this._returnValue(callback, 'Energy (design)', charge_full_design * voltage_min_design, 'battery', 'watt-hour');
+                    }).catch(err => { });
+
+                    new FileModule.File(battery_path + 'voltage_now').read().then(voltage_now => {
+                        this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
+
+                        new FileModule.File(battery_path + 'current_now').read().then(current_now => {
+                            let watt = current_now * voltage_now;
+                            this._returnValue(callback, 'Rate', watt, 'battery', 'watt');
+                            this._returnValue(callback, 'battery', watt, 'battery-group', 'watt');
+
+                            new FileModule.File(battery_path + 'charge_now').read().then(charge_now => {
+                                let rest_pwr = voltage_min_design * charge_now;
+                                this._returnValue(callback, 'Energy (now)', rest_pwr, 'battery', 'watt-hour');
+
+                                //let time_left_h = rest_pwr / last_pwr;
+                                //this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
+
+                                let level = charge_now / charge_full;
+                                this._returnValue(callback, 'Percentage', level, 'battery', 'percent');
+                            }).catch(err => { });
+                        }).catch(err => { });
+                    }).catch(err => { });
+                        }).catch(err => { });
+            }).catch(err => {
+                new FileModule.File(battery_path + 'energy_full').read().then(energy_full => {
+                    new FileModule.File(battery_path + 'voltage_min_design').read().then(voltage_min_design => {
+                        this._returnValue(callback, 'Energy (full)', energy_full * 1000000, 'battery', 'watt-hour');
+                        new FileModule.File(battery_path + 'energy_full_design').read().then(energy_full_design => {
+                            this._returnValue(callback, 'Capacity', (energy_full / energy_full_design), 'battery', 'percent');
+                            this._returnValue(callback, 'Energy (design)', energy_full_design * 1000000, 'battery', 'watt-hour');
+                        }).catch(err => { });
+
+                        new FileModule.File(battery_path + 'voltage_now').read().then(voltage_now => {
+                            this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
+
+                            new FileModule.File(battery_path + 'power_now').read().then(power_now => {
+                                this._returnValue(callback, 'Rate', power_now * 1000000, 'battery', 'watt');
+                                this._returnValue(callback, 'battery', power_now * 1000000, 'battery-group', 'watt');
+
+                                new FileModule.File(battery_path + 'energy_now').read().then(energy_now => {
+                                    this._returnValue(callback, 'Energy (now)', energy_now * 1000000, 'battery', 'watt-hour');
+
+                                    //let time_left_h = energy_now / last_pwr;
+                                    //this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
+
+                                    let level = energy_now / energy_full;
+                                    this._returnValue(callback, 'Percentage', level, 'battery', 'percent');
+                                }).catch(err => { });
+                            }).catch(err => { });
+                        }).catch(err => { });
+                    }).catch(err => { });
+                }).catch(err => { });
+            });
+        });
     }
 
     _returnValue(callback, label, value, type, format) {
