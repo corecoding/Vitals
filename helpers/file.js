@@ -3,11 +3,12 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
+const Decoder = new TextDecoder("utf-8");
 
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
-    return ByteArray.toString(contents).trim();
+    return Decoder.decode(contents).trim();
 }
 
 function File(path) {
@@ -26,7 +27,7 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
                     let contents = file.load_contents_finish(res)[1];
 
                     // convert contents to string
-                    contents = ByteArray.toString(contents).trim();
+                    contents = Decoder.decode(contents).trim();
 
                     // split contents by delimiter if passed in
                     if (delimiter) contents = contents.split(delimiter);
