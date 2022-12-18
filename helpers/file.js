@@ -4,17 +4,17 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
 
-var decoder;
+var Decoder;
 try {
-    decoder = new TextDecoder("utf-8");
+    Decoder = new TextDecoder('utf-8');
 } catch(error) {}
 
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
 
-    if (decoder)
-        return decoder.decode(contents).trim();
+    if (Decoder)
+        return Decoder.decode(contents).trim();
 
     return ByteArray.toString(contents).trim();
 }
