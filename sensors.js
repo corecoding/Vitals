@@ -361,10 +361,11 @@ var Sensors = GObject.registerClass({
             battery_slot = 0;
         }
 
-        let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/';
+        let battery_path = '/sys/class/power_supply/' + battery_key + battery_slot + '/uevent';
+battery_path = '/home/cmonahan/Downloads/uevent.txt';
 
         // if uevent file exists, it is much more efficient to get battery info
-        new FileModule.File(battery_path + 'uevent').read("\n").then(lines => {
+        new FileModule.File(battery_path).read("\n").then(lines => {
             let output = {};
             for (let line of Object.values(lines)) {
                 let split = line.split('=');

@@ -3,20 +3,19 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
-//const Decoder = new TextDecoder("utf-8");
 
-const Config = imports.misc.config;
-const [major] = Config.PACKAGE_VERSION.split('.');
-const shellVersion = Number.parseInt(major);
+var decoder;
+try {
+    decoder = new TextDecoder("utf-8");
+} catch(error) {}
 
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
 
-    //if (shellVersion <= 40)
-    //    return ByteArray.toString(contents).trim();
+    if (decoder)
+        return decoder.decode(contents).trim();
 
-    //return Decoder.decode(contents).trim();
     return ByteArray.toString(contents).trim();
 }
 
@@ -36,10 +35,10 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
                     let contents = file.load_contents_finish(res)[1];
 
                     // convert contents to string
-                    //if (shellVersion <= 40)
-                        contents = ByteArray.toString(contents, 'UTF-16').trim();
-                    //else 
-                    //    contents = Decoder.decode(contents).trim();
+                    if (decoder)
+                        contents = Decoder.decode(contents).trim();
+                    else
+                        contents = ByteArray.toString(contents).trim();
 
                     // split contents by delimiter if passed in
                     if (delimiter) contents = contents.split(delimiter);
