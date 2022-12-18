@@ -291,10 +291,9 @@ var Sensors = GObject.registerClass({
         new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
             for (let line of Object.values(lines)) {
                 let netArray = line.trim().split(/\s+/);
-		global.log('chris', netArray[0]);
-		// wireless has two headers - first is striped in helper function
-		if (netArray[0] == 'face') continue;
-		global.log('made it');
+
+                // wireless has two headers - first is striped in helper function
+                if (netArray[0] == 'face') continue;
 
                 let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
                 let signal = netArray[3].substr(0, netArray[3].length-1);
@@ -545,8 +544,8 @@ var Sensors = GObject.registerClass({
     }
 
     _returnValue(callback, label, value, type, format) {
-	// don't return if value is not a number
-	if (isNaN(value)) return;
+        // don't return if value is not a number
+        if (isNaN(value)) return;
         callback(label, value, type, format);
     }
 
