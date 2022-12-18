@@ -34,13 +34,14 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
                     // grab contents of file or website
                     let contents = file.load_contents_finish(res)[1];
 
-                    //contents = contents.replace('/[^a-z0-9:_\t]+/i', '');
-
                     // convert contents to string
-                    if (Decoder)
+                    if (Decoder) {
                         contents = Decoder.decode(contents).trim();
-                    else
+                    } else {
+			// fixes #304, replaces invalid character
+                        contents[contents.indexOf(208)] = 0;
                         contents = ByteArray.toString(contents).trim();
+                    }
 
                     // split contents by delimiter if passed in
                     if (delimiter) contents = contents.split(delimiter);
