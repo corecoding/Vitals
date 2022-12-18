@@ -4,9 +4,18 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
 
+var decoder;
+try {
+    decoder = new TextDecoder("utf-8");
+} catch(error) {}
+
 function getcontents(filename) {
     let handle = Gio.File.new_for_path(filename);
     let contents = handle.load_contents(null)[1];
+
+    if (decoder)
+        return decoder.decode(contents).trim();
+
     return ByteArray.toString(contents).trim();
 }
 
@@ -25,8 +34,13 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
                     // grab contents of file or website
                     let contents = file.load_contents_finish(res)[1];
 
+                    //contents = contents.replace('/[^a-z0-9:_\t]+/i', '');
+
                     // convert contents to string
-                    contents = ByteArray.toString(contents).trim();
+                    if (decoder)
+                        contents = Decoder.decode(contents).trim();
+                    else
+                        contents = ByteArray.toString(contents).trim();
 
                     // split contents by delimiter if passed in
                     if (delimiter) contents = contents.split(delimiter);
