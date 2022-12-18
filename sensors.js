@@ -540,6 +540,8 @@ var Sensors = GObject.registerClass({
     }
 
     _returnValue(callback, label, value, type, format) {
+	// don't return if value is not a number
+	if (isNaN(value)) return;
         callback(label, value, type, format);
     }
 
