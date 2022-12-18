@@ -289,12 +289,12 @@ var Sensors = GObject.registerClass({
 
         // wireless interface statistics
         new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
-            for (let line of Object.values(lines)) {
+            // wireless has two headers - first is stripped in helper function
+            lines.shift();
+
+            // if multiple wireless device, we use the last one
+            for (let line of lines) {
                 let netArray = line.trim().split(/\s+/);
-
-                // wireless has two headers - first is striped in helper function
-                if (netArray[0] == 'face') continue;
-
                 let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
                 let signal = netArray[3].substr(0, netArray[3].length-1);
 
