@@ -70,7 +70,7 @@ var Sensors = GObject.registerClass({
 
     _findStorageDevice() {
         new FileModule.File('/proc/mounts').read("\n").then(lines => {
-            for (let line of Object.values(lines)) {
+            for (let line of lines) {
                 let loadArray = line.trim().split(/\s+/);
                 if (loadArray[1] == this._settings.get_string('storage-path')) {
                     this._storageDevice = loadArray[0];
@@ -147,7 +147,7 @@ var Sensors = GObject.registerClass({
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
 
-            for (let line of Object.values(lines)) {
+            for (let line of lines) {
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
                 if (reverse_data) {
                     let cpu = reverse_data[1].trim();
@@ -201,7 +201,7 @@ var Sensors = GObject.registerClass({
             // grab CPU frequency
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
                 let freqs = [];
-                for (let line of Object.values(lines)) {
+                for (let line of lines) {
                     // grab megahertz
                     let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
                     if (value) freqs.push(parseFloat(value[2]));
@@ -321,7 +321,7 @@ var Sensors = GObject.registerClass({
 
         // check disk performance stats
         new FileModule.File('/proc/diskstats').read("\n").then(lines => {
-            for (let line of Object.values(lines)) {
+            for (let line of lines) {
                 let loadArray = line.trim().split(/\s+/);
                 if ('/dev/' + loadArray[2] == this._storageDevice) {
                     var read = (loadArray[5] * 512);
@@ -370,7 +370,7 @@ var Sensors = GObject.registerClass({
         // if uevent file exists, it is much more efficient to get battery info
         new FileModule.File(battery_path).read("\n").then(lines => {
             let output = {};
-            for (let line of Object.values(lines)) {
+            for (let line of lines) {
                 let split = line.split('=');
                 output[split[0].replace('POWER_SUPPLY_', '')] = split[1];
             }
@@ -538,7 +538,7 @@ var Sensors = GObject.registerClass({
                 let sockets = {};
                 let cache = '';
 
-                for (let line of Object.values(lines)) {
+                for (let line of lines) {
                     let value = '';
 
                     // grab cpu vendor
