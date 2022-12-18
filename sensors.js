@@ -428,7 +428,7 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], 'battery', 'watt-hour');
             }
 
-            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
+            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && output['POWER_NOW'] > 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
 
                 let timeLeft = 0;
 
