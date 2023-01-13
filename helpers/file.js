@@ -4,9 +4,20 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 Me.imports.helpers.polyfills;
 const ByteArray = imports.byteArray;
 
-function getcontents(filename) {
-    let handle = Gio.File.new_for_path(filename);
-    let contents = handle.load_contents(null)[1];
+var Decoder;
+try {
+    Decoder = new TextDecoder('utf-8');
+} catch(error) {}
+
+// convert Uint8Array into a literal string
+function convertUint8ArrayToString(contents) {
+    // Starting with Gnome 41, we use TextDecoder as ByteArray is deprecated
+    if (Decoder)
+        return Decoder.decode(contents).trim();
+
+    // Supports ByteArray on Gnome 40
+    // fixes #304, replaces invalid character
+    contents[contents.indexOf(208)] = 0;
     return ByteArray.toString(contents).trim();
 }
 
@@ -26,7 +37,7 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
                     let contents = file.load_contents_finish(res)[1];
 
                     // convert contents to string
-                    contents = ByteArray.toString(contents).trim();
+                    contents = convertUint8ArrayToString(contents);
 
                     // split contents by delimiter if passed in
                     if (delimiter) contents = contents.split(delimiter);

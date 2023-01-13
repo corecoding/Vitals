@@ -245,12 +245,14 @@ var VitalsMenuButton = GObject.registerClass({
         // attempt to prevent ellipsizes
         label.get_clutter_text().ellipsize = 0;
 
+        // keep track of label for removal later
         this._hotLabels[key] = label;
+
+        // prevent "called on the widget"  "which is not in the stage" errors by adding before width below
+        this._menuLayout.add_actor(label);
 
         // support for fixed widths #55, save label (text) width
         this._widths[key] = label.width;
-
-        this._menuLayout.add_actor(label);
     }
 
     _showHideSensorsChanged(self, sensor) {
@@ -277,7 +279,7 @@ var VitalsMenuButton = GObject.registerClass({
         if (key in this._hotLabels) {
             let label = this._hotLabels[key];
             delete this._hotLabels[key];
-            // make sure set_label is not called on non existant actor
+            // make sure set_label is not called on non existent actor
             label.destroy();
         }
     }

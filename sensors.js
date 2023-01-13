@@ -70,7 +70,7 @@ var Sensors = GObject.registerClass({
 
     _findStorageDevice() {
         new FileModule.File('/proc/mounts').read("\n").then(lines => {
-            for (let line of Object.values(lines)) {
+            for (let line of lines) {
                 let loadArray = line.trim().split(/\s+/);
                 if (loadArray[1] == this._settings.get_string('storage-path')) {
                     this._storageDevice = loadArray[0];
@@ -117,25 +117,14 @@ var Sensors = GObject.registerClass({
     _queryMemory(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
-            let total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
+            let values = '', total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
 
-            let values = lines.match(/MemTotal:(\s+)(\d+) kB/);
-            if (values) total = values[2];
-
-            values = lines.match(/MemAvailable:(\s+)(\d+) kB/);
-            if (values) avail = values[2];
-
-            values = lines.match(/SwapTotal:(\s+)(\d+) kB/);
-            if (values) swapTotal = values[2];
-
-            values = lines.match(/SwapFree:(\s+)(\d+) kB/);
-            if (values) swapFree = values[2];
-
-            values = lines.match(/Cached:(\s+)(\d+) kB/);
-            if (values) cached = values[2];
-
-            values = lines.match(/MemFree:(\s+)(\d+) kB/);
-            if (values) memFree = values[2];
+            if (values = lines.match(/MemTotal:(\s+)(\d+) kB/)) total = values[2];
+            if (values = lines.match(/MemAvailable:(\s+)(\d+) kB/)) avail = values[2];
+            if (values = lines.match(/SwapTotal:(\s+)(\d+) kB/)) swapTotal = values[2];
+            if (values = lines.match(/SwapFree:(\s+)(\d+) kB/)) swapFree = values[2];
+            if (values = lines.match(/Cached:(\s+)(\d+) kB/)) cached = values[2];
+            if (values = lines.match(/MemFree:(\s+)(\d+) kB/)) memFree = values[2];
 
             let used = total - avail
             let utilized = used / total;
@@ -158,7 +147,7 @@ var Sensors = GObject.registerClass({
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
 
-            for (let line of Object.values(lines)) {
+            for (let line of lines) {
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
                 if (reverse_data) {
                     let cpu = reverse_data[1].trim();
@@ -212,7 +201,7 @@ var Sensors = GObject.registerClass({
             // grab CPU frequency
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
                 let freqs = [];
-                for (let line of Object.values(lines)) {
+                for (let line of lines) {
                     // grab megahertz
                     let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
                     if (value) freqs.push(parseFloat(value[2]));
@@ -255,11 +244,11 @@ var Sensors = GObject.registerClass({
 
         // check uptime
         new FileModule.File('/proc/uptime').read(' ').then(upArray => {
-            this._returnValue(callback, 'Uptime', upArray[0], 'system', 'duration');
+            this._returnValue(callback, 'Uptime', upArray[0], 'system', 'uptime');
 
             let cores = Object.keys(this._last_processor['core']).length - 1;
             if (cores > 0)
-                this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'duration');
+                this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'uptime');
         }).catch(err => { });
     }
 
@@ -300,7 +289,11 @@ var Sensors = GObject.registerClass({
 
         // wireless interface statistics
         new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
-            for (let line of Object.values(lines)) {
+            // wireless has two headers - first is stripped in helper function
+            lines.shift();
+
+            // if multiple wireless device, we use the last one
+            for (let line of lines) {
                 let netArray = line.trim().split(/\s+/);
                 let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
                 let signal = netArray[3].substr(0, netArray[3].length-1);
@@ -314,16 +307,11 @@ var Sensors = GObject.registerClass({
     _queryStorage(callback, dwell) {
         // display zfs arc status, if available
         new FileModule.File('/proc/spl/kstat/zfs/arcstats').read().then(lines => {
-            let target = 0, maximum = 0, current = 0;
+            let values = '', target = 0, maximum = 0, current = 0;
 
-            let values = lines.match(/c(\s+)(\d+)(\s+)(\d+)/);
-            if (values) target = values[4];
-
-            values = lines.match(/c_max(\s+)(\d+)(\s+)(\d+)/);
-            if (values) maximum = values[4];
-
-            values = lines.match(/size(\s+)(\d+)(\s+)(\d+)/);
-            if (values) current = values[4];
+            if (values = lines.match(/c(\s+)(\d+)(\s+)(\d+)/)) target = values[4];
+            if (values = lines.match(/c_max(\s+)(\d+)(\s+)(\d+)/)) maximum = values[4];
+            if (values = lines.match(/size(\s+)(\d+)(\s+)(\d+)/)) current = values[4];
 
             // ZFS statistics
             this._returnValue(callback, 'ARC Target', target, 'storage', 'storage');
@@ -333,7 +321,7 @@ var Sensors = GObject.registerClass({
 
         // check disk performance stats
         new FileModule.File('/proc/diskstats').read("\n").then(lines => {
-            for (let line of Object.values(lines)) {
+            for (let line of lines) {
                 let loadArray = line.trim().split(/\s+/);
                 if ('/dev/' + loadArray[2] == this._storageDevice) {
                     var read = (loadArray[5] * 512);
@@ -371,85 +359,122 @@ var Sensors = GObject.registerClass({
         let battery_slot = this._settings.get_int('battery-slot');
 
         // addresses issue #161
-        let batt_key = 'BAT';
+        let battery_key = 'BAT';
         if (battery_slot == 3) {
-            batt_key = 'CMB';
+            battery_key = 'CMB';
             battery_slot = 0;
         }
 
-        let battery_path = '/sys/class/power_supply/' + batt_key + battery_slot + '/';
+        // uevent has all necessary fields, no need to read individual files
+        let battery_path = '/sys/class/power_supply/' + battery_key + battery_slot + '/uevent';
+        new FileModule.File(battery_path).read("\n").then(lines => {
+            let output = {};
+            for (let line of lines) {
+                let split = line.split('=');
+                output[split[0].replace('POWER_SUPPLY_', '')] = split[1];
+            }
 
-        new FileModule.File(battery_path + 'status').read().then(value => {
-            this._returnValue(callback, 'State', value, 'battery', '');
+            if ('STATUS' in output) {
+                this._returnValue(callback, 'State', output['STATUS'], 'battery', '');
+            }
+
+            if ('CYCLE_COUNT' in output) {
+                this._returnValue(callback, 'Cycles', output['CYCLE_COUNT'], 'battery', '');
+            }
+
+            if ('VOLTAGE_NOW' in output) {
+                this._returnValue(callback, 'Voltage', output['VOLTAGE_NOW'] / 1000, 'battery', 'in');
+            }
+
+            if ('CAPACITY_LEVEL' in output) {
+                this._returnValue(callback, 'Level', output['CAPACITY_LEVEL'], 'battery', '');
+            }
+
+            if ('CAPACITY' in output) {
+                this._returnValue(callback, 'Percentage', output['CAPACITY'] / 100, 'battery', 'percent');
+            }
+
+            if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output))) {
+                output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
+            }
+
+            if ('POWER_NOW' in output) {
+                this._returnValue(callback, 'Rate', output['POWER_NOW'], 'battery', 'watt');
+                this._returnValue(callback, 'battery', output['POWER_NOW'], 'battery-group', 'watt');
+            }
+
+            if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output))) {
+                output['ENERGY_FULL'] = (output['CHARGE_FULL'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+            }
+
+            if ('ENERGY_FULL' in output) {
+                this._returnValue(callback, 'Energy (full)', output['ENERGY_FULL'], 'battery', 'watt-hour');
+            }
+
+            if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output))) {
+                output['ENERGY_FULL_DESIGN'] = (output['CHARGE_FULL_DESIGN'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+            }
+
+            if ('ENERGY_FULL_DESIGN' in output) {
+                this._returnValue(callback, 'Energy (design)', output['ENERGY_FULL_DESIGN'], 'battery', 'watt-hour');
+
+                if ('ENERGY_FULL' in output) {
+                    this._returnValue(callback, 'Capacity', (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), 'battery', 'percent');
+                }
+            }
+
+            if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output))) {
+                output['ENERGY_NOW'] = (output['VOLTAGE_MIN_DESIGN'] * output['CHARGE_NOW']) / 1000000;
+            }
+
+            if ('ENERGY_NOW' in output) {
+                this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], 'battery', 'watt-hour');
+            }
+
+            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && output['POWER_NOW'] > 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
+
+                let timeLeft = 0;
+
+                // two different formulas depending on if we are charging or discharging
+                if (output['STATUS'] == 'Charging') {
+                    timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
+                } else {
+                    timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']);
+                }
+
+                // don't process Infinity values
+                if (timeLeft !== Infinity) {
+                    if (this._battery_charge_status != output['STATUS']) {
+                        // clears history due to state change
+                        this._battery_time_left_history = [];
+
+                        // clear time left history when laptop goes in and out of charging
+                        this._battery_charge_status = output['STATUS'];
+                    }
+
+                    // add latest time left estimate to our history
+                    this._battery_time_left_history.push(parseInt(timeLeft * 3600));
+
+                    // keep track of last 15 time left estimates by erasing the first
+                    if (this._battery_time_left_history.length > 10)
+                        this._battery_time_left_history.shift();
+
+                    // sum up and create average of our time left history
+                    let sum = this._battery_time_left_history.reduce((a, b) => a + b);
+                    let avg = sum / this._battery_time_left_history.length;
+
+                    // use time left history to update screen
+                    this._returnValue(callback, 'Time left', parseInt(avg), 'battery', 'runtime');
+                }
+            } else {
+                this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');
+            }
         }).catch(err => { });
-
-        new FileModule.File(battery_path + 'cycle_count').read().then(value => {
-            if (value > 0 || (value == 0 && !this._settings.get_boolean('hide-zeros')))
-                this._returnValue(callback, 'Cycles', value, 'battery', '');
-        }).catch(err => { });
-
-        new FileModule.File(battery_path + 'charge_full').read().then(charge_full => {
-            new FileModule.File(battery_path + 'voltage_min_design').read().then(voltage_min_design => {
-                this._returnValue(callback, 'Energy (full)', charge_full * voltage_min_design, 'battery', 'watt-hour');
-                new FileModule.File(battery_path + 'charge_full_design').read().then(charge_full_design => {
-                    this._returnValue(callback, 'Capacity', (charge_full / charge_full_design), 'battery', 'percent');
-                    this._returnValue(callback, 'Energy (design)', charge_full_design * voltage_min_design, 'battery', 'watt-hour');
-                }).catch(err => { });
-
-                new FileModule.File(battery_path + 'voltage_now').read().then(voltage_now => {
-                    this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
-
-                    new FileModule.File(battery_path + 'current_now').read().then(current_now => {
-                        let watt = current_now * voltage_now;
-                        this._returnValue(callback, 'Rate', watt, 'battery', 'watt');
-                        this._returnValue(callback, 'battery', watt, 'battery-group', 'watt');
-
-                        new FileModule.File(battery_path + 'charge_now').read().then(charge_now => {
-                            let rest_pwr = voltage_min_design * charge_now;
-                            this._returnValue(callback, 'Energy (now)', rest_pwr, 'battery', 'watt-hour');
-
-                            //let time_left_h = rest_pwr / last_pwr;
-                            //this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
-
-                            let level = charge_now / charge_full;
-                            this._returnValue(callback, 'Percentage', level, 'battery', 'percent');
-                        }).catch(err => { });
-                    }).catch(err => { });
-                }).catch(err => { });
-            }).catch(err => { });
-        }).catch(err => {
-            new FileModule.File(battery_path + 'energy_full').read().then(energy_full => {
-                new FileModule.File(battery_path + 'voltage_min_design').read().then(voltage_min_design => {
-                    this._returnValue(callback, 'Energy (full)', energy_full * 1000000, 'battery', 'watt-hour');
-                    new FileModule.File(battery_path + 'energy_full_design').read().then(energy_full_design => {
-                        this._returnValue(callback, 'Capacity', (energy_full / energy_full_design), 'battery', 'percent');
-                        this._returnValue(callback, 'Energy (design)', energy_full_design * 1000000, 'battery', 'watt-hour');
-                    }).catch(err => { });
-
-                    new FileModule.File(battery_path + 'voltage_now').read().then(voltage_now => {
-                        this._returnValue(callback, 'Voltage', voltage_now / 1000, 'battery', 'in');
-
-                        new FileModule.File(battery_path + 'power_now').read().then(power_now => {
-                            this._returnValue(callback, 'Rate', power_now * 1000000, 'battery', 'watt');
-                            this._returnValue(callback, 'battery', power_now * 1000000, 'battery-group', 'watt');
-
-                            new FileModule.File(battery_path + 'energy_now').read().then(energy_now => {
-                                this._returnValue(callback, 'Energy (now)', energy_now * 1000000, 'battery', 'watt-hour');
-
-                                //let time_left_h = energy_now / last_pwr;
-                                //this._returnValue(callback, 'time_left_h', time_left_h, 'battery', '');
-
-                                let level = energy_now / energy_full;
-                                this._returnValue(callback, 'Percentage', level, 'battery', 'percent');
-                            }).catch(err => { });
-                        }).catch(err => { });
-                    }).catch(err => { });
-                }).catch(err => { });
-            }).catch(err => { });
-        });
     }
 
     _returnValue(callback, label, value, type, format) {
+        // don't return if value is not a number - will revisit later
+        //if (isNaN(value)) return;
         callback(label, value, type, format);
     }
 
@@ -511,29 +536,31 @@ var Sensors = GObject.registerClass({
                 let sockets = {};
                 let cache = '';
 
-                for (let line of Object.values(lines)) {
+                for (let line of lines) {
+                    let value = '';
+
                     // grab cpu vendor
-                    let value = line.match(/^vendor_id(\s+): (\w+.*)/);
-                    if (value) vendor_id = value[2];
+                    if (value = line.match(/^vendor_id(\s+): (\w+.*)/)) vendor_id = value[2];
 
                     // grab bogomips
-                    value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/);
-                    if (value) bogomips = value[2];
+                    if (value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/)) bogomips = value[2];
 
                     // grab processor count
-                    value = line.match(/^physical id(\s+): (\d+)$/);
-                    if (value) sockets[value[2]] = 1;
+                    if (value = line.match(/^physical id(\s+): (\d+)$/)) sockets[value[2]] = 1;
 
                     // grab cache
-                    value = line.match(/^cache size(\s+): (\d+) KB$/);
-                    if (value) cache = value[2];
+                    if (value = line.match(/^cache size(\s+): (\d+) KB$/)) cache = value[2];
                 }
 
                 this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
                 this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
                 this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
                 this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
+            }).catch(err => { });
 
+            // grab static CPU information
+            new FileModule.File('/proc/version').read(' ').then(kernelArray => {
+                this._returnValue(callback, 'Kernel', kernelArray[2], 'system', 'string');
             }).catch(err => { });
         }
     }
@@ -637,5 +664,7 @@ var Sensors = GObject.registerClass({
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
         this._processor_uses_cpu_info = true;
+        this._battery_time_left_history = [];
+        this._battery_charge_status = '';
     }
 });

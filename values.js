@@ -157,12 +157,13 @@ var Values = GObject.registerClass({
                 }
 
                 break;
-            case 'duration':
+            case 'runtime':
+            case 'uptime':
                 let scale = [24, 60, 60];
                 let units = ['d ', 'h ', 'm '];
 
                 // show seconds on higher precision or if value under a minute
-                if (use_higher_precision || value < 60) {
+                if (sensorClass != 'runtime' && (use_higher_precision || value < 60)) {
                     scale.push(1);
                     units.push('s ');
                 }
@@ -187,12 +188,12 @@ var Values = GObject.registerClass({
                 break;
             case 'watt':
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
-                value = value / 1000000000000;
+                value = value / 1000000;
                 ending = 'W';
                 break;
             case 'watt-hour':
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
-                value = value / 1000000000000;
+                value = value / 1000000;
                 ending = 'Wh';
                 break;
             case 'load':
@@ -230,7 +231,7 @@ var Values = GObject.registerClass({
             output.push([label, legible, type, key]);
         }
 
-        // save previous values to update screen on chnages only
+        // save previous values to update screen on changes only
         let previousValue = this._history[type][key];
         this._history[type][key] = [legible, value];
 
