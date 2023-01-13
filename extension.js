@@ -148,7 +148,7 @@ var VitalsMenuButton = GObject.registerClass({
         customButtonBox.add_actor(monitorButton);
 
         // custom round preferences button
-        let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
+        let prefsButton = this._createRoundButton('org.gnome.Settings-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
             ExtensionUtils.openPrefs();
