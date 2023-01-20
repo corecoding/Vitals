@@ -1,5 +1,7 @@
 Vitals
 ====================================
+[<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][gextension]
+
 
 Vitals is a GNOME Shell extension for displaying your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats in your GNOME Shell's top menu bar. This is a one stop shop to monitor all of your vital sensors. Vitals uses asynchronous polling to provide a smooth user experience.
 
@@ -106,3 +108,6 @@ Sensor data is obtained from the system using hwmon and GTop. Core Coding and th
 
 ## Donations
 [Please consider donating if you find this extension useful.](https://corecoding.com/donate.php)
+
+[gextension]: https://extensions.gnome.org/extension/1460/vitals/
+
