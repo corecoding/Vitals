@@ -11,7 +11,7 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian
 
-    sudo apt install gir1.2-gtop-2.0 lm-sensors
+    sudo apt install gnome-shell-extension-manager gir1.2-gtop-2.0 lm-sensors
 
 #### Fedora
 
@@ -27,10 +27,14 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 ### 2) Install extension
 
-#### Ubuntu/Debian/Fedora
+#### Ubuntu/Debian
 
+##### Open the Extension Manager (installed above), search for Vitals and click Install
+
+#### Fedora
+
+##### &nbsp;&nbsp;&nbsp;&nbsp;Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch (power on) icon.
 ##### &nbsp;&nbsp;&nbsp;&nbsp; [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][gextension]
-##### &nbsp;&nbsp;&nbsp;&nbsp;Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch icon.
 
 #### Arch/Manjaro
 
