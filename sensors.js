@@ -640,12 +640,12 @@ var Sensors = GObject.registerClass({
 
             try {
                 let update_time = this._settings.get_int('update-time');
-                let query_interval = Math.max(update_time, 1) * 1000;
+                let query_interval = Math.max(update_time, 1);
                 let command = [
                     'nvidia-smi',
                     '--query-gpu=name,temperature.gpu,fan.speed',
                     '--format=csv,noheader,nounits',
-                    '-lms', query_interval.toString()
+                    '-l', query_interval.toString()
                 ];
 
                 this._nvidia_smi_process = new SubProcessModule.SubProcess(command);
