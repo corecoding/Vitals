@@ -768,4 +768,8 @@ var Sensors = GObject.registerClass({
         this._battery_charge_status = '';
         this._nvidia_labels = [];
     }
+
+    destroy() {
+        this._terminateNvidiaSmiProcess();
+    }
 });

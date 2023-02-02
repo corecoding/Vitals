@@ -542,6 +542,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     destroy() {
         this._destroyTimer();
+        this._sensors.destroy();
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
