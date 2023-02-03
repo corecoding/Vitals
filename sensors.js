@@ -27,6 +27,7 @@
 const GObject = imports.gi.GObject;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
+const SubProcessModule = Me.imports.helpers.subprocess;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const NM = imports.gi.NM;
@@ -49,6 +50,12 @@ var Sensors = GObject.registerClass({
         this.resetHistory();
 
         this._last_processor = { 'core': {}, 'speed': [] };
+
+        this._settings.connect('changed::query-nvidia-smi', this._reconfigureNvidiaSmiProcess.bind(this));
+        this._settings.connect('changed::update-time', this._reconfigureNvidiaSmiProcess.bind(this));
+
+        this._nvidia_smi_process = null;
+        this._nvidia_labels = [];
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -111,6 +118,46 @@ var Sensors = GObject.registerClass({
             }).catch(err => {
                 this._returnValue(callback, label, 'disabled', type, sensor['format']);
             });
+        }
+
+        this._queryNvidiaSmi(callback);
+    }
+
+    _queryNvidiaSmi(callback) {
+        if (this._nvidia_smi_process) {
+            this._nvidia_smi_process.read('\n').then(lines => {
+                for (let csv of lines) {
+                    this._parseNvidiaSmiLine(callback, csv);
+                }
+            }).catch(err => {
+                this._terminateNvidiaSmiProcess();
+            });
+        } else {
+            for (let label of this._nvidia_labels) {
+                if (this._settings.get_boolean('show-temperature'))
+                    this._returnValue(callback, label, 'disabled', 'temperature', 'temp');
+
+                if (this._settings.get_boolean('show-fan'))
+                    this._returnValue(callback, label, 'disabled', 'fan', 'percent');
+            }
+        }
+    }
+
+    _parseNvidiaSmiLine(callback, csv) {
+        let csv_split = csv.split(',');
+        if (csv_split.length == 3) {
+            let [label, temp, fan_speed_pct] = csv_split;
+
+            if (!this._nvidia_labels.includes(label))
+                this._nvidia_labels.push(label);
+
+            if (this._settings.get_boolean('show-temperature'))
+                this._returnValue(callback, label, parseInt(temp) * 1000, 'temperature', 'temp');
+
+            if (this._settings.get_boolean('show-fan'))
+                this._returnValue(callback, label, parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
+        } else {
+            this._terminateNvidiaSmiProcess();
         }
     }
 
@@ -563,6 +610,59 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Kernel', kernelArray[2], 'system', 'string');
             }).catch(err => { });
         }
+
+        // Launch nvidia-smi subprocess if nvidia querying is enabled
+        this._reconfigureNvidiaSmiProcess();
+    }
+
+    // The nvidia-smi subprocess will keep running and print new sensor data to stdout every
+    // `update_time` seconds. _queryNvidiaSmi() will be called at roughly the same interval and
+    // read from the subprocess's stdout to get new sensor data.
+
+    // Regarding "keeping main process & sub process in sync", there are two possible scenarios:
+    // - For some reason, nvidia-smi prints at a somewhat higher frequency than we call
+    //   _queryNvidiaSmi() to read data. This is okay, eventually one call to _queryNvidiaSmi()
+    //   will read two sensor data updates in a single call.
+    // - For some reason, _queryNvidiaSmi() is called at a somewhat higher frequency than
+    //   nvidia-smi prints data. This is the more likely scenario with user actions triggering
+    //   additional reads. This eventually triggers an "IO PENDING" error while attempting to
+    //   read, because the previous async read is still waiting. To solve this, the subprocess
+    //   module simply ignores PENDING errors. After ignoring the error, the earlier read will
+    //   eventually return and sensor data will be updated, so this scenario is handled correctly.
+
+    // Generally speaking, the call to _queryNvidiaSmi() and nvidia-smi's printing to stdout do
+    // not happen at the same time. So the async call in _queryNvidiaSmi() will usually have to
+    // wait up to `update_time` seconds before getting any results and reporting them through the
+    // callback.
+    _reconfigureNvidiaSmiProcess() {
+        if (this._settings.get_boolean('query-nvidia-smi')) {
+            this._terminateNvidiaSmiProcess();
+
+            try {
+                let update_time = this._settings.get_int('update-time');
+                let query_interval = Math.max(update_time, 1);
+                let command = [
+                    'nvidia-smi',
+                    '--query-gpu=name,temperature.gpu,fan.speed',
+                    '--format=csv,noheader,nounits',
+                    '-l', query_interval.toString()
+                ];
+
+                this._nvidia_smi_process = new SubProcessModule.SubProcess(command);
+            } catch(e) {
+                // proprietary nvidia driver not installed
+                this._terminateNvidiaSmiProcess();
+            }
+        } else {
+            this._terminateNvidiaSmiProcess();
+        }
+    }
+
+    _terminateNvidiaSmiProcess() {
+        if (this._nvidia_smi_process) {
+            this._nvidia_smi_process.terminate();
+            this._nvidia_smi_process = null;
+        }
     }
 
     _processTempVoltFan(callback, sensor_types, name, path, file) {
@@ -666,5 +766,10 @@ var Sensors = GObject.registerClass({
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
         this._battery_charge_status = '';
+        this._nvidia_labels = [];
+    }
+
+    destroy() {
+        this._terminateNvidiaSmiProcess();
     }
 });
