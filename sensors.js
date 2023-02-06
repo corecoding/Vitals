@@ -51,8 +51,9 @@ var Sensors = GObject.registerClass({
 
         this._last_processor = { 'core': {}, 'speed': [] };
 
-        this._settings.connect('changed::query-nvidia-smi', this._reconfigureNvidiaSmiProcess.bind(this));
-        this._settings.connect('changed::update-time', this._reconfigureNvidiaSmiProcess.bind(this));
+        this._settingChangedSignals = [];
+        this._addSettingChangedSignal('query-nvidia-smi', this._reconfigureNvidiaSmiProcess.bind(this));
+        this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._nvidia_smi_process = null;
         this._nvidia_labels = [];
@@ -65,6 +66,10 @@ var Sensors = GObject.registerClass({
             this._lastRead = 0;
             this._lastWrite = 0;
         }
+    }
+
+    _addSettingChangedSignal(key, callback) {
+        this._settingChangedSignals.push(this._settings.connect('changed::' + key, callback));
     }
 
     _refreshIPAddress(callback) {
@@ -107,6 +112,8 @@ var Sensors = GObject.registerClass({
                 }
             }
         }
+
+        this._queryNvidiaSmi(callback);
     }
 
     _queryTempVoltFan(callback, type) {
@@ -119,8 +126,6 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, label, 'disabled', type, sensor['format']);
             });
         }
-
-        this._queryNvidiaSmi(callback);
     }
 
     _queryNvidiaSmi(callback) {
@@ -771,5 +776,8 @@ var Sensors = GObject.registerClass({
 
     destroy() {
         this._terminateNvidiaSmiProcess();
+
+        for (let signal of Object.values(this._settingChangedSignals))
+            this._settings.disconnect(signal);
     }
 });
