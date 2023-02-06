@@ -107,6 +107,8 @@ var Sensors = GObject.registerClass({
                 }
             }
         }
+
+        this._queryNvidiaSmi(callback);
     }
 
     _queryTempVoltFan(callback, type) {
@@ -119,8 +121,6 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, label, 'disabled', type, sensor['format']);
             });
         }
-
-        this._queryNvidiaSmi(callback);
     }
 
     _queryNvidiaSmi(callback) {
