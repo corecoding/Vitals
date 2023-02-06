@@ -36,14 +36,19 @@ SubProcess.prototype.read = function(delimiter = '') {
                 read_str = convertUint8ArrayToString(read_bytes);
 
                 // split read_str by delimiter if passed in
-                if (delimiter) read_str = read_str.split(delimiter);
+                if (delimiter) {
+                    if (read_str == '')
+                        read_str = []; // EOF, ''.split(delimiter) would return ['']
+                    else
+                        read_str = read_str.split(delimiter);
+                }
 
                 // return results
                 resolve(read_str);
             } catch (e) {
                 if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.PENDING)) {
                     // previous read attempt is still waiting for something from stdout
-                    // ignore second attempt, return empty data
+                    // ignore second attempt, return empty data (like EOF)
                     if (delimiter) resolve([]);
                     else resolve('');
                 } else {
