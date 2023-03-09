@@ -29,7 +29,7 @@ var VitalsMenuButton = GObject.registerClass({
                 'voltage' : { 'icon': 'voltage-symbolic.svg' },
                     'fan' : { 'icon': 'fan-symbolic.svg' },
                  'memory' : { 'icon': 'memory-symbolic.svg' },
-              'processor' : { 'icon': 'cpu-symbolic.svg' },
+              'processor' : { 'icon': 'processor-symbolic.svg' },
                  'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
                            'icon-rx': 'network-receive-symbolic.svg',
