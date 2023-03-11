@@ -72,7 +72,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'query-nvidia-smi' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -555,6 +555,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     destroy() {
         this._destroyTimer();
+        this._sensors.destroy();
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);

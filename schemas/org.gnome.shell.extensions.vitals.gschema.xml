@@ -126,6 +126,11 @@
       <summary>Make the menu centered</summary>
       <description>Center the menu to the icon regardless of the position in the panel</description>
     </key>
+    <key type="b" name="query-nvidia-smi">
+      <default>false</default>
+      <summary>Read Nvidia sensors</summary>
+      <description>Spawn the nvidia-smi tool as a subprocess to monitor Nvidia GPU temperature and fan speed</description>
+    </key>
     <key type="s" name="monitor-cmd">
       <default>"gnome-system-monitor"</default>
       <summary>System Monitor command</summary>
