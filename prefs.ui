@@ -352,7 +352,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
-                                <property name="label" translatable="yes">[Experimental] Read Nvidia sensors</property>
+                                <property name="label" translatable="yes">Read Nvidia sensors (beta)</property>
                               </object>
                             </child>
                             <child>
