@@ -27,7 +27,6 @@
 const GObject = imports.gi.GObject;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const FileModule = Me.imports.helpers.file;
-const SubProcessModule = Me.imports.helpers.subprocess;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const NM = imports.gi.NM;
@@ -50,9 +49,6 @@ var Sensors = GObject.registerClass({
         this.resetHistory();
 
         this._last_processor = { 'core': {}, 'speed': [] };
-
-        this._nvidia_smi_process = null;
-        this._nvidia_labels = [];
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -670,6 +666,5 @@ var Sensors = GObject.registerClass({
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
         this._battery_charge_status = '';
-        this._nvidia_labels = [];
     }
 });
