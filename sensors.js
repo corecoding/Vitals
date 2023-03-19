@@ -113,6 +113,9 @@ export const Sensors = GObject.registerClass({
         this._queryNvidiaSmi(callback);
     }
 
+    _queryGpu(callback) {
+    }
+
     _queryTempVoltFan(callback, type) {
         for (let label in this._tempVoltFanSensors[type]) {
             let sensor = this._tempVoltFanSensors[type][label];

@@ -40,7 +40,8 @@ var VitalsMenuButton = GObject.registerClass({
                            'icon-rx': 'network-download-symbolic.svg',
                            'icon-tx': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
-                'battery' : { 'icon': 'battery-symbolic.svg' }
+                'battery' : { 'icon': 'battery-symbolic.svg' },
+                    'gpu' : { 'icon': 'battery-symbolic.svg' }
         }
 
         this._warnings = [];
