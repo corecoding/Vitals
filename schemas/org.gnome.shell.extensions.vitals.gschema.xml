@@ -121,11 +121,6 @@
       <summary>Hide icons in top bar</summary>
       <description>Keep top bar clean by only showing sensor values</description>
     </key>
-    <key type="b" name="query-nvidia-smi">
-      <default>false</default>
-      <summary>Read Nvidia sensors</summary>
-      <description>Spawn the nvidia-smi tool as a subprocess to monitor Nvidia GPU temperature and fan speed</description>
-    </key>
     <key type="s" name="monitor-cmd">
       <default>"gnome-system-monitor"</default>
       <summary>System Monitor command</summary>
@@ -137,9 +132,9 @@
       <description>Display processor static information that doesn't change</description>
     </key>
     <key type="b" name="show-gpu">
-      <default>true</default>
+      <default>false</default>
       <summary>Monitor GPU</summary>
-      <description>Display GPU specific sensor data</description>
+      <description>Spawn the nvidia-smi tool as a subprocess to monitor Nvidia GPU temperature and fan speed</description>
     </key>
   </schema>
 </schemalist>

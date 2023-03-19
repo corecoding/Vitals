@@ -52,7 +52,7 @@ var Sensors = GObject.registerClass({
         this._last_processor = { 'core': {}, 'speed': [] };
 
         this._settingChangedSignals = [];
-        this._addSettingChangedSignal('query-nvidia-smi', this._reconfigureNvidiaSmiProcess.bind(this));
+        this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._nvidia_smi_process = null;
@@ -638,7 +638,7 @@ var Sensors = GObject.registerClass({
     // wait up to `update_time` seconds before getting any results and reporting them through the
     // callback.
     _reconfigureNvidiaSmiProcess() {
-        if (this._settings.get_boolean('query-nvidia-smi')) {
+        if (this._settings.get_boolean('show-gpu')) {
             this._terminateNvidiaSmiProcess();
 
             try {
