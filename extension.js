@@ -73,7 +73,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'query-nvidia-smi' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 

@@ -49,7 +49,7 @@ const Settings = new GObject.Class({
                         'alphabetize', 'hide-zeros', 'include-public-ip',
                         'show-battery', 'fixed-widths', 'hide-icons', 
                         'menu-centered', 'include-static-info',
-                        'include-static-info', 'query-nvidia-smi', 'show-gpu' ];
+                        'include-static-info', 'show-gpu' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
