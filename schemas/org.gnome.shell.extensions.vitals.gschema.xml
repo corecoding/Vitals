@@ -136,5 +136,10 @@
       <summary>Include processor static information</summary>
       <description>Display processor static information that doesn't change</description>
     </key>
+    <key type="b" name="show-gpu">
+      <default>true</default>
+      <summary>Monitor GPU</summary>
+      <description>Display GPU specific sensor data</description>
+    </key>
   </schema>
 </schemalist>
