@@ -112,11 +112,6 @@ var Sensors = GObject.registerClass({
                 }
             }
         }
-
-        this._queryNvidiaSmi(callback);
-    }
-
-    _queryGpu(callback) {
     }
 
     _queryTempVoltFan(callback, type) {
@@ -128,26 +123,6 @@ var Sensors = GObject.registerClass({
             }).catch(err => {
                 this._returnValue(callback, label, 'disabled', type, sensor['format']);
             });
-        }
-    }
-
-    _queryNvidiaSmi(callback) {
-        if (this._nvidia_smi_process) {
-            this._nvidia_smi_process.read('\n').then(lines => {
-                for (let csv of lines) {
-                    this._parseNvidiaSmiLine(callback, csv);
-                }
-            }).catch(err => {
-                this._terminateNvidiaSmiProcess();
-            });
-        } else {
-            for (let label of this._nvidia_labels) {
-                if (this._settings.get_boolean('show-temperature'))
-                    this._returnValue(callback, label, 'disabled', 'temperature', 'temp');
-
-                if (this._settings.get_boolean('show-fan'))
-                    this._returnValue(callback, label, 'disabled', 'fan', 'percent');
-            }
         }
     }
 
@@ -525,6 +500,26 @@ var Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');
             }
         }).catch(err => { });
+    }
+
+    _queryGpu(callback) {
+        if (this._nvidia_smi_process) {
+            this._nvidia_smi_process.read('\n').then(lines => {
+                for (let csv of lines) {
+                    this._parseNvidiaSmiLine(callback, csv);
+                }
+            }).catch(err => {
+                this._terminateNvidiaSmiProcess();
+            });
+        } else {
+            for (let label of this._nvidia_labels) {
+                if (this._settings.get_boolean('show-temperature'))
+                    this._returnValue(callback, label, 'disabled', 'gpu', 'temp');
+
+                if (this._settings.get_boolean('show-fan'))
+                    this._returnValue(callback, label, 'disabled', 'gpu', 'percent');
+            }
+        }
     }
 
     _returnValue(callback, label, value, type, format) {
