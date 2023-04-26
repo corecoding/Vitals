@@ -40,10 +40,6 @@ msgstr "系统监视器"
 msgid "Preferences"
 msgstr "首选项"
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr "首选项"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "包含公网IP地址"
@@ -537,9 +533,3 @@ msgstr "剩余"
 #: sensors.js:471
 msgid "storage"
 msgstr "存储"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "温度首选项"
-
-#~ msgid "Network Preferences"
-#~ msgstr "网络首选项"

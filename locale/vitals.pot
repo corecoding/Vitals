@@ -35,10 +35,6 @@ msgstr ""
 msgid "Preferences"
 msgstr ""
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr ""
-
 #: prefs.ui:42
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"

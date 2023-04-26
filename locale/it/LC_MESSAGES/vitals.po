@@ -34,10 +34,6 @@ msgstr "Sistema"
 msgid "Preferences"
 msgstr "Preferenze rete"
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr " Preferenze rete"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Includi l'indirizzo IP pubblico"
@@ -552,12 +548,3 @@ msgstr "Libero"
 #, fuzzy
 msgid "storage"
 msgstr "Monitora l'archiviazione"
-
-#~ msgid "Boot rx"
-#~ msgstr "Totale ric"
-
-#~ msgid "Boot tx"
-#~ msgstr "Totale trasm"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Preferenze temperatura"

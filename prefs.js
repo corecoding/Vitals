@@ -99,7 +99,7 @@ const Settings = new GObject.Class({
             this.builder.get_object(sensor + '-prefs').connect('clicked', () => {
                 let transientObj = this.widget.get_root();
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
-                let dialog = new Gtk.Dialog({ title: _(title) + _(' Preferences'),
+                let dialog = new Gtk.Dialog({ title: _(title) + ' ' + _('Preferences'),
                                               transient_for: transientObj,
                                               use_header_bar: false,
                                               modal: true });

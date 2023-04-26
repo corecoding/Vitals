@@ -34,10 +34,6 @@ msgstr "Системный монитор"
 msgid "Preferences"
 msgstr "Параметры"
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr " Параметры"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Включить публичный IP-адрес"
@@ -534,9 +530,3 @@ msgstr "Свободно"
 #: sensors.js:471
 msgid "storage"
 msgstr "Хранилище"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Температура"
-
-#~ msgid "Network Preferences"
-#~ msgstr "Сеть"

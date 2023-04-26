@@ -27,12 +27,7 @@ msgstr "Sistem Gözlemcisi"
 
 #: extension.js:155
 msgid "Preferences"
-msgstr "Tercihler"
-
-# Başına modülün adı geliyor ve sonunda İşlemci Tercihleri gibi bir sonuç üretiyor.
-#: prefs.js:115
-msgid " Preferences"
-msgstr " Tercihleri"
+msgstr "Tercihleri"
 
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
@@ -537,9 +532,3 @@ msgstr "Ondalık"
 
 msgid "Binary"
 msgstr "İkilik"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Sıcaklık Tercihleri"
-
-#~ msgid "Network Preferences"
-#~ msgstr "Ağ Tercihleri"
