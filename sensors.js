@@ -359,10 +359,13 @@ var Sensors = GObject.registerClass({
         let battery_slot = this._settings.get_int('battery-slot');
 
         // addresses issue #161
-        let battery_key = 'BAT';
+        let battery_key = 'BAT'; // BAT0, BAT1 and BAT2
         if (battery_slot == 3) {
-            battery_key = 'CMB';
+            battery_key = 'CMB'; // CMB0
             battery_slot = 0;
+        } else if (battery_slot == 4) {
+            battery_key = 'macsmc-battery'; // supports Asahi linux
+            battery_slot = '';
         }
 
         // uevent has all necessary fields, no need to read individual files
