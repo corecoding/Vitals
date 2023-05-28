@@ -1,21 +1,27 @@
 # Turkish translation for gnome-shell-extension-vitals.
-# Copyright (C) Core Coding
+# Copyright (C) 2019-2023 gnome-shell-extension-vitals' COPYRIGHT HOLDER
 # This file is distributed under the same license as the gnome-shell-extension-vitals package.
+#
 # Serdar Sağlam <teknomobil@yandex.com>, 2019.
+# Sabri Ünal <libreajans@gmail.com>, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: gnome-shell-extension-vitals\n"
 "POT-Creation-Date: 2022-04-10 21:29+0200\n"
-"PO-Revision-Date: 2023-04-20 14:27+0300\n"
+"PO-Revision-Date: 2023-05-28 07:02+0300\n"
 "Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
-"Language-Team: Turkish <teknomobil@yandex.com>\n"
+"Language-Team: Turkish <takim@gnome.org.tr>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
+
+#: extension.js:102
+msgid "No Data"
+msgstr "Veri Yok"
 
 #: extension.js:129
 msgid "Refresh"
@@ -137,37 +143,73 @@ msgstr "Belleği izle"
 msgid "Monitor processor"
 msgstr "İşlemciyi izle"
 
-#: prefs.ui:608 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+#: prefs.ui:631 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
 msgstr "Sistemi izle"
 
-#: prefs.ui:636 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+#: prefs.ui:682 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
 msgstr "Ağı izle"
 
-#: prefs.ui:687 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+#: prefs.ui:733 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
 msgstr "Depolamayı izle"
 
-#: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+#: prefs.ui:784 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 msgid "Monitor battery"
 msgstr "Pili izle"
 
-#: prefs.ui:817
+#: prefs.ui:863
 msgid "Path"
 msgstr "Yol"
 
-#: prefs.ui:849 prefs.ui:958
+#: prefs.ui:895 prefs.ui:1004
 msgid "Measurement"
 msgstr "Ölçüm"
 
-#: prefs.ui:903
+#: prefs.ui:903 prefs.ui:1012
+msgid "Binary"
+msgstr "İkilik"
+
+#: prefs.ui:904 prefs.ui:1013
+msgid "Decimal"
+msgstr "Ondalık"
+
+#: prefs.ui:949
 msgid "Unit"
 msgstr "Birim"
 
-#: prefs.ui:1012
+#: prefs.ui:1058
 msgid "Display Battery"
 msgstr "Pili Göster"
+
+#: prefs.ui:1066
+msgid "BAT0"
+msgstr "Pil0"
+
+#: prefs.ui:1067
+msgid "BAT1"
+msgstr "Pil1"
+
+#: prefs.ui:1068
+msgid "BAT2"
+msgstr "Pil2"
+
+#: prefs.ui:1069
+msgid "CMB0"
+msgstr "CMB0"
+
+#: prefs.ui:1070
+msgid "macsmc-battery"
+msgstr "macsmc-battery"
+
+#: prefs.ui:1115
+msgid "Monitor command"
+msgstr "Sistem Gözlemcisi komutu"
+
+#: prefs.ui:1167
+msgid "Include static info"
+msgstr "İstatik bilgilerini dahil et"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
@@ -526,9 +568,3 @@ msgstr "Boş"
 #: sensors.js:471
 msgid "storage"
 msgstr "depolama"
-
-msgid "Decimal"
-msgstr "Ondalık"
-
-msgid "Binary"
-msgstr "İkilik"
