@@ -23,6 +23,10 @@ msgstr ""
 "vitals.gschema.xml\n"
 "X-Poedit-SearchPath-6: prefs.ui\n"
 
+#: extension.js:102
+msgid "No Data"
+msgstr ""
+
 #: extension.js:129
 msgid "Refresh"
 msgstr ""
