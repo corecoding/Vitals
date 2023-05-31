@@ -497,6 +497,10 @@ var VitalsMenuButton = GObject.registerClass({
                 arrow_pos = 0.5;
                 break;
         }
+        
+        let centered = this._settings.get_boolean('menu-centered')
+        
+        if (centered) arrow_pos = 0.5;
 
         // set arrow position when initializing and moving vitals
         this.menu._arrowAlignment = arrow_pos;
