@@ -474,7 +474,7 @@ var VitalsMenuButton = GObject.registerClass({
             case 0: // left
                 alignment = 'left';
                 gravity = -1;
-                arrow_pos = 0.5;
+                arrow_pos = 1;
                 break;
             case 1: // center
                 alignment = 'center';
@@ -484,17 +484,17 @@ var VitalsMenuButton = GObject.registerClass({
             case 2: // right
                 alignment = 'right';
                 gravity = 0;
-                arrow_pos = 0.5;
+                arrow_pos = 0;
                 break;
             case 3: // far left
                 alignment = 'left';
                 gravity = 0;
-                arrow_pos = 0.5;
+                arrow_pos = 1;
                 break;
             case 4: // far right
                 alignment = 'right';
                 gravity = -1;
-                arrow_pos = 0.5;
+                arrow_pos = 0;
                 break;
         }
         
