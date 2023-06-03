@@ -520,13 +520,6 @@ var Sensors = GObject.registerClass({
                     this._returnValue(callback, 'Cycles', cycle_count, 'batterycombined', '');
                 }
     
-                // is not accurate, takes the capacity of the batteries not into account!
-                let capacity;
-                if (combine.capacity.length > 0) {
-                    capacity = combine.capacity.reduce((p, c) => p + c, 0) / combine.capacity.length;
-                    this._returnValue(callback, 'Percentage', capacity / 100, 'batterycombined', 'percent');
-                }
-    
                 let power_now;
                 let charging;
                 if (combine.power_now.length > 0) {
@@ -554,7 +547,12 @@ var Sensors = GObject.registerClass({
                     energy_now = combine.energy_now.reduce((p, c) => p + c, 0);
                     this._returnValue(callback, 'Energy (now)', energy_now, 'batterycombined', 'watt-hour');
                 }
-    
+
+                let capacity;
+                if (combine.capacity.length > 0) {
+                    capacity = energy_now / energy_full;
+                    this._returnValue(callback, 'Percentage', capacity, 'batterycombined', 'percent');
+                }
                 
                 if (energy_full && energy_now && power_now && power_now > 0) {
                     let timeLeft = 0;
