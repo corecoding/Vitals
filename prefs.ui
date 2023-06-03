@@ -1033,6 +1033,7 @@
     <child>
       <object class="GtkFrame">
         <property name="can_focus">0</property>
+        <property name="margin_bottom">12</property>
         <property name="child">
           <object class="GtkListBox">
             <property name="can_focus">0</property>
@@ -1055,19 +1056,263 @@
                         <property name="hexpand">1</property>
                         <property name="can_focus">0</property>
                         <property name="halign">start</property>
-                        <property name="label" translatable="yes">Display Battery</property>
+                        <property name="label" translatable="yes">Monitor BAT0</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkComboBoxText" id="battery-slot">
+                      <object class="GtkSwitch" id="show-batterybat0">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
                         <property name="can_focus">0</property>
-                        <property name="active">0</property>
-                        <items>
-                          <item translatable="no">BAT0</item>
-                          <item translatable="no">BAT1</item>
-                          <item translatable="no">BAT2</item>
-                          <item translatable="no">CMB0</item>
-                        </items>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Monitor BAT1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="show-batterybat1">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Monitor BAT2</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="show-batterybat2">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Monitor CMB0</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="show-batterycmb0">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkFrame">
+        <property name="can_focus">0</property>
+        <property name="child">
+          <object class="GtkListBox">
+            <property name="can_focus">0</property>
+            <property name="selection_mode">none</property>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Calculate Combined Values</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="show-batterycombined">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Include BAT0</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="combined-include-bat0">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Include BAT1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="combined-include-bat1">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Include BAT2</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="combined-include-bat2">
+                        <property name="halign">end</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Include CMB0</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="combined-include-cmb0">
+                        <property name="halign">end</property>
                       </object>
                     </child>
                   </object>

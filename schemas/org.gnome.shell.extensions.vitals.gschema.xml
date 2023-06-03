@@ -106,10 +106,50 @@
       <summary>Storage measurement</summary>
       <description>Can use gigabyte or gibibyte for storage</description>
     </key>
-    <key type="i" name="battery-slot">
-      <default>0</default>
-      <summary>Battery slot to monitor</summary>
-      <description>Which numerical battery slot should vitals monitor</description>
+    <key type="b" name="show-batterybat0">
+      <default>true</default>
+      <summary>Display battery BAT0</summary>
+      <description>Should battery 'BAT0' be displayed?</description>
+    </key>
+    <key type="b" name="show-batterybat1">
+      <default>false</default>
+      <summary>Display battery BAT1</summary>
+      <description>Should battery 'BAT1' be displayed?</description>
+    </key>
+    <key type="b" name="show-batterybat2">
+      <default>false</default>
+      <summary>Display battery BAT2</summary>
+      <description>Should battery 'BAT2' be displayed?</description>
+    </key>
+    <key type="b" name="show-batterycmb0">
+      <default>false</default>
+      <summary>Display battery CMB0</summary>
+      <description>Should battery 'CMB0' be displayed?</description>
+    </key>
+    <key type="b" name="show-batterycombined">
+      <default>false</default>
+      <summary>Display combined battery data</summary>
+      <description>Display combined values for selected batteries</description>
+    </key>
+    <key type="b" name="combined-include-bat0">
+      <default>false</default>
+      <summary>Include BAT0</summary>
+      <description>Include 'BAT0' when calculating combined Battery</description>
+    </key>
+    <key type="b" name="combined-include-bat1">
+      <default>false</default>
+      <summary>Include BAT1</summary>
+      <description>Include 'BAT1' when calculating combined Battery</description>
+    </key>
+    <key type="b" name="combined-include-bat2">
+      <default>false</default>
+      <summary>Include BAT2</summary>
+      <description>Include 'BAT2' when calculating combined Battery</description>
+    </key>
+    <key type="b" name="combined-include-cmb0">
+      <default>false</default>
+      <summary>Include CMB0</summary>
+      <description>Include 'CMB0' when calculating combined Battery</description>
     </key>
     <key type="b" name="fixed-widths">
       <default>true</default>
