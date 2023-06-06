@@ -554,14 +554,14 @@ var Sensors = GObject.registerClass({
                     this._returnValue(callback, 'Percentage', capacity, 'batterycombined', 'percent');
                 }
                 
-                if (energy_full && energy_now && power_now && power_now > 0) {
+                if (energy_full && energy_now && power_now && power_now != 0) {
                     let timeLeft = 0;
     
                     // two different formulas depending on if we are charging or discharging
                     if (charging) {
-                        timeLeft = ((energy_full - energy_now) / power_now);
+                        timeLeft = ((energy_full - energy_now) / Math.abs(power_now));
                     } else {
-                        timeLeft = (energy_now / power_now);
+                        timeLeft = (energy_now / Math.abs(power_now));
                     }
     
                     // don't process Infinity values
