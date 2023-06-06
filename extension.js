@@ -263,7 +263,7 @@ var VitalsMenuButton = GObject.registerClass({
             style_class: 'vitals-panel-label',
             text: (value)?value:'\u2026', // ...
             y_expand: true,
-            y_align: Clutter.ActorAlign.START
+            y_align: Clutter.ActorAlign.CENTER
         });
 
         // attempt to prevent ellipsizes
