@@ -23,6 +23,10 @@ msgstr ""
 "vitals.gschema.xml\n"
 "X-Poedit-SearchPath-6: prefs.ui\n"
 
+#: extension.js:102
+msgid "No Data"
+msgstr ""
+
 #: extension.js:129
 msgid "Refresh"
 msgstr ""
@@ -151,40 +155,76 @@ msgstr ""
 msgid "Monitor processor"
 msgstr ""
 
-#: prefs.ui:608
+#: prefs.ui:631
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
 msgstr ""
 
-#: prefs.ui:636
+#: prefs.ui:682
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
 msgstr ""
 
-#: prefs.ui:687
+#: prefs.ui:733
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
 msgstr ""
 
-#: prefs.ui:738
+#: prefs.ui:784
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 msgid "Monitor battery"
 msgstr ""
 
-#: prefs.ui:817
+#: prefs.ui:863
 msgid "Path"
 msgstr ""
 
-#: prefs.ui:849 prefs.ui:958
+#: prefs.ui:895 prefs.ui:1004
 msgid "Measurement"
 msgstr ""
 
-#: prefs.ui:903
+#: prefs.ui:903 prefs.ui:1012
+msgid "Binary"
+msgstr ""
+
+#: prefs.ui:904 prefs.ui:1013
+msgid "Decimal"
+msgstr ""
+
+#: prefs.ui:949
 msgid "Unit"
 msgstr ""
 
-#: prefs.ui:1012
+#: prefs.ui:1058
 msgid "Display Battery"
+msgstr ""
+
+#: prefs.ui:1066
+msgid "BAT0"
+msgstr ""
+
+#: prefs.ui:1067
+msgid "BAT1"
+msgstr ""
+
+#: prefs.ui:1068
+msgid "BAT2"
+msgstr ""
+
+#: prefs.ui:1069
+msgid "CMB0"
+msgstr ""
+
+#: prefs.ui:1070
+msgid "macsmc-battery"
+msgstr ""
+
+#: prefs.ui:1115
+msgid "Monitor command"
+msgstr ""
+
+#: prefs.ui:1167
+msgid "Include static info"
 msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
