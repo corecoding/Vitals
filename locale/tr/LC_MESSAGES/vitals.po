@@ -1,5 +1,5 @@
 # Turkish translation for gnome-shell-extension-vitals.
-# Copyright (C) 2019-2023 gnome-shell-extension-vitals' COPYRIGHT HOLDER
+# Copyright (C) Core Coding
 # This file is distributed under the same license as the gnome-shell-extension-vitals package.
 #
 # Serdar Sağlam <teknomobil@yandex.com>, 2019.
