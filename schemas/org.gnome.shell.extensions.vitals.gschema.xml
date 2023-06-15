@@ -121,6 +121,11 @@
       <summary>Hide icons in top bar</summary>
       <description>Keep top bar clean by only showing sensor values</description>
     </key>
+    <key type="b" name="menu-centered">
+      <default>false</default>
+      <summary>Make the menu centered</summary>
+      <description>Center the menu to the icon regardless of the position in the panel</description>
+    </key>
     <key type="s" name="monitor-cmd">
       <default>"gnome-system-monitor"</default>
       <summary>System Monitor command</summary>

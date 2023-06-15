@@ -48,8 +48,8 @@ const Settings = new GObject.Class({
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
-                        'show-battery', 'fixed-widths', 'hide-icons',
-                        'include-static-info' ];
+                        'show-battery', 'fixed-widths', 'hide-icons', 
+                        'menu-centered', 'include-static-info' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];

@@ -65,6 +65,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
+        this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info' ];
         for (let setting of Object.values(settings))
@@ -497,6 +498,10 @@ var VitalsMenuButton = GObject.registerClass({
                 arrow_pos = 0;
                 break;
         }
+        
+        let centered = this._settings.get_boolean('menu-centered')
+        
+        if (centered) arrow_pos = 0.5;
 
         // set arrow position when initializing and moving vitals
         this.menu._arrowAlignment = arrow_pos;
