@@ -30,6 +30,7 @@ const FileModule = Me.imports.helpers.file;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const NM = imports.gi.NM;
+const GLib = imports.gi.GLib;
 
 let GTop, hasGTop = true;
 try {
@@ -287,6 +288,22 @@ var Sensors = GObject.registerClass({
             this._next_public_ip_check -= dwell;
         }
 
+        // private ip checking
+        var check_private_ip = GLib.spawn_command_line_sync('ip route');
+        if (check_private_ip[0]) {
+            var command_output_string = new TextDecoder().decode(check_private_ip[1]);
+            const interfaces = command_output_string.split('\n');
+            for (const i of interfaces) {
+                const words = i.split(' ');
+                const srcIndex = words.indexOf('src');
+                if (srcIndex !== -1) {
+                    const iface = words[words.indexOf('dev') + 1];
+                    const srcIp = words[srcIndex + 1];
+                    this._returnValue(callback, `${iface} IP`, srcIp, 'network', 'string');
+                }
+            }
+        }
+                
         // wireless interface statistics
         new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
             // wireless has two headers - first is stripped in helper function
