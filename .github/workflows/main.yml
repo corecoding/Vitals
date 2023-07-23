@@ -1,0 +1,82 @@
+name: Build Release Asset
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Fetch tags
+        run: git fetch --tags
+
+      - name: Compile schemas
+        run: /usr/bin/glib-compile-schemas --strict schemas/
+
+      - name: Install msgfmt command
+        run: sudo apt-get install gettext
+
+      - name: Compile message catalogs
+        run: |
+          for i in locale/*/
+              do /usr/bin/msgfmt $i/LC_MESSAGES/vitals.po -o $i/LC_MESSAGES/vitals.mo
+          done
+
+# at some point we either need to upload assets, or update arch batch script with above compile cmds
+#      - name: Push compiled assets
+#        run: git commit && git push
+
+      - name: Build project # This would actually build your project, using zip for an example artifact
+        run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "howtouse.gif"
+
+      - name: Grab version from meta data
+        run: echo "METATAG=$(jq .version metadata.json)" >> $GITHUB_ENV
+
+      - name: Get next available tag
+        run: |
+            # get latest tag, could also be empty
+            tag=$(git tag --sort=v:refname | grep "v$METATAG\." | tail -n 1)
+
+            # if there are none, start tags at INITIAL_VERSION which defaults to 0.0.0
+            if [ -z "$tag" ]; then
+                tag="v$METATAG.0.0"
+            else
+                array=($(echo "$tag" | tr . '\n'))
+                array[2]=$((array[2]+1))
+                tag=$(IFS=.; echo "${array[*]}")
+            fi
+
+            # export env var for subsequent steps
+            echo "TAG=$tag" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.TAG }}
+          release_name: Release ${{ env.TAG }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object,
+          # which include a `upload_url`. See this blog post for more info:
+          # https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./vitals.zip
+          asset_name: vitals.zip
+          asset_content_type: application/zip
