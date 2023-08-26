@@ -10,6 +10,9 @@ jobs:
   build:
     name: Upload Release Asset
     runs-on: ubuntu-latest
+    env:
+      working-directory: ./Vitals@CoreCoding.com/
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -34,7 +37,7 @@ jobs:
 #        run: git commit && git push
 
       - name: Build project # This would actually build your project, using zip for an example artifact
-        run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "howtouse.gif"
+        run: zip vitals.zip -r * -x "locale/*.po" -x "locale/vitals.pot"
 
       - name: Grab version from meta data
         run: echo "METATAG=$(jq .version metadata.json)" >> $GITHUB_ENV
