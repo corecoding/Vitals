@@ -1,10 +1,9 @@
 // https://gjs.guide/extensions/upgrading/gnome-shell-40.html#contents
-const {Gio, Gtk, GObject} = imports.gi;
-const Mainloop = imports.mainloop;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const ExtensionUtils = imports.misc.extensionUtils;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
+import Adw from 'gi://Adw';
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
+import Gtk from 'gi://Gtk';
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
@@ -26,14 +25,15 @@ const _ = Gettext.gettext;
 const Settings = new GObject.Class({
     Name: 'Vitals.Settings',
 
-    _init: function(params) {
+    _init: function(ext_pref_inst, params) {
+        this._ext_pref_inst = ext_pref_inst
         this.parent(params);
-
-        this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vitals');
+            
+        this._settings = ext_pref_inst.getSettings();
 
         this.builder = new Gtk.Builder();
-        this.builder.set_translation_domain(Me.metadata['gettext-domain']);
-        this.builder.add_from_file(Me.path + '/prefs.ui');
+        this.builder.set_translation_domain(this._ext_pref_inst.metadata['gettext-domain']);
+        this.builder.add_from_file(this._ext_pref_inst.path + '/prefs.ui');
         this.widget = this.builder.get_object('prefs-container');
 
         this._bind_settings();
@@ -119,14 +119,20 @@ const Settings = new GObject.Class({
     }
 });
 
-function init() {
-    ExtensionUtils.initTranslations();
-}
+ 
+export default class VitalsPrefs extends ExtensionPreferences {
+    fillPreferencesWindow(window) {
+        window._settings = this.getSettings();
 
-function buildPrefsWidget() {
-    let settings = new Settings();
-    let widget = settings.widget;
+        let settings = new Settings(this);
+        let widget = settings.widget;
 
-    widget.show();
-    return widget;
+        const page = new Adw.PreferencesPage();
+        const group = new Adw.PreferencesGroup({});
+        group.add(widget);
+        page.add(group);
+        window.add(page);
+        window.set_default_size(widget.width, widget.height);
+        widget.show();
+    }
 }
