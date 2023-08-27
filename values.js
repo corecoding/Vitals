@@ -191,6 +191,10 @@ var Values = GObject.registerClass({
                 value = value / 1000000;
                 ending = 'W';
                 break;
+            case 'watt-gpu':
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                ending = 'W';
+                break;
             case 'watt-hour':
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
                 value = value / 1000000;

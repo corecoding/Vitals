@@ -126,24 +126,6 @@ var Sensors = GObject.registerClass({
         }
     }
 
-    _parseNvidiaSmiLine(callback, csv) {
-        let csv_split = csv.split(',');
-        if (csv_split.length == 3) {
-            let [label, temp, fan_speed_pct] = csv_split;
-
-            if (!this._nvidia_labels.includes(label))
-                this._nvidia_labels.push(label);
-
-            if (this._settings.get_boolean('show-temperature'))
-                this._returnValue(callback, label, parseInt(temp) * 1000, 'temperature', 'temp');
-
-            if (this._settings.get_boolean('show-fan'))
-                this._returnValue(callback, label, parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
-        } else {
-            this._terminateNvidiaSmiProcess();
-        }
-    }
-
     _queryMemory(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
@@ -502,6 +484,44 @@ var Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _parseNvidiaSmiLine(callback, csv) {
+        let csv_split = csv.split(',');
+        if (csv_split.length == 6) {
+            let [label, temp, fan_speed_pct, utilization_gpu, utilization_memory, power ] = csv_split;
+
+            if (!this._nvidia_labels.includes(label))
+                this._nvidia_labels.push(label);
+
+            if (this._settings.get_boolean('show-gpu')) {
+                let tempLabel = `${label} Temperature`;
+                this._returnValue(callback, tempLabel, parseInt(temp) * 1000, 'gpu', 'temp');
+            }
+            
+            if (this._settings.get_boolean('show-gpu')) {
+                let fanLabel = `${label} Fan`;
+                this._returnValue(callback, fanLabel, parseInt(fan_speed_pct) * 0.01, 'gpu', 'percent');
+            }
+
+            if (this._settings.get_boolean('show-gpu')) {
+                let utilLabel = `${label} Utilization`;
+                this._returnValue(callback, utilLabel, parseInt(utilization_gpu) * 0.01, 'gpu', 'percent');
+            }
+
+            if (this._settings.get_boolean('show-gpu')) {
+                let memLabel = `${label} Memory`;
+                this._returnValue(callback, memLabel, parseInt(utilization_memory) * 0.01, 'gpu', 'percent');
+            }
+
+            if (this._settings.get_boolean('show-gpu')) {
+                let powerLabel = `${label} Power`;
+                this._returnValue(callback, powerLabel, parseInt(utilization_memory) * 0.01, 'gpu', 'watt-gpu');
+            }
+
+        } else {
+            this._terminateNvidiaSmiProcess();
+        }
+    }
+
     _queryGpu(callback) {
         if (this._nvidia_smi_process) {
             this._nvidia_smi_process.read('\n').then(lines => {
@@ -513,11 +533,22 @@ var Sensors = GObject.registerClass({
             });
         } else {
             for (let label of this._nvidia_labels) {
-                if (this._settings.get_boolean('show-temperature'))
-                    this._returnValue(callback, label, 'disabled', 'gpu', 'temp');
+                if (this._settings.get_boolean('show-gpu'))
+                    this._returnValue(callback, tempLabel, 'disabled', 'gpu', 'temp');
 
-                if (this._settings.get_boolean('show-fan'))
-                    this._returnValue(callback, label, 'disabled', 'gpu', 'percent');
+                if (this._settings.get_boolean('show-gpu'))
+                    this._returnValue(callback, fanLabel, 'disabled', 'gpu', 'percent');
+
+                if (this._settings.get_boolean('show-gpu'))
+                    this._returnValue(callback, utilLabel, 'disabled', 'gpu', 'percent');
+
+                if (this._settings.get_boolean('show-gpu'))
+                    this._returnValue(callback, memLabel, 'disabled', 'gpu', 'percent');
+
+                if (this._settings.get_boolean('show-gpu'))
+                    this._returnValue(callback, powerLabel, 'disabled', 'gpu', 'watt-gpu');
+
+            
             }
         }
     }
@@ -646,7 +677,7 @@ var Sensors = GObject.registerClass({
                 let query_interval = Math.max(update_time, 1);
                 let command = [
                     'nvidia-smi',
-                    '--query-gpu=name,temperature.gpu,fan.speed',
+                    '--query-gpu=name,temperature.gpu,fan.speed,utilization.gpu,utilization.memory,power.draw',
                     '--format=csv,noheader,nounits',
                     '-l', query_interval.toString()
                 ];
