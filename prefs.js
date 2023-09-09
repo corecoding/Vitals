@@ -1,4 +1,3 @@
-// https://gjs.guide/extensions/upgrading/gnome-shell-40.html#contents
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
@@ -25,15 +24,15 @@ import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Ex
 const Settings = new GObject.Class({
     Name: 'Vitals.Settings',
 
-    _init: function(ext_pref_inst, params) {
-        this._ext_pref_inst = ext_pref_inst
+    _init: function(extensionObject, params) {
+        this._extensionObject = extensionObject
         this.parent(params);
             
-        this._settings = ext_pref_inst.getSettings();
+        this._settings = extensionObject.getSettings();
 
         this.builder = new Gtk.Builder();
-        this.builder.set_translation_domain(this._ext_pref_inst.metadata['gettext-domain']);
-        this.builder.add_from_file(this._ext_pref_inst.path + '/prefs.ui');
+        this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
+        this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
         this.widget = this.builder.get_object('prefs-container');
 
         this._bind_settings();
