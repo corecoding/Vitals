@@ -10,8 +10,6 @@ jobs:
   build:
     name: Upload Release Asset
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./Vitals@CoreCoding.com/
 
     steps:
       - name: Checkout code
