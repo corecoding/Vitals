@@ -337,6 +337,33 @@
                         </property>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="width_request">100</property>
+                        <property name="selectable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="can_focus">0</property>
+                            <property name="margin_top">6</property>
+                            <property name="margin_bottom">6</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="hexpand">1</property>
+                                <property name="can_focus">0</property>
+                                <property name="halign">start</property>
+                                <property name="margin-start">5</property>
+                                <property name="label" translatable="yes">Menu always centered</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSwitch" id="menu-centered">
+                                <property name="halign">end</property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </property>
                 <child type="label_item">
@@ -900,8 +927,8 @@
                         <property name="can_focus">0</property>
                         <property name="active">0</property>
                         <items>
-                          <item translatable="no">Binary</item>
-                          <item translatable="no">Decimal</item>
+                          <item translatable="yes">Binary</item>
+                          <item translatable="yes">Decimal</item>
                         </items>
                       </object>
                     </child>
@@ -955,8 +982,8 @@
                         <property name="active">0</property>
                         <property name="halign">end</property>
                         <items>
-                          <item translatable="no">°C</item>
-                          <item translatable="no">°F</item>
+                          <item translatable="yes">°C</item>
+                          <item translatable="yes">°F</item>
                         </items>
                       </object>
                     </child>
@@ -1009,8 +1036,8 @@
                         <property name="can_focus">0</property>
                         <property name="active">0</property>
                         <items>
-                          <item translatable="no">Binary</item>
-                          <item translatable="no">Decimal</item>
+                          <item translatable="yes">Binary</item>
+                          <item translatable="yes">Decimal</item>
                         </items>
                       </object>
                     </child>
@@ -1063,10 +1090,11 @@
                         <property name="can_focus">0</property>
                         <property name="active">0</property>
                         <items>
-                          <item translatable="no">BAT0</item>
-                          <item translatable="no">BAT1</item>
-                          <item translatable="no">BAT2</item>
-                          <item translatable="no">CMB0</item>
+                          <item translatable="yes">BAT0</item>
+                          <item translatable="yes">BAT1</item>
+                          <item translatable="yes">BAT2</item>
+                          <item translatable="yes">CMB0</item>
+                          <item translatable="yes">macsmc-battery</item>
                         </items>
                       </object>
                     </child>

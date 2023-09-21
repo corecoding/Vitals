@@ -1,29 +1,36 @@
-const {Clutter, Gio, St, GObject} = imports.gi;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-const Main = imports.ui.main;
-const Util = imports.misc.util;
-const Mainloop = imports.mainloop;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Sensors = Me.imports.sensors;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
-const MessageTray = imports.ui.messageTray;
-const Values = Me.imports.values;
-const Config = imports.misc.config;
-const MenuItem = Me.imports.menuItem;
+import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import St from 'gi://St'
+
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Util from 'resource:///org/gnome/shell/misc/util.js';
+
+import * as Sensors from './sensors.js';
+
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
+import * as Values from './values.js';
+import * as Config from 'resource:///org/gnome/shell/misc/config.js';
+import * as MenuItem from './menuItem.js';
+
+const loop = new GLib.MainLoop(null, false);
 
 let vitalsMenu;
 
 var VitalsMenuButton = GObject.registerClass({
     GTypeName: 'VitalsMenuButton',
 }, class VitalsMenuButton extends PanelMenu.Button {
-    _init() {
+    _init(extension_inst) {
         super._init(St.Align.START);
-
-        this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vitals');
-
+        
+        this._extension_inst = extension_inst;
+        this._settings = extension_inst.getSettings();
+        
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg' },
                 'voltage' : { 'icon': 'voltage-symbolic.svg' },
@@ -65,6 +72,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
+        this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info' ];
         for (let setting of Object.values(settings))
@@ -90,7 +98,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (sensor in this._groups) continue;
 
             this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
-            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[sensor]['icon']);
+            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons[sensor]['icon']);
 
             // hide menu items that user has requested to not include
             if (!this._settings.get_boolean('show-' + sensor))
@@ -99,7 +107,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (!this._groups[sensor].status) {
                 this._groups[sensor].status = this._defaultLabel();
                 this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
-                this._groups[sensor].status.text = 'No Data';
+                this._groups[sensor].status.text = _('No Data');
             }
 
             this.menu.addMenuItem(this._groups[sensor]);
@@ -143,7 +151,7 @@ var VitalsMenuButton = GObject.registerClass({
         let monitorButton = this._createRoundButton('org.gnome.SystemMonitor-symbolic', _('System Monitor'));
         monitorButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-            Util.spawn([this._settings.get_string('monitor-cmd')]);
+            Util.spawn(this._settings.get_string('monitor-cmd').split(" "));
         });
         customButtonBox.add_actor(monitorButton);
 
@@ -151,7 +159,7 @@ var VitalsMenuButton = GObject.registerClass({
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-            ExtensionUtils.openPrefs();
+            this._extension_inst.openPreferences();
         });
         customButtonBox.add_actor(prefsButton);
 
@@ -217,16 +225,19 @@ var VitalsMenuButton = GObject.registerClass({
     _initializeTimer() {
         // used to query sensors and update display
         let update_time = this._settings.get_int('update-time');
-        this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, (self) => {
-            // only update menu if we have hot sensors
-            if (Object.values(this._hotLabels).length > 0)
-                this._querySensors();
-
-            // keep the timer running
-            return true;
-        });
+        this._refreshTimeoutId = GLib.timeout_add_seconds(
+            GLib.PRIORITY_DEFAULT,
+            update_time,
+            (self) => {
+                // only update menu if we have hot sensors
+                if (Object.values(this._hotLabels).length > 0)
+                    this._querySensors();
+                    // keep the timer running
+                    return GLib.SOURCE_CONTINUE;
+            }
+        );
     }
-
+    
     _createHotItem(key, value) {
         let icon = this._defaultIcon(key);
         this._hotIcons[key] = icon;
@@ -332,7 +343,7 @@ var VitalsMenuButton = GObject.registerClass({
     _destroyTimer() {
         // invalidate and reinitialize timer
         if (this._refreshTimeoutId != null) {
-            Mainloop.source_remove(this._refreshTimeoutId);
+            GLib.Source.remove(this._refreshTimeoutId);
             this._refreshTimeoutId = null;
         }
     }
@@ -385,7 +396,7 @@ var VitalsMenuButton = GObject.registerClass({
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
-        let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
+        let gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons[type][icon]);
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {
@@ -452,10 +463,10 @@ var VitalsMenuButton = GObject.registerClass({
 
         // second condition prevents crash due to issue #225, which started when _max_ was moved to the end
         if (type == 'default' || !(type in this._sensorIcons)) {
-            icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons['system']['icon']);
+            icon.gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons['system']['icon']);
         } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
             let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
-            icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
+            icon.gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
 
         return icon;
@@ -497,6 +508,10 @@ var VitalsMenuButton = GObject.registerClass({
                 arrow_pos = 0;
                 break;
         }
+        
+        let centered = this._settings.get_boolean('menu-centered')
+        
+        if (centered) arrow_pos = 0.5;
 
         // set arrow position when initializing and moving vitals
         this.menu._arrowAlignment = arrow_pos;
@@ -550,17 +565,15 @@ var VitalsMenuButton = GObject.registerClass({
     }
 });
 
-function init() {
-    ExtensionUtils.initTranslations('vitals');
-}
+export default class VitalsExtension extends Extension {
+    enable() {
+        vitalsMenu = new VitalsMenuButton(this);
+        let position = vitalsMenu._positionInPanel();
+        Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, position[1], position[0]);
+    }
 
-function enable() {
-    vitalsMenu = new VitalsMenuButton();
-    let position = vitalsMenu._positionInPanel();
-    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, position[1], position[0]);
-}
-
-function disable() {
-    vitalsMenu.destroy();
-    vitalsMenu = null;
+    disable() {
+        vitalsMenu.destroy();
+        vitalsMenu = null;
+    }
 }

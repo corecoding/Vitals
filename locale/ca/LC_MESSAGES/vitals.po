@@ -31,11 +31,6 @@ msgstr "Monitor de sistema"
 msgid "Preferences"
 msgstr "Preferències"
 
-#: prefs.js:115
-#, fuzzy
-msgid " Preferences"
-msgstr "Preferències"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Incloure la direcció IP pública"
@@ -549,12 +544,3 @@ msgstr "Lliure"
 #, fuzzy
 msgid "storage"
 msgstr "Monitor d'emmagatzematge"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Preferències de temperatura"
-
-#~ msgid "Network Preferences"
-#~ msgstr "Preferèncias de xarxa"
-
-#~ msgid "Maximum tx"
-#~ msgstr "Màxim tx"

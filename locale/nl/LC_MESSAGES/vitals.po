@@ -31,10 +31,6 @@ msgstr "Systeemmonitor"
 msgid "Preferences"
 msgstr "Voorkeuren"
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr "-voorkeuren"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Publiek ip-adres tonen"
@@ -541,18 +537,3 @@ msgstr "Vrij"
 #, fuzzy
 msgid "storage"
 msgstr "Opslagmonitor"
-
-#~ msgid "Boot rx"
-#~ msgstr "Totaal rx"
-
-#~ msgid "Boot tx"
-#~ msgstr "Totaal tx"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Temperatuurvoorkeuren"
-
-#~ msgid "Network Preferences"
-#~ msgstr "Netwerkvoorkeuren"
-
-#~ msgid "Maximum tx"
-#~ msgstr "Maximum tx"

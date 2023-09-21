@@ -41,10 +41,6 @@ msgstr "Sledovanie systému"
 msgid "Preferences"
 msgstr "Predvoľby"
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr " Predvoľby"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Zahrnúť verejnú IP adresu"
@@ -543,12 +539,3 @@ msgstr "Voľné"
 #: sensors.js:471
 msgid "storage"
 msgstr "úložisko"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Predvoľby teploty"
-
-#~ msgid "Network Preferences"
-#~ msgstr "Predvoľby siete"
-
-#~ msgid "Storage Preferences"
-#~ msgstr "Predvoľby úložiska"

@@ -26,10 +26,6 @@ msgstr "Moniteur système"
 msgid "Preferences"
 msgstr "Préférences"
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr " Préférences"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Inclure l'adresse IP publique"
@@ -538,15 +534,3 @@ msgstr "Libre"
 #, fuzzy
 msgid "storage"
 msgstr "Surveiller le stockage"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Préférences de température"
-
-#~ msgid "Network Preferences"
-#~ msgstr "Préférences de réseau"
-
-#~ msgid "Storage Preferences"
-#~ msgstr "Préférences de stockage"
-
-#~ msgid "Display battery"
-#~ msgstr "Afficher la batterie"

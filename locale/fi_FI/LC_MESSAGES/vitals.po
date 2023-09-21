@@ -33,11 +33,6 @@ msgstr "Järjestelmänvalvonta"
 msgid "Preferences"
 msgstr "Asetukset"
 
-#: prefs.js:115
-#, fuzzy
-msgid " Preferences"
-msgstr "Asetukset"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Sisällytä julkinen IP-osoite"
@@ -549,9 +544,3 @@ msgstr "Vapaana"
 #, fuzzy
 msgid "storage"
 msgstr "Valvo tallennustilaa"
-
-#~ msgid "Temperature Preferences"
-#~ msgstr "Lämpötilan Asetukset"
-
-#~ msgid "Network Preferences"
-#~ msgstr "Verkon Asetukset"

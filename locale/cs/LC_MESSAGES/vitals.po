@@ -41,10 +41,6 @@ msgstr "Sledování systému"
 msgid "Preferences"
 msgstr "Předvolby"
 
-#: prefs.js:115
-msgid " Preferences"
-msgstr " Předvolby"
-
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Zahrnout veřejnou adresu"
