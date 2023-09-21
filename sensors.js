@@ -26,7 +26,7 @@
 
 import GObject from 'gi://GObject';
 import * as FileModule from './helpers/file.js';
-import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import NM from 'gi://NM';
 
 let GTop, hasGTop = true;

@@ -25,11 +25,11 @@ let vitalsMenu;
 var VitalsMenuButton = GObject.registerClass({
     GTypeName: 'VitalsMenuButton',
 }, class VitalsMenuButton extends PanelMenu.Button {
-    _init(extension_inst) {
-        super._init(St.Align.START);
+    _init(extensionObject) {
+        super._init(Clutter.ActorAlign.FILL);
         
-        this._extension_inst = extension_inst;
-        this._settings = extension_inst.getSettings();
+        this._extensionObject = extensionObject;
+        this._settings = extensionObject.getSettings();
         
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg' },
@@ -98,7 +98,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (sensor in this._groups) continue;
 
             this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
-            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons[sensor]['icon']);
+            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons[sensor]['icon']);
 
             // hide menu items that user has requested to not include
             if (!this._settings.get_boolean('show-' + sensor))
@@ -159,7 +159,7 @@ var VitalsMenuButton = GObject.registerClass({
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-            this._extension_inst.openPreferences();
+            this._extensionObject.openPreferences();
         });
         customButtonBox.add_actor(prefsButton);
 
@@ -396,7 +396,7 @@ var VitalsMenuButton = GObject.registerClass({
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
-        let gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons[type][icon]);
+        let gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons[type][icon]);
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {
@@ -463,10 +463,10 @@ var VitalsMenuButton = GObject.registerClass({
 
         // second condition prevents crash due to issue #225, which started when _max_ was moved to the end
         if (type == 'default' || !(type in this._sensorIcons)) {
-            icon.gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons['system']['icon']);
+            icon.gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons['system']['icon']);
         } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
             let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
-            icon.gicon = Gio.icon_new_for_string(this._extension_inst.path + '/icons/' + this._sensorIcons[type][iconObj]);
+            icon.gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
 
         return icon;
