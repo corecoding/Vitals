@@ -37,7 +37,7 @@ try {
     hasGTop = false;
 };
 
-export var Sensors = GObject.registerClass({
+export const Sensors = GObject.registerClass({
     GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
     _init(settings, sensorIcons) {

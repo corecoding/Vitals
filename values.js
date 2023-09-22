@@ -34,7 +34,7 @@ const cbFun = (d, c) => {
     return [d[0] + aa, bb];
 };
 
-export var Values = GObject.registerClass({
+export const Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
 
