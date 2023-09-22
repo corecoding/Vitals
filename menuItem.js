@@ -1,10 +1,9 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St'
-
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-export var MenuItem = GObject.registerClass({
+export const MenuItem = GObject.registerClass({
 
     Signals: {
         'toggle': { param_types: [Clutter.Event.$gtype] },
