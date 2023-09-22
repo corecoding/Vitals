@@ -1,13 +1,10 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib'
-
 import './polyfills.js';
-
-
-const decoder = new TextDecoder('utf-8');
 
 // convert Uint8Array into a literal string
 function convertUint8ArrayToString(contents) {
+    const decoder = new TextDecoder('utf-8');
     return decoder.decode(contents).trim();
 }
 
