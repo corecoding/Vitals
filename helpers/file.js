@@ -1,6 +1,6 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib'
-import './polyfills.js';
+//import './polyfills.js';
 
 // convert Uint8Array into a literal string
 function convertUint8ArrayToString(contents) {
