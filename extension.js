@@ -18,8 +18,6 @@ import * as Values from './values.js';
 import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
 
-const loop = new GLib.MainLoop(null, false);
-
 let vitalsMenu;
 
 var VitalsMenuButton = GObject.registerClass({
