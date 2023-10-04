@@ -5,18 +5,18 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Vitals \n"
+"Project-Id-Version: Vitals\n"
 "POT-Creation-Date: 2022-04-10 21:29+0200\n"
-"PO-Revision-Date: 2019-07-03 09:59-0300\n"
-"Last-Translator: Bruno Antunes <antunes.dll@gmail.com>\n"
+"PO-Revision-Date: 2023-10-04 00:08-0300\n"
+"Last-Translator: Ronaldo Costa <ronaldocosta@oceanica.ufrj.br>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Gtranslator 3.32.0\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.3.1\n"
 "X-Poedit-Basepath: ..\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "X-Poedit-SearchPath-0: values.js\n"
 "X-Poedit-SearchPath-1: sensors.js\n"
 "X-Poedit-SearchPath-2: prefs.js\n"
@@ -78,12 +78,10 @@ msgid "Right"
 msgstr "Direita"
 
 #: prefs.ui:196
-#, fuzzy
 msgid "Far Left"
 msgstr "Esquerda"
 
 #: prefs.ui:197
-#, fuzzy
 msgid "Far Right"
 msgstr "Direita"
 
@@ -118,8 +116,8 @@ msgid ""
 "href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
 "useful."
 msgstr ""
-"Gostou do que vê? Apoie o desenvolvimento desta extensão via <a href="
-"\"https://corecoding.com/donate.php\">PayPal</a>.\n"
+"Gostou do que vê? Apoie o desenvolvimento desta extensão via <a "
+"href=\"https://corecoding.com/donate.php\">PayPal</a>.\n"
 "\n"
 "Nenhuma garantia, expressa ou implícita. Bugs ou solicitações de "
 "funcionalidades? Por favor, visite nosso projeto no <a href=\"https://github."
@@ -162,9 +160,8 @@ msgid "Monitor storage"
 msgstr "Monitorar armazenamento"
 
 #: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
-#, fuzzy
 msgid "Monitor battery"
-msgstr "Monitorar memória"
+msgstr "Monitorar bateria"
 
 #: prefs.ui:817
 msgid "Path"
@@ -172,7 +169,7 @@ msgstr "Caminho"
 
 #: prefs.ui:849 prefs.ui:958
 msgid "Measurement"
-msgstr "Medisão"
+msgstr "Medição"
 
 #: prefs.ui:903
 msgid "Unit"
@@ -183,9 +180,8 @@ msgid "Display Battery"
 msgstr "Exibir bateria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
-#, fuzzy
 msgid "Sensors to show in panel"
-msgstr "Posição no painel"
+msgstr "Sensores para mostrar no painel"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
@@ -216,17 +212,16 @@ msgid "Display temperature of various components"
 msgstr "Temperatura de exibição de vários componentes"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
-#, fuzzy
 msgid "Temperature unit"
-msgstr "Temperatura"
+msgstr "Unidade de temperatura"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
 "The unit ('centigrade' or 'fahrenheit') the extension should display the "
 "temperature in"
 msgstr ""
-"A unidade ('Celsius' ou 'Fahrenheit') da extensão deve exibir a "
-"temperatura em"
+"A unidade ('Celsius' ou 'Fahrenheit') da extensão deve exibir a temperatura "
+"em"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
 msgid "Display voltage of various components"
@@ -269,18 +264,16 @@ msgid "Should speed display in bits or bytes?"
 msgstr "A velocidade deve ser exibida em bits ou bytes?"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
-#, fuzzy
 msgid "Storage path"
-msgstr "Armazenamento"
+msgstr "Caminho de armazenamento"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
 msgid "Storage path for monitoring"
 msgstr "Local de armazenamento para monitoramento"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
-#, fuzzy
 msgid "Monitor battery health"
-msgstr "Monitorar temperatura"
+msgstr "Monitorar saúde da bateria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
 msgid "Memory measurement"
@@ -291,9 +284,8 @@ msgid "Can use gigabyte or gibibyte for memory"
 msgstr "Pode usar gigabyte ou gibibyte para memória"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
-#, fuzzy
 msgid "Storage measurement"
-msgstr "Preferências de armazenamento"
+msgstr "Medida de armazenamento"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
@@ -320,7 +312,6 @@ msgid "Keep top bar clean by only showing sensor values"
 msgstr "Mantenha a barra superior limpa mostrando apenas os valores do sensor"
 
 #: sensors.js:42
-#, fuzzy
 msgid "Temperature"
 msgstr "Temperatura"
 
@@ -349,7 +340,6 @@ msgid "Network"
 msgstr "Rede"
 
 #: sensors.js:49
-#, fuzzy
 msgid "Storage"
 msgstr "Armazenamento"
 
@@ -362,9 +352,8 @@ msgid "Usage"
 msgstr "Uso"
 
 #: sensors.js:145
-#, fuzzy
 msgid "memory"
-msgstr "Memória"
+msgstr "memória"
 
 #: sensors.js:146
 msgid "Physical"
@@ -387,9 +376,8 @@ msgid "Average"
 msgstr "Média"
 
 #: sensors.js:190
-#, fuzzy
 msgid "processor"
-msgstr "Processador"
+msgstr "processador"
 
 #: sensors.js:192
 #, javascript-format
@@ -402,7 +390,7 @@ msgstr "Frequência"
 
 #: sensors.js:237
 msgid "Boost"
-msgstr "Aumentar tensão"
+msgstr "Amplificação"
 
 #: sensors.js:238
 msgid "Vendor"
@@ -410,15 +398,15 @@ msgstr "Fabricante"
 
 #: sensors.js:239
 msgid "Bogomips"
-msgstr ""
+msgstr "Bogomips"
 
 #: sensors.js:240
 msgid "Sockets"
-msgstr ""
+msgstr "Sockets"
 
 #: sensors.js:241
 msgid "Cache"
-msgstr ""
+msgstr "Cache"
 
 #: sensors.js:250
 msgid "Open Files"
@@ -429,9 +417,8 @@ msgid "Load 1m"
 msgstr "Carga 1min"
 
 #: sensors.js:259
-#, fuzzy
 msgid "system"
-msgstr "Sistema"
+msgstr "sistema"
 
 #: sensors.js:260
 msgid "Load 5m"
@@ -459,7 +446,7 @@ msgstr "Tempo de processamento"
 
 #: sensors.js:290
 msgid "State"
-msgstr ""
+msgstr "Estado"
 
 #: sensors.js:295
 msgid "Cycles"
@@ -482,9 +469,8 @@ msgid "Rate"
 msgstr "Taxa"
 
 #: sensors.js:312 sensors.js:341
-#, fuzzy
 msgid "battery"
-msgstr "bateia"
+msgstr "bateria"
 
 #: sensors.js:316 sensors.js:344
 msgid "Energy (now)"
@@ -504,10 +490,9 @@ msgstr "Nível do Sinal Wi-Fi"
 
 #: sensors.js:432
 msgid "ARC Target"
-msgstr "Arc alvo"
+msgstr "ARC alvo"
 
 #: sensors.js:433
-#, fuzzy
 msgid "ARC Maximum"
 msgstr "ARC Máximo"
 
@@ -516,9 +501,8 @@ msgid "ARC Current"
 msgstr "ARC Atual"
 
 #: sensors.js:445
-#, fuzzy
 msgid "Read total"
-msgstr "Threads totais"
+msgstr "Total de leitura"
 
 #: sensors.js:446
 msgid "Write total"
@@ -549,6 +533,5 @@ msgid "Free"
 msgstr "Livre"
 
 #: sensors.js:471
-#, fuzzy
 msgid "storage"
-msgstr "Monitorar armazenamento"
+msgstr "armazenamento"
