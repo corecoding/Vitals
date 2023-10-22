@@ -674,10 +674,6 @@ msgstr ""
 msgid "Time left"
 msgstr ""
 
-#: sensors.js:528
-msgid "batterycombined"
-msgstr ""
-
 #: sensors.js:677
 msgid "Vendor"
 msgstr ""
@@ -696,4 +692,61 @@ msgstr ""
 
 #: sensors.js:685
 msgid "Kernel"
+msgstr ""
+
+
+#: prefs.js:98
+msgid "Temperature"
+msgstr ""
+
+#: prefs.js:98
+msgid "Network"
+msgstr ""
+
+#: prefs.js:98
+msgid "Storage"
+msgstr ""
+
+#: prefs.js:98
+msgid "Memory"
+msgstr ""
+
+#: prefs.js:98
+msgid "Battery"
+msgstr ""
+
+#: extension.js:112
+msgid "Battery 1"
+msgstr ""
+
+#: extension.js:112
+msgid "Battery 2"
+msgstr ""
+
+#: extension.js:112
+msgid "Battery 3"
+msgstr ""
+
+#: extension.js:112
+msgid "Battery 4"
+msgstr ""
+
+#: extension.js:112
+msgid "Battery 5"
+msgstr ""
+
+#: extension.js:115
+msgid "Battery (hidden)"
+msgstr ""
+
+#: prefs.js:98
+msgid "System"
+msgstr ""
+
+#: prefs.js:98
+msgid "Processor"
+msgstr ""
+
+#: sensors.js:759
+msgid "Fan"
 msgstr ""

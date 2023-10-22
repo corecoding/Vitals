@@ -24,7 +24,7 @@ msgstr ""
 
 #: extension.js:109
 msgid "Batteries"
-msgstr "Akku"
+msgstr "Akkus"
 
 #: extension.js:133
 msgid "No Data"
@@ -630,7 +630,7 @@ msgstr "Spannung"
 
 #: sensors.js:418
 msgid "Level"
-msgstr ""
+msgstr "Level"
 
 #: sensors.js:422 sensors.js:553
 msgid "Percentage"
@@ -658,11 +658,7 @@ msgstr "Kapazität (aktuell)"
 
 #: sensors.js:501 sensors.js:504 sensors.js:588 sensors.js:591
 msgid "Time left"
-msgstr ""
-
-#: sensors.js:528
-msgid "batterycombined"
-msgstr ""
+msgstr "Zeit verbleibend"
 
 #: sensors.js:677
 msgid "Vendor"
@@ -684,6 +680,62 @@ msgstr "Cache"
 msgid "Kernel"
 msgstr ""
 
+#: prefs.js:98
+msgid "Temperature"
+msgstr "Temperatur"
+
+#: prefs.js:98
+msgid "Network"
+msgstr "Netzwerk"
+
+#: prefs.js:98
+msgid "Storage"
+msgstr "Speicher"
+
+#: prefs.js:98
+msgid "Memory"
+msgstr "RAM"
+
+#: prefs.js:98
+msgid "Battery"
+msgstr "Akku"
+
+#: extension.js:112
+msgid "Battery 1"
+msgstr "Akku 1"
+
+#: extension.js:112
+msgid "Battery 2"
+msgstr "Akku 2"
+
+#: extension.js:112
+msgid "Battery 3"
+msgstr "Akku 3"
+
+#: extension.js:112
+msgid "Battery 4"
+msgstr "Akku 4"
+
+#: extension.js:112
+msgid "Battery 5"
+msgstr "Akku 5"
+
+#: extension.js:115
+msgid "Battery (hidden)"
+msgstr "Akku (ausgeblendet)"
+
+#: prefs.js:98
+msgid "System"
+msgstr "System"
+
+#: prefs.js:98
+msgid "Processor"
+msgstr "CPU"
+
+#: sensors.js:759
+msgid "Fan"
+msgstr "Lüfter"
+
 #~ msgid "Display Battery"
 #~ msgstr "Batterie anzeigen"
 
@@ -692,27 +744,6 @@ msgstr ""
 
 #~ msgid "Which numerical battery slot should vitals monitor"
 #~ msgstr "Welchen Akkuschacht soll Vitals überwachen?"
-
-#~ msgid "Temperature"
-#~ msgstr "Temperatur"
-
-#~ msgid "Fan"
-#~ msgstr "Lüfter"
-
-#~ msgid "Memory"
-#~ msgstr "RAM"
-
-#~ msgid "Processor"
-#~ msgstr "CPU"
-
-#~ msgid "System"
-#~ msgstr "System"
-
-#~ msgid "Network"
-#~ msgstr "Netzwerk"
-
-#~ msgid "Storage"
-#~ msgstr "Speicher"
 
 #~ msgid "Boost"
 #~ msgstr "Boost"
