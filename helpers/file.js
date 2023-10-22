@@ -1,27 +1,13 @@
-const GLib = imports.gi.GLib;
-const Gio = imports.gi.Gio;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-Me.imports.helpers.polyfills;
-const ByteArray = imports.byteArray;
-
-var Decoder;
-try {
-    Decoder = new TextDecoder('utf-8');
-} catch(error) {}
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib'
 
 // convert Uint8Array into a literal string
 function convertUint8ArrayToString(contents) {
-    // Starting with Gnome 41, we use TextDecoder as ByteArray is deprecated
-    if (Decoder)
-        return Decoder.decode(contents).trim();
-
-    // Supports ByteArray on Gnome 40
-    // fixes #304, replaces invalid character
-    contents[contents.indexOf(208)] = 0;
-    return ByteArray.toString(contents).trim();
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(contents).trim();
 }
 
-function File(path) {
+export function File(path) {
     if (path.indexOf('https://') == -1)
         this.file = Gio.File.new_for_path(path);
     else

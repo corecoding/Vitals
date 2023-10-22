@@ -24,22 +24,20 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const GObject = imports.gi.GObject;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const FileModule = Me.imports.helpers.file;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
-const NM = imports.gi.NM;
+import GObject from 'gi://GObject';
+import * as FileModule from './helpers/file.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+import NM from 'gi://NM';
 
 let GTop, hasGTop = true;
 try {
-    GTop = imports.gi.GTop;
-} catch (e) {
-    global.log(e);
+    ({default: GTop} = await import('gi://GTop'));
+} catch (err) {
+    log(err);
     hasGTop = false;
-}
+};
 
-var Sensors = GObject.registerClass({
+export const Sensors = GObject.registerClass({
     GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
     _init(settings, sensorIcons) {
@@ -365,6 +363,7 @@ var Sensors = GObject.registerClass({
             'BAT1': 'batterybat1',
             'BAT2': 'batterybat2',
             'CMB0': 'batterycmb0',
+            'macsmc-battery': 'batterymacsmc-battery',
         }
 
         let combine = {

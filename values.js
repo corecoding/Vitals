@@ -24,8 +24,7 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const GObject = imports.gi.GObject;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+import GObject from 'gi://GObject';
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
@@ -35,7 +34,7 @@ const cbFun = (d, c) => {
     return [d[0] + aa, bb];
 };
 
-var Values = GObject.registerClass({
+export const Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
 

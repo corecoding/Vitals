@@ -1,10 +1,8 @@
-// https://gjs.guide/extensions/upgrading/gnome-shell-40.html#contents
-const {Gio, Gtk, GObject} = imports.gi;
-const Mainloop = imports.mainloop;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const ExtensionUtils = imports.misc.extensionUtils;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
+import Adw from 'gi://Adw';
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
+import Gtk from 'gi://Gtk';
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
@@ -26,14 +24,15 @@ const _ = Gettext.gettext;
 const Settings = new GObject.Class({
     Name: 'Vitals.Settings',
 
-    _init: function(params) {
+    _init: function(extensionObject, params) {
+        this._extensionObject = extensionObject
         this.parent(params);
-
-        this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vitals');
+            
+        this._settings = extensionObject.getSettings();
 
         this.builder = new Gtk.Builder();
-        this.builder.set_translation_domain(Me.metadata['gettext-domain']);
-        this.builder.add_from_file(Me.path + '/prefs.ui');
+        this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
+        this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
         this.widget = this.builder.get_object('prefs-container');
 
         this._bind_settings();
@@ -48,12 +47,13 @@ const Settings = new GObject.Class({
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
-                        'show-battery', 'fixed-widths', 'hide-icons',
+                        'show-battery', 'fixed-widths', 'hide-icons', 
                         'show-batterybat0', 'show-batterybat1', 
                         'show-batterybat2', 'show-batterycmb0', 
                         'show-batterycombined', 'combined-include-bat0', 
                         'combined-include-bat1', 'combined-include-bat2', 
-                        'combined-include-cmb0', 'include-static-info' ];
+                        'combined-include-cmb0', 'combined-include-macsmcs-battery', 
+                        'menu-centered', 'include-static-info' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
@@ -103,7 +103,7 @@ const Settings = new GObject.Class({
             this.builder.get_object(sensor + '-prefs').connect('clicked', () => {
                 let transientObj = this.widget.get_root();
                 let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
-                let dialog = new Gtk.Dialog({ title: _(title + ' Preferences'),
+                let dialog = new Gtk.Dialog({ title: _(title) + ' ' + _('Preferences'),
                                               transient_for: transientObj,
                                               use_header_bar: false,
                                               modal: true });
@@ -123,14 +123,20 @@ const Settings = new GObject.Class({
     }
 });
 
-function init() {
-    ExtensionUtils.initTranslations();
-}
+ 
+export default class VitalsPrefs extends ExtensionPreferences {
+    fillPreferencesWindow(window) {
+        window._settings = this.getSettings();
 
-function buildPrefsWidget() {
-    let settings = new Settings();
-    let widget = settings.widget;
+        let settings = new Settings(this);
+        let widget = settings.widget;
 
-    widget.show();
-    return widget;
+        const page = new Adw.PreferencesPage();
+        const group = new Adw.PreferencesGroup({});
+        group.add(widget);
+        page.add(group);
+        window.add(page);
+        window.set_default_size(widget.width, widget.height);
+        widget.show();
+    }
 }

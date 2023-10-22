@@ -126,6 +126,11 @@
       <summary>Display battery CMB0</summary>
       <description>Should battery 'CMB0' be displayed?</description>
     </key>
+    <key type="b" name="show-batterymacsmc-battery">
+      <default>false</default>
+      <summary>Display battery macsmc-battery</summary>
+      <description>Should battery 'macsmc-battery' be displayed?</description>
+    </key>
     <key type="b" name="show-batterycombined">
       <default>false</default>
       <summary>Display combined battery data</summary>
@@ -151,6 +156,11 @@
       <summary>Include CMB0</summary>
       <description>Include 'CMB0' when calculating combined Battery</description>
     </key>
+    <key type="b" name="combined-include-macsmc-battery">
+      <default>false</default>
+      <summary>Include macsmc-battery</summary>
+      <description>Include 'macsmc-battery' when calculating combined Battery</description>
+    </key>
     <key type="b" name="fixed-widths">
       <default>true</default>
       <summary>Use fixed widths in top bar</summary>
@@ -160,6 +170,11 @@
       <default>false</default>
       <summary>Hide icons in top bar</summary>
       <description>Keep top bar clean by only showing sensor values</description>
+    </key>
+    <key type="b" name="menu-centered">
+      <default>false</default>
+      <summary>Make the menu centered</summary>
+      <description>Center the menu to the icon regardless of the position in the panel</description>
     </key>
     <key type="s" name="monitor-cmd">
       <default>"gnome-system-monitor"</default>
