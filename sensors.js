@@ -91,6 +91,9 @@ export const Sensors = GObject.registerClass({
                 if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
                     // for temp, volt, fan, we have a shared handler
                     this._queryTempVoltFan(callback, sensor);
+                } else if(sensor.startsWith('battery')) {
+                    // for batteries we have only one handler
+                    this._queryBattery(callback, dwell);
                 } else {
                     // directly call queryFunction below
                     let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
@@ -354,123 +357,241 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryBattery(callback) {
-        let battery_slot = this._settings.get_int('battery-slot');
 
-        // addresses issue #161
-        let battery_key = 'BAT'; // BAT0, BAT1 and BAT2
-        if (battery_slot == 3) {
-            battery_key = 'CMB'; // CMB0
-            battery_slot = 0;
-        } else if (battery_slot == 4) {
-            battery_key = 'macsmc-battery'; // supports Asahi linux
-            battery_slot = '';
+        const slots = {
+            'BAT0': 'batterybat0',
+            'BAT1': 'batterybat1',
+            'BAT2': 'batterybat2',
+            'CMB0': 'batterycmb0',
+            'macsmc-battery': 'batterymacsmc-battery',
         }
 
-        // uevent has all necessary fields, no need to read individual files
-        let battery_path = '/sys/class/power_supply/' + battery_key + battery_slot + '/uevent';
-        new FileModule.File(battery_path).read("\n").then(lines => {
-            let output = {};
-            for (let line of lines) {
-                let split = line.split('=');
-                output[split[0].replace('POWER_SUPPLY_', '')] = split[1];
+        let combine = {
+            cycle_count: [],
+            capacity: [],
+            power_now: [],
+            energy_full_design: [],
+            energy_full: [],
+            energy_now: [],
+        }
+
+        let file_reads = [];
+
+        for (const slot in slots) {
+            const sensor_label = slot.toLowerCase();
+            const sensor_name = slots[slot];
+            const monitor_slot = this._settings.get_boolean(`show-${slots[slot]}`);
+            const combine_slot = this._settings.get_boolean(`combined-include-${sensor_label}`);
+
+            // uevent has all necessary fields, no need to read individual files
+            const battery_path = '/sys/class/power_supply/' + slot + '/uevent';
+
+            if (monitor_slot || combine_slot) {
+                file_reads.push(
+                    new FileModule.File(battery_path).read("\n").then(lines => {
+
+                        this._returnValue(callback, 'Label', slot, sensor_name, '');
+
+                        let output = {};
+                        for (let line of lines) {
+                            let split = line.split('=');
+                            output[split[0].replace('POWER_SUPPLY_', '')] = split[1];
+                        }
+
+                        let charging = false;
+
+                        if ('STATUS' in output) {
+                            this._returnValue(callback, 'State', output['STATUS'], sensor_name, '');
+                            charging = output['STATUS'] == 'Charging';
+                        }
+
+                        if ('CYCLE_COUNT' in output) {
+                            this._returnValue(callback, 'Cycles', output['CYCLE_COUNT'], sensor_name, '');
+                            if(combine_slot) combine.cycle_count.push(parseInt(output['CYCLE_COUNT']));
+                        }
+
+                        if ('VOLTAGE_NOW' in output) {
+                            this._returnValue(callback, 'Voltage', output['VOLTAGE_NOW'] / 1000, sensor_name, 'in');
+                        }
+
+                        if ('CAPACITY_LEVEL' in output) {
+                            this._returnValue(callback, 'Level', output['CAPACITY_LEVEL'], sensor_name, '');
+                        }
+
+                        if ('CAPACITY' in output) {
+                            this._returnValue(callback, 'Percentage', output['CAPACITY'] / 100, sensor_name, 'percent');
+                            if(combine_slot) combine.capacity.push(parseInt(output['CAPACITY']));
+                        }
+
+                        if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output))) {
+                            output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
+                        }
+
+                        if ('POWER_NOW' in output) {
+                            let power_now = charging ? parseInt(output['POWER_NOW']) : parseInt(output['POWER_NOW']) * -1
+                            this._returnValue(callback, 'Rate', power_now, sensor_name, 'watt');
+                            this._returnValue(callback, sensor_name, power_now, `${sensor_name}-group`, 'watt');
+                            if(combine_slot) combine.power_now.push(power_now);
+                        }
+
+                        if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output))) {
+                            output['ENERGY_FULL'] = (output['CHARGE_FULL'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+                        }
+
+                        if ('ENERGY_FULL' in output) {
+                            this._returnValue(callback, 'Energy (full)', output['ENERGY_FULL'], sensor_name, 'watt-hour');
+                            if(combine_slot) combine.energy_full.push(parseInt(output['ENERGY_FULL']));
+                        }
+
+                        if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output))) {
+                            output['ENERGY_FULL_DESIGN'] = (output['CHARGE_FULL_DESIGN'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+                        }
+
+                        if ('ENERGY_FULL_DESIGN' in output) {
+                            this._returnValue(callback, 'Energy (design)', output['ENERGY_FULL_DESIGN'], sensor_name, 'watt-hour');
+                            if(combine_slot) combine.energy_full_design.push(parseInt(output['ENERGY_FULL_DESIGN']));
+
+                            if ('ENERGY_FULL' in output) {
+                                this._returnValue(callback, 'Capacity', (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), sensor_name, 'percent');
+                            }
+                        }
+
+                        if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output))) {
+                            output['ENERGY_NOW'] = (output['VOLTAGE_MIN_DESIGN'] * output['CHARGE_NOW']) / 1000000;
+                        }
+
+                        if ('ENERGY_NOW' in output) {
+                            this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], sensor_name, 'watt-hour');
+                            if(combine_slot) combine.energy_now.push(parseInt(output['ENERGY_NOW']));
+                        }
+
+                        if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && output['POWER_NOW'] > 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
+
+                            let timeLeft = 0;
+
+                            // two different formulas depending on if we are charging or discharging
+                            if (output['STATUS'] == 'Charging') {
+                                timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
+                            } else {
+                                timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']);
+                            }
+
+                            // don't process Infinity values
+                            if (timeLeft !== Infinity) {
+                                if (this._battery_charge_status != output['STATUS']) {
+                                    // clears history due to state change
+                                    this._battery_time_left_history = [];
+
+                                    // clear time left history when laptop goes in and out of charging
+                                    this._battery_charge_status = output['STATUS'];
+                                }
+
+                                // add latest time left estimate to our history
+                                this._battery_time_left_history.push(parseInt(timeLeft * 3600));
+
+                                // keep track of last 15 time left estimates by erasing the first
+                                if (this._battery_time_left_history.length > 10)
+                                    this._battery_time_left_history.shift();
+
+                                // sum up and create average of our time left history
+                                let sum = this._battery_time_left_history.reduce((a, b) => a + b);
+                                let avg = sum / this._battery_time_left_history.length;
+
+                                // use time left history to update screen
+                                this._returnValue(callback, 'Time left', parseInt(avg), sensor_name, 'runtime');
+                            }
+                        } else {
+                            this._returnValue(callback, 'Time left', output['STATUS'], sensor_name, '');
+                        }
+                    }).catch(err => { })
+                );
             }
+        }
 
-            if ('STATUS' in output) {
-                this._returnValue(callback, 'State', output['STATUS'], 'battery', '');
-            }
+        (async() => {
+            // We have to wait, until all battery sensors are read
+            await Promise.all(file_reads);
 
-            if ('CYCLE_COUNT' in output) {
-                this._returnValue(callback, 'Cycles', output['CYCLE_COUNT'], 'battery', '');
-            }
-
-            if ('VOLTAGE_NOW' in output) {
-                this._returnValue(callback, 'Voltage', output['VOLTAGE_NOW'] / 1000, 'battery', 'in');
-            }
-
-            if ('CAPACITY_LEVEL' in output) {
-                this._returnValue(callback, 'Level', output['CAPACITY_LEVEL'], 'battery', '');
-            }
-
-            if ('CAPACITY' in output) {
-                this._returnValue(callback, 'Percentage', output['CAPACITY'] / 100, 'battery', 'percent');
-            }
-
-            if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output))) {
-                output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
-            }
-
-            if ('POWER_NOW' in output) {
-                this._returnValue(callback, 'Rate', output['POWER_NOW'], 'battery', 'watt');
-                this._returnValue(callback, 'battery', output['POWER_NOW'], 'battery-group', 'watt');
-            }
-
-            if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output))) {
-                output['ENERGY_FULL'] = (output['CHARGE_FULL'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
-            }
-
-            if ('ENERGY_FULL' in output) {
-                this._returnValue(callback, 'Energy (full)', output['ENERGY_FULL'], 'battery', 'watt-hour');
-            }
-
-            if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output))) {
-                output['ENERGY_FULL_DESIGN'] = (output['CHARGE_FULL_DESIGN'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
-            }
-
-            if ('ENERGY_FULL_DESIGN' in output) {
-                this._returnValue(callback, 'Energy (design)', output['ENERGY_FULL_DESIGN'], 'battery', 'watt-hour');
-
-                if ('ENERGY_FULL' in output) {
-                    this._returnValue(callback, 'Capacity', (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), 'battery', 'percent');
+            if(this._settings.get_boolean('show-batterycombined')){
+                let cycle_count;
+                if (combine.cycle_count.length > 0) {
+                    cycle_count = `${Math.min(...combine.cycle_count)}~${Math.max(...combine.cycle_count)}`;
+                    this._returnValue(callback, 'Cycles', cycle_count, 'batterycombined', '');
                 }
-            }
-
-            if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output))) {
-                output['ENERGY_NOW'] = (output['VOLTAGE_MIN_DESIGN'] * output['CHARGE_NOW']) / 1000000;
-            }
-
-            if ('ENERGY_NOW' in output) {
-                this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], 'battery', 'watt-hour');
-            }
-
-            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && output['POWER_NOW'] > 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
-
-                let timeLeft = 0;
-
-                // two different formulas depending on if we are charging or discharging
-                if (output['STATUS'] == 'Charging') {
-                    timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
-                } else {
-                    timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']);
+    
+                let power_now;
+                let charging;
+                if (combine.power_now.length > 0) {
+                    power_now = combine.power_now.reduce((p, c) => p + c, 0);
+                    charging = power_now > 0;
+                    this._returnValue(callback, 'Rate', power_now, 'batterycombined', 'watt');
+                    this._returnValue(callback, 'batterycombined', power_now, 'batterycombined-group', 'watt');
+                    this._returnValue(callback, 'State', charging ? 'Charging' : 'Discharging', 'batterycombined', '');
+                }
+    
+                let energy_full;
+                if (combine.energy_full.length > 0) {
+                    energy_full = combine.energy_full.reduce((p, c) => p + c, 0);
+                    this._returnValue(callback, 'Energy (full)', energy_full, 'batterycombined', 'watt-hour');
+                }
+    
+                let energy_full_design;
+                if (combine.energy_full_design.length > 0) {
+                    energy_full_design = combine.energy_full_design.reduce((p, c) => p + c, 0);
+                    this._returnValue(callback, 'Energy (design)', energy_full_design, 'batterycombined', 'watt-hour');
+                }
+    
+                let energy_now;
+                if (combine.energy_now.length > 0) {
+                    energy_now = combine.energy_now.reduce((p, c) => p + c, 0);
+                    this._returnValue(callback, 'Energy (now)', energy_now, 'batterycombined', 'watt-hour');
                 }
 
-                // don't process Infinity values
-                if (timeLeft !== Infinity) {
-                    if (this._battery_charge_status != output['STATUS']) {
-                        // clears history due to state change
-                        this._battery_time_left_history = [];
-
-                        // clear time left history when laptop goes in and out of charging
-                        this._battery_charge_status = output['STATUS'];
+                let capacity;
+                if (combine.capacity.length > 0) {
+                    capacity = energy_now / energy_full;
+                    this._returnValue(callback, 'Percentage', capacity, 'batterycombined', 'percent');
+                }
+                
+                if (energy_full && energy_now && power_now && power_now != 0) {
+                    let timeLeft = 0;
+    
+                    // two different formulas depending on if we are charging or discharging
+                    if (charging) {
+                        timeLeft = ((energy_full - energy_now) / Math.abs(power_now));
+                    } else {
+                        timeLeft = (energy_now / Math.abs(power_now));
                     }
-
-                    // add latest time left estimate to our history
-                    this._battery_time_left_history.push(parseInt(timeLeft * 3600));
-
-                    // keep track of last 15 time left estimates by erasing the first
-                    if (this._battery_time_left_history.length > 10)
-                        this._battery_time_left_history.shift();
-
-                    // sum up and create average of our time left history
-                    let sum = this._battery_time_left_history.reduce((a, b) => a + b);
-                    let avg = sum / this._battery_time_left_history.length;
-
-                    // use time left history to update screen
-                    this._returnValue(callback, 'Time left', parseInt(avg), 'battery', 'runtime');
+    
+                    // don't process Infinity values
+                    if (timeLeft !== Infinity) {
+                        if (this._battery_combined_charging != charging) {
+                            // clears history due to state change
+                            this._battery_combined_time_left_history = [];
+    
+                            // clear time left history when laptop goes in and out of charging
+                            this._battery_combined_charging = charging;
+                        }
+    
+                        // add latest time left estimate to our history
+                        this._battery_combined_time_left_history.push(parseInt(timeLeft * 3600));
+    
+                        // keep track of last 15 time left estimates by erasing the first
+                        if (this._battery_combined_time_left_history.length > 10)
+                            this._battery_combined_time_left_history.shift();
+    
+                        // sum up and create average of our time left history
+                        let sum = this._battery_combined_time_left_history.reduce((a, b) => a + b);
+                        let avg = sum / this._battery_combined_time_left_history.length;
+    
+                        // use time left history to update screen
+                        this._returnValue(callback, 'Time left', parseInt(avg), 'batterycombined', 'runtime');
+                    }
+                } else {
+                    this._returnValue(callback, 'Time left', charging ? 'Charging' : 'Discharging', 'batterycombined', '');
                 }
-            } else {
-                this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');
             }
-        }).catch(err => { });
+        })();
     }
 
     _returnValue(callback, label, value, type, format) {
@@ -667,5 +788,7 @@ export const Sensors = GObject.registerClass({
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
         this._battery_charge_status = '';
+        this._battery_combined_charging = false;
+        this._battery_combined_time_left_history = [];
     }
 });
