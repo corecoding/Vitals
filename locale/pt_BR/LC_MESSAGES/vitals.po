@@ -164,7 +164,7 @@ msgstr "Monitorar armazenamento"
 #: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 #, fuzzy
 msgid "Monitor battery"
-msgstr "Monitorar memória"
+msgstr "Monitorar bateria"
 
 #: prefs.ui:817
 msgid "Path"
@@ -172,7 +172,7 @@ msgstr "Caminho"
 
 #: prefs.ui:849 prefs.ui:958
 msgid "Measurement"
-msgstr "Medisão"
+msgstr "Medição"
 
 #: prefs.ui:903
 msgid "Unit"
@@ -185,7 +185,7 @@ msgstr "Exibir bateria"
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 #, fuzzy
 msgid "Sensors to show in panel"
-msgstr "Posição no painel"
+msgstr "Sensores a serem exibidos no painel"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
@@ -213,12 +213,12 @@ msgstr "Ocultar dados de sensores inválidos"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
 msgid "Display temperature of various components"
-msgstr "Temperatura de exibição de vários componentes"
+msgstr "Exibir temperatura de vários componentes"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
 #, fuzzy
 msgid "Temperature unit"
-msgstr "Temperatura"
+msgstr "Unidade de temperatura"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
@@ -280,7 +280,7 @@ msgstr "Local de armazenamento para monitoramento"
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
 #, fuzzy
 msgid "Monitor battery health"
-msgstr "Monitorar temperatura"
+msgstr "Monitorar saúde da bateria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
 msgid "Memory measurement"
@@ -293,7 +293,7 @@ msgstr "Pode usar gigabyte ou gibibyte para memória"
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
 #, fuzzy
 msgid "Storage measurement"
-msgstr "Preferências de armazenamento"
+msgstr "Medição de armazenamento"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
@@ -305,7 +305,7 @@ msgstr "Slot de bateria para monitorar"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Which numerical battery slot should vitals monitor"
-msgstr "Qual o número do slot da bateria deve monitorar os sinais vitais"
+msgstr "Qual o número do slot da bateria o vitals deve monitorar"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Use fixed widths in top bar"
@@ -459,7 +459,7 @@ msgstr "Tempo de processamento"
 
 #: sensors.js:290
 msgid "State"
-msgstr ""
+msgstr "Estado"
 
 #: sensors.js:295
 msgid "Cycles"
@@ -484,7 +484,7 @@ msgstr "Taxa"
 #: sensors.js:312 sensors.js:341
 #, fuzzy
 msgid "battery"
-msgstr "bateia"
+msgstr "bateria"
 
 #: sensors.js:316 sensors.js:344
 msgid "Energy (now)"
@@ -504,7 +504,7 @@ msgstr "Nível do Sinal Wi-Fi"
 
 #: sensors.js:432
 msgid "ARC Target"
-msgstr "Arc alvo"
+msgstr "ARC Alvo"
 
 #: sensors.js:433
 #, fuzzy
@@ -530,7 +530,7 @@ msgstr "Taxa de leitura"
 
 #: sensors.js:448
 msgid "Write rate"
-msgstr "Taca de escrita"
+msgstr "Taxa de escrita"
 
 #: sensors.js:467
 msgid "Total"
@@ -551,4 +551,4 @@ msgstr "Livre"
 #: sensors.js:471
 #, fuzzy
 msgid "storage"
-msgstr "Monitorar armazenamento"
+msgstr "armazenamento"
