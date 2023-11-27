@@ -40,7 +40,12 @@ var VitalsMenuButton = GObject.registerClass({
                            'icon-rx': 'network-download-symbolic.svg',
                            'icon-tx': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
-                'battery' : { 'icon': 'battery-symbolic.svg' }
+                'batterybat0' : { 'icon': 'battery-symbolic.svg' },
+                'batterybat1' : { 'icon': 'battery-symbolic.svg' },
+                'batterybat2' : { 'icon': 'battery-symbolic.svg' },
+                'batterycmb0' : { 'icon': 'battery-symbolic.svg' },
+                'batterymacsmc-battery' : { 'icon': 'battery-symbolic.svg' },
+                'batterycombined' : { 'icon': 'battery-symbolic.svg' },
         }
 
         this._warnings = [];
@@ -79,6 +84,9 @@ var VitalsMenuButton = GObject.registerClass({
         // add signals for show- preference based categories
         for (let sensor in this._sensorIcons)
             this._addSettingChangedSignal('show-' + sensor, this._showHideSensorsChanged.bind(this));
+        
+        // add signals for show-battery preference
+        this._addSettingChangedSignal('show-battery', this._showHideBatterySensorsChanged.bind(this));
 
         this._initializeMenu();
 
@@ -91,15 +99,32 @@ var VitalsMenuButton = GObject.registerClass({
 
     _initializeMenu() {
         // display sensor categories
+        let batterycount = 1;
         for (let sensor in this._sensorIcons) {
             // groups associated sensors under accordion menu
             if (sensor in this._groups) continue;
 
-            this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
+            // check if sensor is a battery sensor
+            if(sensor == 'batterycombined'){
+                this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_('Batteries'), true);
+            }else if(sensor.startsWith('battery')){
+                if(this._settings.get_boolean('show-' + sensor)){
+                    this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(`Battery ${batterycount}`), true);
+                    batterycount = batterycount + 1;
+                }else{
+                    this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(`Battery (hidden)`), true);
+                }
+            }else{
+                this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
+            }
+
             this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons[sensor]['icon']);
 
             // hide menu items that user has requested to not include
             if (!this._settings.get_boolean('show-' + sensor))
+                this._groups[sensor].actor.hide();
+            
+            if(sensor.startsWith('battery') && !this._settings.get_boolean('show-battery'))
                 this._groups[sensor].actor.hide();
 
             if (!this._groups[sensor].status) {
@@ -248,7 +273,7 @@ var VitalsMenuButton = GObject.registerClass({
             style_class: 'vitals-panel-label',
             text: (value)?value:'\u2026', // ...
             y_expand: true,
-            y_align: Clutter.ActorAlign.START
+            y_align: Clutter.ActorAlign.CENTER
         });
 
         // attempt to prevent ellipsizes
@@ -266,7 +291,35 @@ var VitalsMenuButton = GObject.registerClass({
 
     _showHideSensorsChanged(self, sensor) {
         this._sensors.resetHistory();
-        this._groups[sensor.substr(5)].visible = this._settings.get_boolean(sensor);
+        // remove 'show-' from sensor-name
+        const sensorName = sensor.substr(5);
+        this._groups[sensorName].visible = this._settings.get_boolean(sensor);
+
+        // trigger update, so Battery label numbers are correct
+        if(sensorName.startsWith('battery')) this._showHideBatterySensorsChanged();
+    }
+
+    _showHideBatterySensorsChanged(self) {
+        this._sensors.resetHistory();
+
+        let batterycount = 1;
+
+        for (let sensor in this._sensorIcons){
+            if(sensor.startsWith('battery')){
+
+                // hide all batteries if main switch is off
+                this._groups[sensor].visible = this._settings.get_boolean('show-battery') && this._settings.get_boolean(`show-${sensor}`);
+
+                if(sensor !== 'batterycombined'){
+                    if(this._groups[sensor].visible){
+                        this._groups[sensor].label.text = `Battery ${batterycount}`;
+                        batterycount = batterycount + 1;
+                    }else{
+                        this._groups[sensor].label.text = `Battery (hidden)`;
+                    }
+                }
+            }
+        }
     }
 
     _positionInPanelChanged() {
