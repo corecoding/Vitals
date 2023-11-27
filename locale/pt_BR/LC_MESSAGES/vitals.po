@@ -181,7 +181,7 @@ msgstr "Exibir bateria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
-msgstr "Sensores para mostrar no painel"
+msgstr "Sensores a serem exibidos no painel"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
@@ -209,7 +209,7 @@ msgstr "Ocultar dados de sensores inválidos"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
 msgid "Display temperature of various components"
-msgstr "Temperatura de exibição de vários componentes"
+msgstr "Exibir temperatura de vários componentes"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
 msgid "Temperature unit"
@@ -285,7 +285,7 @@ msgstr "Pode usar gigabyte ou gibibyte para memória"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
 msgid "Storage measurement"
-msgstr "Medida de armazenamento"
+msgstr "Medição de armazenamento"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
@@ -297,7 +297,7 @@ msgstr "Slot de bateria para monitorar"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Which numerical battery slot should vitals monitor"
-msgstr "Qual o número do slot da bateria deve monitorar os sinais vitais"
+msgstr "Qual o número do slot da bateria o vitals deve monitorar"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Use fixed widths in top bar"
@@ -490,7 +490,7 @@ msgstr "Nível do Sinal Wi-Fi"
 
 #: sensors.js:432
 msgid "ARC Target"
-msgstr "ARC alvo"
+msgstr "ARC Alvo"
 
 #: sensors.js:433
 msgid "ARC Maximum"
@@ -514,7 +514,7 @@ msgstr "Taxa de leitura"
 
 #: sensors.js:448
 msgid "Write rate"
-msgstr "Taca de escrita"
+msgstr "Taxa de escrita"
 
 #: sensors.js:467
 msgid "Total"
