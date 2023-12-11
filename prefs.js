@@ -26,7 +26,7 @@ const Settings = new GObject.Class({
     _bind_settings: function () {
         let widget;
 
-        // Process sensor toggles that needs set_enable_expansion
+        // Process sensor toggles that need set_enable_expansion
         let sensors = ['show-temperature',
             'show-memory', 'show-processor', 'show-system',
             'show-network', 'show-storage', 'use-higher-precision',
@@ -38,34 +38,34 @@ const Settings = new GObject.Class({
             let sensor = sensors[key];
 
             widget = this.builder.get_object(sensor);
-            widget.set_enable_expansion(this._settings.get_boolean(sensor));
-            widget.connect('state-set', (_, val) => {
+
+            // widget.set_enable_expansion(this._settings.get_boolean(sensor));
+            widget.connect('notify::enable-expansion', (_, val) => {
                 this._settings.set_boolean(sensor, val);
             });
         }
 
-        // Process sensor toggles that needs set_active
-        let sensors = ['show-voltage', 'show-fan'];
+        // Process sensor toggles that need set_active
+        let sensorsWithActive = ['show-voltage', 'show-fan'];
 
-        for (let key in sensors) {
-            let sensor = sensors[key];
+        for (let key in sensorsWithActive) {
+            let sensor = sensorsWithActive[key];
 
             widget = this.builder.get_object(sensor);
 
             widget.set_active(this._settings.get_boolean(sensor));
-            widget.connect('state-set', (_, val) => {
+            widget.connect('activated', (_, val) => {
                 this._settings.set_boolean(sensor, val);
             });
         }
 
         // Process individual drop-down sensor preferences
-        sensors = ['position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot'];
-        for (let key in sensors) {
-            let sensor = sensors[key];
+        let dropdownSensors = ['position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot'];
+        for (let key in dropdownSensors) {
+            let sensor = dropdownSensors[key];
 
             widget = this.builder.get_object(sensor);
-            widget.set_active(this._settings.get_int(sensor));
-            widget.connect('changed', (widget) => {
+            widget.connect('notify::selected-item', (widget) => {
                 this._settings.set_int(sensor, widget.get_active());
             });
         }
@@ -73,9 +73,9 @@ const Settings = new GObject.Class({
         this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
 
         // Process individual text entry sensor preferences
-        sensors = ['storage-path', 'monitor-cmd'];
-        for (let key in sensors) {
-            let sensor = sensors[key];
+        let textEntrySensors = ['storage-path', 'monitor-cmd'];
+        for (let key in textEntrySensors) {
+            let sensor = textEntrySensors[key];
 
             widget = this.builder.get_object(sensor);
             widget.set_text(this._settings.get_string(sensor));
@@ -105,3 +105,4 @@ export default class VitalsPrefs extends ExtensionPreferences {
         widgetSensor.show();
     }
 }
+
