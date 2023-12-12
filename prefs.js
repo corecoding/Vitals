@@ -46,7 +46,7 @@ const Settings = new GObject.Class({
         let sensorsWithActive = ['show-voltage', 'show-fan',
             'include-static-info', 'include-public-ip',
             'use-higher-precision', 'alphabetize', 'hide-zeros',
-            'fixed-widths', 'hide-icons', 'menu-centered', 'show-system'];
+            'fixed-widths', 'hide-icons', 'menu-centred', 'show-system'];
 
         for (let key in sensorsWithActive) {
             let sensor = sensorsWithActive[key];
