@@ -28,7 +28,7 @@ const Settings = new GObject.Class({
 
         // Process sensor using AdwExpanderRow
         let sensors = ['show-temperature', 'show-memory',
-            'show-processor', 'show-system', 'show-network',
+            'show-processor', 'show-network',
             'show-storage', 'show-battery'];
 
         for (let key in sensors) {
@@ -46,7 +46,7 @@ const Settings = new GObject.Class({
         let sensorsWithActive = ['show-voltage', 'show-fan',
             'include-static-info', 'include-public-ip',
             'use-higher-precision', 'alphabetize', 'hide-zeros',
-            'fixed-widths', 'hide-icons', 'menu-centered'];
+            'fixed-widths', 'hide-icons', 'menu-centered', 'show-system'];
 
         for (let key in sensorsWithActive) {
             let sensor = sensorsWithActive[key];
@@ -59,15 +59,22 @@ const Settings = new GObject.Class({
             );
         }
 
-        // Process individual drop-down sensor preferences
+        // Process individual AdwComboRow sensor preferences
         let dropdownSensors = ['position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot'];
         for (let key in dropdownSensors) {
             let sensor = dropdownSensors[key];
 
             widget = this.builder.get_object(sensor);
-            widget.connect('notify::selected-item', (widget) => {
-                this._settings.set_int(sensor, widget.get_active());
-            });
+
+            // widget.set_active(this._settings.get_int(sensor));
+            // widget.connect('notify::selected', (widget) => {
+            //     this._settings.set_int(sensor, widget.get_active());
+            // });
+            
+            this._settings.bind(
+                sensor, widget, 'selected',
+                Gio.SettingsBindFlags.DEFAULT
+            );
         }
 
         this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
@@ -78,18 +85,13 @@ const Settings = new GObject.Class({
             let sensor = textEntrySensors[key];
 
             widget = this.builder.get_object(sensor);
-            // widget.set_text(this._settings.get_string(sensor));
+            widget.set_text(this._settings.get_string(sensor));
 
-            // widget.connect('changed', (widget) => {
-            //     let text = widget.get_text();
-            //     if (!text) text = widget.get_placeholder_text();
-            //     this._settings.set_string(sensor, text);
-            // });
-            
-            this._settings.bind(
-                sensor, widget, 'selected-item',
-                Gio.SettingsBindFlags.DEFAULT
-            );
+            widget.connect('notify::text', (widget) => {
+                let text = widget.get_text();
+                if (!text) text = widget.get_placeholder_text();
+                this._settings.set_string(sensor, text);
+            });
         }
     }
 });

@@ -9,6 +9,7 @@
     <property name="title">General</property>
     <child>
       <object class="AdwPreferencesGroup">
+        <property name="title">Behaviour</property>
         <child>
           <object class="AdwSpinRow" id="update-time">
             <property name="adjustment">
@@ -22,6 +23,18 @@
             <property name="title">Seconds between updates</property>
           </object>
         </child>
+        <child>
+          <object class="AdwEntryRow" id="monitor-cmd">
+            <property name="text">gnome-system-monitor</property>
+            <property name="title">Monitor command</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title">Layout</property>
+        <property name="width-request">400</property>
         <child>
           <object class="AdwComboRow" id="position-in-panel">
             <property name="model">
@@ -53,7 +66,7 @@ Far left</property>
         </child>
         <child>
           <object class="AdwSwitchRow" id="fixed-widths">
-            <property name="title">Use fized widths</property>
+            <property name="title">Use fixed widths</property>
           </object>
         </child>
         <child>
@@ -74,6 +87,8 @@ Far left</property>
     <property name="title">Sensors</property>
     <child>
       <object class="AdwPreferencesGroup">
+        <property name="title">Sensors</property>
+        <property name="width-request">400</property>
         <child>
           <object class="AdwExpanderRow" id="show-temperature">
             <property name="show-enable-switch">True</property>
@@ -131,15 +146,8 @@ Decimal</property>
           </object>
         </child>
         <child>
-          <object class="AdwExpanderRow" id="show-system">
-            <property name="show-enable-switch">True</property>
+          <object class="AdwSwitchRow" id="show-system">
             <property name="title">Monitor system</property>
-            <child>
-              <object class="AdwEntryRow" id="monitor-cmd">
-                <property name="text">gnome-system-monitor</property>
-                <property name="title">Monitor command</property>
-              </object>
-            </child>
           </object>
         </child>
         <child>
@@ -199,8 +207,7 @@ Decimal</property>
 BAT1
 BAT2
 CMB0
-macsmc-battery
-</property>
+macsmc-battery</property>
                   </object>
                 </property>
                 <property name="title">Unit</property>
