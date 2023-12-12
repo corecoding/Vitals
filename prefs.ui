@@ -5,9 +5,10 @@
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
   <object class="AdwPreferencesPage" id="general_page">
+    <property name="icon-name">preferences-system-symbolic</property>
+    <property name="title">General</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title">General</property>
         <child>
           <object class="AdwSpinRow" id="update-time">
             <property name="adjustment">
@@ -18,7 +19,7 @@
               </object>
             </property>
             <property name="climb-rate">1.0</property>
-            <property name="text">Seconds between updates</property>
+            <property name="title">Seconds between updates</property>
           </object>
         </child>
         <child>
@@ -69,168 +70,30 @@ Far left</property>
     </child>
   </object>
   <object class="AdwPreferencesPage" id="sensor_page">
-    <property name="height-request">600</property>
+    <property name="icon-name">temperature-symbolic</property>
+    <property name="title">Sensors</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="width-request">400</property>
         <child>
           <object class="AdwExpanderRow" id="show-temperature">
             <property name="show-enable-switch">True</property>
             <property name="title">Monitor temperature</property>
             <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwComboRow" id="unit">
-                    <property name="model">
-                      <object class="GtkStringList">
-                        <property name="strings">°C
+              <object class="AdwComboRow" id="unit">
+                <property name="model">
+                  <object class="GtkStringList">
+                    <property name="strings">°C
 °F</property>
-                      </object>
-                    </property>
-                    <property name="title">Unit</property>
                   </object>
-                </child>
+                </property>
+                <property name="title">Unit</property>
               </object>
             </child>
           </object>
         </child>
         <child>
-          <object class="AdwExpanderRow" id="show-battery">
-            <property name="show-enable-switch">True</property>
-            <property name="title">Monitor battery</property>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwComboRow" id="battery-slot">
-                    <property name="model">
-                      <object class="GtkStringList">
-                        <property name="strings">BAT0
-BAT1
-BAT2
-CMB0
-macsmc-battery
-</property>
-                      </object>
-                    </property>
-                    <property name="title">Unit</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwExpanderRow" id="show-storage">
-            <property name="show-enable-switch">True</property>
-            <property name="title">Monitor storage</property>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwEntryRow" id="storage-path">
-                    <property name="text">/</property>
-                    <property name="title">Path</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwComboRow" id="storage-measurement">
-                    <property name="model">
-                      <object class="GtkStringList">
-                        <property name="strings">Binary
-Decimal</property>
-                      </object>
-                    </property>
-                    <property name="title">Measurement</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwExpanderRow" id="show-network">
-            <property name="show-enable-switch">True</property>
-            <property name="title">Monitor network</property>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwSwitchRow" id="include-public-ip">
-                    <property name="title">Include public IP address</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwComboRow" id="network-speed-format">
-                    <property name="model">
-                      <object class="GtkStringList">
-                        <property name="strings">Bytes
-Bits</property>
-                      </object>
-                    </property>
-                    <property name="title">Format</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwExpanderRow" id="show-system">
-            <property name="show-enable-switch">True</property>
-            <property name="title">Monitor system</property>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwEntryRow" id="monitor-cmd">
-                    <property name="text">gnome-system-monitor</property>
-                    <property name="title">Monitor command</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwExpanderRow" id="show-processor">
-            <property name="show-enable-switch">True</property>
-            <property name="title">Monitor processor</property>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwSwitchRow" id="include-static-info">
-                    <property name="title">Include static info</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwExpanderRow" id="show-memory">
-            <property name="enable-expansion">False</property>
-            <property name="show-enable-switch">True</property>
-            <property name="title">Monitor memory</property>
-            <child>
-              <object class="AdwPreferencesRow">
-                <child>
-                  <object class="AdwComboRow" id="memory-measurement">
-                    <property name="model">
-                      <object class="GtkStringList">
-                        <property name="strings">Binary
-Decimal</property>
-                      </object>
-                    </property>
-                    <property name="title">Measurement</property>
-                  </object>
-                </child>
-              </object>
-            </child>
+          <object class="AdwSwitchRow" id="show-voltage">
+            <property name="title">Monitor voltage</property>
           </object>
         </child>
         <child>
@@ -240,8 +103,109 @@ Decimal</property>
           </object>
         </child>
         <child>
-          <object class="AdwSwitchRow" id="show-voltage">
-            <property name="title">Monitor voltage</property>
+          <object class="AdwExpanderRow" id="show-memory">
+            <property name="show-enable-switch">True</property>
+            <property name="title">Monitor memory</property>
+            <child>
+              <object class="AdwComboRow" id="memory-measurement">
+                <property name="model">
+                  <object class="GtkStringList">
+                    <property name="strings">Binary
+Decimal</property>
+                  </object>
+                </property>
+                <property name="title">Measurement</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="show-processor">
+            <property name="show-enable-switch">True</property>
+            <property name="title">Monitor processor</property>
+            <child>
+              <object class="AdwSwitchRow" id="include-static-info">
+                <property name="title">Include static info</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="show-system">
+            <property name="show-enable-switch">True</property>
+            <property name="title">Monitor system</property>
+            <child>
+              <object class="AdwEntryRow" id="monitor-cmd">
+                <property name="text">gnome-system-monitor</property>
+                <property name="title">Monitor command</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="show-network">
+            <property name="show-enable-switch">True</property>
+            <property name="title">Monitor network</property>
+            <child>
+              <object class="AdwSwitchRow" id="include-public-ip">
+                <property name="title">Include public IP address</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwComboRow" id="network-speed-format">
+                <property name="model">
+                  <object class="GtkStringList">
+                    <property name="strings">Bytes
+Bits</property>
+                  </object>
+                </property>
+                <property name="title">Format</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="show-storage">
+            <property name="show-enable-switch">True</property>
+            <property name="title">Monitor storage</property>
+            <child>
+              <object class="AdwEntryRow" id="storage-path">
+                <property name="text">/</property>
+                <property name="title">Path</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwComboRow" id="storage-measurement">
+                <property name="model">
+                  <object class="GtkStringList">
+                    <property name="strings">Binary
+Decimal</property>
+                  </object>
+                </property>
+                <property name="title">Measurement</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="show-battery">
+            <property name="show-enable-switch">True</property>
+            <property name="title">Monitor battery</property>
+            <child>
+              <object class="AdwComboRow" id="battery-slot">
+                <property name="model">
+                  <object class="GtkStringList">
+                    <property name="strings">BAT0
+BAT1
+BAT2
+CMB0
+macsmc-battery
+</property>
+                  </object>
+                </property>
+                <property name="title">Unit</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

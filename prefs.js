@@ -26,37 +26,37 @@ const Settings = new GObject.Class({
     _bind_settings: function () {
         let widget;
 
-        // Process sensor toggles that need set_enable_expansion
-        let sensors = ['show-temperature',
-            'show-memory', 'show-processor', 'show-system',
-            'show-network', 'show-storage', 'use-higher-precision',
-            'alphabetize', 'hide-zeros', 'include-public-ip',
-            'show-battery', 'fixed-widths', 'hide-icons',
-            'menu-centered', 'include-static-info'];
+        // Process sensor using AdwExpanderRow
+        let sensors = ['show-temperature', 'show-memory',
+            'show-processor', 'show-system', 'show-network',
+            'show-storage', 'show-battery'];
 
         for (let key in sensors) {
             let sensor = sensors[key];
 
             widget = this.builder.get_object(sensor);
 
-            // widget.set_enable_expansion(this._settings.get_boolean(sensor));
-            widget.connect('notify::enable-expansion', (_, val) => {
-                this._settings.set_boolean(sensor, val);
-            });
+            this._settings.bind(
+                sensor, widget, 'enable-expansion',
+                Gio.SettingsBindFlags.DEFAULT
+            );
         }
 
-        // Process sensor toggles that need set_active
-        let sensorsWithActive = ['show-voltage', 'show-fan'];
+        // Process sensor using AdwSwitchRow
+        let sensorsWithActive = ['show-voltage', 'show-fan',
+            'include-static-info', 'include-public-ip',
+            'use-higher-precision', 'alphabetize', 'hide-zeros',
+            'fixed-widths', 'hide-icons', 'menu-centered'];
 
         for (let key in sensorsWithActive) {
             let sensor = sensorsWithActive[key];
 
             widget = this.builder.get_object(sensor);
 
-            widget.set_active(this._settings.get_boolean(sensor));
-            widget.connect('activated', (_, val) => {
-                this._settings.set_boolean(sensor, val);
-            });
+            this._settings.bind(
+                sensor, widget, 'active',
+                Gio.SettingsBindFlags.DEFAULT
+            );
         }
 
         // Process individual drop-down sensor preferences
@@ -78,13 +78,18 @@ const Settings = new GObject.Class({
             let sensor = textEntrySensors[key];
 
             widget = this.builder.get_object(sensor);
-            widget.set_text(this._settings.get_string(sensor));
+            // widget.set_text(this._settings.get_string(sensor));
 
-            widget.connect('changed', (widget) => {
-                let text = widget.get_text();
-                if (!text) text = widget.get_placeholder_text();
-                this._settings.set_string(sensor, text);
-            });
+            // widget.connect('changed', (widget) => {
+            //     let text = widget.get_text();
+            //     if (!text) text = widget.get_placeholder_text();
+            //     this._settings.set_string(sensor, text);
+            // });
+            
+            this._settings.bind(
+                sensor, widget, 'selected-item',
+                Gio.SettingsBindFlags.DEFAULT
+            );
         }
     }
 });
@@ -100,7 +105,6 @@ export default class VitalsPrefs extends ExtensionPreferences {
         window.add(widgetGeneral);
         window.add(widgetSensor);
 
-        window.set_default_size(Math.max(widgetGeneral.width, widgetSensor.width), widgetGeneral.height + widgetSensor.height);
         widgetGeneral.show();
         widgetSensor.show();
     }
