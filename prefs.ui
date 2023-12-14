@@ -225,7 +225,7 @@ Decimal</property>
               </object>
             </child>
             <child>
-              <object class="AdwSwitchRow">
+              <object class="AdwSwitchRow" id="show-batterymacsmc-battery">
                 <property name="title">Monitor macsmc-battery</property>
               </object>
             </child>

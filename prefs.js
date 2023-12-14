@@ -51,7 +51,7 @@ const Settings = new GObject.Class({
             'show-batterybat2', 'show-batterycmb0',
             'combined-include-macsmc-battery', 'combined-include-bat0',
             'combined-include-bat1', 'combined-include-bat2',
-            'combined-include-cmb0'];
+            'combined-include-cmb0', 'show-batterymacsmc-battery'];
 
         for (let key in sensorsWithActive) {
             let sensor = sensorsWithActive[key];
