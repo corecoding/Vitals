@@ -106,13 +106,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (!this._groups[sensor].status) {
                 this._groups[sensor].status = this._defaultLabel();
                 this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
-                
-                // Check if the sensor name is 'GPU'
-                if (sensor === 'gpu') {
-                    this._groups[sensor].status.text = ''; // Set status to empty
-                } else {
-                    this._groups[sensor].status.text = 'No Data';
-                }
+                this._groups[sensor].status.text = _('No Data');
             }
 
             this.menu.addMenuItem(this._groups[sensor]);
