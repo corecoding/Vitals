@@ -65,7 +65,7 @@ const Settings = new GObject.Class({
         }
 
         // Process individual AdwComboRow sensor preferences
-        let dropdownSensors = ['position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot'];
+        let dropdownSensors = ['position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement'];
         for (let key in dropdownSensors) {
             let sensor = dropdownSensors[key];
 
