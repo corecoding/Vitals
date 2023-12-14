@@ -199,7 +199,7 @@ Decimal</property>
     </child>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title">Battery</property>
+        <property name="title">Batteries</property>
         <child>
           <object class="AdwExpanderRow" id="show-battery">
             <property name="show-enable-switch">True</property>
