@@ -34,7 +34,6 @@
     <child>
       <object class="AdwPreferencesGroup">
         <property name="title">Layout</property>
-        <property name="width-request">400</property>
         <child>
           <object class="AdwComboRow" id="position-in-panel">
             <property name="model">
@@ -88,7 +87,6 @@ Far left</property>
     <child>
       <object class="AdwPreferencesGroup">
         <property name="title">Sensors</property>
-        <property name="width-request">400</property>
         <child>
           <object class="AdwExpanderRow" id="show-temperature">
             <property name="show-enable-switch">True</property>
