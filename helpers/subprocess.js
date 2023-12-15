@@ -1,7 +1,5 @@
-const GLib = imports.gi.GLib;
-const Gio = imports.gi.Gio;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-Me.imports.helpers.polyfills;
+import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 const ByteArray = imports.byteArray;
 
 var Decoder;
@@ -21,7 +19,7 @@ function convertUint8ArrayToString(contents) {
     return ByteArray.toString(contents).trim();
 }
 
-function SubProcess(command) {
+export function SubProcess(command) {
     this.sub_process = Gio.Subprocess.new(command, Gio.SubprocessFlags.STDOUT_PIPE);
     this.stdout = this.sub_process.get_stdout_pipe();
 }
@@ -33,7 +31,7 @@ SubProcess.prototype.read = function(delimiter = '') {
                 let read_bytes = stdout.read_bytes_finish(res).get_data();
 
                 // convert contents to string
-                read_str = convertUint8ArrayToString(read_bytes);
+                let read_str = convertUint8ArrayToString(read_bytes);
 
                 // split read_str by delimiter if passed in
                 if (delimiter) {

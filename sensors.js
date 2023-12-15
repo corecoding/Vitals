@@ -25,6 +25,7 @@
 */
 
 import GObject from 'gi://GObject';
+import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import NM from 'gi://NM';
