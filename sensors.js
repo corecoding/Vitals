@@ -506,6 +506,7 @@ export const Sensors = GObject.registerClass({
             if (this._settings.get_boolean('show-gpu')) {
                 let utilLabel = `${label} Utilization`;
                 this._returnValue(callback, utilLabel, parseInt(utilization_gpu) * 0.01, 'gpu', 'percent');
+                this._returnValue(callback, 'gpu', parseInt(utilization_gpu) * 0.01, 'gpu-group', 'percent');
             }
 
             if (this._settings.get_boolean('show-gpu')) {
