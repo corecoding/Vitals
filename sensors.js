@@ -494,23 +494,20 @@ export const Sensors = GObject.registerClass({
 
         let [label, temp, fan_speed_pct, utilization_gpu, utilization_memory, power ] = csv_split;
 
-            
-        let tempLabel = `${label} Temperature`;
-        this._returnGpuValue(callback, tempLabel, parseInt(temp) * 1000, 'gpu', 'temp');
+        this._returnGpuValue(callback, 'Device Name', label, 'gpu', '');
+
+        this._returnGpuValue(callback, 'Temperature', parseInt(temp) * 1000, 'gpu', 'temp');
+        this._returnGpuValue(callback, 'GPU', parseInt(temp) * 1000, 'temperature', 'temp');
         
-        
-        let fanLabel = `${label} Fan`;
-        this._returnGpuValue(callback, fanLabel, parseInt(fan_speed_pct) * 0.01, 'gpu', 'percent');
+        this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, 'gpu', 'percent');
+        this._returnGpuValue(callback, 'GPU', parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
 
-        let utilLabel = `${label} Utilization`;
-        this._returnGpuValue(callback, utilLabel, parseInt(utilization_gpu) * 0.01, 'gpu', 'percent');
-        this._returnGpuValue(callback, 'gpu', parseInt(utilization_gpu) * 0.01, 'gpu-group', 'percent');
+        this._returnGpuValue(callback, 'Utilization', parseInt(utilization_gpu) * 0.01, 'gpu', 'percent');
+        this._returnGpuValue(callback, 'Graphics', parseInt(utilization_gpu) * 0.01, 'gpu-group', 'percent');
 
-        let memLabel = `${label} Memory`;
-        this._returnGpuValue(callback, memLabel, parseInt(utilization_memory) * 0.01, 'gpu', 'percent');
+        this._returnGpuValue(callback, 'Memory Utilization', parseInt(utilization_memory) * 0.01, 'gpu', 'percent');
 
-        let powerLabel = `${label} Power`;
-        this._returnGpuValue(callback, powerLabel, power, 'gpu', 'watt-gpu');
+        this._returnGpuValue(callback, 'Power', power, 'gpu', 'watt-gpu');
     }
 
     _queryGpu(callback) {

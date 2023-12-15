@@ -472,6 +472,22 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _ucFirst(string) {
+        ///REVISIT LATER - code for more than 1 gpu
+        ///Sets the name of "Gpu" row in the main menu to the name of the gpu
+
+        // if(string === "gpu") {
+        //     try {
+        //         const gpuName = Gio.Subprocess.new(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], Gio.SubprocessFlags.STDOUT_PIPE, Gio.SubprocessFlags.STDERR_PIPE);
+
+        //         const [success, stdout, __] = gpuName.communicate_utf8(null, null);
+            
+        //         if (success)
+        //             return stdout;
+        //     } 
+        //     catch (e) {}
+        // }
+    
+        if(string === "gpu") return "Graphics";
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
