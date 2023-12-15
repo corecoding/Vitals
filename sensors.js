@@ -515,7 +515,7 @@ export const Sensors = GObject.registerClass({
 
             if (this._settings.get_boolean('show-gpu')) {
                 let powerLabel = `${label} Power`;
-                this._returnValue(callback, powerLabel, parseInt(utilization_memory) * 0.01, 'gpu', 'watt-gpu');
+                this._returnValue(callback, powerLabel, power, 'gpu', 'watt-gpu');
             }
 
         } else {
