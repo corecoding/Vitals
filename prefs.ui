@@ -859,7 +859,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
-                                <property name="label" translatable="yes">Monitor Nvidia GPU (beta)</property>
+                                <property name="label" translatable="yes">Monitor gpu (beta; NVIDIA only)</property>
                               </object>
                             </child>
                             <child>
