@@ -487,72 +487,59 @@ export const Sensors = GObject.registerClass({
 
     _parseNvidiaSmiLine(callback, csv) {
         let csv_split = csv.split(',');
-        if (csv_split.length == 6) {
-            let [label, temp, fan_speed_pct, utilization_gpu, utilization_memory, power ] = csv_split;
-
-            if (!this._nvidia_labels.includes(label))
-                this._nvidia_labels.push(label);
-
-            if (this._settings.get_boolean('show-gpu')) {
-                let tempLabel = `${label} Temperature`;
-                this._returnValue(callback, tempLabel, parseInt(temp) * 1000, 'gpu', 'temp');
-            }
-            
-            if (this._settings.get_boolean('show-gpu')) {
-                let fanLabel = `${label} Fan`;
-                this._returnValue(callback, fanLabel, parseInt(fan_speed_pct) * 0.01, 'gpu', 'percent');
-            }
-
-            if (this._settings.get_boolean('show-gpu')) {
-                let utilLabel = `${label} Utilization`;
-                this._returnValue(callback, utilLabel, parseInt(utilization_gpu) * 0.01, 'gpu', 'percent');
-                this._returnValue(callback, 'gpu', parseInt(utilization_gpu) * 0.01, 'gpu-group', 'percent');
-            }
-
-            if (this._settings.get_boolean('show-gpu')) {
-                let memLabel = `${label} Memory`;
-                this._returnValue(callback, memLabel, parseInt(utilization_memory) * 0.01, 'gpu', 'percent');
-            }
-
-            if (this._settings.get_boolean('show-gpu')) {
-                let powerLabel = `${label} Power`;
-                this._returnValue(callback, powerLabel, power, 'gpu', 'watt-gpu');
-            }
-
-        } else {
+        if (csv_split.length != 6) {
             this._terminateNvidiaSmiProcess();
+            return;
         }
+
+        let [label, temp, fan_speed_pct, utilization_gpu, utilization_memory, power ] = csv_split;
+
+            
+        let tempLabel = `${label} Temperature`;
+        this._returnGpuValue(callback, tempLabel, parseInt(temp) * 1000, 'gpu', 'temp');
+        
+        
+        let fanLabel = `${label} Fan`;
+        this._returnGpuValue(callback, fanLabel, parseInt(fan_speed_pct) * 0.01, 'gpu', 'percent');
+
+        let utilLabel = `${label} Utilization`;
+        this._returnGpuValue(callback, utilLabel, parseInt(utilization_gpu) * 0.01, 'gpu', 'percent');
+        this._returnGpuValue(callback, 'gpu', parseInt(utilization_gpu) * 0.01, 'gpu-group', 'percent');
+
+        let memLabel = `${label} Memory`;
+        this._returnGpuValue(callback, memLabel, parseInt(utilization_memory) * 0.01, 'gpu', 'percent');
+
+        let powerLabel = `${label} Power`;
+        this._returnGpuValue(callback, powerLabel, power, 'gpu', 'watt-gpu');
     }
 
     _queryGpu(callback) {
-        if (this._nvidia_smi_process) {
-            this._nvidia_smi_process.read('\n').then(lines => {
-                for (let csv of lines) {
-                    this._parseNvidiaSmiLine(callback, csv);
-                }
-            }).catch(err => {
-                this._terminateNvidiaSmiProcess();
-            });
-        } else {
-            for (let label of this._nvidia_labels) {
-                if (this._settings.get_boolean('show-gpu'))
-                    this._returnValue(callback, tempLabel, 'disabled', 'gpu', 'temp');
-
-                if (this._settings.get_boolean('show-gpu'))
-                    this._returnValue(callback, fanLabel, 'disabled', 'gpu', 'percent');
-
-                if (this._settings.get_boolean('show-gpu'))
-                    this._returnValue(callback, utilLabel, 'disabled', 'gpu', 'percent');
-
-                if (this._settings.get_boolean('show-gpu'))
-                    this._returnValue(callback, memLabel, 'disabled', 'gpu', 'percent');
-
-                if (this._settings.get_boolean('show-gpu'))
-                    this._returnValue(callback, powerLabel, 'disabled', 'gpu', 'watt-gpu');
-
-            
-            }
+        if (!this._nvidia_smi_process) {
+            _disableGpuLabels();
+            return;
         }
+        
+        this._nvidia_smi_process.read('\n').then(lines => {
+            for (let csv of lines) {
+                this._parseNvidiaSmiLine(callback, csv);
+            }
+        }).catch(err => {
+            this._disableGpuLabels();
+            this._terminateNvidiaSmiProcess();
+        });
+    }
+
+    _disableGpuLabels() {
+        for (let labelObj of this._nvidia_labels)
+            this._returnValue(callback, labelObj.label, 'disabled', 'gpu', labelObj.format);
+    }
+
+    _returnGpuValue(callback, label, value, type, format) {
+        let nvidiaLabel = {'label': label, 'format': format};
+        if (!this._nvidia_labels.includes(nvidiaLabel))
+            this._nvidia_labels.push(nvidiaLabel);
+
+        this._returnValue(callback, label, value, type, format);
     }
 
     _returnValue(callback, label, value, type, format) {
