@@ -34,11 +34,11 @@ var VitalsMenuButton = GObject.registerClass({
                 'voltage' : { 'icon': 'voltage-symbolic.svg' },
                     'fan' : { 'icon': 'fan-symbolic.svg' },
                  'memory' : { 'icon': 'memory-symbolic.svg' },
-              'processor' : { 'icon': 'cpu-symbolic.svg' },
+              'processor' : { 'icon': 'processor-symbolic.svg' },
                  'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
-                           'icon-rx': 'network-download-symbolic.svg',
-                           'icon-tx': 'network-upload-symbolic.svg' },
+                           'icon-rx': 'network-receive-symbolic.svg',
+                           'icon-tx': 'network-transmit-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'batterybat0' : { 'icon': 'battery-symbolic.svg' },
                 'batterybat1' : { 'icon': 'battery-symbolic.svg' },
@@ -179,7 +179,7 @@ var VitalsMenuButton = GObject.registerClass({
         customButtonBox.add_actor(monitorButton);
 
         // custom round preferences button
-        let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
+        let prefsButton = this._createRoundButton('org.gnome.Settings-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
             this._extensionObject.openPreferences();
