@@ -485,29 +485,32 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _parseNvidiaSmiLine(callback, csv) {
+    _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
         let csv_split = csv.split(',');
         if (csv_split.length != 6) {
             this._terminateNvidiaSmiProcess();
             return;
         }
 
+        const typeName = 'gpu#' + gpuNum;
+        const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
+
         let [label, temp, fan_speed_pct, utilization_gpu, utilization_memory, power ] = csv_split;
 
-        this._returnGpuValue(callback, 'Device Name', label, 'gpu', '');
+        this._returnGpuValue(callback, 'Name', label, typeName, '');
 
-        this._returnGpuValue(callback, 'Temperature', parseInt(temp) * 1000, 'gpu', 'temp');
-        this._returnGpuValue(callback, 'GPU', parseInt(temp) * 1000, 'temperature', 'temp');
+        this._returnGpuValue(callback, 'Temperature', parseInt(temp) * 1000, typeName, 'temp');
+        this._returnGpuValue(callback, globalLabel, parseInt(temp) * 1000, 'temperature', 'temp');
         
-        this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, 'gpu', 'percent');
-        this._returnGpuValue(callback, 'GPU', parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
+        this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, typeName, 'percent');
+        this._returnGpuValue(callback, globalLabel, parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
 
-        this._returnGpuValue(callback, 'Utilization', parseInt(utilization_gpu) * 0.01, 'gpu', 'percent');
-        this._returnGpuValue(callback, 'Graphics', parseInt(utilization_gpu) * 0.01, 'gpu-group', 'percent');
+        this._returnGpuValue(callback, 'Utilization', parseInt(utilization_gpu) * 0.01, typeName, 'percent');
+        this._returnGpuValue(callback, 'Graphics', parseInt(utilization_gpu) * 0.01, typeName + '-group', 'percent');
 
-        this._returnGpuValue(callback, 'Memory Utilization', parseInt(utilization_memory) * 0.01, 'gpu', 'percent');
+        this._returnGpuValue(callback, 'Memory Utilization', parseInt(utilization_memory) * 0.01, typeName, 'percent');
 
-        this._returnGpuValue(callback, 'Power', power, 'gpu', 'watt-gpu');
+        this._returnGpuValue(callback, 'Power', power, typeName, 'watt-gpu');
     }
 
     _queryGpu(callback) {
@@ -517,9 +520,14 @@ export const Sensors = GObject.registerClass({
         }
         
         this._nvidia_smi_process.read('\n').then(lines => {
-            for (let csv of lines) {
-                this._parseNvidiaSmiLine(callback, csv);
-            }
+            /// for debugging multi-gpu on systems with only one gpu
+            /// duplicates the first gpu's data 3 times, for 4 total gpus
+            for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
+                lines.push('[Duplicate ' + _gpuNum + '] ' + lines[0]);
+
+            for (let i = 0; i < lines.length; i++)
+                this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
+            
         }).catch(err => {
             this._disableGpuLabels();
             this._terminateNvidiaSmiProcess();

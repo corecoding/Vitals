@@ -50,6 +50,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._hotIcons = {};
         this._groups = {};
         this._widths = {};
+        this._numGpus = 1;
         this._last_query = new Date().getTime();
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
@@ -96,21 +97,14 @@ var VitalsMenuButton = GObject.registerClass({
             // groups associated sensors under accordion menu
             if (sensor in this._groups) continue;
 
-            this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
-            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons[sensor]['icon']);
+            //handle gpus separately.
+            if (sensor === 'gpu') continue;
 
-            // hide menu items that user has requested to not include
-            if (!this._settings.get_boolean('show-' + sensor))
-                this._groups[sensor].actor.hide();
-
-            if (!this._groups[sensor].status) {
-                this._groups[sensor].status = this._defaultLabel();
-                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
-                this._groups[sensor].status.text = _('No Data');
-            }
-
-            this.menu.addMenuItem(this._groups[sensor]);
+            this._initializeMenuGroup(sensor, sensor);
         }
+        
+        for (let i = 1; i <= this._numGpus; i++)
+            this._initializeMenuGroup('gpu#' + i, 'gpu', (this._numGpus > 1 ? ' ' + i : ''));
 
         // add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -178,6 +172,24 @@ var VitalsMenuButton = GObject.registerClass({
                 this._querySensors();
             }
         });
+    }
+
+    _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
+        this._groups[groupName] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(groupName) + menuSuffix), true);
+        this._groups[groupName].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(groupName));
+
+        // hide menu items that user has requested to not include
+        if (!this._settings.get_boolean('show-' + optionName))
+            this._groups[groupName].actor.hide();
+
+        if (!this._groups[groupName].status) {
+            this._groups[groupName].status = this._defaultLabel();
+            this._groups[groupName].actor.insert_child_at_index(this._groups[groupName].status, 4);
+            this._groups[groupName].status.text = _('No Data');
+        }
+
+        if(position == -1) this.menu.addMenuItem(this._groups[groupName]);
+        else this.menu.addMenuItem(this._groups[groupName], position);
     }
 
     _createRoundButton(iconName) {
@@ -267,7 +279,13 @@ var VitalsMenuButton = GObject.registerClass({
 
     _showHideSensorsChanged(self, sensor) {
         this._sensors.resetHistory();
-        this._groups[sensor.substr(5)].visible = this._settings.get_boolean(sensor);
+
+        const sensorName = sensor.substr(5);
+        if(sensorName === 'gpu') {
+            for(let i = 1; i <= this._numGpus; i++)
+                this._groups[sensorName + '#' + i].visible = this._settings.get_boolean(sensor);
+        } else 
+            this._groups[sensorName].visible = this._settings.get_boolean(sensor);
     }
 
     _positionInPanelChanged() {
@@ -395,7 +413,7 @@ var VitalsMenuButton = GObject.registerClass({
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
-        let gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons[type][icon]);
+        let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon));
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {
@@ -461,33 +479,27 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         // second condition prevents crash due to issue #225, which started when _max_ was moved to the end
-        if (type == 'default' || !(type in this._sensorIcons)) {
-            icon.gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons['system']['icon']);
+        // don't use the default system icon if the type is a gpu; use the universal gpu icon instead
+        if (type == 'default' || (!(type in this._sensorIcons) && !type.startsWith('gpu'))) {
+            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath('system'));
         } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
             let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
-            icon.gicon = Gio.icon_new_for_string(this._extensionObject.path + '/icons/' + this._sensorIcons[type][iconObj]);
+            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(type, iconObj));
         }
 
         return icon;
     }
 
+    _sensorIconPath(sensor, icon = 'icon') {
+        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
+        let sensorKey = sensor;
+        if(sensor.startsWith('gpu')) sensorKey = 'gpu';
+
+        return this._extensionObject.path + '/icons/' + this._sensorIcons[sensorKey][icon];
+    }
+
     _ucFirst(string) {
-        ///REVISIT LATER - code for more than 1 gpu
-        ///Sets the name of "Gpu" row in the main menu to the name of the gpu
-
-        // if(string === "gpu") {
-        //     try {
-        //         const gpuName = Gio.Subprocess.new(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], Gio.SubprocessFlags.STDOUT_PIPE, Gio.SubprocessFlags.STDERR_PIPE);
-
-        //         const [success, stdout, __] = gpuName.communicate_utf8(null, null);
-            
-        //         if (success)
-        //             return stdout;
-        //     } 
-        //     catch (e) {}
-        // }
-    
-        if(string === "gpu") return "Graphics";
+        if(string.startsWith('gpu')) return 'Graphics';
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
@@ -541,7 +553,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._last_query = now;
 
         this._sensors.query((label, value, type, format) => {
-            let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
+            const typeKey = type.replace('-group', '');
+            let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
@@ -549,6 +562,19 @@ var VitalsMenuButton = GObject.registerClass({
 
                 // don't continue below, last known value is shown
                 if (value == 'disabled') return;
+            }
+
+            // add/initialize any gpu groups that we haven't added yet
+            if(typeKey.startsWith('gpu') && typeKey !== 'gpu#1') {
+                const split = typeKey.split('#');
+                if(split.length == 2 && this._numGpus < parseInt(split[1])) {
+                    this._numGpus = parseInt(split[1]);
+                    // change label for gpu 1 from "Graphics" to "Graphics 1" since we have multiple gpus now
+                    this._groups['gpu#1'].label.text = this._ucFirst('gpu#1') + ' 1';
+                    for(let i = 2; i <= this._numGpus; i++)
+                        if(!('gpu#' + i in this._groups))
+                            this._initializeMenuGroup('gpu#' + i, 'gpu', ' ' + i, Object.keys(this._groups).length);
+                }
             }
 
             let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
