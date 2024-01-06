@@ -56,6 +56,7 @@ export const Sensors = GObject.registerClass({
 
         this._nvidia_smi_process = null;
         this._nvidia_labels = [];
+        this._bad_split_count = 0;
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -495,9 +496,9 @@ export const Sensors = GObject.registerClass({
         this._nvidia_smi_process.read('\n').then(lines => {
             /// for debugging multi-gpu on systems with only one gpu
             /// duplicates the first gpu's data 3 times, for 4 total gpus
-            if(lines.length == 0) return;
-            for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
-                lines.push(lines[0]);
+            ///if(lines.length == 0) return;
+            ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
+            ///    lines.push(lines[0]);
 
             for (let i = 0; i < lines.length; i++) {
                 this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
@@ -521,11 +522,19 @@ export const Sensors = GObject.registerClass({
     _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
         const expectedSplitLength = 19;
         let csv_split = csv.split(',');
+
+        // occasionally the nvidia-smi command can get cut off before it can be fully read, thus the parse function only gets part of a line
+        // hence we count the number of bad splits and only terminate the process after a few bad splits in a row
+        // this prevents anomalous readings from terminating the process
         if (csv_split.length < expectedSplitLength) {
-            this._terminateNvidiaSmiProcess();
+            this._bad_split_count++;
+            //if we've had 2 bad splits/reads in a row, try to restart the process
+            if (this._bad_split_count == 2) this._reconfigureNvidiaSmiProcess();
+            //if we still get a bad read after that, then it's not an anomaly; terminate the process
+            else if (this._bad_split_count >= 3) this._terminateNvidiaSmiProcess();
             return;
         }
-        
+        this._bad_split_count = 0;
 
         let [
             label, 
@@ -900,6 +909,7 @@ export const Sensors = GObject.registerClass({
         this._battery_time_left_history = [];
         this._battery_charge_status = '';
         this._nvidia_labels = [];
+        this._bad_split_count = 0;
     }
 
     destroy() {
