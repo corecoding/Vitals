@@ -74,7 +74,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -130,7 +130,7 @@ var VitalsMenuButton = GObject.registerClass({
         refreshButton.connect('clicked', (self) => {
             // force refresh by clearing history
             this._sensors.resetHistory();
-            this._values.resetHistory();
+            this._values.resetHistory(this._numGpus);
 
             // make sure timer fires at next full interval
             this._updateTimeChanged();
@@ -341,7 +341,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._drawMenu();
         this._sensors.resetHistory();
-        this._values.resetHistory();
+        this._values.resetHistory(this._numGpus);
         this._querySensors();
     }
 
@@ -389,7 +389,8 @@ var VitalsMenuButton = GObject.registerClass({
                 }
             }
         }
-
+        if(key === "_gpu#1_domain_number_")
+            console.error('UPDATING: ', key);
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
         if (item) {

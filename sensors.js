@@ -52,6 +52,7 @@ export const Sensors = GObject.registerClass({
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
+        //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._nvidia_smi_process = null;
         this._nvidia_labels = [];
@@ -485,62 +486,150 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
-        let csv_split = csv.split(',');
-        if (csv_split.length != 6) {
-            this._terminateNvidiaSmiProcess();
-            return;
-        }
-
-        const typeName = 'gpu#' + gpuNum;
-        const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
-
-        let [label, temp, fan_speed_pct, utilization_gpu, utilization_memory, power ] = csv_split;
-
-        this._returnGpuValue(callback, 'Name', label, typeName, '');
-
-        this._returnGpuValue(callback, 'Temperature', parseInt(temp) * 1000, typeName, 'temp');
-        this._returnGpuValue(callback, globalLabel, parseInt(temp) * 1000, 'temperature', 'temp');
-        
-        this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, typeName, 'percent');
-        this._returnGpuValue(callback, globalLabel, parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
-
-        this._returnGpuValue(callback, 'Utilization', parseInt(utilization_gpu) * 0.01, typeName, 'percent');
-        this._returnGpuValue(callback, 'Graphics', parseInt(utilization_gpu) * 0.01, typeName + '-group', 'percent');
-
-        this._returnGpuValue(callback, 'Memory Utilization', parseInt(utilization_memory) * 0.01, typeName, 'percent');
-
-        this._returnGpuValue(callback, 'Power', power, typeName, 'watt-gpu');
-    }
-
     _queryGpu(callback) {
         if (!this._nvidia_smi_process) {
-            _disableGpuLabels();
+            this._disableGpuLabels(callback);
             return;
         }
         
         this._nvidia_smi_process.read('\n').then(lines => {
             /// for debugging multi-gpu on systems with only one gpu
             /// duplicates the first gpu's data 3 times, for 4 total gpus
+            if(lines.length == 0) return;
             for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
-                lines.push('[Duplicate ' + _gpuNum + '] ' + lines[0]);
+                lines.push(lines[0]);
 
-            for (let i = 0; i < lines.length; i++)
+            for (let i = 0; i < lines.length; i++) {
                 this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
+            }
             
+
+            // if we've already updated the static info during the last parse, then stop doing so. 
+            // this is so the _parseNvidiaSmiLine function won't return static info anymore 
+            // and the nvidia-smi commmand won't be queried for static info either
+            if(!this._nvidia_static_returned) {
+                this._nvidia_static_returned = true;
+                //reconfigure the process to stop querying static info
+                this._reconfigureNvidiaSmiProcess();
+            }
         }).catch(err => {
-            this._disableGpuLabels();
+            this._disableGpuLabels(callback);
             this._terminateNvidiaSmiProcess();
         });
     }
 
-    _disableGpuLabels() {
-        for (let labelObj of this._nvidia_labels)
-            this._returnValue(callback, labelObj.label, 'disabled', 'gpu', labelObj.format);
+    _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
+        const expectedSplitLength = 19;
+        let csv_split = csv.split(',');
+        if (csv_split.length < expectedSplitLength) {
+            this._terminateNvidiaSmiProcess();
+            return;
+        }
+        
+
+        let [
+            label, 
+            fan_speed_pct,
+            temp_gpu, temp_mem, 
+            mem_total, mem_used, mem_reserved, mem_free,
+            util_gpu, util_mem, util_encoder, util_decoder,
+            clock_gpu, clock_mem, clock_encode_decode,
+            power, power_avg, 
+            link_gen_current, link_width_current
+        ] = csv_split;
+
+        const staticNames = [
+            'temp_limit', 'power_limit',
+            'link_gen_max', 'link_width_max',
+            'addressing_mode',
+            'driver_version', 'vbios', 'serial',
+            'domain_num', 'bus_num', 'device_num', 'device_id', 'sub_device_id'
+        ];
+        let staticInfo = {};
+
+        // if we have queried static info this time around, populate our static info object
+        if(csv_split.length == (expectedSplitLength + staticNames.length)){
+            for(let i = 0; i < staticNames.length; i++) {
+                //set the static info to a default (0) if it's undefined
+                const value = csv_split[expectedSplitLength + i];
+                staticInfo[staticNames[i]] = (typeof value !== "undefined") ? value : 0;
+            }
+        }
+
+
+        const typeName = 'gpu#' + gpuNum;
+        const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
+        
+        const memTempValid = !isNaN(parseInt(temp_mem));
+        
+
+        this._returnGpuValue(callback, 'Graphics', parseInt(util_gpu) * 0.01, typeName + '-group', 'percent');
+
+        this._returnGpuValue(callback, 'Name', label, typeName, '');
+
+        this._returnGpuValue(callback, globalLabel, parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
+        this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, typeName, 'percent');
+
+        this._returnGpuValue(callback, globalLabel, parseInt(temp_gpu) * 1000, 'temperature', 'temp');
+        this._returnGpuValue(callback, 'Temperature', parseInt(temp_gpu) * 1000, typeName, 'temp');
+        this._returnGpuValue(callback, 'Memory Temperature', parseInt(temp_mem) * 1000, typeName, 'temp', memTempValid);
+        this._returnStaticGpuValue(callback, 'Temperature Limit', parseInt(staticInfo['temp_limit']) * 1000, typeName, 'temp');
+
+        this._returnGpuValue(callback, 'Memory Usage', parseInt(mem_used) / parseInt(mem_total), typeName, 'percent');
+        this._returnGpuValue(callback, 'Memory Total', parseInt(mem_total) * 1000, typeName, 'memory');
+        this._returnGpuValue(callback, 'Memory Used', parseInt(mem_used) * 1000, typeName, 'memory');
+        this._returnGpuValue(callback, 'Memory Reserved', parseInt(mem_reserved) * 1000, typeName, 'memory');
+        this._returnGpuValue(callback, 'Memory Free', parseInt(mem_free) * 1000, typeName, 'memory');
+
+        this._returnGpuValue(callback, 'Memory Utilization', parseInt(util_mem) * 0.01, typeName, 'percent');
+        this._returnGpuValue(callback, 'Utilization', parseInt(util_gpu) * 0.01, typeName, 'percent');
+        this._returnGpuValue(callback, 'Encoder Utilization', parseInt(util_encoder) * 0.01, typeName, 'percent');
+        this._returnGpuValue(callback, 'Decoder Utilization', parseInt(util_decoder) * 0.01, typeName, 'percent');
+
+        this._returnGpuValue(callback, 'Frequency', parseInt(clock_gpu) * 1000 * 1000, typeName, 'hertz');
+        this._returnGpuValue(callback, 'Memory Frequency', parseInt(clock_mem) * 1000 * 1000, typeName, 'hertz');
+        this._returnGpuValue(callback, 'Encoder/Decoder Frequency', parseInt(clock_encode_decode) * 1000 * 1000, typeName, 'hertz');
+
+        //this._returnGpuValue(callback, 'Encoder Sessions', parseInt(encoder_sessions), typeName, 'string');
+
+        this._returnGpuValue(callback, 'Power', power, typeName, 'watt-gpu');
+        this._returnGpuValue(callback, 'Average Power', power_avg, typeName, 'watt-gpu');
+        this._returnStaticGpuValue(callback, 'Power Limit', parseInt(staticInfo['power_limit']), typeName, 'watt-gpu');
+
+        this._returnGpuValue(callback, 'Link Speed', link_gen_current + 'x' + link_width_current, typeName, 'pcie');
+        this._returnStaticGpuValue(callback, 'Maximum Link Speed', staticInfo['link_gen_max'] + 'x' + staticInfo['link_width_max'], typeName, 'pcie');
+
+        this._returnStaticGpuValue(callback, 'Addressing Mode', staticInfo['addressing_mode'], typeName, 'string');
+
+        this._returnStaticGpuValue(callback, 'Driver Version', staticInfo['driver_version'], typeName, 'string');
+        this._returnStaticGpuValue(callback, 'vBIOS Version', staticInfo['vbios'], typeName, 'string');
+        this._returnStaticGpuValue(callback, 'Serial Number', staticInfo['serial'], typeName, 'string');
+
+        this._returnStaticGpuValue(callback, 'Domain Number', staticInfo['domain_num'], typeName, 'string');
+        this._returnStaticGpuValue(callback, 'Bus Number', staticInfo['bus_num'], typeName, 'string');
+        this._returnStaticGpuValue(callback, 'Device Number', staticInfo['device_num'], typeName, 'string');
+        this._returnStaticGpuValue(callback, 'Device ID', staticInfo['device_id'], typeName, 'string');
+        this._returnStaticGpuValue(callback, 'Sub Device ID', staticInfo['sub_device_id'], typeName, 'string');
     }
 
-    _returnGpuValue(callback, label, value, type, format) {
-        let nvidiaLabel = {'label': label, 'format': format};
+    _disableGpuLabels(callback) {
+        for (let labelObj of this._nvidia_labels)
+            this._returnValue(callback, labelObj.label, 'disabled', labelObj.type, labelObj.format);
+    }
+
+    _returnStaticGpuValue(callback, label, value, type, format) {
+        //if we've already tried to return existing static info before or if the option isn't enabled, then do nothing.
+        if (this._nvidia_static_returned || !this._settings.get_boolean('include-static-gpu-info')) 
+            return;
+
+        //we don't need to disable static info labels, so just use ordinary returnValue function
+        this._returnValue(callback, label, value, type, format);
+    }
+
+    _returnGpuValue(callback, label, value, type, format, display = true) {
+        if(!display) return;
+
+        let nvidiaLabel = {'label': label, 'type': type, 'format': format};
         if (!this._nvidia_labels.includes(nvidiaLabel))
             this._nvidia_labels.push(nvidiaLabel);
 
@@ -665,13 +754,28 @@ export const Sensors = GObject.registerClass({
     _reconfigureNvidiaSmiProcess() {
         if (this._settings.get_boolean('show-gpu')) {
             this._terminateNvidiaSmiProcess();
-
+            
             try {
                 let update_time = this._settings.get_int('update-time');
                 let query_interval = Math.max(update_time, 1);
                 let command = [
                     'nvidia-smi',
-                    '--query-gpu=name,temperature.gpu,fan.speed,utilization.gpu,utilization.memory,power.draw',
+                    '--query-gpu=name,' +
+                    'fan.speed,' +
+                    'temperature.gpu,temperature.memory,' +
+                    'memory.total,memory.used,memory.reserved,memory.free,' +
+                    'utilization.gpu,utilization.memory,utilization.encoder,utilization.decoder,' +
+                    'clocks.gr,clocks.mem,clocks.video,' +
+                    'power.draw.instant,power.draw.average,' +
+                    'pcie.link.gen.gpucurrent,pcie.link.width.current,' +
+                    (!this._nvidia_static_returned && this._settings.get_boolean('include-static-gpu-info') ? 
+                        'temperature.gpu.tlimit,' +
+                        'power.limit,' +
+                        'pcie.link.gen.max,pcie.link.width.max,'   +
+                        'addressing_mode,'+
+                        'driver_version,vbios_version,serial,' +
+                        'pci.domain,pci.bus,pci.device,pci.device_id,pci.sub_device_id,' 
+                    : ''),
                     '--format=csv,noheader,nounits',
                     '-l', query_interval.toString()
                 ];
@@ -791,6 +895,7 @@ export const Sensors = GObject.registerClass({
     resetHistory() {
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
+        this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
         this._battery_charge_status = '';
