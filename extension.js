@@ -51,6 +51,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._groups = {};
         this._widths = {};
         this._numGpus = 1;
+        this._newGpuDetected = false;
+        this._newGpuDetectedCount = 0;
         this._last_query = new Date().getTime();
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
@@ -569,7 +571,17 @@ var VitalsMenuButton = GObject.registerClass({
             if(typeKey.startsWith('gpu') && typeKey !== 'gpu#1') {
                 const split = typeKey.split('#');
                 if(split.length == 2 && this._numGpus < parseInt(split[1])) {
+                    // occasionally two lines from nvidia-smi will be read at once
+                    // so we only actually update the number of gpus if we have recieved multiple lines at least 3 times in a row
+                    // i.e. we make sure that mutiple queries have detected a new gpu back-to-back
+                    if(this._newGpuDetectedCount < 2) {
+                        this._newGpuDetected = true;
+                        return;
+                    }
+                    
                     this._numGpus = parseInt(split[1]);
+                    this._newGpuDetectedCount = 0;
+                    this._newGpuDetected = false;
                     // change label for gpu 1 from "Graphics" to "Graphics 1" since we have multiple gpus now
                     this._groups['gpu#1'].label.text = this._ucFirst('gpu#1') + ' 1';
                     for(let i = 2; i <= this._numGpus; i++)
@@ -582,6 +594,11 @@ var VitalsMenuButton = GObject.registerClass({
             for (let item of Object.values(items))
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
         }, dwell);
+
+        //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
+        if(this._newGpuDetected) this._newGpuDetectedCount++;
+        else this._newGpuDetectedCount = 0;
+        this._newGpuDetected = false;
 
         if (this._warnings.length > 0) {
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
