@@ -638,6 +638,8 @@ export const Sensors = GObject.registerClass({
     _returnGpuValue(callback, label, value, type, format, display = true) {
         if(!display) return;
 
+        if(value === 'N/A' || value === '[N/A]' || isNaN(value)) return;
+
         let nvidiaLabel = {'label': label, 'type': type, 'format': format};
         if (!this._nvidia_labels.includes(nvidiaLabel))
             this._nvidia_labels.push(nvidiaLabel);
