@@ -190,6 +190,10 @@ export const Values = GObject.registerClass({
                 value = value / 1000000;
                 ending = 'W';
                 break;
+            case 'watt-gpu':
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                ending = 'W';
+                break;
             case 'watt-hour':
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
                 value = value / 1000000;
@@ -197,6 +201,11 @@ export const Values = GObject.registerClass({
                 break;
             case 'load':
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                break;
+            case 'pcie':
+                let split = value.split('x');
+                value = 'PCIe ' + parseInt(split[0]) + (split.length > 1 ? ' x' + parseInt(split[1]) : '');
+                format = '%s';
                 break;
             default:
                 format = '%s';
@@ -324,14 +333,22 @@ export const Values = GObject.registerClass({
         return output;
     }
 
-    resetHistory() {
+    resetHistory(numGpus) {
         // don't call this._history = {}, as we want to keep network-rx and network-tx
         // otherwise network history statistics will start over
         for (let sensor in this._sensorIcons) {
+            //each gpu has it's own sensor name and thus must be handled separately
+            if(sensor === 'gpu') continue;
+
             this._history[sensor] = {};
             this._history[sensor + '-group'] = {};
             //this._history2[sensor] = {};
             //this._history2[sensor + '-group'] = {};
+        }
+
+        for(let i = 1; i <= numGpus; i++){
+            this._history['gpu#' + i] = {};
+            this._history['gpu#' + i + '-group'] = {};
         }
     }
 });
