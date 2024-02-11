@@ -885,6 +885,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="show-gpu">
                                     <property name="halign">end</property>
+                                    <property name="valign">center</property>
                                   </object>
                                 </child>
                               </object>
