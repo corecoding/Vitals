@@ -1,22 +1,11 @@
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
-const ByteArray = imports.byteArray;
-
-var Decoder;
-try {
-    Decoder = new TextDecoder('utf-8');
-} catch(error) {}
 
 // convert Uint8Array into a literal string
 function convertUint8ArrayToString(contents) {
     // Starting with Gnome 41, we use TextDecoder as ByteArray is deprecated
-    if (Decoder)
-        return Decoder.decode(contents).trim();
-
-    // Supports ByteArray on Gnome 40
-    // fixes #304, replaces invalid character
-    contents[contents.indexOf(208)] = 0;
-    return ByteArray.toString(contents).trim();
+    var Decoder = new TextDecoder('utf-8');
+    return Decoder.decode(contents).trim();
 }
 
 export function SubProcess(command) {
