@@ -3,9 +3,8 @@ import Gio from 'gi://Gio';
 
 // convert Uint8Array into a literal string
 function convertUint8ArrayToString(contents) {
-    // Starting with Gnome 41, we use TextDecoder as ByteArray is deprecated
-    var Decoder = new TextDecoder('utf-8');
-    return Decoder.decode(contents).trim();
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(contents).trim();
 }
 
 export function SubProcess(command) {
