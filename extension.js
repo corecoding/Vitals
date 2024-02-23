@@ -25,10 +25,10 @@ var VitalsMenuButton = GObject.registerClass({
 }, class VitalsMenuButton extends PanelMenu.Button {
     _init(extensionObject) {
         super._init(Clutter.ActorAlign.FILL);
-        
+
         this._extensionObject = extensionObject;
         this._settings = extensionObject.getSettings();
-        
+
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg' },
                 'voltage' : { 'icon': 'voltage-symbolic.svg' },
@@ -104,7 +104,7 @@ var VitalsMenuButton = GObject.registerClass({
 
             this._initializeMenuGroup(sensor, sensor);
         }
-        
+
         for (let i = 1; i <= this._numGpus; i++)
             this._initializeMenuGroup('gpu#' + i, 'gpu', (this._numGpus > 1 ? ' ' + i : ''));
 
@@ -250,7 +250,7 @@ var VitalsMenuButton = GObject.registerClass({
             }
         );
     }
-    
+
     _createHotItem(key, value) {
         let icon = this._defaultIcon(key);
         this._hotIcons[key] = icon;
@@ -286,7 +286,7 @@ var VitalsMenuButton = GObject.registerClass({
         if(sensorName === 'gpu') {
             for(let i = 1; i <= this._numGpus; i++)
                 this._groups[sensorName + '#' + i].visible = this._settings.get_boolean(sensor);
-        } else 
+        } else
             this._groups[sensorName].visible = this._settings.get_boolean(sensor);
     }
 
@@ -538,9 +538,8 @@ var VitalsMenuButton = GObject.registerClass({
                 arrow_pos = 0;
                 break;
         }
-        
+
         let centered = this._settings.get_boolean('menu-centered')
-        
         if (centered) arrow_pos = 0.5;
 
         // set arrow position when initializing and moving vitals
@@ -578,7 +577,7 @@ var VitalsMenuButton = GObject.registerClass({
                         this._newGpuDetected = true;
                         return;
                     }
-                    
+
                     this._numGpus = parseInt(split[1]);
                     this._newGpuDetectedCount = 0;
                     this._newGpuDetected = false;
