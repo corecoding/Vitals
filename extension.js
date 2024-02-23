@@ -68,7 +68,7 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         this._drawMenu();
-        this.add_actor(this._menuLayout);
+        this.add_child(this._menuLayout);
         this._settingChangedSignals = [];
         this._refreshTimeoutId = null;
 
@@ -140,7 +140,7 @@ var VitalsMenuButton = GObject.registerClass({
             // refresh sensors now
             this._querySensors();
         });
-        customButtonBox.add_actor(refreshButton);
+        customButtonBox.add_child(refreshButton);
 
         // custom round monitor button
         let monitorButton = this._createRoundButton('org.gnome.SystemMonitor-symbolic', _('System Monitor'));
@@ -148,7 +148,7 @@ var VitalsMenuButton = GObject.registerClass({
             this.menu._getTopMenu().close();
             Util.spawn(this._settings.get_string('monitor-cmd').split(" "));
         });
-        customButtonBox.add_actor(monitorButton);
+        customButtonBox.add_child(monitorButton);
 
         // custom round preferences button
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
@@ -156,10 +156,10 @@ var VitalsMenuButton = GObject.registerClass({
             this.menu._getTopMenu().close();
             this._extensionObject.openPreferences();
         });
-        customButtonBox.add_actor(prefsButton);
+        customButtonBox.add_child(prefsButton);
 
         // now add the buttons to the top bar
-        item.actor.add_actor(customButtonBox);
+        item.actor.add_child(customButtonBox);
 
         // add buttons
         this.menu.addMenuItem(item);
@@ -254,7 +254,7 @@ var VitalsMenuButton = GObject.registerClass({
     _createHotItem(key, value) {
         let icon = this._defaultIcon(key);
         this._hotIcons[key] = icon;
-        this._menuLayout.add_actor(icon)
+        this._menuLayout.add_child(icon)
 
         // don't add a label when no sensors are in the panel
         if (key == '_default_icon_') return;
@@ -273,7 +273,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._hotLabels[key] = label;
 
         // prevent "called on the widget"  "which is not in the stage" errors by adding before width below
-        this._menuLayout.add_actor(label);
+        this._menuLayout.add_child(label);
 
         // support for fixed widths #55, save label (text) width
         this._widths[key] = label.width;
