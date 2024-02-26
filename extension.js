@@ -391,8 +391,7 @@ var VitalsMenuButton = GObject.registerClass({
                 }
             }
         }
-        if(key === "_gpu#1_domain_number_")
-            console.error('UPDATING: ', key);
+
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
         if (item) {
