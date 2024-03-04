@@ -44,6 +44,10 @@ var VitalsMenuButton = GObject.registerClass({
                     'gpu' : { 'icon': 'gpu-symbolic.svg' }
         }
 
+        // list with the prefixes for the according themes, the index of each 
+        // item must match the index on the combo box
+        this._sensorsIconPathPrefix = ['/icons/original/', '/icons/updated/'];
+
         this._warnings = [];
         this._sensorMenuItems = {};
         this._hotLabels = {};
@@ -76,7 +80,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info', 'icon-style' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -498,7 +502,8 @@ var VitalsMenuButton = GObject.registerClass({
         let sensorKey = sensor;
         if(sensor.startsWith('gpu')) sensorKey = 'gpu';
 
-        return this._extensionObject.path + '/icons/' + this._sensorIcons[sensorKey][icon];
+        const iconPathPrefixIndex = this._settings.get_int('icon-style');
+        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
     }
 
     _ucFirst(string) {
