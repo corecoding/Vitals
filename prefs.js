@@ -62,7 +62,7 @@ const Settings = new GObject.Class({
         }
 
         // process individual drop down sensor preferences
-        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot' ];
+        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 

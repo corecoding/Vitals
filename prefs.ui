@@ -364,6 +364,39 @@
                         </property>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="width_request">100</property>
+                        <property name="selectable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="can_focus">0</property>
+                            <property name="margin_top">6</property>
+                            <property name="margin_bottom">6</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="hexpand">1</property>
+                                <property name="can_focus">0</property>
+                                <property name="halign">start</property>
+                                <property name="margin-start">5</property>
+                                <property name="label" translatable="yes">Icon style</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkComboBoxText" id="icon-style">
+                                <property name="can_focus">0</property>
+                                <property name="margin-end">5</property>
+                                <property name="active">0</property>
+                                <items>
+                                  <item translatable="yes">Original</item>
+                                  <item translatable="yes">Updated</item>
+                                </items>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </property>
                 <child type="label_item">
