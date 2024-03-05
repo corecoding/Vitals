@@ -420,7 +420,7 @@
                 </child>
               </object>
             </child>
-            <child>
+            <!-- <child>
               <object class="GtkLabel">
                 <property name="can_focus">0</property>
                 <property name="halign">start</property>
@@ -430,8 +430,8 @@
                   <attribute name="weight" value="bold"></attribute>
                 </attributes>
               </object>
-            </child>
-            <child>
+            </child> -->
+            <!-- <child>
               <object class="GtkFrame">
                 <property name="can_focus">0</property>
                 <property name="child">
@@ -450,7 +450,7 @@
                   <placeholder/>
                 </child>
               </object>
-            </child>
+            </child> -->
           </object>
         </child>
         <child>
@@ -971,6 +971,45 @@
               </object>
             </child>
           </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="halign">start</property>
+        <property name="can_focus">0</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">9</property>
+        <!-- <property name="margin_top">12</property> -->
+        <property name="margin_bottom">12</property>
+        <property name="label" translatable="yes">About</property>
+        <attributes>
+          <attribute name="weight" value="bold"></attribute>
+        </attributes>
+      </object>
+    </child>
+    <child>
+      <object class="GtkFrame">
+        <property name="can_focus">0</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="child">
+          <object class="GtkLabel">
+            <property name="can_focus">0</property>
+            <property name="halign">start</property>
+            <property name="valign">baseline</property>
+            <property name="margin_top">5</property>
+            <property name="margin_bottom">5</property>
+            <property name="margin-start">5</property>
+            <property name="margin-end">5</property>
+            <property name="label" translatable="yes">Feature requests or bugs? Please visit &lt;a href=&quot;https://github.com/corecoding/Vitals/issues&quot;&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href=&quot;https://corecoding.com/donate.php&quot;&gt;Donate&lt;/a&gt; if you found this useful.</property>
+            <property name="use_markup">1</property>
+            <property name="wrap">1</property>
+            <property name="xalign">0</property>
+          </object>
+        </property>
+        <child type="label_item">
+          <placeholder/>
         </child>
       </object>
     </child>
