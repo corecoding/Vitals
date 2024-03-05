@@ -96,7 +96,7 @@ Vitals was originally forked from [gnome-shell-extension-freon](https://github.c
 * network\*.svg - [Yannick Lung](https://www.iconfinder.com/yanlu).
 * Health icon - [Dod Cosmin](https://www.iconfinder.com/icons/458267/cross_doctor_drug_health_healthcare_hospital_icon).
 
-### Updated Theme
+### Gnome Theme
 * (battery | storage)-symbolic.svg - from [Adwaita Icon Theme](https://gitlab.gnome.org/GNOME/adwaita-icon-theme).
 * (memory | network* | system | voltage)-symbolic.svg - from [Icon Development Kit](https://gitlab.gnome.org/Teams/Design/icon-development-kit).
 * fan-symbolic.svg - inherited from [Freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon) project, with mild modifications.
