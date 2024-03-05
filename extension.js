@@ -79,8 +79,9 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
+        this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info', 'icon-style' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -307,6 +308,21 @@ var VitalsMenuButton = GObject.registerClass({
 
         // update position when changed from preferences
         boxes[position[0]].insert_child_at_index(this.container, position[1]);
+    }
+
+    _redrawDetailsMenuIcons() {
+        // updates the icons on the 'details' menu, the one 
+        // you have to click to appear
+        this._sensors.resetHistory();
+        for (const sensor in this._sensorIcons) {
+            if (sensor == "gpu") continue;
+            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
+        }
+    }
+
+    _iconStyleChanged() {
+        this._redrawDetailsMenuIcons();
+        this._redrawMenu();
     }
 
     _removeHotLabel(key) {
