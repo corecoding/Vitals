@@ -318,6 +318,12 @@ var VitalsMenuButton = GObject.registerClass({
             if (sensor == "gpu") continue;
             this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
         }
+
+        // gpu's are indexed differently, handle them here
+        const gpuKeys = Object.keys(this._groups).filter(key => key.startsWith("gpu#"));
+        gpuKeys.forEach((gpuKey) => {
+            this._groups[gpuKey].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath("gpu"));
+        }); 
     }
 
     _iconStyleChanged() {
