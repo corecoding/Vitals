@@ -46,7 +46,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         // list with the prefixes for the according themes, the index of each 
         // item must match the index on the combo box
-        this._sensorsIconPathPrefix = ['/icons/original/', '/icons/updated/'];
+        this._sensorsIconPathPrefix = ['/icons/original/', '/icons/gnome/'];
 
         this._warnings = [];
         this._sensorMenuItems = {};
