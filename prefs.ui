@@ -405,7 +405,7 @@
                                 <property name="active">0</property>
                                 <items>
                                   <item translatable="yes">Original</item>
-                                  <item translatable="yes">Gnome</item>
+                                  <item translatable="yes">GNOME</item>
                                 </items>
                               </object>
                             </child>
