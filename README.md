@@ -86,13 +86,21 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 ## Credits
 Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured system monitoring tool. My biggest pet peeve was random system delays because of I/O blocking polls, and thus, the idea for Vitals was born! It has been refactored several times over, so most of the code is new or different.
 
-### Icons
+## Icons
+
+### Original Theme
 * (voltage|fan)-symbolic.svg - inherited from Freon project.
 * (system|storage)-symbolic.svg - from Pop! OS theme.
 * temperature-symbolic.svg - [iconnice studio](https://www.iconfinder.com/iconnice).
 * (cpu|memory)-symbolic.svg - [DinosoftLabs](https://www.iconfinder.com/dinosoftlabs).
 * network\*.svg - [Yannick Lung](https://www.iconfinder.com/yanlu).
 * Health icon - [Dod Cosmin](https://www.iconfinder.com/icons/458267/cross_doctor_drug_health_healthcare_hospital_icon).
+
+### GNOME Theme
+* (battery | storage)-symbolic.svg - from [Adwaita Icon Theme](https://gitlab.gnome.org/GNOME/adwaita-icon-theme).
+* (memory | network* | system | voltage)-symbolic.svg - from [Icon Development Kit](https://gitlab.gnome.org/Teams/Design/icon-development-kit).
+* fan-symbolic.svg - inherited from [Freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon) project, with mild modifications.
+* (temperature | cpu)-symbolic.svg - designed by [daudix](https://github.com/daudix).
 
 ## Disclaimer
 Sensor data is obtained from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.

@@ -44,6 +44,10 @@ var VitalsMenuButton = GObject.registerClass({
                     'gpu' : { 'icon': 'gpu-symbolic.svg' }
         }
 
+        // list with the prefixes for the according themes, the index of each 
+        // item must match the index on the combo box
+        this._sensorsIconPathPrefix = ['/icons/original/', '/icons/gnome/'];
+
         this._warnings = [];
         this._sensorMenuItems = {};
         this._hotLabels = {};
@@ -75,6 +79,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
+        this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info' ];
         for (let setting of Object.values(settings))
@@ -305,6 +310,27 @@ var VitalsMenuButton = GObject.registerClass({
         boxes[position[0]].insert_child_at_index(this.container, position[1]);
     }
 
+    _redrawDetailsMenuIcons() {
+        // updates the icons on the 'details' menu, the one 
+        // you have to click to appear
+        this._sensors.resetHistory();
+        for (const sensor in this._sensorIcons) {
+            if (sensor == "gpu") continue;
+            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
+        }
+
+        // gpu's are indexed differently, handle them here
+        const gpuKeys = Object.keys(this._groups).filter(key => key.startsWith("gpu#"));
+        gpuKeys.forEach((gpuKey) => {
+            this._groups[gpuKey].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath("gpu"));
+        }); 
+    }
+
+    _iconStyleChanged() {
+        this._redrawDetailsMenuIcons();
+        this._redrawMenu();
+    }
+
     _removeHotLabel(key) {
         if (key in this._hotLabels) {
             let label = this._hotLabels[key];
@@ -498,7 +524,8 @@ var VitalsMenuButton = GObject.registerClass({
         let sensorKey = sensor;
         if(sensor.startsWith('gpu')) sensorKey = 'gpu';
 
-        return this._extensionObject.path + '/icons/' + this._sensorIcons[sensorKey][icon];
+        const iconPathPrefixIndex = this._settings.get_int('icon-style');
+        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
     }
 
     _ucFirst(string) {
