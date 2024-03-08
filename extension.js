@@ -291,7 +291,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _positionInPanelChanged() {
-        this.container.get_parent().remove_actor(this.container);
+        this.container.get_parent().remove_child(this.container);
         let position = this._positionInPanel();
 
         // allows easily addressable boxes
