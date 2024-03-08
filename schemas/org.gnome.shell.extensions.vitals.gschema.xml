@@ -146,5 +146,10 @@
       <summary>Include GPU static information</summary>
       <description>Display GPU static information that doesn't change</description>
     </key>
+    <key type="i" name="icon-style">
+      <default>0</default>
+      <summary>Icon styles</summary>
+      <description>Set the style for the displayed sensor icons ('original', 'updated')</description>
+    </key>
   </schema>
 </schemalist>
