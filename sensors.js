@@ -373,9 +373,11 @@ export const Sensors = GObject.registerClass({
         // addresses issue #161
         let battery_key = 'BAT'; // BAT0, BAT1 and BAT2
         if (battery_slot == 3) {
+            battery_slot = 'T';
+        } else if (battery_slot == 4) {
             battery_key = 'CMB'; // CMB0
             battery_slot = 0;
-        } else if (battery_slot == 4) {
+        } else if (battery_slot == 5) {
             battery_key = 'macsmc-battery'; // supports Asahi linux
             battery_slot = '';
         }
