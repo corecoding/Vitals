@@ -140,6 +140,8 @@ export const Sensors = GObject.registerClass({
 
             let used = total - avail
             let utilized = used / total;
+            let swapUsed = swapTotal - swapFree
+            let swapUtilized = swapUsed / swapTotal;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
@@ -148,7 +150,10 @@ export const Sensors = GObject.registerClass({
             this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
             this._returnValue(callback, 'Cached', cached, 'memory', 'memory');
             this._returnValue(callback, 'Free', memFree, 'memory', 'memory');
-            this._returnValue(callback, 'Swap', swapTotal - swapFree, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Total', swapTotal, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Free', swapFree, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Used', swapUsed, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Usage', swapUtilized, 'memory', 'percent');
         }).catch(err => { });
     }
 
@@ -373,9 +378,11 @@ export const Sensors = GObject.registerClass({
         // addresses issue #161
         let battery_key = 'BAT'; // BAT0, BAT1 and BAT2
         if (battery_slot == 3) {
+            battery_slot = 'T';
+        } else if (battery_slot == 4) {
             battery_key = 'CMB'; // CMB0
             battery_slot = 0;
-        } else if (battery_slot == 4) {
+        } else if (battery_slot == 5) {
             battery_key = 'macsmc-battery'; // supports Asahi linux
             battery_slot = '';
         }
