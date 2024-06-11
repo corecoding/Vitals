@@ -71,6 +71,11 @@
       <summary>Monitor storage</summary>
       <description>Display storage information</description>
     </key>
+    <key type="b" name="show-storage">
+      <default>true</default>
+      <summary>Monitor storage</summary>
+      <description>Display storage information</description>
+    </key>
     <key type="b" name="show-network">
       <default>true</default>
       <summary>Monitor network</summary>
@@ -91,6 +96,11 @@
       <summary>Storage path</summary>
       <description>Storage path for monitoring</description>
     </key>
+    <key type="s" name="storage-path">
+      <default>"/"</default>
+      <summary>Storage path</summary>
+      <description>Storage path for monitoring</description>
+    </key>
     <key type="b" name="show-battery">
       <default>false</default>
       <summary>Monitor battery</summary>
@@ -102,6 +112,11 @@
       <description>Can use gigabyte or gibibyte for memory</description>
     </key>
     <key type="i" name="storage-measurement">
+      <default>1</default>
+      <summary>Storage measurement</summary>
+      <description>Can use gigabyte or gibibyte for storage</description>
+    </key>
+     <key type="i" name="storage-measurement">
       <default>1</default>
       <summary>Storage measurement</summary>
       <description>Can use gigabyte or gibibyte for storage</description>
