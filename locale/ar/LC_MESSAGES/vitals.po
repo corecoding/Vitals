@@ -1,16 +1,18 @@
+# SPDX-FileCopyrightText: 2024 Abdalrahim G. Fakhouri <abdilra7eem@yahoo.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2023-10-22 21:04+0200\n"
+"PO-Revision-Date: 2024-06-04 21:34+0300\n"
+"Last-Translator: Abdalrahim G. Fakhouri <abdilra7eem@yahoo.com>\n"
+"Language-Team: ar\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 "POT-Revision-Date: 2018-12-29 10:26+0100\n"
-"X-Generator: Poedit 3.4\n"
+"X-Generator: Lokalize 24.02.2\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: _returnValue:2\n"
 "X-Poedit-SearchPath-0: values.js\n"
@@ -18,112 +20,111 @@ msgstr ""
 "X-Poedit-SearchPath-2: prefs.js\n"
 "X-Poedit-SearchPath-3: menuItem.js\n"
 "X-Poedit-SearchPath-4: extension.js\n"
-"X-Poedit-SearchPath-5: schemas/org.gnome.shell.extensions."
-"vitals.gschema.xml\n"
+"X-Poedit-SearchPath-5: schemas/org.gnome.shell.extensions.vitals.gschema.xml\n"
 "X-Poedit-SearchPath-6: prefs.ui\n"
 
 #: extension.js:109
 msgid "Batteries"
-msgstr ""
+msgstr "البطاريات"
 
 #: extension.js:133
 msgid "No Data"
-msgstr ""
+msgstr "لا توجد بيانات"
 
 #: extension.js:159
 msgid "Refresh"
-msgstr ""
+msgstr "تحديث"
 
 #: extension.js:174
 msgid "System Monitor"
-msgstr ""
+msgstr "مراقب النظام"
 
 #: extension.js:182 prefs.js:106
 msgid "Preferences"
-msgstr ""
+msgstr "التفضيلات"
 
 #: prefs.ui:42
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
-msgstr ""
+msgstr "ضمِّن عنوان IP الخارجي"
 
 #: prefs.ui:70
 msgid "Format"
-msgstr ""
+msgstr "الصيغة"
 
 #: prefs.ui:78
 msgid "Bytes"
-msgstr ""
+msgstr "بايت"
 
 #: prefs.ui:79
 msgid "Bits"
-msgstr ""
+msgstr "بِت"
 
 #: prefs.ui:121
 msgid "General"
-msgstr ""
+msgstr "عامّ"
 
 #: prefs.ui:149
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
 msgid "Seconds between updates"
-msgstr ""
+msgstr "الثواني بين التحديثات"
 
 #: prefs.ui:184
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
 msgid "Position in panel"
-msgstr ""
+msgstr "المكان في الشريط العلوي"
 
 #: prefs.ui:193
 msgid "Left"
-msgstr ""
+msgstr "اليسار"
 
 #: prefs.ui:194
 msgid "Center"
-msgstr ""
+msgstr "الوسط"
 
 #: prefs.ui:195
 msgid "Right"
-msgstr ""
+msgstr "اليمين"
 
 #: prefs.ui:196
 msgid "Far Left"
-msgstr ""
+msgstr "أقصى اليسار"
 
 #: prefs.ui:197
 msgid "Far Right"
-msgstr ""
+msgstr "أقصى اليمين"
 
 #: prefs.ui:220
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
-msgstr ""
+msgstr "استخدم دقّة أعلى"
 
 #: prefs.ui:247
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
-msgstr ""
+msgstr "رتب الحساسات أبجديًّا"
 
 #: prefs.ui:274
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
-msgstr ""
+msgstr "اخفِ القيم الصفرية"
 
 #: prefs.ui:301
 msgid "Use fixed widths"
-msgstr ""
+msgstr "استخدم مقاسات ثابتة"
 
 #: prefs.ui:328
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:171
 msgid "Hide icons in top bar"
-msgstr ""
+msgstr "اخفِ الأيقونات في الشريط العلوي"
 
 #: prefs.ui:355
 msgid "Menu always centered"
-msgstr ""
+msgstr "القائمة متوسطة دائمًا"
 
 #: prefs.ui:379
 msgid "About"
-msgstr ""
+msgstr "عَن التطبيق"
 
 #: prefs.ui:394
 msgid ""
@@ -132,103 +133,107 @@ msgid ""
 "expressed or implied. <a href=\"https://corecoding.com/donate."
 "php\">Donate</a> if you found this useful."
 msgstr ""
+"أترغب بطلب ميزة أو الإبلاغ عن عِلَّة؟ نرجو زيارة <a href=\"https://github."
+"com/corecoding/Vitals/issues\">GitHub</a>. لا ضمانات صريحة أوضمنيّة. <a"
+" href=\"https://corecoding.com/donate."
+"php\">تبرّع</a> إذا وجدت هذا التطبيق مفيدًا."
 
 #: prefs.ui:421
 msgid "Sensors"
-msgstr ""
+msgstr "الحساسات"
 
 #: prefs.ui:449
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
-msgstr ""
+msgstr "راقب الحرارة"
 
 #: prefs.ui:500
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
-msgstr ""
+msgstr "راقب الجهد الكهربائيّ"
 
 #: prefs.ui:528
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
-msgstr ""
+msgstr "راقب المراوح"
 
 #: prefs.ui:556
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
-msgstr ""
+msgstr "راقب حالة الذاكرة"
 
 #: prefs.ui:607
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
-msgstr ""
+msgstr "راقب حالة المعالج"
 
 #: prefs.ui:658
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
-msgstr ""
+msgstr "راقب حالة النظام"
 
 #: prefs.ui:709
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
-msgstr ""
+msgstr "راقب حالة الشبكة"
 
 #: prefs.ui:760
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
-msgstr ""
+msgstr "راقب حالة التخزين"
 
 #: prefs.ui:811
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 msgid "Monitor battery"
-msgstr ""
+msgstr "راقب حالة البطارية"
 
 #: prefs.ui:890
 msgid "Path"
-msgstr ""
+msgstr "المسار"
 
 #: prefs.ui:922 prefs.ui:1031
 msgid "Measurement"
-msgstr ""
+msgstr "وحدة القياس"
 
 #: prefs.ui:930 prefs.ui:1039
 msgid "Binary"
-msgstr ""
+msgstr "ثنائيّ"
 
 #: prefs.ui:931 prefs.ui:1040
 msgid "Decimal"
-msgstr ""
+msgstr "عشريّ"
 
 #: prefs.ui:976
 msgid "Unit"
-msgstr ""
+msgstr "الوِحدة"
 
 #: prefs.ui:985
 msgid "°C"
-msgstr ""
+msgstr "ْم "
 
 #: prefs.ui:986
 msgid "°F"
-msgstr ""
+msgstr "ْف"
 
 #: prefs.ui:1086
 msgid "Monitor BAT0"
-msgstr ""
+msgstr "راقب البطارية BAT0"
 
 #: prefs.ui:1116
 msgid "Monitor BAT1"
-msgstr ""
+msgstr "راقب البطارية BAT1"
 
 #: prefs.ui:1146
 msgid "Monitor BAT2"
-msgstr ""
+msgstr "راقب البطارية BAT2"
 
 #: prefs.ui:1176
 msgid "Monitor CMB0"
-msgstr ""
+msgstr "راقب البطارية CMB0"
 
 #: prefs.ui:1206
 msgid "Monitor macsmc-battery"
-msgstr ""
+msgstr "راقب بطارية macsmc"
 
 #: prefs.ui:1247
 msgid "Calculate Combined Values"
@@ -269,11 +274,11 @@ msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
-msgstr ""
+msgstr "الحساسات التي ستظهر في الشريط"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
-msgstr ""
+msgstr "لائحة الحساسات التي ستظهر في الشريط"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
 msgid "Delay between sensor polling"
@@ -281,7 +286,7 @@ msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
 msgid "Position in Panel ('left', 'center', 'right')"
-msgstr ""
+msgstr "المكان في الشريط (\"يمين\"، \"وسط\"، \"يسار\")"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
 msgid "Show one extra digit after decimal"
@@ -301,7 +306,7 @@ msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
 msgid "Temperature unit"
-msgstr ""
+msgstr "وحدة قياس درجة الحرارة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
@@ -692,7 +697,6 @@ msgstr ""
 msgid "Kernel"
 msgstr ""
 
-
 #: prefs.js:98
 msgid "Temperature"
 msgstr ""
@@ -748,3 +752,4 @@ msgstr ""
 #: sensors.js:759
 msgid "Fan"
 msgstr ""
+
