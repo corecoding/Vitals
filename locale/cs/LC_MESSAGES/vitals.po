@@ -8,7 +8,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2022-04-10 21:29+0200\n"
+"POT-Creation-Date: 2023-10-22 21:04+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Ludek Vydra <lvtran@u.k2.cz>\n"
 "Language-Team: \n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
 "POT-Revision-Date: 2018-12-29 10:26+0100\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.4.4\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SearchPath-0: values.js\n"
 "X-Poedit-SearchPath-1: sensors.js\n"
@@ -29,15 +29,23 @@ msgstr ""
 "xml\n"
 "X-Poedit-SearchPath-6: prefs.ui\n"
 
-#: extension.js:129
+#: extension.js:109
+msgid "Batteries"
+msgstr "Baterie"
+
+#: extension.js:133
+msgid "No Data"
+msgstr "Nejsou data"
+
+#: extension.js:159
 msgid "Refresh"
 msgstr "Obnovit"
 
-#: extension.js:147
+#: extension.js:174
 msgid "System Monitor"
 msgstr "Sledování systému"
 
-#: extension.js:155
+#: extension.js:182 prefs.js:106
 msgid "Preferences"
 msgstr "Předvolby"
 
@@ -105,15 +113,19 @@ msgstr "Skryj nulové hodnoty"
 msgid "Use fixed widths"
 msgstr "Použij pevné rozestupy"
 
-#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:171
 msgid "Hide icons in top bar"
 msgstr "Skryj ikony v horní liště"
 
-#: prefs.ui:352
+#: prefs.ui:355
+msgid "Menu always centered"
+msgstr "Menu vždy centrovené"
+
+#: prefs.ui:379
 msgid "About"
 msgstr "O programu"
 
-#: prefs.ui:367
+#: prefs.ui:394
 msgid ""
 "Feature requests or bugs? Please visit <a href=\"https://github.com/"
 "corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
@@ -125,61 +137,125 @@ msgstr ""
 "předpokládaných. <a href=\"https://corecoding.com/donate.php\">Přispějte</a> "
 "pokud to tak cítíte."
 
-#: prefs.ui:394
+#: prefs.ui:421
 msgid "Sensors"
 msgstr "Senzory"
 
-#: prefs.ui:422 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+#: prefs.ui:449 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
 msgstr "Sledovat teplotu"
 
-#: prefs.ui:473 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+#: prefs.ui:500 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
 msgstr "Sledovat napětí"
 
-#: prefs.ui:501 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+#: prefs.ui:528 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
 msgstr "Sledovat ventilátory"
 
-#: prefs.ui:529 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+#: prefs.ui:556 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
 msgstr "Sledovat paměť"
 
-#: prefs.ui:580 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+#: prefs.ui:607 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
 msgstr "Sledovat procesor"
 
-#: prefs.ui:608 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+#: prefs.ui:658 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
 msgstr "Sledovat systém"
 
-#: prefs.ui:636 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+#: prefs.ui:709 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
 msgstr "Sledovat síť"
 
-#: prefs.ui:687 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+#: prefs.ui:760 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
 msgstr "Sledovat úložiště"
 
-#: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+#: prefs.ui:811 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 msgid "Monitor battery"
 msgstr "Sledovat baterii"
 
-#: prefs.ui:817
+#: prefs.ui:890
 msgid "Path"
 msgstr "Cesta"
 
-#: prefs.ui:849 prefs.ui:958
+#: prefs.ui:922 prefs.ui:1031
 msgid "Measurement"
 msgstr "Měření"
 
-#: prefs.ui:903
+#: prefs.ui:930 prefs.ui:1039
+msgid "Binary"
+msgstr "Binárně"
+
+#: prefs.ui:931 prefs.ui:1040
+msgid "Decimal"
+msgstr "Decimálně"
+
+#: prefs.ui:976
 msgid "Unit"
 msgstr "Jednotka"
 
-#: prefs.ui:1012
-msgid "Display Battery"
-msgstr "Zobraz baterii"
+#: prefs.ui:985
+msgid "°C"
+msgstr "°C"
+
+#: prefs.ui:986
+msgid "°F"
+msgstr "°F"
+
+#: prefs.ui:1086
+msgid "Monitor BAT0"
+msgstr "Sleduj BAT0"
+
+#: prefs.ui:1116
+msgid "Monitor BAT1"
+msgstr "Sleduj BAT1"
+
+#: prefs.ui:1146
+msgid "Monitor BAT2"
+msgstr "Sleduj BAT2"
+
+#: prefs.ui:1176
+msgid "Monitor CMB0"
+msgstr "Sleduj CMB0"
+
+#: prefs.ui:1206
+msgid "Monitor macsmc-battery"
+msgstr "Sleduj macsmc-battery"
+
+#: prefs.ui:1247
+msgid "Calculate Combined Values"
+msgstr "Výpočet kombinovaných hodnot"
+
+#: prefs.ui:1277 schemas/org.gnome.shell.extensions.vitals.gschema.xml:141
+msgid "Include BAT0"
+msgstr "Včetně BAT0"
+
+#: prefs.ui:1307 schemas/org.gnome.shell.extensions.vitals.gschema.xml:146
+msgid "Include BAT1"
+msgstr "Včetně BAT1"
+
+#: prefs.ui:1337 schemas/org.gnome.shell.extensions.vitals.gschema.xml:151
+msgid "Include BAT2"
+msgstr "Včetně BAT2"
+
+#: prefs.ui:1367 schemas/org.gnome.shell.extensions.vitals.gschema.xml:156
+msgid "Include CMB0"
+msgstr "Včetně CMB0"
+
+#: prefs.ui:1397 schemas/org.gnome.shell.extensions.vitals.gschema.xml:161
+msgid "Include macsmc-battery"
+msgstr "Včetně macsmc-battery"
+
+#: prefs.ui:1446
+msgid "Monitor command"
+msgstr "Sleduj command"
+
+#: prefs.ui:1498
+msgid "Include static info"
+msgstr "Včetně statických informací"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
@@ -292,246 +368,379 @@ msgid "Can use gigabyte or gibibyte for storage"
 msgstr "Pro jednotku velikosti úložiště můžete použít gigabyte nebo gibibyte"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
-msgid "Battery slot to monitor"
-msgstr "Slot baterie, která se má monitorovat"
+msgid "Display battery BAT0"
+msgstr "Zobraz baterii BAT0"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
-msgid "Which numerical battery slot should vitals monitor"
-msgstr "Které číslo slotu má Vitals sledovat"
+msgid "Should battery 'BAT0' be displayed?"
+msgstr "Má se zobrazit 'BAT0'?"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
+msgid "Display battery BAT1"
+msgstr "Zobraz baterii BAT1"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+msgid "Should battery 'BAT1' be displayed?"
+msgstr "Má se zobrazit 'BAT1'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+msgid "Display battery BAT2"
+msgstr "Zobraz baterii BAT2"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+msgid "Should battery 'BAT2' be displayed?"
+msgstr "Má se zobrazit 'BAT2'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:126
+msgid "Display battery CMB0"
+msgstr "Zobraz baterii CMB0"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:127
+msgid "Should battery 'CMB0' be displayed?"
+msgstr "Má se zobrazit 'CMB0'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:131
+msgid "Display battery macsmc-battery"
+msgstr "Zobraz baterii macsmc-battery"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:132
+msgid "Should battery 'macsmc-battery' be displayed?"
+msgstr "Má se zobrazit 'macsmc-battery'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:136
+msgid "Display combined battery data"
+msgstr "Zobraz kombinované údaje baterií"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:137
+msgid "Display combined values for selected batteries"
+msgstr "Zobraz kombinované hodnoty pro vybrané baterie"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:142
+msgid "Include 'BAT0' when calculating combined Battery"
+msgstr "Při výpočtu kombinované baterie zahrň \"BAT0\""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:147
+msgid "Include 'BAT1' when calculating combined Battery"
+msgstr "Při výpočtu kombinované baterie zahrň \"BAT1\""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:152
+msgid "Include 'BAT2' when calculating combined Battery"
+msgstr "Při výpočtu kombinované baterie zahrň \"BAT1\""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:157
+msgid "Include 'CMB0' when calculating combined Battery"
+msgstr "Při výpočtu kombinované baterie zahrň \"CMB0\""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:162
+msgid "Include 'macsmc-battery' when calculating combined Battery"
+msgstr "Při výpočtu kombinované baterie zahrň \"macsmc-battery\""
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:166
 msgid "Use fixed widths in top bar"
 msgstr "Použij pevné rozestupy v horní liště"
 
-#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:167
 msgid "Keep sensors in top bar from jumping around"
 msgstr "Zabraň náhodnému měnění pořadí senzorů v horní liště"
 
-#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:172
 msgid "Keep top bar clean by only showing sensor values"
 msgstr "Zachovej čistou horní lištu tak, že senzory budou ukazovat jen hodnoty"
 
-#: sensors.js:42
-msgid "Temperature"
-msgstr "Teplota"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:176
+msgid "Make the menu centered"
+msgstr "Centruj menu"
 
-#: sensors.js:43 sensors.js:307 sensors.js:337
-msgid "Voltage"
-msgstr "Napětí"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:177
+msgid "Center the menu to the icon regardless of the position in the panel"
+msgstr "Vycentrování nabídky na ikonu bez ohledu na pozici na panelu"
 
-#: sensors.js:44
-msgid "Fan"
-msgstr "Ventilátor"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:181
+msgid "System Monitor command"
+msgstr "Příkaz Sledování systému"
 
-#: sensors.js:45
-msgid "Memory"
-msgstr "Paměť"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:182
+msgid "The command run when system monitor button is clicked"
+msgstr "Příkaz spuštěný po kliknutí na tlačítko monitoru systému"
 
-#: sensors.js:46
-msgid "Processor"
-msgstr "Procesor"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:186
+msgid "Include processor static information"
+msgstr "Zobraz statické informace procesoru"
 
-#: sensors.js:47
-msgid "System"
-msgstr "Systém"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:187
+msgid "Display processor static information that doesn't change"
+msgstr "Zobrazení statických (neměnných) informací procesoru"
 
-#: sensors.js:48
-msgid "Network"
-msgstr "Síť"
-
-#: sensors.js:49
-msgid "Storage"
-msgstr "Úložiště"
-
-#: sensors.js:76
+#: sensors.js:65
 msgid "Public IP"
 msgstr "Veřejná IP"
 
-#: sensors.js:144
+#: sensors.js:133 sensors.js:181
 msgid "Usage"
 msgstr "Použito"
 
-#: sensors.js:145
+#: sensors.js:134
 msgid "memory"
 msgstr "paměť"
 
-#: sensors.js:146
+#: sensors.js:135
 msgid "Physical"
 msgstr "Fyzická"
 
-#: sensors.js:147
+#: sensors.js:136
 msgid "Available"
 msgstr "Dostupná"
 
-#: sensors.js:148
+#: sensors.js:137
 msgid "Allocated"
 msgstr "Obsazená"
 
-#: sensors.js:149
+#: sensors.js:138
+msgid "Cached"
+msgstr "Cached"
+
+#: sensors.js:139 sensors.js:355
+msgid "Free"
+msgstr "Volné"
+
+#: sensors.js:140
 msgid "Swap"
 msgstr "Swapu"
 
-#: sensors.js:189
+#: sensors.js:248
 msgid "Average"
 msgstr "Průměr"
 
-#: sensors.js:190
+#: sensors.js:180
 msgid "processor"
 msgstr "procesor"
 
-#: sensors.js:192
+#: sensors.js:183
 #, javascript-format
 msgid "Core %d"
 msgstr "Jádro %d"
 
-#: sensors.js:236
+#: sensors.js:213 sensors.js:222
 msgid "Frequency"
 msgstr "Frekvence"
 
-#: sensors.js:237
-msgid "Boost"
-msgstr "Boost"
-
-#: sensors.js:238
-msgid "Vendor"
-msgstr "Výrobce"
-
-#: sensors.js:239
-msgid "Bogomips"
-msgstr "Bogomipsy"
-
-#: sensors.js:240
-msgid "Sockets"
-msgstr "Sokety"
-
-#: sensors.js:241
-msgid "Cache"
-msgstr "Cache"
-
-#: sensors.js:250
+#: sensors.js:231
 msgid "Open Files"
 msgstr "Otevřené soubory"
 
-#: sensors.js:258
+#: sensors.js:238
 msgid "Load 1m"
 msgstr "Zátěž za poslední minutu"
 
-#: sensors.js:259
+#: sensors.js:239
 msgid "system"
 msgstr "systém"
 
-#: sensors.js:260
+#: sensors.js:240
 msgid "Load 5m"
 msgstr "Zátěž za posledních 5 minut"
 
-#: sensors.js:261
+#: sensors.js:241
 msgid "Load 15m"
 msgstr "Zátěž za posledních 15 minut"
 
-#: sensors.js:262
+#: sensors.js:242
 msgid "Threads Active"
 msgstr "Aktivní vlákna"
 
-#: sensors.js:263
+#: sensors.js:243
 msgid "Threads Total"
 msgstr "Vláken celkem"
 
-#: sensors.js:269
+#: sensors.js:248
 msgid "Uptime"
 msgstr "Délka zapnutí"
 
-#: sensors.js:273
+#: sensors.js:252
 msgid "Process Time"
 msgstr "Procesorový čas"
 
-#: sensors.js:290
-msgid "State"
-msgstr "Stav"
-
-#: sensors.js:295
-msgid "Cycles"
-msgstr "Ccykly"
-
-#: sensors.js:300 sensors.js:330
-msgid "Energy (full)"
-msgstr "Energie (plná)"
-
-#: sensors.js:302 sensors.js:332
-msgid "Capacity"
-msgstr "Kapacita"
-
-#: sensors.js:303 sensors.js:333
-msgid "Energy (design)"
-msgstr "Energie (design)"
-
-#: sensors.js:311 sensors.js:340
-msgid "Rate"
-msgstr "Rychlost"
-
-#: sensors.js:312 sensors.js:341
-msgid "battery"
-msgstr "baterie"
-
-#: sensors.js:316 sensors.js:344
-msgid "Energy (now)"
-msgstr "Energie (nyní)"
-
-#: sensors.js:322 sensors.js:350
-msgid "Percentage"
-msgstr "Procenta"
-
-#: sensors.js:411
+#: sensors.js:302
 msgid "WiFi Link Quality"
 msgstr "Kvalita WiFi signálu"
 
-#: sensors.js:412
+#: sensors.js:303
 msgid "WiFi Signal Level"
 msgstr "Úroveň WiFi signálu"
 
-#: sensors.js:432
+#: sensors.js:318
 msgid "ARC Target"
 msgstr "ARC cíl"
 
-#: sensors.js:433
+#: sensors.js:319
 msgid "ARC Maximum"
 msgstr "ARC maximum"
 
-#: sensors.js:434
+#: sensors.js:320
 msgid "ARC Current"
 msgstr "ARC aktuálně"
 
-#: sensors.js:445
+#: sensors.js:330
 msgid "Read total"
 msgstr "Přečteno celkem"
 
-#: sensors.js:446
+#: sensors.js:331
 msgid "Write total"
 msgstr "Zapsáno celkem"
 
-#: sensors.js:447
+#: sensors.js:332
 msgid "Read rate"
 msgstr "Rychlost čtení"
 
-#: sensors.js:448
+#: sensors.js:333
 msgid "Write rate"
 msgstr "Rychlost zápisu"
 
-#: sensors.js:467
+#: sensors.js:352
 msgid "Total"
 msgstr "Celkem"
 
-#: sensors.js:468
+#: sensors.js:353
 msgid "Used"
 msgstr "Použito"
 
-#: sensors.js:469
+#: sensors.js:354
 msgid "Reserved"
 msgstr "Vyhrazeno"
 
-#: sensors.js:470
-msgid "Free"
-msgstr "Volné"
-
-#: sensors.js:471
+#: sensors.js:356
 msgid "storage"
 msgstr "úložiště"
+
+#: sensors.js:393
+msgid "Label"
+msgstr "Štítek"
+
+#: sensors.js:404 sensors.js:529
+msgid "State"
+msgstr "Stav"
+
+#: sensors.js:409 sensors.js:519
+msgid "Cycles"
+msgstr "Ccykly"
+
+#: sensors.js:414
+msgid "Voltage"
+msgstr "Napětí"
+
+#: sensors.js:418
+msgid "Level"
+msgstr "Úroveň"
+
+#: sensors.js:422 sensors.js:553
+msgid "Percentage"
+msgstr "Procenta"
+
+#: sensors.js:432 sensors.js:527
+msgid "Rate"
+msgstr "Rychlost"
+
+#: sensors.js:442 sensors.js:535
+msgid "Energy (full)"
+msgstr "Energie (plná)"
+
+#: sensors.js:451 sensors.js:541
+msgid "Energy (design)"
+msgstr "Energie (design)"
+
+#: sensors.js:455
+msgid "Capacity"
+msgstr "Kapacita"
+
+#: sensors.js:464 sensors.js:547
+msgid "Energy (now)"
+msgstr "Energie (nyní)"
+
+#: sensors.js:501 sensors.js:504 sensors.js:588 sensors.js:591
+msgid "Time left"
+msgstr "Zbývající čas"
+
+#: sensors.js:677
+msgid "Vendor"
+msgstr "Výrobce"
+
+#: sensors.js:678
+msgid "Bogomips"
+msgstr "Bogomipsy"
+
+#: sensors.js:679
+msgid "Sockets"
+msgstr "Sokety"
+
+#: sensors.js:680
+msgid "Cache"
+msgstr "Cache"
+
+#: sensors.js:685
+msgid "Kernel"
+msgstr "Kernel"
+
+#: prefs.js:98
+msgid "Temperature"
+msgstr "Teplota"
+
+#: prefs.js:98
+msgid "Network"
+msgstr "Síť"
+
+#: prefs.js:98
+msgid "Storage"
+msgstr "Úložiště"
+
+#: prefs.js:98
+msgid "Memory"
+msgstr "Paměť"
+
+#: prefs.js:98
+msgid "Battery"
+msgstr "Baterie"
+
+#: extension.js:112
+msgid "Battery 1"
+msgstr "Baterie 1"
+
+#: extension.js:112
+msgid "Battery 2"
+msgstr "Baterie 2"
+
+#: extension.js:112
+msgid "Battery 3"
+msgstr "Baterie 3"
+
+#: extension.js:112
+msgid "Battery 4"
+msgstr "Baterie 4"
+
+#: extension.js:112
+msgid "Battery 5"
+msgstr "Baterie 5"
+
+#: extension.js:115
+msgid "Battery (hidden)"
+msgstr "Baterie (skryto)"
+
+#: prefs.js:98
+msgid "System"
+msgstr "Systém"
+
+#: prefs.js:98
+msgid "Processor"
+msgstr "Procesor"
+
+#: sensors.js:759
+msgid "Fan"
+msgstr "Ventilátor"
+
+#~ msgid "Battery slot to monitor"
+#~ msgstr "Slot baterie, která se má monitorovat"
+
+#~ msgid "Which numerical battery slot should vitals monitor"
+#~ msgstr "Které číslo slotu má Vitals sledovat"
+
+#~ msgid "Boost"
+#~ msgstr "Boost"
