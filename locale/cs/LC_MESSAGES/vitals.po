@@ -493,19 +493,31 @@ msgstr "Dostupná"
 
 #: sensors.js:137
 msgid "Allocated"
-msgstr "Obsazená"
+msgstr "Obsazeno"
 
 #: sensors.js:138
 msgid "Cached"
-msgstr "Cached"
+msgstr "Cache"
 
 #: sensors.js:139 sensors.js:355
 msgid "Free"
-msgstr "Volné"
+msgstr "Volno"
 
-#: sensors.js:140
-msgid "Swap"
-msgstr "Swapu"
+#: sensors.js:154
+msgid "Swap Total"
+msgstr "Swap Dostupná"
+
+#: sensors.js:155
+msgid "Swap Free"
+msgstr "Swap Volno"
+
+#: sensors.js:156
+msgid "Swap Used"
+msgstr "Swap Obsazeno"
+
+#: sensors.js:157
+msgid "Swap Usage"
+msgstr "Swap Použito"
 
 #: sensors.js:248
 msgid "Average"
@@ -744,3 +756,24 @@ msgstr "Ventilátor"
 
 #~ msgid "Boost"
 #~ msgstr "Boost"
+
+#: sensors.js:589, sensors.js:648, sensors.js:674
+msgid "Graphics"
+msgstr "Graf. karta"
+
+#: sensors.js:603, sensors.js:655
+msgid "Memory Used"
+msgstr "Paměť Obsazeno"
+
+#: sensors.js:602, sensors.js:660
+msgid "Memory Total"
+msgstr "Paměť Celkem"
+
+#: prefs.ui:901
+msgid "Monitor GPU (beta)"
+msgstr "Sledování GPU (beta)"
+
+#: prefs.ui:1378
+msgid "Include static GPU info"
+msgstr "Včetně statických informací"
+
