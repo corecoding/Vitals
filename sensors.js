@@ -638,6 +638,7 @@ export const Sensors = GObject.registerClass({
 
     _readGpuDrm(callback){
         const multiGpu = this._gpu_drm_indices.length > 1;
+        const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
         for (let z = 0; z < this._gpu_drm_indices.length; z++ ) {
             let i = this._gpu_drm_indices[z];
             const typeName = 'gpu#' + i;
@@ -655,12 +656,12 @@ export const Sensors = GObject.registerClass({
                     // nothing to do, keep old value displayed
                 });
                 new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_used').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Used', parseInt(value), typeName, 'memory');
+                    this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
                 }).catch(err => {
                     // nothing to do, keep old value displayed
                 });
                 new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_total').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Total', parseInt(value), typeName, 'memory');
+                    this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
                 }).catch(err => {
                     // nothing to do, keep old value displayed
                 });
