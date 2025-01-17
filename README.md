@@ -115,7 +115,7 @@ Sensor data is obtained from the system using hwmon and GTop. Core Coding and th
 | Compile translation file | `msgfmt vitals.po -o vitals.mo` |
 | Launch Wayland virtual window | `dbus-run-session -- gnome-shell --nested --wayland` |
 | Read hot-sensors value | `dconf read /org/gnome/shell/extensions/vitals/hot-sensors` |
-| Write hot-sensors value | `dconf write /org/gnome/shell/extensions/vitals/hot-sensors "['_memory_usage_', '_system_load_1m_']"` |
+| Write hot-sensors value | `dconf write /org/gnome/shell/extensions/vitals/hot-sensors "['_memory_usage_', '_system_load_1m_']"`<br/>This value configures the list of sensors that show up in the panel. To specify a sensor name, click on the extension to show the drop-down menu, then take the category label and the label of the individual sensor, convert them to `snake_case`, and format them like this: `_category_sensor_`.|
 
 ## Donations
 [Please consider donating if you find this extension useful.](https://corecoding.com/donate.php)
