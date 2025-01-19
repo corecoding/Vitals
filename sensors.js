@@ -76,7 +76,7 @@ export const Sensors = GObject.registerClass({
 
     _refreshIPAddress(callback) {
         // check IP address
-        new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
+        new FileModule.File('https://ipv4.corecoding.com').read().then(contents => {
             let obj = JSON.parse(contents);
             this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
         }).catch(err => { });
