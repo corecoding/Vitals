@@ -898,7 +898,7 @@
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
                                 <property name="margin-end">5</property>
-                                <property name="label" translatable="yes">Monitor gpu (beta; NVIDIA only)</property>
+                                <property name="label" translatable="yes">Monitor GPU (beta)</property>
                               </object>
                             </child>
                             <child>
