@@ -45,6 +45,7 @@
                     <child>
                       <object class="GtkSwitch" id="include-public-ip">
                         <property name="halign">end</property>
+                        <property name="margin-end">5</property>
                       </object>
                     </child>
                   </object>
@@ -146,6 +147,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Seconds between updates</property>
                               </object>
                             </child>
@@ -170,6 +172,7 @@
                       <object class="GtkListBoxRow">
                         <property name="width_request">100</property>
                         <property name="selectable">0</property>
+                        <property name="activatable">0</property>
                         <property name="child">
                           <object class="GtkBox">
                             <property name="can_focus">0</property>
@@ -181,6 +184,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Position in panel</property>
                               </object>
                             </child>
@@ -217,12 +221,14 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Use higher precision</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="use-higher-precision">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
@@ -244,12 +250,14 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Alphabetize sensors</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="alphabetize">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
@@ -271,12 +279,14 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Hide zero values</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="hide-zeros">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
@@ -298,12 +308,14 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Use fixed widths</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="fixed-widths">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
@@ -325,12 +337,14 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Hide icons in top bar</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="hide-icons">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
@@ -352,49 +366,55 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Menu always centered</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="menu-centered">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
                         </property>
                       </object>
                     </child>
-                  </object>
-                </property>
-                <child type="label_item">
-                  <placeholder/>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="can_focus">0</property>
-                <property name="halign">start</property>
-                <property name="valign">baseline</property>
-                <property name="label" translatable="yes">About</property>
-                <attributes>
-                  <attribute name="weight" value="bold"></attribute>
-                </attributes>
-              </object>
-            </child>
-            <child>
-              <object class="GtkFrame">
-                <property name="can_focus">0</property>
-                <property name="child">
-                  <object class="GtkLabel">
-                    <property name="can_focus">0</property>
-                    <property name="halign">start</property>
-                    <property name="valign">baseline</property>
-                    <property name="margin-start">5</property>
-                    <property name="label" translatable="yes">Feature requests or bugs? Please visit &lt;a href=&quot;https://github.com/corecoding/Vitals/issues&quot;&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href=&quot;https://corecoding.com/donate.php&quot;&gt;Donate&lt;/a&gt; if you found this useful.</property>
-                    <property name="use_markup">1</property>
-                    <property name="wrap">1</property>
-                    <property name="xalign">0</property>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="width_request">100</property>
+                        <property name="selectable">0</property>
+                        <property name="activatable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="can_focus">0</property>
+                            <property name="margin_top">6</property>
+                            <property name="margin_bottom">6</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="hexpand">1</property>
+                                <property name="can_focus">0</property>
+                                <property name="halign">start</property>
+                                <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
+                                <property name="label" translatable="yes">Icon style</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkComboBoxText" id="icon-style">
+                                <property name="can_focus">0</property>
+                                <property name="margin-end">5</property>
+                                <property name="active">0</property>
+                                <items>
+                                  <item translatable="yes">Original</item>
+                                  <item translatable="yes">GNOME</item>
+                                </items>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </property>
                 <child type="label_item">
@@ -446,6 +466,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor temperature</property>
                               </object>
                             </child>
@@ -473,6 +494,7 @@
                                   <object class="GtkSwitch" id="show-temperature">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -497,12 +519,14 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor voltage</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="show-voltage">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
@@ -525,12 +549,14 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor fan</property>
                               </object>
                             </child>
                             <child>
                               <object class="GtkSwitch" id="show-fan">
                                 <property name="halign">end</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
@@ -553,6 +579,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor memory</property>
                               </object>
                             </child>
@@ -580,6 +607,7 @@
                                   <object class="GtkSwitch" id="show-memory">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -604,6 +632,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor processor</property>
                               </object>
                             </child>
@@ -631,6 +660,7 @@
                                   <object class="GtkSwitch" id="show-processor">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -655,6 +685,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor system</property>
                               </object>
                             </child>
@@ -682,6 +713,7 @@
                                   <object class="GtkSwitch" id="show-system">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -706,6 +738,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor network</property>
                               </object>
                             </child>
@@ -733,6 +766,7 @@
                                   <object class="GtkSwitch" id="show-network">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -757,6 +791,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor storage</property>
                               </object>
                             </child>
@@ -784,6 +819,7 @@
                                   <object class="GtkSwitch" id="show-storage">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -808,6 +844,7 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
                                 <property name="label" translatable="yes">Monitor battery</property>
                               </object>
                             </child>
@@ -835,6 +872,7 @@
                                   <object class="GtkSwitch" id="show-battery">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -859,7 +897,8 @@
                                 <property name="can_focus">0</property>
                                 <property name="halign">start</property>
                                 <property name="margin-start">5</property>
-                                <property name="label" translatable="yes">Monitor gpu (beta; NVIDIA only)</property>
+                                <property name="margin-end">5</property>
+                                <property name="label" translatable="yes">Monitor GPU (beta)</property>
                               </object>
                             </child>
                             <child>
@@ -886,6 +925,7 @@
                                   <object class="GtkSwitch" id="show-gpu">
                                     <property name="halign">end</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                   </object>
                                 </child>
                               </object>
@@ -902,6 +942,44 @@
               </object>
             </child>
           </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="halign">start</property>
+        <property name="can_focus">0</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">9</property>
+        <property name="margin_bottom">12</property>
+        <property name="label" translatable="yes">About</property>
+        <attributes>
+          <attribute name="weight" value="bold"></attribute>
+        </attributes>
+      </object>
+    </child>
+    <child>
+      <object class="GtkFrame">
+        <property name="can_focus">0</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="child">
+          <object class="GtkLabel">
+            <property name="can_focus">0</property>
+            <property name="halign">start</property>
+            <property name="valign">baseline</property>
+            <property name="margin_top">5</property>
+            <property name="margin_bottom">5</property>
+            <property name="margin-start">5</property>
+            <property name="margin-end">5</property>
+            <property name="label" translatable="yes">Feature requests or bugs? Please visit &lt;a href=&quot;https://github.com/corecoding/Vitals/issues&quot;&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href=&quot;https://corecoding.com/donate.php&quot;&gt;Donate&lt;/a&gt; if you found this useful.</property>
+            <property name="use_markup">1</property>
+            <property name="wrap">1</property>
+            <property name="xalign">0</property>
+          </object>
+        </property>
+        <child type="label_item">
+          <placeholder/>
         </child>
       </object>
     </child>
@@ -1144,6 +1222,7 @@
                           <item translatable="yes">BAT0</item>
                           <item translatable="yes">BAT1</item>
                           <item translatable="yes">BAT2</item>
+                          <item translatable="yes">BATT</item>
                           <item translatable="yes">CMB0</item>
                           <item translatable="yes">macsmc-battery</item>
                         </items>
@@ -1248,6 +1327,7 @@
                     <child>
                       <object class="GtkSwitch" id="include-static-info">
                         <property name="halign">end</property>
+                        <property name="margin-end">5</property>
                       </object>
                     </child>
                   </object>
@@ -1297,6 +1377,7 @@
                     <child>
                       <object class="GtkSwitch" id="include-static-gpu-info">
                         <property name="halign">end</property>
+                        <property name="margin-end">5</property>
                       </object>
                     </child>
                   </object>

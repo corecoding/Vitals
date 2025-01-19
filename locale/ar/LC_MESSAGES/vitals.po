@@ -1,779 +1,758 @@
-# Czech translation for gnome-shell-extension-vitals.
-#
-# This file is distributed under the same license as the
-# gnome-shell-extension-vitals package.
-#
-#  Ludek Vydra < lvtran@u.k2.cz >, 2022.
-#
+# SPDX-FileCopyrightText: 2024 Abdalrahim G. Fakhouri <abdilra7eem@yahoo.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2023-10-22 21:04+0200\n"
-"PO-Revision-Date: \n"
-"Last-Translator: Ludek Vydra <lvtran@u.k2.cz>\n"
-"Language-Team: \n"
-"Language: cs\n"
+"PO-Revision-Date: 2024-06-12 12:15+0300\n"
+"Last-Translator: Abdalrahim G. Fakhouri <abdilra7eem@yahoo.com>\n"
+"Language-Team: ar\n"
+"Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
+"Plural-Forms: nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 &"
+"& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 "POT-Revision-Date: 2018-12-29 10:26+0100\n"
-"X-Generator: Poedit 3.4.4\n"
+"X-Generator: Lokalize 24.05.0\n"
 "X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: _returnValue:2\n"
 "X-Poedit-SearchPath-0: values.js\n"
 "X-Poedit-SearchPath-1: sensors.js\n"
 "X-Poedit-SearchPath-2: prefs.js\n"
 "X-Poedit-SearchPath-3: menuItem.js\n"
 "X-Poedit-SearchPath-4: extension.js\n"
-"X-Poedit-SearchPath-5: schemas/org.gnome.shell.extensions.vitals.gschema."
-"xml\n"
+"X-Poedit-SearchPath-5: schemas/org.gnome.shell.extensions.vitals.gschema.xml\n"
 "X-Poedit-SearchPath-6: prefs.ui\n"
 
 #: extension.js:109
 msgid "Batteries"
-msgstr "Baterie"
+msgstr "البطاريات"
 
 #: extension.js:133
 msgid "No Data"
-msgstr "Nejsou data"
+msgstr "لا توجد بيانات"
 
 #: extension.js:159
 msgid "Refresh"
-msgstr "Obnovit"
+msgstr "تحديث"
 
 #: extension.js:174
 msgid "System Monitor"
-msgstr "Sledování systému"
+msgstr "مراقب النظام"
 
 #: extension.js:182 prefs.js:106
 msgid "Preferences"
-msgstr "Předvolby"
+msgstr "التفضيلات"
 
-#: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
+#: prefs.ui:42
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
-msgstr "Zahrnout veřejnou adresu"
+msgstr "ضمِّن عنوان IP الخارجي"
 
 #: prefs.ui:70
 msgid "Format"
-msgstr "Formát"
+msgstr "الصيغة"
 
 #: prefs.ui:78
 msgid "Bytes"
-msgstr "Bajty"
+msgstr "بايت"
 
 #: prefs.ui:79
 msgid "Bits"
-msgstr "Bity"
+msgstr "بِت"
 
 #: prefs.ui:121
 msgid "General"
-msgstr "Všeobecné"
+msgstr "عامّ"
 
-#: prefs.ui:149 schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
+#: prefs.ui:149
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
 msgid "Seconds between updates"
-msgstr "Sekund mezi měřeními"
+msgstr "الثواني بين التحديثات"
 
-#: prefs.ui:184 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
+#: prefs.ui:184
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
 msgid "Position in panel"
-msgstr "Umístění na panelu"
+msgstr "المكان في الشريط العلوي"
 
 #: prefs.ui:193
 msgid "Left"
-msgstr "Vlevo"
+msgstr "اليسار"
 
 #: prefs.ui:194
 msgid "Center"
-msgstr "Uprostřed"
+msgstr "الوسط"
 
 #: prefs.ui:195
 msgid "Right"
-msgstr "Vpravo"
+msgstr "اليمين"
 
 #: prefs.ui:196
 msgid "Far Left"
-msgstr "Úplně vlevo"
+msgstr "أقصى اليسار"
 
 #: prefs.ui:197
 msgid "Far Right"
-msgstr "Úplně vpravo"
+msgstr "أقصى اليمين"
 
-#: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
+#: prefs.ui:220
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
-msgstr "Použij vyšší přesnost"
+msgstr "استخدم دقّة أعلى"
 
-#: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
+#: prefs.ui:247
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
-msgstr "Seřaď senzory abecedně"
+msgstr "رتب الحساسات أبجديًّا"
 
-#: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
+#: prefs.ui:274
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
-msgstr "Skryj nulové hodnoty"
+msgstr "اخفِ القيم الصفرية"
 
 #: prefs.ui:301
 msgid "Use fixed widths"
-msgstr "Použij pevné rozestupy"
+msgstr "استخدم مقاسات ثابتة"
 
-#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:171
+#: prefs.ui:328
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:171
 msgid "Hide icons in top bar"
-msgstr "Skryj ikony v horní liště"
+msgstr "اخفِ الأيقونات في الشريط العلوي"
 
 #: prefs.ui:355
 msgid "Menu always centered"
-msgstr "Menu vždy centrovené"
+msgstr "القائمة متوسطة دائمًا"
 
 #: prefs.ui:379
 msgid "About"
-msgstr "O programu"
+msgstr "عَن التطبيق"
 
 #: prefs.ui:394
 msgid ""
-"Feature requests or bugs? Please visit <a href=\"https://github.com/"
-"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
-"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
-"useful."
+"Feature requests or bugs? Please visit <a href=\"https://github."
+"com/corecoding/Vitals/issues\">GitHub</a>. No warranty, "
+"expressed or implied. <a href=\"https://corecoding.com/donate."
+"php\">Donate</a> if you found this useful."
 msgstr ""
-"Návrhy nebo jste našli chybu? Navštivte, prosím, <a href=\"https://github."
-"com/corecoding/Vitals/issues\">GitHub</a>. Bez záruk vyjádřených anebo "
-"předpokládaných. <a href=\"https://corecoding.com/donate.php\">Přispějte</a> "
-"pokud to tak cítíte."
+"أترغب بطلب ميزة أو الإبلاغ عن عِلَّة؟ نرجو زيارة <a href=\"https://github."
+"com/corecoding/Vitals/issues\">GitHub</a>. لا ضمانات صريحة أوضمنيّة. <a"
+" href=\"https://corecoding.com/donate."
+"php\">تبرّع</a> إذا وجدت هذا التطبيق مفيدًا."
 
 #: prefs.ui:421
 msgid "Sensors"
-msgstr "Senzory"
+msgstr "الحساسات"
 
-#: prefs.ui:449 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+#: prefs.ui:449
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
-msgstr "Sledovat teplotu"
+msgstr "راقب الحرارة"
 
-#: prefs.ui:500 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+#: prefs.ui:500
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
-msgstr "Sledovat napětí"
+msgstr "راقب الجهد الكهربائيّ"
 
-#: prefs.ui:528 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+#: prefs.ui:528
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
-msgstr "Sledovat ventilátory"
+msgstr "راقب المراوح"
 
-#: prefs.ui:556 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+#: prefs.ui:556
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
-msgstr "Sledovat paměť"
+msgstr "راقب حالة الذاكرة"
 
-#: prefs.ui:607 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+#: prefs.ui:607
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
-msgstr "Sledovat procesor"
+msgstr "راقب حالة المعالج"
 
-#: prefs.ui:658 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+#: prefs.ui:658
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
-msgstr "Sledovat systém"
+msgstr "راقب حالة النظام"
 
-#: prefs.ui:709 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+#: prefs.ui:709
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
-msgstr "Sledovat síť"
+msgstr "راقب حالة الشبكة"
 
-#: prefs.ui:760 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+#: prefs.ui:760
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
-msgstr "Sledovat úložiště"
+msgstr "راقب حالة التخزين"
 
-#: prefs.ui:811 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+#: prefs.ui:811
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 msgid "Monitor battery"
-msgstr "Sledovat baterii"
+msgstr "راقب حالة البطارية"
 
 #: prefs.ui:890
 msgid "Path"
-msgstr "Cesta"
+msgstr "المسار"
 
 #: prefs.ui:922 prefs.ui:1031
 msgid "Measurement"
-msgstr "Měření"
+msgstr "وحدة القياس"
 
 #: prefs.ui:930 prefs.ui:1039
 msgid "Binary"
-msgstr "Binárně"
+msgstr "ثنائيّ"
 
 #: prefs.ui:931 prefs.ui:1040
 msgid "Decimal"
-msgstr "Decimálně"
+msgstr "عشريّ"
 
 #: prefs.ui:976
 msgid "Unit"
-msgstr "Jednotka"
+msgstr "الوِحدة"
 
 #: prefs.ui:985
 msgid "°C"
-msgstr "°C"
+msgstr "ْم "
 
 #: prefs.ui:986
 msgid "°F"
-msgstr "°F"
+msgstr "ْف"
 
 #: prefs.ui:1086
 msgid "Monitor BAT0"
-msgstr "Sleduj BAT0"
+msgstr "راقب البطارية BAT0"
 
 #: prefs.ui:1116
 msgid "Monitor BAT1"
-msgstr "Sleduj BAT1"
+msgstr "راقب البطارية BAT1"
 
 #: prefs.ui:1146
 msgid "Monitor BAT2"
-msgstr "Sleduj BAT2"
+msgstr "راقب البطارية BAT2"
 
 #: prefs.ui:1176
 msgid "Monitor CMB0"
-msgstr "Sleduj CMB0"
+msgstr "راقب البطارية CMB0"
 
 #: prefs.ui:1206
 msgid "Monitor macsmc-battery"
-msgstr "Sleduj macsmc-battery"
+msgstr "راقب بطارية macsmc"
 
 #: prefs.ui:1247
 msgid "Calculate Combined Values"
-msgstr "Výpočet kombinovaných hodnot"
+msgstr "احسِب القيم المُجمّعة"
 
-#: prefs.ui:1277 schemas/org.gnome.shell.extensions.vitals.gschema.xml:141
+#: prefs.ui:1277
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:141
 msgid "Include BAT0"
-msgstr "Včetně BAT0"
+msgstr "ضمِّن البطارية BAT0"
 
-#: prefs.ui:1307 schemas/org.gnome.shell.extensions.vitals.gschema.xml:146
+#: prefs.ui:1307
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:146
 msgid "Include BAT1"
-msgstr "Včetně BAT1"
+msgstr "ضمِّن البطارية BAT1"
 
-#: prefs.ui:1337 schemas/org.gnome.shell.extensions.vitals.gschema.xml:151
+#: prefs.ui:1337
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:151
 msgid "Include BAT2"
-msgstr "Včetně BAT2"
+msgstr "ضمِّن البطارية BAT2"
 
-#: prefs.ui:1367 schemas/org.gnome.shell.extensions.vitals.gschema.xml:156
+#: prefs.ui:1367
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:156
 msgid "Include CMB0"
-msgstr "Včetně CMB0"
+msgstr "ضمِّن البطارية CMB0"
 
-#: prefs.ui:1397 schemas/org.gnome.shell.extensions.vitals.gschema.xml:161
+#: prefs.ui:1397
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:161
 msgid "Include macsmc-battery"
-msgstr "Včetně macsmc-battery"
+msgstr "ضمِّن بطارية macsmc"
 
 #: prefs.ui:1446
 msgid "Monitor command"
-msgstr "Sleduj command"
+msgstr "أمر المراقِب"
 
 #: prefs.ui:1498
 msgid "Include static info"
-msgstr "Včetně statických informací"
+msgstr "ضمِّن المعلومات الثابتة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
-msgstr "Senzory na panelu"
+msgstr "الحساسات التي ستظهر في الشريط"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
-msgstr "Seznam senzorů na panelu"
+msgstr "لائحة الحساسات التي ستظهر في الشريط"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
 msgid "Delay between sensor polling"
-msgstr "Čas mezi měřeními senzorů"
+msgstr "الانتظار بين قراءات الحساسات"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
 msgid "Position in Panel ('left', 'center', 'right')"
-msgstr "Pozice na panelu ('Vlevo', 'Střed', 'Vpravo')"
+msgstr "المكان في الشريط (\"يمين\"، \"وسط\"، \"يسار\")"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
 msgid "Show one extra digit after decimal"
-msgstr "Zobraz jedno číslo za desetinnou čárkou"
+msgstr "أظهِر منزلة عشرية واحدة إضافية بعد الفاصلة العشريّة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
 msgid "Display sensors in alphabetical order"
-msgstr "Zobraz senzory v abecedním seřazení"
+msgstr "اعرض الحساسات مرتبة هجائيًّا"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
 msgid "Hide data from sensors that are invalid"
-msgstr "Skryj data ze senzorů, která jsou neplatná"
+msgstr "اخفِ بيانات الحساسات غير الصالحة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
 msgid "Display temperature of various components"
-msgstr "Zobraz teplotu různých komponent"
+msgstr "اعرض حرارة المكونات المختلفة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
 msgid "Temperature unit"
-msgstr "Jednotka teploty"
+msgstr "وحدة قياس درجة الحرارة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
-"The unit ('centigrade' or 'fahrenheit') the extension should display the "
-"temperature in"
-msgstr "Jednotka (°C, °F) pro zobrazení teploty"
+"The unit ('centigrade' or 'fahrenheit') the extension should "
+"display the temperature in"
+msgstr ""
+"الوِحدة (\"مئوية\" أو \"فهرنهايت\") التي تريد أن تُستخدَم في عرض درجة الحرارة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
 msgid "Display voltage of various components"
-msgstr "Zobraz teplotu různých komponent"
+msgstr "اعرض الجهد الكهربائيّ للمكونات المختلفة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
 msgid "Display fan rotation per minute"
-msgstr "Zobraz otáčky ventilátoru za minutu"
+msgstr "اعرض سرعة دوران المروحة (كم دورة في الدقيقة)"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
 msgid "Display memory information"
-msgstr "Zobraz informace o paměti"
+msgstr "اعرض معلومات الذاكرة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
 msgid "Display processor information"
-msgstr "Zobraz informace o procesoru"
+msgstr "اعرض معلومات المعالج"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
 msgid "Display system information"
-msgstr "Zobraz systémové informace"
+msgstr "اعرض معلومات النظام"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
 msgid "Display storage information"
-msgstr "Zobraz informace o úložišti"
+msgstr "اعرض معلومات التخزين"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
 msgid "Display network information"
-msgstr "Zobraz informace o síti"
+msgstr "اعرض معلومات الشبكة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
 msgid "Display public IP address of internet connection"
-msgstr "Zobraz veřejnou IP adresu internetového připojení"
+msgstr "اعرض عنوان IP الخارجي لاتصال الإنترنت"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
 msgid "Network speed format"
-msgstr "Formát rychlosti sítě"
+msgstr "صيغة سرعة الشبكة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
 msgid "Should speed display in bits or bytes?"
-msgstr "Zobrazení rychlosti v bitech nebo bajtech?"
+msgstr "هل تريد عرض السرعة بوحدة الـ\"بِت\" أم الـ\"بايت\" ؟"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
 msgid "Storage path"
-msgstr "Cesta k úložišti"
+msgstr "مسار التخزين"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
 msgid "Storage path for monitoring"
-msgstr "Sledovaná cesta k úložišti"
+msgstr "مسار التخزين الذي تريد مراقبته"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
 msgid "Monitor battery health"
-msgstr "Sleduj zdraví baterie"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
 msgid "Memory measurement"
-msgstr "Měření paměti"
+msgstr "قياس الذاكرة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
 msgid "Can use gigabyte or gibibyte for memory"
-msgstr "Pro jednotku velikosti paměti můžete použít gigabyte nebo gibibyte"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
 msgid "Storage measurement"
-msgstr "Měření úložiště"
+msgstr "وحدة قياس سعة التخزين"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
-msgstr "Pro jednotku velikosti úložiště můžete použít gigabyte nebo gibibyte"
+msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
 msgid "Display battery BAT0"
-msgstr "Zobraz baterii BAT0"
+msgstr "اعرض البطارية BAT0"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Should battery 'BAT0' be displayed?"
-msgstr "Má se zobrazit 'BAT0'?"
+msgstr "هل تريد عرض معلومات البطارية BAT0 ؟"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Display battery BAT1"
-msgstr "Zobraz baterii BAT1"
+msgstr "اعرض البطارية BAT1"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
 msgid "Should battery 'BAT1' be displayed?"
-msgstr "Má se zobrazit 'BAT1'?"
+msgstr "هل تريد عرض معلومات البطارية BAT1 ؟"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Display battery BAT2"
-msgstr "Zobraz baterii BAT2"
+msgstr "اعرض البطارية BAT2"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
 msgid "Should battery 'BAT2' be displayed?"
-msgstr "Má se zobrazit 'BAT2'?"
+msgstr "هل تريد عرض معلومات البطارية BAT2 ؟"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:126
 msgid "Display battery CMB0"
-msgstr "Zobraz baterii CMB0"
+msgstr "اعرض البطارية CMB0"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:127
 msgid "Should battery 'CMB0' be displayed?"
-msgstr "Má se zobrazit 'CMB0'?"
+msgstr "هل تريد عرض معلومات البطارية CMB0 ؟"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:131
 msgid "Display battery macsmc-battery"
-msgstr "Zobraz baterii macsmc-battery"
+msgstr "اعرض البطارية macsmc"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:132
 msgid "Should battery 'macsmc-battery' be displayed?"
-msgstr "Má se zobrazit 'macsmc-battery'?"
+msgstr "هل تريد عرض معلومات البطارية macsmc ؟"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:136
 msgid "Display combined battery data"
-msgstr "Zobraz kombinované údaje baterií"
+msgstr "اعرض معلومات البطاريات مجتمعة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:137
 msgid "Display combined values for selected batteries"
-msgstr "Zobraz kombinované hodnoty pro vybrané baterie"
+msgstr "اعرض محصلة القيم للبطاريات المختارة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:142
 msgid "Include 'BAT0' when calculating combined Battery"
-msgstr "Při výpočtu kombinované baterie zahrň \"BAT0\""
+msgstr "اشمل القيم من BAT0 عند احتساب القيم من البطاريات مجتمعة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:147
 msgid "Include 'BAT1' when calculating combined Battery"
-msgstr "Při výpočtu kombinované baterie zahrň \"BAT1\""
+msgstr "اشمل القيم من BAT1 عند احتساب القيم من البطاريات مجتمعة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:152
 msgid "Include 'BAT2' when calculating combined Battery"
-msgstr "Při výpočtu kombinované baterie zahrň \"BAT1\""
+msgstr "اشمل القيم من BAT2 عند احتساب القيم من البطاريات مجتمعة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:157
 msgid "Include 'CMB0' when calculating combined Battery"
-msgstr "Při výpočtu kombinované baterie zahrň \"CMB0\""
+msgstr "اشمل القيم من CMB0 عند احتساب القيم من البطاريات مجتمعة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:162
 msgid "Include 'macsmc-battery' when calculating combined Battery"
-msgstr "Při výpočtu kombinované baterie zahrň \"macsmc-battery\""
+msgstr "اشمل القيم من macsmc عند احتساب القيم من البطاريات مجتمعة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:166
 msgid "Use fixed widths in top bar"
-msgstr "Použij pevné rozestupy v horní liště"
+msgstr "استخدم مقاسات ثابتة في الشريط العُلوي"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:167
 msgid "Keep sensors in top bar from jumping around"
-msgstr "Zabraň náhodnému měnění pořadí senzorů v horní liště"
+msgstr "امنع الحساسات في الشريط العلوي من تغيير أماكنها"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:172
 msgid "Keep top bar clean by only showing sensor values"
-msgstr "Zachovej čistou horní lištu tak, že senzory budou ukazovat jen hodnoty"
+msgstr "أبق الشريط العلوي بسيطًا بعرض قيم الحساسات فقط"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:176
 msgid "Make the menu centered"
-msgstr "Centruj menu"
+msgstr "وَسِّط القائمة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:177
-msgid "Center the menu to the icon regardless of the position in the panel"
-msgstr "Vycentrování nabídky na ikonu bez ohledu na pozici na panelu"
+msgid ""
+"Center the menu to the icon regardless of the position in the "
+"panel"
+msgstr "وسِّط القائمة تبعاً للأيقونة بغض النظر عن مكانها في الشريط"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:181
 msgid "System Monitor command"
-msgstr "Příkaz Sledování systému"
+msgstr "أمر مراقب النظام"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:182
 msgid "The command run when system monitor button is clicked"
-msgstr "Příkaz spuštěný po kliknutí na tlačítko monitoru systému"
+msgstr "الأمر الذي سيُنفَّذ عند النقر على زر مراقب النظام"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:186
 msgid "Include processor static information"
-msgstr "Zobraz statické informace procesoru"
+msgstr "اعرِض معلومات المعالج الثابتة"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:187
 msgid "Display processor static information that doesn't change"
-msgstr "Zobrazení statických (neměnných) informací procesoru"
+msgstr "أظهر معلومات المعالج ذات القيم الثابتة التي لا تتغير"
 
 #: sensors.js:65
 msgid "Public IP"
-msgstr "Veřejná IP"
+msgstr "عنوان IP الخارجي"
 
 #: sensors.js:133 sensors.js:181
 msgid "Usage"
-msgstr "Použito"
+msgstr "الاستخدام"
 
 #: sensors.js:134
 msgid "memory"
-msgstr "paměť"
+msgstr "الذاكرة"
 
 #: sensors.js:135
 msgid "Physical"
-msgstr "Fyzická"
+msgstr "الحقيقية"
 
 #: sensors.js:136
 msgid "Available"
-msgstr "Dostupná"
+msgstr "المتاحة"
 
 #: sensors.js:137
 msgid "Allocated"
-msgstr "Obsazeno"
+msgstr "المحجوزة"
 
 #: sensors.js:138
 msgid "Cached"
-msgstr "Cache"
+msgstr "الخبيئة (cache)"
 
 #: sensors.js:139 sensors.js:355
 msgid "Free"
-msgstr "Volno"
+msgstr "الخالية"
 
-#: sensors.js:154
-msgid "Swap Total"
-msgstr "Swap Dostupná"
-
-#: sensors.js:155
-msgid "Swap Free"
-msgstr "Swap Volno"
-
-#: sensors.js:156
-msgid "Swap Used"
-msgstr "Swap Obsazeno"
-
-#: sensors.js:157
-msgid "Swap Usage"
-msgstr "Swap Použito"
+#: sensors.js:140
+msgid "Swap"
+msgstr "مساحة التبديل (Swap)"
 
 #: sensors.js:248
 msgid "Average"
-msgstr "Průměr"
+msgstr "المعدّل"
 
 #: sensors.js:180
 msgid "processor"
-msgstr "procesor"
+msgstr "المعالج"
 
 #: sensors.js:183
 #, javascript-format
 msgid "Core %d"
-msgstr "Jádro %d"
+msgstr "النواة %d"
 
 #: sensors.js:213 sensors.js:222
 msgid "Frequency"
-msgstr "Frekvence"
+msgstr "التردّد"
 
 #: sensors.js:231
 msgid "Open Files"
-msgstr "Otevřené soubory"
+msgstr "الملفّات المفتوحة"
 
 #: sensors.js:238
 msgid "Load 1m"
-msgstr "Zátěž za poslední minutu"
+msgstr "الحِمْل (1 د)"
 
 #: sensors.js:239
 msgid "system"
-msgstr "systém"
+msgstr "النظام"
 
 #: sensors.js:240
 msgid "Load 5m"
-msgstr "Zátěž za posledních 5 minut"
+msgstr "الحِمْل (5 د)"
 
 #: sensors.js:241
 msgid "Load 15m"
-msgstr "Zátěž za posledních 15 minut"
+msgstr "الحِمْل (15 د)"
 
 #: sensors.js:242
 msgid "Threads Active"
-msgstr "Aktivní vlákna"
+msgstr "الخطوط النشطة"
 
 #: sensors.js:243
 msgid "Threads Total"
-msgstr "Vláken celkem"
+msgstr "الخطوط الكلية"
 
 #: sensors.js:248
 msgid "Uptime"
-msgstr "Délka zapnutí"
+msgstr "زمن التشغيل"
 
 #: sensors.js:252
 msgid "Process Time"
-msgstr "Procesorový čas"
+msgstr "وقت العمليات"
 
 #: sensors.js:302
 msgid "WiFi Link Quality"
-msgstr "Kvalita WiFi signálu"
+msgstr "جودة اتصال الشبكة اللاسلكية WiFi"
 
 #: sensors.js:303
 msgid "WiFi Signal Level"
-msgstr "Úroveň WiFi signálu"
+msgstr "مستوى إشارة الشبكة اللاسلكية WiFi"
 
 #: sensors.js:318
 msgid "ARC Target"
-msgstr "ARC cíl"
+msgstr ""
 
 #: sensors.js:319
 msgid "ARC Maximum"
-msgstr "ARC maximum"
+msgstr ""
 
 #: sensors.js:320
 msgid "ARC Current"
-msgstr "ARC aktuálně"
+msgstr ""
 
 #: sensors.js:330
 msgid "Read total"
-msgstr "Přečteno celkem"
+msgstr "إجمالي القراءة"
 
 #: sensors.js:331
 msgid "Write total"
-msgstr "Zapsáno celkem"
+msgstr "إجمالي الكتابة"
 
 #: sensors.js:332
 msgid "Read rate"
-msgstr "Rychlost čtení"
+msgstr "معدل القراءة"
 
 #: sensors.js:333
 msgid "Write rate"
-msgstr "Rychlost zápisu"
+msgstr "معدل الكتابة"
 
 #: sensors.js:352
 msgid "Total"
-msgstr "Celkem"
+msgstr "الإجمالي"
 
 #: sensors.js:353
 msgid "Used"
-msgstr "Použito"
+msgstr "مُستخدَم"
 
 #: sensors.js:354
 msgid "Reserved"
-msgstr "Vyhrazeno"
+msgstr "محجوز"
 
 #: sensors.js:356
 msgid "storage"
-msgstr "úložiště"
+msgstr "التخزين"
 
 #: sensors.js:393
 msgid "Label"
-msgstr "Štítek"
+msgstr ""
 
 #: sensors.js:404 sensors.js:529
 msgid "State"
-msgstr "Stav"
+msgstr "الحالة"
 
 #: sensors.js:409 sensors.js:519
 msgid "Cycles"
-msgstr "Ccykly"
+msgstr "الدورات"
 
 #: sensors.js:414
 msgid "Voltage"
-msgstr "Napětí"
+msgstr "الجهد الكهربائي"
 
 #: sensors.js:418
 msgid "Level"
-msgstr "Úroveň"
+msgstr "المستوى"
 
 #: sensors.js:422 sensors.js:553
 msgid "Percentage"
-msgstr "Procenta"
+msgstr "النسبة"
 
 #: sensors.js:432 sensors.js:527
 msgid "Rate"
-msgstr "Rychlost"
+msgstr "المعدل"
 
 #: sensors.js:442 sensors.js:535
 msgid "Energy (full)"
-msgstr "Energie (plná)"
+msgstr "الطاقة (ممتلئة)"
 
 #: sensors.js:451 sensors.js:541
 msgid "Energy (design)"
-msgstr "Energie (design)"
+msgstr "الطاقة (التصميم)"
 
 #: sensors.js:455
 msgid "Capacity"
-msgstr "Kapacita"
+msgstr "السعة"
 
 #: sensors.js:464 sensors.js:547
 msgid "Energy (now)"
-msgstr "Energie (nyní)"
+msgstr "الطاقة (الآن)"
 
 #: sensors.js:501 sensors.js:504 sensors.js:588 sensors.js:591
 msgid "Time left"
-msgstr "Zbývající čas"
+msgstr "الوقت المتبقي"
 
 #: sensors.js:677
 msgid "Vendor"
-msgstr "Výrobce"
+msgstr "المُنتِج"
 
 #: sensors.js:678
 msgid "Bogomips"
-msgstr "Bogomipsy"
+msgstr ""
 
 #: sensors.js:679
 msgid "Sockets"
-msgstr "Sokety"
+msgstr "المقابس"
 
 #: sensors.js:680
 msgid "Cache"
-msgstr "Cache"
+msgstr "الخبيئة"
 
 #: sensors.js:685
 msgid "Kernel"
-msgstr "Kernel"
+msgstr "النواة"
 
 #: prefs.js:98
 msgid "Temperature"
-msgstr "Teplota"
+msgstr "درجة الحرارة"
 
 #: prefs.js:98
 msgid "Network"
-msgstr "Síť"
+msgstr "الشبكة"
 
 #: prefs.js:98
 msgid "Storage"
-msgstr "Úložiště"
+msgstr "التخزين"
 
 #: prefs.js:98
 msgid "Memory"
-msgstr "Paměť"
+msgstr "الذاكرة"
 
 #: prefs.js:98
 msgid "Battery"
-msgstr "Baterie"
+msgstr "البطارية"
 
 #: extension.js:112
 msgid "Battery 1"
-msgstr "Baterie 1"
+msgstr "البطارية 1"
 
 #: extension.js:112
 msgid "Battery 2"
-msgstr "Baterie 2"
+msgstr "البطارية 2"
 
 #: extension.js:112
 msgid "Battery 3"
-msgstr "Baterie 3"
+msgstr "البطارية 3"
 
 #: extension.js:112
 msgid "Battery 4"
-msgstr "Baterie 4"
+msgstr "البطارية 4"
 
 #: extension.js:112
 msgid "Battery 5"
-msgstr "Baterie 5"
+msgstr "البطارية 5"
 
 #: extension.js:115
 msgid "Battery (hidden)"
-msgstr "Baterie (skryto)"
+msgstr "البطارية (مخفي)"
 
 #: prefs.js:98
 msgid "System"
-msgstr "Systém"
+msgstr "النظام"
 
 #: prefs.js:98
 msgid "Processor"
-msgstr "Procesor"
+msgstr "المعالج"
 
 #: sensors.js:759
 msgid "Fan"
-msgstr "Ventilátor"
+msgstr "المروحة"
 
-#~ msgid "Battery slot to monitor"
-#~ msgstr "Slot baterie, která se má monitorovat"
-
-#~ msgid "Which numerical battery slot should vitals monitor"
-#~ msgstr "Které číslo slotu má Vitals sledovat"
-
-#~ msgid "Boost"
-#~ msgstr "Boost"
-
-#: sensors.js:589, sensors.js:648, sensors.js:674
-msgid "Graphics"
-msgstr "Graf. karta"
-
-#: sensors.js:603, sensors.js:655
-msgid "Memory Used"
-msgstr "Paměť Obsazeno"
-
-#: sensors.js:602, sensors.js:660
-msgid "Memory Total"
-msgstr "Paměť Celkem"
-
-#: prefs.ui:901
-msgid "Monitor GPU (beta)"
-msgstr "Sledování GPU (beta)"
-
-#: prefs.ui:1378
-msgid "Include static GPU info"
-msgstr "Včetně statických informací"
 

@@ -54,6 +54,8 @@ export const Sensors = GObject.registerClass({
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
         //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
+        this._gpu_drm_vendors = null;
+        this._gpu_drm_indices = null;
         this._nvidia_smi_process = null;
         this._nvidia_labels = [];
         this._bad_split_count = 0;
@@ -74,7 +76,7 @@ export const Sensors = GObject.registerClass({
 
     _refreshIPAddress(callback) {
         // check IP address
-        new FileModule.File('https://corecoding.com/vitals.php').read().then(contents => {
+        new FileModule.File('https://ipv4.corecoding.com').read().then(contents => {
             let obj = JSON.parse(contents);
             this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
         }).catch(err => { });
@@ -140,6 +142,8 @@ export const Sensors = GObject.registerClass({
 
             let used = total - avail
             let utilized = used / total;
+            let swapUsed = swapTotal - swapFree
+            let swapUtilized = swapUsed / swapTotal;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
@@ -148,7 +152,10 @@ export const Sensors = GObject.registerClass({
             this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
             this._returnValue(callback, 'Cached', cached, 'memory', 'memory');
             this._returnValue(callback, 'Free', memFree, 'memory', 'memory');
-            this._returnValue(callback, 'Swap', swapTotal - swapFree, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Total', swapTotal, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Free', swapFree, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Used', swapUsed, 'memory', 'memory');
+            this._returnValue(callback, 'Swap Usage', swapUtilized, 'memory', 'percent');
         }).catch(err => { });
     }
 
@@ -373,9 +380,11 @@ export const Sensors = GObject.registerClass({
         // addresses issue #161
         let battery_key = 'BAT'; // BAT0, BAT1 and BAT2
         if (battery_slot == 3) {
+            battery_slot = 'T';
+        } else if (battery_slot == 4) {
             battery_key = 'CMB'; // CMB0
             battery_slot = 0;
-        } else if (battery_slot == 4) {
+        } else if (battery_slot == 5) {
             battery_key = 'macsmc-battery'; // supports Asahi linux
             battery_slot = '';
         }
@@ -489,8 +498,14 @@ export const Sensors = GObject.registerClass({
 
     _queryGpu(callback) {
         if (!this._nvidia_smi_process) {
-            this._disableGpuLabels(callback);
-            return;
+            // no nvidia-smi, so we use sysfs DRM if any cards was discovered
+            if (!this._gpu_drm_indices){
+                this._disableGpuLabels(callback);
+                return;
+            } else {
+                this._readGpuDrm(callback);
+                return;
+            }
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
@@ -617,6 +632,50 @@ export const Sensors = GObject.registerClass({
         this._returnStaticGpuValue(callback, 'Sub Device ID', staticInfo['sub_device_id'], typeName, 'string');
     }
 
+    _readGpuDrm(callback){
+        const multiGpu = this._gpu_drm_indices.length > 1;
+        const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
+        for (let z = 0; z < this._gpu_drm_indices.length; z++ ) {
+            let i = this._gpu_drm_indices[z];
+            const typeName = 'gpu#' + i;
+            const vendor = this._gpu_drm_vendors[z];
+
+            // AMD
+            if(vendor === "0x1002") {
+                // read GPU usage and create group lebel for card
+                new FileModule.File('/sys/class/drm/card'+i+'/device/gpu_busy_percent').read().then(value => {
+                    // create group 
+                    this._returnGpuValue(callback, 'Graphics', parseInt(value) * 0.01, typeName + '-group', 'percent');
+                    this._returnGpuValue(callback, 'Vendor', "AMD", typeName, 'string');
+                    this._returnGpuValue(callback, 'Usage', parseInt(value) * 0.01, typeName, 'percent');
+                }).catch(err => {
+                    // nothing to do, keep old value displayed
+                });
+                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_used').read().then(value => {
+                    this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
+                }).catch(err => {
+                    // nothing to do, keep old value displayed
+                });
+                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_total').read().then(value => {
+                    this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
+                }).catch(err => {
+                    // nothing to do, keep old value displayed
+                });
+            } else {
+                // for other vendors only show basic card info
+                let vendorName = null;
+                switch (vendor){
+                    case '0x10DE': vendorName = 'NVIDIA'; break; // should be never used as nvidia-smi should be preferred
+                    case '0x13B5': vendorName = 'ARM'; break;
+                    case '0x5143': vendorName = 'Qualcomm'; break;
+                    case '0x8086': vendorName = 'Intel'; break;
+                    default: vendorName = "Unknown " + vendor;
+                }
+                this._returnGpuValue(callback, 'Graphics', vendorName, typeName + '-group', 'string');
+            }
+        }
+    }
+
     _disableGpuLabels(callback) {
         for (let labelObj of this._nvidia_labels)
             this._returnValue(callback, labelObj.label, 'disabled', labelObj.type, labelObj.format);
@@ -634,7 +693,7 @@ export const Sensors = GObject.registerClass({
     _returnGpuValue(callback, label, value, type, format, display = true) {
         if(!display) return;
 
-        if(value === 'N/A' || value === '[N/A]' || isNaN(value)) return;
+        if(format !== "string" && (value === 'N/A' || value === '[N/A]' || isNaN(value))) return;
 
         let nvidiaLabel = {'label': label, 'type': type, 'format': format};
         if (!this._nvidia_labels.includes(nvidiaLabel))
@@ -737,6 +796,27 @@ export const Sensors = GObject.registerClass({
 
         // Launch nvidia-smi subprocess if nvidia querying is enabled
         this._reconfigureNvidiaSmiProcess();
+        this._discoverGpuDrm();
+    }
+
+    _discoverGpuDrm() {
+        // use DRM only if nvidia-smi is not used
+        if (this._settings.get_boolean('show-gpu') && this._nvidia_smi_process == null) {
+            // try to discover up to 10 cards starting from index 0
+            for(let i = 0; i < 10 ; i++){
+                new FileModule.File('/sys/class/drm/card'+i+'/device/vendor').read().then(value => {
+                    if(!this._gpu_drm_indices){
+                        this._gpu_drm_indices = [];
+                        this._gpu_drm_vendors = [];
+                    }
+                    this._gpu_drm_indices.push(i);
+                    this._gpu_drm_vendors.push(value);
+                }).catch(err => { });
+            }
+        } else {
+            this._gpu_drm_vendors = null;
+            this._gpu_drm_indices = null;
+        }
     }
 
     // The nvidia-smi subprocess will keep running and print new sensor data to stdout every
