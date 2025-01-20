@@ -1224,6 +1224,8 @@
                           <item translatable="yes">BAT2</item>
                           <item translatable="yes">BATT</item>
                           <item translatable="yes">CMB0</item>
+                          <item translatable="yes">CMB1</item>
+                          <item translatable="yes">CMB2</item>
                           <item translatable="yes">macsmc-battery</item>
                         </items>
                       </object>

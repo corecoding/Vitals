@@ -377,20 +377,20 @@ export const Sensors = GObject.registerClass({
     _queryBattery(callback) {
         let battery_slot = this._settings.get_int('battery-slot');
 
-        // addresses issue #161
-        let battery_key = 'BAT'; // BAT0, BAT1 and BAT2
-        if (battery_slot == 3) {
-            battery_slot = 'T';
-        } else if (battery_slot == 4) {
-            battery_key = 'CMB'; // CMB0
-            battery_slot = 0;
-        } else if (battery_slot == 5) {
-            battery_key = 'macsmc-battery'; // supports Asahi linux
-            battery_slot = '';
-        }
+        // create a mapping of indices to battery paths (from prefs.ui)
+        const BATTERY_PATHS = {
+            0: 'BAT0',
+            1: 'BAT1',
+            2: 'BAT2',
+            3: 'BATT',
+            4: 'CMB0',
+            5: 'CMB1',
+            6: 'CMB2',
+            7: 'macsmc-battery'
+        };
 
         // uevent has all necessary fields, no need to read individual files
-        let battery_path = '/sys/class/power_supply/' + battery_key + battery_slot + '/uevent';
+        let battery_path = '/sys/class/power_supply/' + BATTERY_PATHS[battery_slot] + '/uevent';
         new FileModule.File(battery_path).read("\n").then(lines => {
             let output = {};
             for (let line of lines) {
