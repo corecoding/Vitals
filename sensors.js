@@ -377,20 +377,20 @@ export const Sensors = GObject.registerClass({
     _queryBattery(callback) {
         let battery_slot = this._settings.get_int('battery-slot');
 
-        // addresses issue #161
-        let battery_key = 'BAT'; // BAT0, BAT1 and BAT2
-        if (battery_slot == 3) {
-            battery_slot = 'T';
-        } else if (battery_slot == 4) {
-            battery_key = 'CMB'; // CMB0
-            battery_slot = 0;
-        } else if (battery_slot == 5) {
-            battery_key = 'macsmc-battery'; // supports Asahi linux
-            battery_slot = '';
-        }
+        // create a mapping of indices to battery paths (from prefs.ui)
+        const BATTERY_PATHS = {
+            0: 'BAT0',
+            1: 'BAT1',
+            2: 'BAT2',
+            3: 'BATT',
+            4: 'CMB0',
+            5: 'CMB1',
+            6: 'CMB2',
+            7: 'macsmc-battery'
+        };
 
         // uevent has all necessary fields, no need to read individual files
-        let battery_path = '/sys/class/power_supply/' + battery_key + battery_slot + '/uevent';
+        let battery_path = '/sys/class/power_supply/' + BATTERY_PATHS[battery_slot] + '/uevent';
         new FileModule.File(battery_path).read("\n").then(lines => {
             let output = {};
             for (let line of lines) {
@@ -507,7 +507,7 @@ export const Sensors = GObject.registerClass({
                 return;
             }
         }
-        
+
         this._nvidia_smi_process.read('\n').then(lines => {
             /// for debugging multi-gpu on systems with only one gpu
             /// duplicates the first gpu's data 3 times, for 4 total gpus
@@ -518,10 +518,9 @@ export const Sensors = GObject.registerClass({
             for (let i = 0; i < lines.length; i++) {
                 this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
             }
-            
 
-            // if we've already updated the static info during the last parse, then stop doing so. 
-            // this is so the _parseNvidiaSmiLine function won't return static info anymore 
+            // if we've already updated the static info during the last parse, then stop doing so.
+            // this is so the _parseNvidiaSmiLine function won't return static info anymore
             // and the nvidia-smi commmand won't be queried for static info either
             if(!this._nvidia_static_returned) {
                 this._nvidia_static_returned = true;
@@ -552,13 +551,13 @@ export const Sensors = GObject.registerClass({
         this._bad_split_count = 0;
 
         let [
-            label, 
+            label,
             fan_speed_pct,
-            temp_gpu, temp_mem, 
+            temp_gpu, temp_mem,
             mem_total, mem_used, mem_reserved, mem_free,
             util_gpu, util_mem, util_encoder, util_decoder,
             clock_gpu, clock_mem, clock_encode_decode,
-            power, power_avg, 
+            power, power_avg,
             link_gen_current, link_width_current
         ] = csv_split;
 
@@ -580,12 +579,9 @@ export const Sensors = GObject.registerClass({
             }
         }
 
-
         const typeName = 'gpu#' + gpuNum;
         const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
-        
         const memTempValid = !isNaN(parseInt(temp_mem));
-        
 
         this._returnGpuValue(callback, 'Graphics', parseInt(util_gpu) * 0.01, typeName + '-group', 'percent');
 
@@ -687,7 +683,7 @@ export const Sensors = GObject.registerClass({
 
     _returnStaticGpuValue(callback, label, value, type, format) {
         //if we've already tried to return existing static info before or if the option isn't enabled, then do nothing.
-        if (this._nvidia_static_returned || !this._settings.get_boolean('include-static-gpu-info')) 
+        if (this._nvidia_static_returned || !this._settings.get_boolean('include-static-gpu-info'))
             return;
 
         //we don't need to disable static info labels, so just use ordinary returnValue function
@@ -845,7 +841,7 @@ export const Sensors = GObject.registerClass({
     _reconfigureNvidiaSmiProcess() {
         if (this._settings.get_boolean('show-gpu')) {
             this._terminateNvidiaSmiProcess();
-            
+
             try {
                 let update_time = this._settings.get_int('update-time');
                 let query_interval = Math.max(update_time, 1);
@@ -859,13 +855,13 @@ export const Sensors = GObject.registerClass({
                     'clocks.gr,clocks.mem,clocks.video,' +
                     'power.draw.instant,power.draw.average,' +
                     'pcie.link.gen.gpucurrent,pcie.link.width.current,' +
-                    (!this._nvidia_static_returned && this._settings.get_boolean('include-static-gpu-info') ? 
+                    (!this._nvidia_static_returned && this._settings.get_boolean('include-static-gpu-info') ?
                         'temperature.gpu.tlimit,' +
                         'power.limit,' +
                         'pcie.link.gen.max,pcie.link.width.max,'   +
                         'addressing_mode,'+
                         'driver_version,vbios_version,serial,' +
-                        'pci.domain,pci.bus,pci.device,pci.device_id,pci.sub_device_id,' 
+                        'pci.domain,pci.bus,pci.device,pci.device_id,pci.sub_device_id,'
                     : ''),
                     '--format=csv,noheader,nounits',
                     '-l', query_interval.toString()
