@@ -67,8 +67,7 @@ var VitalsMenuButton = GObject.registerClass({
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
-            x_expand: true,
-            pack_start: false
+            x_expand: true
         });
 
         this._drawMenu();
@@ -128,8 +127,7 @@ var VitalsMenuButton = GObject.registerClass({
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
-            x_expand: true,
-            pack_start: false
+            x_expand: true
         });
 
         // custom round refresh button
