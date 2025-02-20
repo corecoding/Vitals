@@ -4,11 +4,11 @@
   "name": "Vitals",
   "settings-schema": "org.gnome.shell.extensions.vitals",
   "shell-version": [
-    "45", "46", "47"
+    "45", "46", "47", "48"
   ],
   "url": "https://github.com/corecoding/Vitals",
   "uuid": "Vitals@CoreCoding.com",
-  "version": 70,
+  "version": 71,
   "donations": {
       "paypal": "corecoding"
   }
