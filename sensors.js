@@ -27,6 +27,7 @@
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
+import * as AmdGpu from './amdgpu.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import NM from 'gi://NM';
 
@@ -658,6 +659,28 @@ export const Sensors = GObject.registerClass({
                 });
                 new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_total').read().then(value => {
                     this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
+                }).catch(err => {
+                    // nothing to do, keep old value displayed
+                });
+                new FileModule.File('/sys/class/drm/card'+i+'/device/gpu_metrics').readUint8().then(value => {
+                    let metric_table_buffer = value.buffer.slice(0, 4);
+                    let metrics_table_header = new AmdGpu.MetricsTableHeader(metric_table_buffer);
+
+                    let gpu_metric_buffer = value.buffer.slice(4, metrics_table_header.structure_size);
+                    if (metrics_table_header.format_revision === 1 && metrics_table_header.content_revision === 3) {
+                        let gpu_metric_1_3 = new AmdGpu.GpuMetricsV1_3(gpu_metric_buffer);
+                        this._returnGpuValue(callback, 'Avg Socket Power', gpu_metric_1_3.average_socket_power * 1000000, typeName, 'watt');
+                        this._returnGpuValue(callback, 'Hotspot Temp', gpu_metric_1_3.temperature_hotspot * 1000, typeName, 'temp');
+                        this._returnGpuValue(callback, 'Edge Temp', gpu_metric_1_3.temperature_edge * 1000, typeName, 'temp');
+                        this._returnGpuValue(callback, 'Fan', gpu_metric_1_3.current_fan_speed, typeName, 'fan');
+                        this._returnGpuValue(callback, 'Core Clock', gpu_metric_1_3.current_gfxclk * 1000000, typeName, 'hertz');
+                        this._returnGpuValue(callback, 'Core Voltage', gpu_metric_1_3.voltage_gfx, typeName, 'in');
+                    } else if (metrics_table_header.format_revision === 2 && metrics_table_header.content_revision === 1) {
+                        let gpu_metric_2_1 = new AmdGpu.GpuMetricsV2_1(gpu_metric_buffer);
+                        this._returnGpuValue(callback, 'Avg Socket Power', gpu_metric_2_1.average_gfx_power * 1000, typeName, 'watt');
+                        this._returnGpuValue(callback, 'Temp', gpu_metric_2_1.temperature_gfx * 10, typeName, 'temp');
+                        this._returnGpuValue(callback, 'Core Clock', gpu_metric_2_1.average_gfxclk_frequency * 1000000, typeName, 'hertz');
+                    }
                 }).catch(err => {
                     // nothing to do, keep old value displayed
                 });
