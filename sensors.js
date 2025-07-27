@@ -455,7 +455,7 @@ export const Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], 'battery', 'watt-hour');
             }
 
-            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && output['POWER_NOW'] > 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
+            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && output['POWER_NOW'] !== 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
 
                 let timeLeft = 0;
 
@@ -463,7 +463,7 @@ export const Sensors = GObject.registerClass({
                 if (output['STATUS'] == 'Charging') {
                     timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
                 } else {
-                    timeLeft = (output['ENERGY_NOW'] / output['POWER_NOW']);
+                    timeLeft = (output['ENERGY_NOW'] / Math.abs(output['POWER_NOW']));
                 }
 
                 // don't process Infinity values
@@ -644,7 +644,7 @@ export const Sensors = GObject.registerClass({
             if(vendor === "0x1002") {
                 // read GPU usage and create group lebel for card
                 new FileModule.File('/sys/class/drm/card'+i+'/device/gpu_busy_percent').read().then(value => {
-                    // create group 
+                    // create group
                     this._returnGpuValue(callback, 'Graphics', parseInt(value) * 0.01, typeName + '-group', 'percent');
                     this._returnGpuValue(callback, 'Vendor', "AMD", typeName, 'string');
                     this._returnGpuValue(callback, 'Usage', parseInt(value) * 0.01, typeName, 'percent');
