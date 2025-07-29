@@ -43,6 +43,26 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
     });
 };
 
+File.prototype.readUint8 = function() {
+    return new Promise((resolve, reject) => {
+        try {
+            this.file.load_contents_async(null, function(file, res) {
+                try {
+                    // grab contents of file or website
+                    let contents = file.load_contents_finish(res)[1];
+
+                    // return results
+                    resolve(contents);
+                } catch (e) {
+                    reject(e.message);
+                }
+            });
+        } catch (e) {
+            reject(e.message);
+        }
+    });
+};
+
 File.prototype.list = function() {
     return new Promise((resolve, reject) => {
         let max_items = 125, results = [];
