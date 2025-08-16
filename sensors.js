@@ -25,6 +25,8 @@
 */
 
 import GObject from 'gi://GObject';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -120,11 +122,59 @@ export const Sensors = GObject.registerClass({
         for (let label in this._tempVoltFanSensors[type]) {
             let sensor = this._tempVoltFanSensors[type][label];
 
+            // Special handling for Aquacomputer Vision
+            if (sensor.aquacomputer) {
+              this._readAquacomputerSensor(callback, label, sensor, type);
+              continue;
+            }
+
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, label, value, type, sensor['format']);
             }).catch(err => {
                 this._returnValue(callback, label, 'disabled', type, sensor['format']);
             });
+        }
+    }
+
+      _readAquacomputerSensor(callback, label, sensor, type) {
+        try {
+          let file = Gio.File.new_for_path(sensor['path']);
+          file.read_async(GLib.PRIORITY_DEFAULT, null, (obj, res) => {
+            try {
+              let stream = obj.read_finish(res);
+              let input = new Gio.DataInputStream({ base_stream: stream });
+
+              input.read_bytes_async(
+                64,
+                GLib.PRIORITY_DEFAULT,
+                null,
+                (input, res2) => {
+                  try {
+                    let bytes = input.read_bytes_finish(res2);
+                    let arr = new Uint8Array(bytes.get_data());
+                    
+                    if (arr.length < 64 || arr[0] !== 0x01) {
+                      this._returnValue(callback, label, 'disabled', type, sensor['format']);
+                      return;
+                    }
+                    
+                    // Read coolant temperature
+                    const offset = 0x0037 + 1;
+                    let raw = arr[offset] | (arr[offset + 1] << 8);
+                    let temp = (raw / 100) * 1000; // millidegrees
+                    
+                    this._returnValue(callback, label, temp, type, sensor['format']);
+                  } catch (e) {
+                    this._returnValue(callback, label, 'disabled', type, sensor['format']);
+                  }
+                }
+              );
+            } catch (e) {
+              this._returnValue(callback, label, 'disabled', type, sensor['format']);
+            }
+          });
+        } catch (e) {
+          this._returnValue(callback, label, 'disabled', type, sensor['format']);
         }
     }
 
@@ -801,6 +851,62 @@ export const Sensors = GObject.registerClass({
         // Launch nvidia-smi subprocess if nvidia querying is enabled
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
+
+      // Aquacomputer Next Vision
+      const VENDOR_ID = '0c70';
+      const PRODUCT_ID = 'f00c';
+
+      let base = '/sys/class/hidraw/';
+      let dir = Gio.File.new_for_path(base);
+      try {
+        let enumerator = dir.enumerate_children(
+          'standard::*',
+          Gio.FileQueryInfoFlags.NONE,
+          null
+        );
+        let info;
+        while ((info = enumerator.next_file(null)) !== null) {
+          let name = info.get_name(); // e.g. hidraw7
+          let deviceSymlink = `${base}${name}/device`;
+          let realDevicePath = GLib.file_read_link(deviceSymlink);
+          // realDevicePath will be something like:
+          // ../../devices/.../0003:0C70:F00C.0008
+          let parts = realDevicePath.split('/');
+          let devDir = parts[parts.length - 1];
+          // devDir is like "0003:0C70:F00C.0008"
+          let match = devDir.match(
+            /^[0-9A-Fa-f]+:([0-9A-Fa-f]{4}):([0-9A-Fa-f]{4})\./
+          );
+          if (match) {
+            let vid = match[1].toLowerCase();
+            let pid = match[2].toLowerCase();
+            if (vid === VENDOR_ID && pid === PRODUCT_ID) {
+              // Check if AC Vision sensor already exists to prevent re-adding
+              if (!('Coolant Temp' in this._tempVoltFanSensors['temperature'])) {
+                this._addTempVoltFan(
+                  null, // Don't call callback during discovery
+                  {
+                    type: 'temperature',
+                    format: 'temp',
+                    input: `/dev/${name}`,
+                    aquacomputer: true,
+                  },
+                  'AC Vision',
+                  'Coolant Temp',
+                  '',
+                  0 // placeholder value, will be read during query
+                );
+              }
+              break;
+            }
+          } else {
+          }
+        }
+        enumerator.close(null);
+      } catch (e) {
+        // If the hidraw device is not available, we just ignore it.
+        // This can happen if the device is not connected or if the user does not have permission to access it.
+      }
     }
 
     _discoverGpuDrm() {
@@ -955,6 +1061,12 @@ export const Sensors = GObject.registerClass({
         if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
         if (label == 'Package id 0') label = 'Processor 0';
         if (label == 'Package id 1') label = 'Processor 1';
+        if (label == 'nct6799 fan1') label = 'VRM HeatSink Fan';
+        if (label == 'nct6799 fan2') label = 'Radiator Fan(s)';
+        if (label == 'nct6799 fan6') label = 'Chipset/NVMe Fan';
+        if (label == 'nct6799 fan7') label = 'AIO Pump';
+        if (label == 'nct6799 SYSTIN') label = 'Motherboard Temp';
+        if (label == 'nct6799 CPUTIN') label = 'CPU Socket Temp';
         label = label.replace('Package id', 'CPU');
 
         let types = [ 'temperature', 'voltage', 'fan' ];
@@ -974,12 +1086,15 @@ export const Sensors = GObject.registerClass({
             }
         }
 
+    if (!obj['aquacomputer'] && callback) {
         // update screen on initial build to prevent delay on update
         this._returnValue(callback, label, value, obj['type'], obj['format']);
+    }
 
         this._tempVoltFanSensors[obj['type']][label] = {
           'format': obj['format'],
-            'path': obj['input']
+            'path': obj['input'],
+          'aquacomputer': obj['aquacomputer'] || false,
         };
     }
 
