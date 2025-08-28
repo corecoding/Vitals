@@ -280,7 +280,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._menuLayout.add_child(label);
 
         // support for fixed widths #55, save label (text) width
-        this._widths[key] = label.width;
+        this._widths[key] = label.get_clutter_text().width;
     }
 
     _updateHotIconMargins() {
