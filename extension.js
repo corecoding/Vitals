@@ -258,6 +258,7 @@ var VitalsMenuButton = GObject.registerClass({
         let icon = this._defaultIcon(key);
         this._hotIcons[key] = icon;
         this._menuLayout.add_child(icon)
+        this._updateHotIconMargins();
 
         // don't add a label when no sensors are in the panel
         if (key == '_default_icon_') return;
@@ -280,6 +281,22 @@ var VitalsMenuButton = GObject.registerClass({
 
         // support for fixed widths #55, save label (text) width
         this._widths[key] = label.width;
+    }
+
+    _updateHotIconMargins() {
+        const iconKeys = Object.keys(this._hotIcons);
+        
+        iconKeys.forEach((key, index) => {
+            if (key === '_default_icon_') return; 
+            
+            const icon = this._hotIcons[key];
+        
+            icon.remove_style_class_name('vitals-panel-icon-initial');
+            icon.remove_style_class_name('vitals-panel-icon-intermediate');
+
+            const className = index === 0 ? 'vitals-panel-icon-initial' : 'vitals-panel-icon-intermediate';
+            icon.add_style_class_name(className);
+        });
     }
 
     _showHideSensorsChanged(self, sensor) {
@@ -347,6 +364,7 @@ var VitalsMenuButton = GObject.registerClass({
         if (key in this._hotIcons) {
             this._hotIcons[key].destroy();
             delete this._hotIcons[key];
+            this._updateHotIconMargins();
         }
     }
 

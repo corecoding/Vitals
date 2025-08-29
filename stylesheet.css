@@ -1,5 +1,7 @@
 .vitals-icon { icon-size: 16px; }
 .vitals-menu-button-container {}
+.vitals-panel-icon-initial { margin-left: 3px !important; }
+.vitals-panel-icon-intermediate { margin-left: 8px !important; }
 .vitals-panel-icon-temperature { margin: 0 1px 0 8px; padding: 0; }
 .vitals-panel-icon-voltage { margin: 0 0 0 8px; padding: 0; }
 .vitals-panel-icon-fan { margin: 0 4px 0 8px; padding: 0; }
