@@ -291,10 +291,10 @@ var VitalsMenuButton = GObject.registerClass({
             
             const icon = this._hotIcons[key];
         
-            icon.remove_style_class_name('vitals-panel-icon-initial');
+            icon.remove_style_class_name('vitals-panel-icon-leftmost');
             icon.remove_style_class_name('vitals-panel-icon-intermediate');
 
-            const className = index === 0 ? 'vitals-panel-icon-initial' : 'vitals-panel-icon-intermediate';
+            const className = index === 0 ? 'vitals-panel-icon-leftmost' : 'vitals-panel-icon-intermediate';
             icon.add_style_class_name(className);
         });
     }
