@@ -360,17 +360,19 @@ var VitalsMenuButton = GObject.registerClass({
             this._removeHotLabel(key);
     }
 
-    _removeHotIcon(key) {
+    _removeHotIcon(key, updateMargins = true) {
         if (key in this._hotIcons) {
             this._hotIcons[key].destroy();
             delete this._hotIcons[key];
-            this._updateHotIconMargins();
+            if (updateMargins) { 
+                this._updateHotIconMargins(); 
+            }    
         }
     }
 
     _removeHotIcons() {
         for (let key in this._hotIcons)
-            this._removeHotIcon(key);
+            this._removeHotIcon(key, false);
     }
 
     _redrawMenu() {
