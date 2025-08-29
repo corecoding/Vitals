@@ -296,6 +296,12 @@ var VitalsMenuButton = GObject.registerClass({
 
             const className = index === 0 ? 'vitals-panel-icon-leftmost' : 'vitals-panel-icon-intermediate';
             icon.add_style_class_name(className);
+            
+            if(this._settings.get_boolean('hide-icons')) {
+                icon.set_style('margin-right: 0;');
+            } else {
+                icon.set_style('null');
+            }
         });
     }
 
