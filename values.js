@@ -200,7 +200,7 @@ export const Values = GObject.registerClass({
                 ending = 'Wh';
                 break;
             case 'load':
-                format = (use_higher_precision)?'%.2f %s':'%.1f';
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
                 break;
             case 'pcie':
                 let split = value.split('x');
@@ -212,7 +212,7 @@ export const Values = GObject.registerClass({
                 break;
         }
 
-        return format.format(value, ending);
+        return format.format(value, ending).trim();
     }
 
     returnIfDifferent(dwell, label, value, type, format, key) {
