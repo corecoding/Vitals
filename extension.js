@@ -30,9 +30,9 @@ var VitalsMenuButton = GObject.registerClass({
         this._settings = extensionObject.getSettings();
 
         this._sensorIcons = {
-            'temperature' : { 'icon': 'temperature-symbolic.svg' },
+            'temperature' : { 'icon': 'temperature-symbolic.svg', 'icon-c': 'water-droplet-symbolic.svg' },
                 'voltage' : { 'icon': 'voltage-symbolic.svg' },
-                    'fan' : { 'icon': 'fan-symbolic.svg' },
+                    'fan' : { 'icon': 'fan-symbolic.svg', 'icon-pump': 'pump-symbolic.svg' },
                  'memory' : { 'icon': 'memory-symbolic.svg' },
               'processor' : { 'icon': 'cpu-symbolic.svg' },
                  'system' : { 'icon': 'system-symbolic.svg' },
@@ -255,6 +255,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _createHotItem(key, value) {
+        this._lastHotSensorKey = key;
         let icon = this._defaultIcon(key);
         this._hotIcons[key] = icon;
         this._menuLayout.add_child(icon)
@@ -439,6 +440,9 @@ var VitalsMenuButton = GObject.registerClass({
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
+        // Custom: Use special icon for AIO Pump or Coolant Temp
+        if (type === 'fan' && key.includes('aio')) { icon = 'icon-pump' }
+        if (type === 'temperature' && key.includes('coolant')) { icon = 'icon-c' }
         let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon));
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
@@ -520,6 +524,10 @@ var VitalsMenuButton = GObject.registerClass({
         // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
         let sensorKey = sensor;
         if(sensor.startsWith('gpu')) sensorKey = 'gpu';
+        // Custom: Use water droplet for coolant temp
+        // The key for your sensor will be like "_temperature_ac_vision_coolant_temp_"
+        if (sensorKey === 'temperature' && icon === 'icon' && this._lastHotSensorKey && this._lastHotSensorKey.toLowerCase().includes('coolant')) { icon = 'icon-c'}
+        if (sensorKey === 'fan' && icon === 'icon' && this._lastHotSensorKey && this._lastHotSensorKey.toLowerCase().includes('aio')) { icon = 'icon-pump'}
 
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
         return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
@@ -645,6 +653,24 @@ var VitalsMenuButton = GObject.registerClass({
             this._settings.disconnect(signal);
 
         super.destroy();
+    }
+
+    _getMenuGroupIconName(type) {
+      if (type === 'fan') {
+        for (let key in this._sensorMenuItems) {
+          if (key.startsWith('_fan_') && key.includes('aio')) {
+            return 'icon-pump';
+          }
+        }
+      }
+      if (type === 'temperature') {
+        for (let key in this._sensorMenuItems) {
+          if (key.startsWith('_temperature_') && key.includes('coolant')) {
+            return 'icon-c';
+          }
+        }
+      }
+      return 'icon';
     }
 });
 
