@@ -1,8 +1,11 @@
-import Adw from 'gi://Adw';
-import Gio from 'gi://Gio';
-import GObject from 'gi://GObject';
-import Gtk from 'gi://Gtk';
-import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import Adw from "gi://Adw";
+import Gio from "gi://Gio";
+import GObject from "gi://GObject";
+import Gtk from "gi://Gtk";
+import {
+    ExtensionPreferences,
+    gettext as _,
+} from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
@@ -22,104 +25,151 @@ import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Ex
 */
 
 const Settings = new GObject.Class({
-    Name: 'Vitals.Settings',
+    Name: "Vitals.Settings",
 
-    _init: function(extensionObject, params) {
-        this._extensionObject = extensionObject
+    _init: function (extensionObject, params) {
+        this._extensionObject = extensionObject;
         this.parent(params);
-            
+
         this._settings = extensionObject.getSettings();
 
         this.builder = new Gtk.Builder();
-        this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
-        this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
-        this.widget = this.builder.get_object('prefs-container');
+        this.builder.set_translation_domain(
+            this._extensionObject.metadata["gettext-domain"]
+        );
+        this.builder.add_from_file(this._extensionObject.path + "/prefs.ui");
+        this.widget = this.builder.get_object("prefs-container");
 
         this._bind_settings();
     },
 
     // Bind the gtk window to the schema settings
-    _bind_settings: function() {
-        let widget;
-
-        // process sensor toggles
-        let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
-                        'show-memory', 'show-processor', 'show-system',
-                        'show-network', 'show-storage', 'use-higher-precision',
-                        'alphabetize', 'hide-zeros', 'include-public-ip',
-                        'show-battery', 'fixed-widths', 'hide-icons', 
-                        'menu-centered', 'include-static-info', 
-                        'show-gpu', 'include-static-gpu-info' ];
-
-        for (let key in sensors) {
-            let sensor = sensors[key];
-
-            widget = this.builder.get_object(sensor);
-            widget.set_active(this._settings.get_boolean(sensor));
-            widget.connect('state-set', (_, val) => {
-                this._settings.set_boolean(sensor, val);
-            });
+    _bind_settings: function () {
+        const boolParams = [
+            "show-system",
+            "show-network",
+            "alphabetize",
+            "fixed-widths",
+            "hide-icons",
+            "hide-zeros",
+            "include-public-ip",
+            "include-static-gpu-info",
+            "include-static-info",
+            "menu-centered",
+            "show-fan",
+            "show-memory",
+            "show-processor",
+            "show-storage",
+            "show-temperature",
+            "show-voltage",
+            "use-higher-precision",
+            "show-battery",
+            "show-gpu",
+        ];
+        for (const param in boolParams) {
+            let paramName = boolParams[param];
+            const widget = this.builder.get_object(paramName);
+            if (!widget) {
+                console.error("Widget not found: " + paramName);
+            }
+            this._settings.bind(
+                paramName,
+                widget,
+                "active",
+                Gio.SettingsBindFlags.DEFAULT
+            );
         }
 
-        // process individual drop down sensor preferences
-        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style' ];
-        for (let key in sensors) {
-            let sensor = sensors[key];
-
-            widget = this.builder.get_object(sensor);
-            widget.set_active(this._settings.get_int(sensor));
-            widget.connect('changed', (widget) => {
-                this._settings.set_int(sensor, widget.get_active());
-            });
+        const comboParams = [
+            "icon-style",
+            "position-in-panel",
+            "unit",
+            "network-speed-format",
+            "storage-measurement",
+            "memory-measurement",
+            "battery-slot",
+        ];
+        for (const param in comboParams) {
+            let paramName = comboParams[param];
+            const widget = this.builder.get_object(paramName);
+            this._settings.bind(
+                paramName,
+                widget,
+                "selected",
+                Gio.SettingsBindFlags.DEFAULT
+            );
         }
 
-        this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind(
+            "update-time",
+            this.builder.get_object("update-time"),
+            "value",
+            Gio.SettingsBindFlags.DEFAULT
+        );
 
         // process individual text entry sensor preferences
-        sensors = [ 'storage-path', 'monitor-cmd' ];
-        for (let key in sensors) {
-            let sensor = sensors[key];
+        const entryRows = ["storage-path", "monitor-cmd"];
+        for (let key in entryRows) {
+            let paramName = entryRows[key];
 
-            widget = this.builder.get_object(sensor);
-            widget.set_text(this._settings.get_string(sensor));
+            const widget = this.builder.get_object(paramName);
 
-            widget.connect('changed', (widget) => {
-                let text = widget.get_text();
-                if (!text) text = widget.get_placeholder_text();
-                this._settings.set_string(sensor, text);
-            });
+            this._settings.bind(
+                paramName,
+                widget,
+                "text",
+                Gio.SettingsBindFlags.DEFAULT
+            );
         }
 
         // makes individual sensor preference boxes appear
-        sensors = [ 'temperature', 'network', 'storage', 'memory', 'battery', 'system', 'processor', 'gpu' ];
+        const sensors = [
+            "temperature",
+            "network",
+            "storage",
+            "memory",
+            "battery",
+            "system",
+            "processor",
+            "gpu",
+        ];
         for (let key in sensors) {
             let sensor = sensors[key];
 
             // create dialog for intelligent autohide advanced settings
-            this.builder.get_object(sensor + '-prefs').connect('clicked', () => {
-                let transientObj = this.widget.get_root();
-                let title = sensor.charAt(0).toUpperCase() + sensor.slice(1);
-                let dialog = new Gtk.Dialog({ title: _(title) + ' ' + _('Preferences'),
-                                              transient_for: transientObj,
-                                              use_header_bar: false,
-                                              modal: true });
+            this.builder
+                .get_object(sensor + "-prefs")
+                .connect("clicked", (sender, arg) => {
+                    let transientObj = this.widget.get_root();
+                    let title =
+                        sensor.charAt(0).toUpperCase() + sensor.slice(1);
+                    let dialog = new Adw.Dialog({
+                        title: _(title) + " " + _("Preferences"),
+                    });
+                    try {
+                        let box = this.builder.get_object(sensor + "_prefs");
+                        const view = new Adw.ToolbarView({});
+                        view.add_top_bar(new Adw.HeaderBar({}));
 
-                let box = this.builder.get_object(sensor + '_prefs');
-                dialog.get_content_area().append(box);
-                dialog.connect('response', (dialog, id) => {
-                    // remove the settings box so it doesn't get destroyed;
-                    dialog.get_content_area().remove(box);
-                    dialog.destroy();
-                    return;
+                        const clamp = new Adw.Clamp({});
+                        clamp.set_child(box);
+                        view.set_content(clamp);
+                        dialog.set_child(view);
+
+                        dialog.present(sender);
+                    } catch (e) {
+                        const alert = new Adw.AlertDialog({
+                            heading: "Error",
+                            body: e.message,
+                        });
+                        alert.add_response("ok", "OK");
+                        alert.present(sender);
+                    }
                 });
-
-                dialog.show();
-            });
         }
-    }
+    },
 });
 
- 
 export default class VitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window._settings = this.getSettings();
@@ -132,7 +182,7 @@ export default class VitalsPrefs extends ExtensionPreferences {
         group.add(widget);
         page.add(group);
         window.add(page);
-        window.set_default_size(widget.width, widget.height);
+        window.set_default_size(800, 600);
         widget.show();
     }
 }
