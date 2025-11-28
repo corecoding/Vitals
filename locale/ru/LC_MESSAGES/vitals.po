@@ -1,7 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2022-04-10 21:29+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-28 12:03+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9,8 +10,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "POT-Revision-Date: 2018-12-29 10:26+0100\n"
 "X-Generator: Poedit 3.1.1\n"
 "X-Poedit-Basepath: ..\n"
@@ -22,91 +23,155 @@ msgstr ""
 "X-Poedit-SearchPath-5: extension.js\n"
 "X-Poedit-SearchPath-6: schemas/prefs.ui\n"
 
-#: extension.js:129
+#: extension.js:134
 msgid "Refresh"
 msgstr "Обновить"
 
-#: extension.js:147
+#: extension.js:149
 msgid "System Monitor"
 msgstr "Системный монитор"
 
-#: extension.js:155
+#: extension.js:157 prefs.js:147
 msgid "Preferences"
 msgstr "Параметры"
 
-#: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
+#: extension.js:193
+msgid "No Data"
+msgstr "Нет данных"
+
+#: prefs.ui:25 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
 msgstr "Включить публичный IP-адрес"
 
-#: prefs.ui:70
+#: prefs.ui:30
 msgid "Format"
 msgstr "Формат"
 
-#: prefs.ui:78
+#: prefs.ui:34
 msgid "Bytes"
 msgstr "Байты"
 
-#: prefs.ui:79
+#: prefs.ui:35
 msgid "Bits"
 msgstr "Биты"
 
-#: prefs.ui:121
+#: prefs.ui:54
 msgid "General"
 msgstr "Основное"
 
-#: prefs.ui:149 schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
+#: prefs.ui:57 schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
 msgid "Seconds between updates"
 msgstr "Секунды между обновлениями"
 
-#: prefs.ui:184 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
+#: prefs.ui:72 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
 msgid "Position in panel"
 msgstr "Позиция на панели"
 
-#: prefs.ui:193
+#: prefs.ui:76
 msgid "Left"
 msgstr "Слева"
 
-#: prefs.ui:194
+#: prefs.ui:77
 msgid "Center"
 msgstr "По центру"
 
-#: prefs.ui:195
+#: prefs.ui:78
 msgid "Right"
 msgstr "Справа"
 
-#: prefs.ui:196
+#: prefs.ui:79
 msgid "Far Left"
 msgstr "Далеко слева"
 
-#: prefs.ui:197
+#: prefs.ui:80
 msgid "Far Right"
 msgstr "Далеко справа"
 
-#: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
+#: prefs.ui:88 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
 msgstr "Использовать более высокую точность"
 
-#: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
+#: prefs.ui:93 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
 msgstr "Располагать в алфавитном порядке"
 
-#: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
+#: prefs.ui:98 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
 msgstr "Скрывать нулевые значения"
 
-#: prefs.ui:301
+#: prefs.ui:103
 msgid "Use fixed widths"
 msgstr "Использовать фиксированную ширину"
 
-#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+#: prefs.ui:108 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Hide icons in top bar"
 msgstr "Скрывать иконки в верхней панели"
 
-#: prefs.ui:352
+#: prefs.ui:113
+msgid "Menu always centered"
+msgstr "Центрировать меню"
+
+#: prefs.ui:118
+msgid "Icon style"
+msgstr "Стиль иконок"
+
+#: prefs.ui:122
+msgid "Original"
+msgstr "Исходный"
+
+#: prefs.ui:123
+msgid "GNOME"
+msgstr "GNOME"
+
+#: prefs.ui:133
+msgid "Sensors"
+msgstr "Сенсоры"
+
+#: prefs.ui:136 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+msgid "Monitor temperature"
+msgstr "Мониторинг температуры"
+
+#: prefs.ui:152 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+msgid "Monitor voltage"
+msgstr "Мониторинг напряжения"
+
+#: prefs.ui:157 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+msgid "Monitor fan"
+msgstr "Мониторинг вентилятора"
+
+#: prefs.ui:162 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+msgid "Monitor memory"
+msgstr "Мониторинг памяти"
+
+#: prefs.ui:178 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+msgid "Monitor processor"
+msgstr "Мониторинг процессора"
+
+#: prefs.ui:195 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+msgid "Monitor system"
+msgstr "Мониторинг системы"
+
+#: prefs.ui:212 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+msgid "Monitor network"
+msgstr "Мониторинг сети"
+
+#: prefs.ui:229 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+msgid "Monitor storage"
+msgstr "Мониторинг хранилища"
+
+#: prefs.ui:245 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+msgid "Monitor battery"
+msgstr "Мониторинг батареи"
+
+#: prefs.ui:261
+msgid "Monitor GPU (beta)"
+msgstr "Мониторинг GPU (beta)"
+
+#: prefs.ui:286
 msgid "About"
 msgstr "О Расширении"
 
-#: prefs.ui:367
+#: prefs.ui:304
 msgid ""
 "Feature requests or bugs? Please visit <a href=\"https://github.com/"
 "corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
@@ -118,61 +183,81 @@ msgstr ""
 "подразумеваемых. <a href=\"https://corecoding.com/donate.php\">Пожертвуйте</"
 "a>, если вы нашли это полезным."
 
-#: prefs.ui:394
-msgid "Sensors"
-msgstr "Сенсоры"
-
-#: prefs.ui:422 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
-msgid "Monitor temperature"
-msgstr "Мониторинг температуры"
-
-#: prefs.ui:473 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
-msgid "Monitor voltage"
-msgstr "Мониторинг напряжения"
-
-#: prefs.ui:501 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
-msgid "Monitor fan"
-msgstr "Мониторинг вентилятора"
-
-#: prefs.ui:529 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
-msgid "Monitor memory"
-msgstr "Мониторинг памяти"
-
-#: prefs.ui:580 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
-msgid "Monitor processor"
-msgstr "Мониторинг процессора"
-
-#: prefs.ui:608 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
-msgid "Monitor system"
-msgstr "Мониторинг системы"
-
-#: prefs.ui:636 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
-msgid "Monitor network"
-msgstr "Мониторинг сети"
-
-#: prefs.ui:687 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
-msgid "Monitor storage"
-msgstr "Мониторинг хранилища"
-
-#: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
-msgid "Monitor battery"
-msgstr "Мониторинг батареи"
-
-#: prefs.ui:817
+#: prefs.ui:332
 msgid "Path"
 msgstr "Путь"
 
-#: prefs.ui:849 prefs.ui:958
+#: prefs.ui:338 prefs.ui:394
 msgid "Measurement"
 msgstr "Измерение"
 
-#: prefs.ui:903
+#: prefs.ui:342 prefs.ui:398
+msgid "Binary"
+msgstr "Двоичное"
+
+#: prefs.ui:343 prefs.ui:399
+msgid "Decimal"
+msgstr "Десятичное"
+
+#: prefs.ui:366
 msgid "Unit"
 msgstr "Единица"
 
-#: prefs.ui:1012
+#: prefs.ui:370
+msgid "°C"
+msgstr "°C"
+
+#: prefs.ui:371
+msgid "°F"
+msgstr "°F"
+
+#: prefs.ui:422
 msgid "Display Battery"
-msgstr "Отображать батарею"
+msgstr "Отображаемая батарея"
+
+#: prefs.ui:426
+msgid "BAT0"
+msgstr ""
+
+#: prefs.ui:427
+msgid "BAT1"
+msgstr ""
+
+#: prefs.ui:428
+msgid "BAT2"
+msgstr ""
+
+#: prefs.ui:429
+msgid "BATT"
+msgstr ""
+
+#: prefs.ui:430
+msgid "CMB0"
+msgstr ""
+
+#: prefs.ui:431
+msgid "CMB1"
+msgstr ""
+
+#: prefs.ui:432
+msgid "CMB2"
+msgstr ""
+
+#: prefs.ui:433
+msgid "macsmc-battery"
+msgstr ""
+
+#: prefs.ui:456
+msgid "Monitor command"
+msgstr "Команда системного монитора"
+
+#: prefs.ui:476
+msgid "Include static info"
+msgstr "Включить статичную информацию"
+
+#: prefs.ui:496
+msgid "Include static GPU info"
+msgstr "Отображать статичную информацию о GPU"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
@@ -306,227 +391,290 @@ msgstr "Не позволяйте датчикам в верхней панел�
 msgid "Keep top bar clean by only showing sensor values"
 msgstr "Держать верхнюю панель чистой, показывая только значения датчиков"
 
-#: sensors.js:42
-msgid "Temperature"
-msgstr "Температура"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:126
+#, fuzzy
+msgid "Make the menu centered"
+msgstr "Центрировать меню"
 
-#: sensors.js:43 sensors.js:307 sensors.js:337
-msgid "Voltage"
-msgstr "Напряжение"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:127
+msgid "Center the menu to the icon regardless of the position in the panel"
+msgstr ""
 
-#: sensors.js:44
-msgid "Fan"
-msgstr "Вентилятор"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:131
+#, fuzzy
+msgid "System Monitor command"
+msgstr "Системный монитор"
 
-#: sensors.js:45
-msgid "Memory"
-msgstr "Память"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:132
+msgid "The command run when system monitor button is clicked"
+msgstr ""
 
-#: sensors.js:46
-msgid "Processor"
-msgstr "Процессор"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:136
+#, fuzzy
+msgid "Include processor static information"
+msgstr "Отображать информацию о процессоре"
 
-#: sensors.js:47
-msgid "System"
-msgstr "Система"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:137
+#, fuzzy
+msgid "Display processor static information that doesn't change"
+msgstr "Отображать информацию о процессоре"
 
-#: sensors.js:48
-msgid "Network"
-msgstr "Сеть"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:141
+msgid "Monitor GPU"
+msgstr "Мониторинг GPU"
 
-#: sensors.js:49
-msgid "Storage"
-msgstr "Хранилище"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:142
+msgid "Display GPU information (requires the nvidia-smi tool)"
+msgstr "Отображать информацию о GPU (требуется nvidia-smi)"
 
-#: sensors.js:76
-msgid "Public IP"
-msgstr "Публичный IP-адрес"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:146
+msgid "Include GPU static information"
+msgstr "Отображать статичную информацию о процессоре"
 
-#: sensors.js:144
-msgid "Usage"
-msgstr "Использование"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:147
+#, fuzzy
+msgid "Display GPU static information that doesn't change"
+msgstr "Отображать статичную информацию о процессоре"
 
-#: sensors.js:145
-msgid "memory"
-msgstr "Память"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:151
+msgid "Icon styles"
+msgstr "Стиль иконок"
 
-#: sensors.js:146
-msgid "Physical"
-msgstr "Физическая"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:152
+msgid "Set the style for the displayed sensor icons ('original', 'updated')"
+msgstr ""
 
-#: sensors.js:147
-msgid "Available"
-msgstr "Доступно"
-
-#: sensors.js:148
-msgid "Allocated"
-msgstr "Использовано"
-
-#: sensors.js:149
-msgid "Swap"
-msgstr "Своп"
-
-#: sensors.js:189
-msgid "Average"
-msgstr "В среднем"
-
-#: sensors.js:190
-msgid "processor"
-msgstr "Процессор"
-
-#: sensors.js:192
+#: sensors.js:201
 #, javascript-format
 msgid "Core %d"
 msgstr "Ядро %d"
 
-#: sensors.js:236
-msgid "Frequency"
-msgstr "Частота"
+#, fuzzy
+#~ msgid "Batteries"
+#~ msgstr "Батарея"
 
-#: sensors.js:237
-msgid "Boost"
-msgstr "Разгон"
+#, fuzzy
+#~ msgid "Monitor BAT0"
+#~ msgstr "Мониторинг вентилятора"
 
-#: sensors.js:238
-msgid "Vendor"
-msgstr "Производитель"
+#, fuzzy
+#~ msgid "Monitor BAT1"
+#~ msgstr "Мониторинг вентилятора"
 
-#: sensors.js:239
-msgid "Bogomips"
-msgstr "Bogomips"
+#, fuzzy
+#~ msgid "Monitor BAT2"
+#~ msgstr "Мониторинг вентилятора"
 
-#: sensors.js:240
-msgid "Sockets"
-msgstr "Сокеты"
+#, fuzzy
+#~ msgid "Monitor CMB0"
+#~ msgstr "Мониторинг вентилятора"
 
-#: sensors.js:241
-msgid "Cache"
-msgstr "Кэш"
+#, fuzzy
+#~ msgid "Display battery BAT1"
+#~ msgstr "Отображать батарею"
 
-#: sensors.js:250
-msgid "Open Files"
-msgstr "Открыть Файлы"
+#, fuzzy
+#~ msgid "Display battery BAT2"
+#~ msgstr "Отображать батарею"
 
-#: sensors.js:258
-msgid "Load 1m"
-msgstr "Нагрузка 1мин"
+#, fuzzy
+#~ msgid "Display battery CMB0"
+#~ msgstr "Отображать батарею"
 
-#: sensors.js:259
-msgid "system"
-msgstr "Система"
+#, fuzzy
+#~ msgid "Display battery macsmc-battery"
+#~ msgstr "Отображать батарею"
 
-#: sensors.js:260
-msgid "Load 5m"
-msgstr "Нагрузка 5мин"
+#, fuzzy
+#~ msgid "Display combined battery data"
+#~ msgstr "Отображать батарею"
 
-#: sensors.js:261
-msgid "Load 15m"
-msgstr "Нагрузка 15мин"
+#~ msgid "Public IP"
+#~ msgstr "Публичный IP-адрес"
 
-#: sensors.js:262
-msgid "Threads Active"
-msgstr "Активные потоки"
+#~ msgid "Usage"
+#~ msgstr "Использование"
 
-#: sensors.js:263
-msgid "Threads Total"
-msgstr "Всего потоков"
+#~ msgid "memory"
+#~ msgstr "Память"
 
-#: sensors.js:269
-msgid "Uptime"
-msgstr "Время работы"
+#~ msgid "Physical"
+#~ msgstr "Физическая"
 
-#: sensors.js:273
-msgid "Process Time"
-msgstr "Время процесса"
+#~ msgid "Available"
+#~ msgstr "Доступно"
 
-#: sensors.js:290
-msgid "State"
-msgstr "Состояние"
+#~ msgid "Allocated"
+#~ msgstr "Использовано"
 
-#: sensors.js:295
-msgid "Cycles"
-msgstr "Циклы"
+#, fuzzy
+#~ msgid "Cached"
+#~ msgstr "Кэш"
 
-#: sensors.js:300 sensors.js:330
-msgid "Energy (full)"
-msgstr "Энергия (полный)"
+#~ msgid "Free"
+#~ msgstr "Свободно"
 
-#: sensors.js:302 sensors.js:332
-msgid "Capacity"
-msgstr "Ёмкость"
+#~ msgid "Swap"
+#~ msgstr "Своп"
 
-#: sensors.js:303 sensors.js:333
-msgid "Energy (design)"
-msgstr "Энергия (изначальная)"
+#~ msgid "Average"
+#~ msgstr "В среднем"
 
-#: sensors.js:311 sensors.js:340
-msgid "Rate"
-msgstr "Показатель"
+#~ msgid "processor"
+#~ msgstr "Процессор"
 
-#: sensors.js:312 sensors.js:341
-msgid "battery"
-msgstr "Батарея"
+#~ msgid "Frequency"
+#~ msgstr "Частота"
 
-#: sensors.js:316 sensors.js:344
-msgid "Energy (now)"
-msgstr "Энергия (сейчас)"
+#~ msgid "Open Files"
+#~ msgstr "Открыть Файлы"
 
-#: sensors.js:322 sensors.js:350
-msgid "Percentage"
-msgstr "Процент"
+#~ msgid "Load 1m"
+#~ msgstr "Нагрузка 1мин"
 
-#: sensors.js:411
-msgid "WiFi Link Quality"
-msgstr "Качество соединения WiFi"
+#~ msgid "system"
+#~ msgstr "Система"
 
-#: sensors.js:412
-msgid "WiFi Signal Level"
-msgstr "Уровень сигнала WiFi"
+#~ msgid "Load 5m"
+#~ msgstr "Нагрузка 5мин"
 
-#: sensors.js:432
-msgid "ARC Target"
-msgstr "Цель ARC"
+#~ msgid "Load 15m"
+#~ msgstr "Нагрузка 15мин"
 
-#: sensors.js:433
-msgid "ARC Maximum"
-msgstr "Максимум ARC"
+#~ msgid "Threads Active"
+#~ msgstr "Активные потоки"
 
-#: sensors.js:434
-msgid "ARC Current"
-msgstr "Текущий ARC"
+#~ msgid "Threads Total"
+#~ msgstr "Всего потоков"
 
-#: sensors.js:445
-msgid "Read total"
-msgstr "Чтение всего"
+#~ msgid "Uptime"
+#~ msgstr "Время работы"
 
-#: sensors.js:446
-msgid "Write total"
-msgstr "Запись всего"
+#~ msgid "Process Time"
+#~ msgstr "Время процесса"
 
-#: sensors.js:447
-msgid "Read rate"
-msgstr "Показатель чтения"
+#~ msgid "WiFi Link Quality"
+#~ msgstr "Качество соединения WiFi"
 
-#: sensors.js:448
-msgid "Write rate"
-msgstr "Показатель записи"
+#~ msgid "WiFi Signal Level"
+#~ msgstr "Уровень сигнала WiFi"
 
-#: sensors.js:467
-msgid "Total"
-msgstr "Всего"
+#~ msgid "ARC Target"
+#~ msgstr "Цель ARC"
 
-#: sensors.js:468
-msgid "Used"
-msgstr "Использовано"
+#~ msgid "ARC Maximum"
+#~ msgstr "Максимум ARC"
 
-#: sensors.js:469
-msgid "Reserved"
-msgstr "Зарезервиравано"
+#~ msgid "ARC Current"
+#~ msgstr "Текущий ARC"
 
-#: sensors.js:470
-msgid "Free"
-msgstr "Свободно"
+#~ msgid "Read total"
+#~ msgstr "Чтение всего"
 
-#: sensors.js:471
-msgid "storage"
-msgstr "Хранилище"
+#~ msgid "Write total"
+#~ msgstr "Запись всего"
+
+#~ msgid "Read rate"
+#~ msgstr "Показатель чтения"
+
+#~ msgid "Write rate"
+#~ msgstr "Показатель записи"
+
+#~ msgid "Total"
+#~ msgstr "Всего"
+
+#~ msgid "Used"
+#~ msgstr "Использовано"
+
+#~ msgid "Reserved"
+#~ msgstr "Зарезервиравано"
+
+#~ msgid "storage"
+#~ msgstr "Хранилище"
+
+#~ msgid "State"
+#~ msgstr "Состояние"
+
+#~ msgid "Cycles"
+#~ msgstr "Циклы"
+
+#~ msgid "Voltage"
+#~ msgstr "Напряжение"
+
+#~ msgid "Percentage"
+#~ msgstr "Процент"
+
+#~ msgid "Rate"
+#~ msgstr "Показатель"
+
+#~ msgid "Energy (full)"
+#~ msgstr "Энергия (полный)"
+
+#~ msgid "Energy (design)"
+#~ msgstr "Энергия (изначальная)"
+
+#~ msgid "Capacity"
+#~ msgstr "Ёмкость"
+
+#~ msgid "Energy (now)"
+#~ msgstr "Энергия (сейчас)"
+
+#~ msgid "Vendor"
+#~ msgstr "Производитель"
+
+#~ msgid "Bogomips"
+#~ msgstr "Bogomips"
+
+#~ msgid "Sockets"
+#~ msgstr "Сокеты"
+
+#~ msgid "Cache"
+#~ msgstr "Кэш"
+
+#~ msgid "Temperature"
+#~ msgstr "Температура"
+
+#~ msgid "Network"
+#~ msgstr "Сеть"
+
+#~ msgid "Storage"
+#~ msgstr "Хранилище"
+
+#~ msgid "Memory"
+#~ msgstr "Память"
+
+#, fuzzy
+#~ msgid "Battery"
+#~ msgstr "Батарея"
+
+#, fuzzy
+#~ msgid "Battery 1"
+#~ msgstr "Батарея"
+
+#, fuzzy
+#~ msgid "Battery 2"
+#~ msgstr "Батарея"
+
+#, fuzzy
+#~ msgid "Battery 3"
+#~ msgstr "Батарея"
+
+#, fuzzy
+#~ msgid "Battery 4"
+#~ msgstr "Батарея"
+
+#, fuzzy
+#~ msgid "Battery 5"
+#~ msgstr "Батарея"
+
+#~ msgid "System"
+#~ msgstr "Система"
+
+#~ msgid "Processor"
+#~ msgstr "Процессор"
+
+#~ msgid "Fan"
+#~ msgstr "Вентилятор"
+
+#~ msgid "Boost"
+#~ msgstr "Разгон"
