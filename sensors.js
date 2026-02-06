@@ -665,6 +665,19 @@ export const Sensors = GObject.registerClass({
                 }).catch(err => {
                     // nothing to do, keep old value displayed
                 });
+                // GTT (Graphics Translation Table) memory - system RAM accessible by the GPU.
+                // Particularly useful for AMD APUs (e.g. Strix Halo, Rembrandt, Phoenix)
+                // where GTT memory can be significantly larger than dedicated VRAM.
+                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_gtt_used').read().then(value => {
+                    this._returnGpuValue(callback, 'GTT Used', parseInt(value) / unit, typeName, 'memory');
+                }).catch(err => {
+                    // not all AMD GPUs expose GTT info, silently ignore
+                });
+                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_gtt_total').read().then(value => {
+                    this._returnGpuValue(callback, 'GTT Total', parseInt(value) / unit, typeName, 'memory');
+                }).catch(err => {
+                    // not all AMD GPUs expose GTT info, silently ignore
+                });
             } else {
                 // for other vendors only show basic card info
                 let vendorName = null;
