@@ -223,7 +223,11 @@ var VitalsMenuButton = GObject.registerClass({
         const samples = this._values.getTimeSeries(key);
         if (samples.length === 0) return;
         this._historyPopoutSensorKey = key;
-        this._historyGraph.setData(samples, label, '');
+        try {
+            this._historyGraph.setData(samples, label, '');
+        } catch (e) {
+            // still show popout even if graph fails to build
+        }
         const parent = this.menu.actor.get_parent();
         if (!parent) return;
         if (this._historyPopout.get_parent() !== parent) {
@@ -233,7 +237,20 @@ var VitalsMenuButton = GObject.registerClass({
         }
         const menuX = this.menu.actor.get_x();
         const menuY = this.menu.actor.get_y();
-        this._historyPopout.set_position(menuX - this._historyPopout.get_width() - 8, menuY);
+        let popoutY = menuY;
+        if (itemActor) {
+            let relY = 0;
+            let node = itemActor;
+            while (node && node !== this.menu.actor) {
+                relY += node.get_y();
+                node = node.get_parent();
+            }
+            const rowH = itemActor.get_height();
+            const popoutH = this._historyPopout.get_height();
+            popoutY = menuY + relY + Math.round((rowH - popoutH) / 2);
+            popoutY = Math.max(0, popoutY);
+        }
+        this._historyPopout.set_position(menuX - this._historyPopout.get_width() - 8, popoutY);
         this._historyPopout.show();
         if (this._historyHideTimeoutId) {
             GLib.Source.remove(this._historyHideTimeoutId);
@@ -564,12 +581,14 @@ var VitalsMenuButton = GObject.registerClass({
             const label = item.label;
             item.actor.connect('enter-event', () => {
                 const samples = this._values.getTimeSeries(key);
-                if (samples.length > 0)
-                    this._showHistoryPopout(key, label, item.actor);
                 if (this._historyHideTimeoutId) {
                     GLib.Source.remove(this._historyHideTimeoutId);
                     this._historyHideTimeoutId = null;
                 }
+                if (samples.length > 0)
+                    this._showHistoryPopout(key, label, item.actor);
+                else
+                    this._hideHistoryPopout();
             });
             item.actor.connect('leave-event', () => {
                 this._scheduleHistoryPopoutHide();

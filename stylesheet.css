@@ -34,4 +34,14 @@
 .vitals-history-graph {
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
+  padding: 4px;
+}
+
+.vitals-history-graph-bars {
+  spacing: 1px;
+}
+
+.vitals-history-graph-bar {
+  border-radius: 1px;
+  background-color: rgba(51, 128, 230, 0.87);
 }

@@ -47,32 +47,39 @@ export const HistoryGraph = GObject.registerClass({
         this._samples = [];
         this._label = '';
         this._unit = '';
-        this._canvas = new Clutter.Canvas();
-        this._canvas.set_size(GRAPH_WIDTH, GRAPH_HEIGHT);
-        this._canvas.connect('draw', this._onDraw.bind(this));
-        this.set_content(this._canvas);
+        this._barContainer = new St.BoxLayout({
+            vertical: false,
+            style_class: 'vitals-history-graph-bars',
+            x_expand: true,
+            y_expand: true,
+            y_align: Clutter.ActorAlign.END
+        });
+        this.add_child(this._barContainer);
     }
 
     setData(samples, label, unit) {
         this._samples = Array.isArray(samples) ? samples : [];
         this._label = label || '';
         this._unit = unit || '';
-        this._canvas.invalidate();
+        this._rebuildBars();
     }
 
-    _onDraw(canvas, cr, width, height) {
-        cr.setOperator(1); // CAIRO_OPERATOR_CLEAR
-        cr.paint();
-        cr.setOperator(0); // CAIRO_OPERATOR_OVER
-
+    _rebuildBars() {
+        try {
+            const children = this._barContainer.get_children();
+            if (children && children.length > 0) {
+                for (let i = children.length - 1; i >= 0; i--)
+                    children[i].destroy();
+            }
+        } catch (e) {
+            // ignore
+        }
         const data = this._samples;
-        if (data.length === 0) return true;
+        if (data.length === 0) return;
 
-        const x0 = PADDING;
-        const y0 = PADDING;
-        const graphW = width - 2 * PADDING;
-        const graphH = height - 2 * PADDING;
-        if (graphW <= 0 || graphH <= 0) return true;
+        const graphW = GRAPH_WIDTH - 2 * PADDING;
+        const graphH = GRAPH_HEIGHT - 2 * PADDING;
+        if (graphW <= 0 || graphH <= 0) return;
 
         const vals = data.map(d => d.v);
         let vMin = Math.min(...vals);
@@ -88,17 +95,18 @@ export const HistoryGraph = GObject.registerClass({
 
         const barWidth = Math.max(1, (graphW - (data.length - 1) * BAR_GAP) / data.length - BAR_GAP);
 
-        cr.setSourceRgba(0.2, 0.5, 0.9, 0.85);
         for (let i = 0; i < data.length; i++) {
             const v = data[i].v;
             const norm = (v - vMin) / vRange;
-            const barH = Math.max(1, norm * graphH);
-            const x = x0 + (data[i].t - tMin) / tRange * (graphW - barWidth);
-            const y = y0 + graphH - barH;
-            cr.rectangle(x, y, barWidth, barH);
+            const barH = Math.max(1, Math.round(norm * graphH));
+            const bar = new St.Bin({
+                width: Math.round(barWidth),
+                height: barH,
+                style_class: 'vitals-history-graph-bar',
+                y_align: Clutter.ActorAlign.END,
+                x_align: Clutter.ActorAlign.CENTER
+            });
+            this._barContainer.add_child(bar);
         }
-        cr.fill();
-
-        return true;
     }
 });
