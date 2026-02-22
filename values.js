@@ -312,6 +312,8 @@ export const Values = GObject.registerClass({
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
+            const memUnit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
+            this._pushTimePoint('__' + type + '_boot__', sum / memUnit, 'memory');
             output.push(['Boot ' + direction, this._legible(sum, format), type, '__' + type + '_boot__']);
 
             // keeps track of session start point
@@ -319,6 +321,8 @@ export const Values = GObject.registerClass({
                 this._networkSpeedOffset[key] = sum;
 
             // outputs session upload and download for all interfaces for #234
+            const sessionVal = sum - this._networkSpeedOffset[key];
+            this._pushTimePoint('__' + type + '_ses__', sessionVal / memUnit, 'memory');
             output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
 
             // calculate speed for this interface
