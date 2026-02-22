@@ -201,12 +201,12 @@ var VitalsMenuButton = GObject.registerClass({
         });
         this._historyPopout.clip_to_allocation = true;
         this._historyGraph = new HistoryGraph.HistoryGraph();
-        this._historyTimeLabel = new St.Label({
-            text: _('1 Hour'),
+        this._historyTitleLabel = new St.Label({
+            text: '',
             style_class: 'vitals-history-popout-label',
             x_align: Clutter.ActorAlign.END
         });
-        this._historyPopout.add_child(this._historyTimeLabel);
+        this._historyPopout.add_child(this._historyTitleLabel);
         this._historyGraphRow = new St.BoxLayout({
             vertical: false,
             x_expand: true,
@@ -220,12 +220,12 @@ var VitalsMenuButton = GObject.registerClass({
         this._historyYMax = new St.Label({
             text: '',
             style_class: 'vitals-history-popout-axis',
-            x_align: Clutter.ActorAlign.START
+            x_align: Clutter.ActorAlign.END
         });
         this._historyYMin = new St.Label({
             text: '',
             style_class: 'vitals-history-popout-axis',
-            x_align: Clutter.ActorAlign.START
+            x_align: Clutter.ActorAlign.END
         });
         this._historyYSpacer = new St.BoxLayout({ vertical: true, y_expand: true });
         this._historyYAxis.add_child(this._historyYMax);
@@ -282,6 +282,8 @@ var VitalsMenuButton = GObject.registerClass({
         if (samples.length === 0) return;
         this._historyPopoutSensorKey = key;
         try {
+            this._historyTitleLabel.text = label + ' ' + _('history');
+            this._historyTitleLabel.show();
             this._historyGraph.setData(samples, label, '');
             const rawRange = this._historyGraph.getRawRange();
             if (rawRange) {
