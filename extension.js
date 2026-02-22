@@ -17,6 +17,7 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as Values from './values.js';
 import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
+import * as HistoryGraph from './historyGraph.js';
 
 let vitalsMenu;
 
@@ -58,6 +59,10 @@ var VitalsMenuButton = GObject.registerClass({
         this._newGpuDetected = false;
         this._newGpuDetectedCount = 0;
         this._last_query = new Date().getTime();
+        this._historyPopout = null;
+        this._historyPopoutLeaveId = 0;
+        this._historyHideTimeoutId = null;
+        this._historyPopoutSensorKey = null;
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
@@ -81,7 +86,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info', 'show-sensor-history-graph' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -90,6 +95,7 @@ var VitalsMenuButton = GObject.registerClass({
             this._addSettingChangedSignal('show-' + sensor, this._showHideSensorsChanged.bind(this));
 
         this._initializeMenu();
+        this._createHistoryPopout();
 
         // start off with fresh sensors
         this._querySensors();
@@ -176,8 +182,84 @@ var VitalsMenuButton = GObject.registerClass({
 
                 // refresh sensors now
                 this._querySensors();
+            } else {
+                this._hideHistoryPopout();
             }
         });
+    }
+
+    _createHistoryPopout() {
+        const popoutWidth = 240;
+        const popoutHeight = 110;
+        this._historyPopout = new St.BoxLayout({
+            vertical: true,
+            style_class: 'vitals-history-popout',
+            width: popoutWidth,
+            height: popoutHeight,
+            reactive: true,
+            visible: false
+        });
+        this._historyGraph = new HistoryGraph.HistoryGraph();
+        this._historyTimeLabel = new St.Label({
+            text: _('1 Hour'),
+            style_class: 'vitals-history-popout-label',
+            x_align: Clutter.ActorAlign.END
+        });
+        this._historyPopout.add_child(this._historyTimeLabel);
+        this._historyPopout.add_child(this._historyGraph);
+        this._historyPopout.connect('enter-event', () => {
+            if (this._historyHideTimeoutId) {
+                GLib.Source.remove(this._historyHideTimeoutId);
+                this._historyHideTimeoutId = null;
+            }
+        });
+        this._historyPopout.connect('leave-event', () => {
+            this._scheduleHistoryPopoutHide();
+        });
+    }
+
+    _showHistoryPopout(key, label, itemActor) {
+        if (!this._settings.get_boolean('show-sensor-history-graph')) return;
+        const samples = this._values.getTimeSeries(key);
+        if (samples.length === 0) return;
+        this._historyPopoutSensorKey = key;
+        this._historyGraph.setData(samples, label, '');
+        const parent = this.menu.actor.get_parent();
+        if (!parent) return;
+        if (this._historyPopout.get_parent() !== parent) {
+            if (this._historyPopout.get_parent())
+                this._historyPopout.get_parent().remove_child(this._historyPopout);
+            parent.add_child(this._historyPopout);
+        }
+        const menuX = this.menu.actor.get_x();
+        const menuY = this.menu.actor.get_y();
+        this._historyPopout.set_position(menuX - this._historyPopout.get_width() - 8, menuY);
+        this._historyPopout.show();
+        if (this._historyHideTimeoutId) {
+            GLib.Source.remove(this._historyHideTimeoutId);
+            this._historyHideTimeoutId = null;
+        }
+    }
+
+    _scheduleHistoryPopoutHide() {
+        if (this._historyHideTimeoutId) return;
+        this._historyHideTimeoutId = GLib.timeout_add(250, GLib.PRIORITY_DEFAULT, () => {
+            this._hideHistoryPopout();
+            this._historyHideTimeoutId = null;
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    _hideHistoryPopout() {
+        if (this._historyHideTimeoutId) {
+            GLib.Source.remove(this._historyHideTimeoutId);
+            this._historyHideTimeoutId = null;
+        }
+        if (this._historyPopout && this._historyPopout.get_parent()) {
+            this._historyPopout.hide();
+            this._historyPopout.get_parent().remove_child(this._historyPopout);
+        }
+        this._historyPopoutSensorKey = null;
     }
 
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
@@ -245,11 +327,9 @@ var VitalsMenuButton = GObject.registerClass({
             GLib.PRIORITY_DEFAULT,
             update_time,
             (self) => {
-                // only update menu if we have hot sensors
-                if (Object.values(this._hotLabels).length > 0)
-                    this._querySensors();
-                    // keep the timer running
-                    return GLib.SOURCE_CONTINUE;
+                // always query sensors (for panel display when hot, and for history graph data)
+                this._querySensors();
+                return GLib.SOURCE_CONTINUE;
             }
         );
     }
@@ -349,6 +429,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _redrawMenu() {
+        this._hideHistoryPopout();
         this._removeHotItems();
 
         for (let key in this._sensorMenuItems) {
@@ -477,6 +558,23 @@ var VitalsMenuButton = GObject.registerClass({
         }
 
         this._groups[type].menu.addMenuItem(item, i);
+
+        if (this._settings.get_boolean('show-sensor-history-graph')) {
+            const key = item.key;
+            const label = item.label;
+            item.actor.connect('enter-event', () => {
+                const samples = this._values.getTimeSeries(key);
+                if (samples.length > 0)
+                    this._showHistoryPopout(key, label, item.actor);
+                if (this._historyHideTimeoutId) {
+                    GLib.Source.remove(this._historyHideTimeoutId);
+                    this._historyHideTimeoutId = null;
+                }
+            });
+            item.actor.connect('leave-event', () => {
+                this._scheduleHistoryPopoutHide();
+            });
+        }
     }
 
     _defaultLabel() {
@@ -629,6 +727,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
+        this._hideHistoryPopout();
         this._destroyTimer();
         this._sensors.destroy();
 

@@ -17,3 +17,21 @@
 .vitals-button-action:hover, .vitals-button-action:focus { border-color: #777; }
 .vitals-button-action > StIcon { icon-size: 16px; }
 .vitals-button-box { padding: 0px; spacing: 22px; }
+
+.vitals-history-popout {
+  padding: 6px;
+  spacing: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background-color: rgba(30, 30, 30, 0.95);
+}
+
+.vitals-history-popout-label {
+  font-size: 10px;
+  color: rgba(200, 200, 200, 0.9);
+}
+
+.vitals-history-graph {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}

@@ -47,7 +47,38 @@ export const Values = GObject.registerClass({
 
         this._history = {};
         //this._history2 = {};
+        this._timeSeries = {};
+        this._graphableFormats = ['temp', 'in', 'fan', 'percent', 'hertz', 'memory', 'speed', 'storage', 'watt', 'watt-gpu', 'milliamp', 'milliamp-hour', 'load'];
         this.resetHistory();
+    }
+
+    _getHistoryDurationSeconds() {
+        if (this._settings && this._settings.get_int)
+            return Math.max(60, this._settings.get_int('sensor-history-duration'));
+        return 3600;
+    }
+
+    _pushTimePoint(key, value, format) {
+        if (!this._graphableFormats.includes(format)) return;
+        const num = typeof value === 'number' ? value : parseFloat(value);
+        if (num !== num) return; // NaN check
+        const now = Date.now() / 1000;
+        if (!(key in this._timeSeries)) this._timeSeries[key] = [];
+        const buf = this._timeSeries[key];
+        buf.push({ t: now, v: num });
+        const maxAge = this._getHistoryDurationSeconds();
+        while (buf.length > 0 && buf[0].t < now - maxAge) buf.shift();
+        const maxPoints = 3600;
+        while (buf.length > maxPoints) buf.shift();
+    }
+
+    getTimeSeries(key) {
+        if (!(key in this._timeSeries)) return [];
+        return this._timeSeries[key].slice();
+    }
+
+    isGraphableFormat(format) {
+        return this._graphableFormats.includes(format);
     }
 
     _legible(value, sensorClass) {
@@ -242,6 +273,8 @@ export const Values = GObject.registerClass({
         // save previous values to update screen on changes only
         let previousValue = this._history[type][key];
         this._history[type][key] = [legible, value];
+        if (type !== 'network-rx' && type !== 'network-tx')
+            this._pushTimePoint(key, value, format);
 
         // process average, min and max values
         if (type == 'temperature' || type == 'voltage' || type == 'fan') {
@@ -284,6 +317,7 @@ export const Values = GObject.registerClass({
             // calculate speed for this interface
             let speed = (value - previousValue[1]) / dwell;
             output.push([label, this._legible(speed, 'speed'), type, key]);
+            this._pushTimePoint(key, speed, 'speed');
 
             // store speed for Device report
             if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
@@ -350,5 +384,6 @@ export const Values = GObject.registerClass({
             this._history['gpu#' + i] = {};
             this._history['gpu#' + i + '-group'] = {};
         }
+        this._timeSeries = {};
     }
 });
