@@ -20,7 +20,6 @@
 
 .vitals-history-popout {
   padding: 6px;
-  spacing: 4px;
   border-radius: 8px;
   border: 1px solid rgba(128, 128, 128, 0.4);
   background-color: rgba(30, 30, 30, 0.95);
@@ -31,10 +30,45 @@
   color: rgba(200, 200, 200, 0.9);
 }
 
+.vitals-history-popout-axis {
+  font-size: 9px;
+  color: rgba(180, 180, 180, 0.85);
+}
+
+.vitals-history-graph-row {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.vitals-history-y-axis {
+  margin-right: 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.vitals-history-x-wrap {
+  margin-top: 2px;
+}
+
+.vitals-history-x-spacer {
+  width: 62px;
+  min-width: 62px;
+}
+
+.vitals-history-x-row {
+  min-width: 0;
+}
+
+.vitals-history-x-row .vitals-history-popout-axis {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
 .vitals-history-graph {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.25);
   border-radius: 4px;
   padding: 4px;
+  margin: 2px 0;
 }
 
 .vitals-history-graph-bars {

@@ -189,8 +189,8 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _createHistoryPopout() {
-        const popoutWidth = 240;
-        const popoutHeight = 110;
+        const popoutWidth = 280;
+        const popoutHeight = 145;
         this._historyPopout = new St.BoxLayout({
             vertical: true,
             style_class: 'vitals-history-popout',
@@ -199,6 +199,7 @@ var VitalsMenuButton = GObject.registerClass({
             reactive: true,
             visible: false
         });
+        this._historyPopout.clip_to_allocation = true;
         this._historyGraph = new HistoryGraph.HistoryGraph();
         this._historyTimeLabel = new St.Label({
             text: _('1 Hour'),
@@ -206,7 +207,64 @@ var VitalsMenuButton = GObject.registerClass({
             x_align: Clutter.ActorAlign.END
         });
         this._historyPopout.add_child(this._historyTimeLabel);
-        this._historyPopout.add_child(this._historyGraph);
+        this._historyGraphRow = new St.BoxLayout({
+            vertical: false,
+            x_expand: true,
+            style_class: 'vitals-history-graph-row'
+        });
+        this._historyYAxis = new St.BoxLayout({
+            vertical: true,
+            width: 56,
+            style_class: 'vitals-history-y-axis'
+        });
+        this._historyYMax = new St.Label({
+            text: '',
+            style_class: 'vitals-history-popout-axis',
+            x_align: Clutter.ActorAlign.START
+        });
+        this._historyYMin = new St.Label({
+            text: '',
+            style_class: 'vitals-history-popout-axis',
+            x_align: Clutter.ActorAlign.START
+        });
+        this._historyYSpacer = new St.BoxLayout({ vertical: true, y_expand: true });
+        this._historyYAxis.add_child(this._historyYMax);
+        this._historyYAxis.add_child(this._historyYSpacer);
+        this._historyYAxis.add_child(this._historyYMin);
+        this._historyGraphRow.add_child(this._historyYAxis);
+        this._historyGraphRow.add_child(this._historyGraph);
+        this._historyPopout.add_child(this._historyGraphRow);
+        this._historyXWrap = new St.BoxLayout({
+            vertical: false,
+            x_expand: true,
+            style_class: 'vitals-history-x-wrap'
+        });
+        this._historyXSpacer = new St.BoxLayout({
+            vertical: true,
+            width: 62,
+            style_class: 'vitals-history-x-spacer'
+        });
+        this._historyXRow = new St.BoxLayout({
+            vertical: false,
+            x_expand: true,
+            style_class: 'vitals-history-x-row'
+        });
+        this._historyXLeft = new St.Label({
+            text: _('1h ago'),
+            style_class: 'vitals-history-popout-axis',
+            x_align: Clutter.ActorAlign.START,
+            x_expand: true
+        });
+        this._historyXRight = new St.Label({
+            text: _('now'),
+            style_class: 'vitals-history-popout-axis',
+            x_align: Clutter.ActorAlign.END
+        });
+        this._historyXRow.add_child(this._historyXLeft);
+        this._historyXRow.add_child(this._historyXRight);
+        this._historyXWrap.add_child(this._historyXSpacer);
+        this._historyXWrap.add_child(this._historyXRow);
+        this._historyPopout.add_child(this._historyXWrap);
         this._historyPopout.connect('enter-event', () => {
             if (this._historyHideTimeoutId) {
                 GLib.Source.remove(this._historyHideTimeoutId);
@@ -225,8 +283,19 @@ var VitalsMenuButton = GObject.registerClass({
         this._historyPopoutSensorKey = key;
         try {
             this._historyGraph.setData(samples, label, '');
+            const rawRange = this._historyGraph.getRawRange();
+            if (rawRange) {
+                this._historyYMax.text = this._values.formatValue(key, rawRange.max);
+                this._historyYMin.text = this._values.formatValue(key, rawRange.min);
+                this._historyYAxis.show();
+            } else {
+                this._historyYMax.text = '';
+                this._historyYMin.text = '';
+                this._historyYAxis.hide();
+            }
         } catch (e) {
-            // still show popout even if graph fails to build
+            this._historyYMax.text = '';
+            this._historyYMin.text = '';
         }
         const parent = this.menu.actor.get_parent();
         if (!parent) return;

@@ -48,6 +48,7 @@ export const Values = GObject.registerClass({
         this._history = {};
         //this._history2 = {};
         this._timeSeries = {};
+        this._timeSeriesFormat = {};
         this._graphableFormats = ['temp', 'in', 'fan', 'percent', 'hertz', 'memory', 'speed', 'storage', 'watt', 'watt-gpu', 'milliamp', 'milliamp-hour', 'load'];
         this.resetHistory();
     }
@@ -62,6 +63,7 @@ export const Values = GObject.registerClass({
         if (!this._graphableFormats.includes(format)) return;
         const num = typeof value === 'number' ? value : parseFloat(value);
         if (num !== num) return; // NaN check
+        this._timeSeriesFormat[key] = format;
         const now = Date.now() / 1000;
         if (!(key in this._timeSeries)) this._timeSeries[key] = [];
         const buf = this._timeSeries[key];
@@ -79,6 +81,11 @@ export const Values = GObject.registerClass({
 
     isGraphableFormat(format) {
         return this._graphableFormats.includes(format);
+    }
+
+    formatValue(key, rawValue) {
+        const format = key in this._timeSeriesFormat ? this._timeSeriesFormat[key] : 'percent';
+        return this._legible(rawValue, format);
     }
 
     _legible(value, sensorClass) {
@@ -329,11 +336,12 @@ export const Values = GObject.registerClass({
 
             // calculate total upload and download device speed
             for (let direction in this._networkSpeeds) {
-                let sum = 0;
+                let sumNum = 0;
                 for (let iface in this._networkSpeeds[direction])
-                    sum += parseFloat(this._networkSpeeds[direction][iface]);
+                    sumNum += parseFloat(this._networkSpeeds[direction][iface]);
 
-                sum = this._legible(sum, 'speed');
+                this._pushTimePoint('__network-' + direction + '_max__', sumNum, 'speed');
+                let sum = this._legible(sumNum, 'speed');
                 output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_max__']);
                 // append download speed to group itself
                 if (direction == 'rx') output.push([type, sum, type + '-group', '']);
@@ -385,5 +393,6 @@ export const Values = GObject.registerClass({
             this._history['gpu#' + i + '-group'] = {};
         }
         this._timeSeries = {};
+        this._timeSeriesFormat = {};
     }
 });

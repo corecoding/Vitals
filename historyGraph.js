@@ -47,6 +47,8 @@ export const HistoryGraph = GObject.registerClass({
         this._samples = [];
         this._label = '';
         this._unit = '';
+        this._vMin = 0;
+        this._vMax = 0;
         this._barContainer = new St.BoxLayout({
             vertical: false,
             style_class: 'vitals-history-graph-bars',
@@ -88,6 +90,8 @@ export const HistoryGraph = GObject.registerClass({
             vMin = vMin - 1;
             vMax = vMax + 1;
         }
+        this._vMin = vMin;
+        this._vMax = vMax;
         const vRange = vMax - vMin;
         const tMin = data[0].t;
         const tMax = data[data.length - 1].t;
@@ -108,5 +112,24 @@ export const HistoryGraph = GObject.registerClass({
             });
             this._barContainer.add_child(bar);
         }
+    }
+
+    getRangeLabel() {
+        if (this._samples.length === 0) return '';
+        const a = this._vMin;
+        const b = this._vMax;
+        const fmt = (v) => Number.isInteger(v) ? String(v) : v.toFixed(1);
+        return fmt(a) + ' – ' + fmt(b);
+    }
+
+    getRange() {
+        if (this._samples.length === 0) return null;
+        const fmt = (v) => Number.isInteger(v) ? String(v) : v.toFixed(1);
+        return { min: fmt(this._vMin), max: fmt(this._vMax) };
+    }
+
+    getRawRange() {
+        if (this._samples.length === 0) return null;
+        return { min: this._vMin, max: this._vMax };
     }
 });
