@@ -81,7 +81,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._settingChangedSignals = [];
         this._refreshTimeoutId = null;
 
-        this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
+        this._addSettingChangedSignal('update-time', this._updateTimeSettingChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
@@ -256,7 +256,7 @@ var VitalsMenuButton = GObject.registerClass({
             style_class: 'vitals-history-x-row'
         });
         this._historyXLeft = new St.Label({
-            text: _('1h ago'),
+            text: '',
             style_class: 'vitals-history-popout-axis',
             x_align: Clutter.ActorAlign.START,
             x_expand: true
@@ -291,6 +291,10 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyTitleLabel.text = label + ' ' + _('history');
             this._historyTitleLabel.show();
             this._historyGraph.setData(samples, label, '');
+            const tSpan = this._historyGraph.getTimeSpan();
+            const maxDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
+            const clampedSpan = Math.min(tSpan, maxDuration);
+            this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
             const rawRange = this._historyGraph.getRawRange();
             if (rawRange) {
                 this._historyYMax.text = this._values.formatValue(key, rawRange.max);
@@ -556,6 +560,12 @@ var VitalsMenuButton = GObject.registerClass({
             GLib.Source.remove(this._refreshTimeoutId);
             this._refreshTimeoutId = null;
         }
+    }
+
+    _updateTimeSettingChanged() {
+        this._destroyTimer();
+        this._values.clearTimeSeries();
+        this._initializeTimer();
     }
 
     _updateTimeChanged() {

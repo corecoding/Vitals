@@ -67,11 +67,21 @@ export const Values = GObject.registerClass({
         const now = Date.now() / 1000;
         if (!(key in this._timeSeries)) this._timeSeries[key] = [];
         const buf = this._timeSeries[key];
+        const minInterval = Math.max(1, this._settings.get_int('update-time')) - 0.5;
+        if (buf.length > 0 && (now - buf[buf.length - 1].t) < minInterval) {
+            buf[buf.length - 1].v = num;
+            return;
+        }
         buf.push({ t: now, v: num });
         const maxAge = this._getHistoryDurationSeconds();
         while (buf.length > 0 && buf[0].t < now - maxAge) buf.shift();
         const maxPoints = 3600;
         while (buf.length > maxPoints) buf.shift();
+    }
+
+    clearTimeSeries() {
+        this._timeSeries = {};
+        this._timeSeriesFormat = {};
     }
 
     getTimeSeries(key) {
@@ -86,6 +96,17 @@ export const Values = GObject.registerClass({
     formatValue(key, rawValue) {
         const format = key in this._timeSeriesFormat ? this._timeSeriesFormat[key] : 'percent';
         return this._legible(rawValue, format);
+    }
+
+    formatDuration(seconds) {
+        seconds = Math.round(Math.abs(seconds));
+        if (seconds < 60) return seconds + 's';
+        const m = Math.floor(seconds / 60);
+        if (m < 60) return m + 'm';
+        const h = Math.floor(m / 60);
+        const rm = m % 60;
+        if (rm === 0) return h + 'h';
+        return h + 'h ' + rm + 'm';
     }
 
     _legible(value, sensorClass) {
@@ -396,7 +417,5 @@ export const Values = GObject.registerClass({
             this._history['gpu#' + i] = {};
             this._history['gpu#' + i + '-group'] = {};
         }
-        this._timeSeries = {};
-        this._timeSeriesFormat = {};
     }
 });

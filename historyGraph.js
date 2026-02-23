@@ -31,7 +31,7 @@ import St from 'gi://St';
 const GRAPH_WIDTH = 204;
 const GRAPH_HEIGHT = 90;
 const PADDING = 4;
-const BAR_GAP = 1;
+const MIN_BAR_WIDTH = 2;
 
 export const HistoryGraph = GObject.registerClass({
     GTypeName: 'HistoryGraph',
@@ -49,13 +49,11 @@ export const HistoryGraph = GObject.registerClass({
         this._unit = '';
         this._vMin = 0;
         this._vMax = 0;
+        this._tSpan = 0;
         this.clip_to_allocation = true;
-        this._barContainer = new St.BoxLayout({
-            vertical: false,
-            style_class: 'vitals-history-graph-bars',
+        this._barContainer = new St.Widget({
             x_expand: true,
-            y_expand: true,
-            y_align: Clutter.ActorAlign.END
+            y_expand: true
         });
         this._barContainer.clip_to_allocation = true;
         this.add_child(this._barContainer);
@@ -95,43 +93,56 @@ export const HistoryGraph = GObject.registerClass({
         this._vMin = vMin;
         this._vMax = vMax;
         const vRange = vMax - vMin;
-        const tMin = data[0].t;
-        const tMax = data[data.length - 1].t;
-        const tRange = Math.max(0.001, tMax - tMin);
 
-        const barWidth = Math.max(1, Math.floor(graphW / data.length));
+        const now = Date.now() / 1000;
+        const tOldest = data[0].t;
+        this._tSpan = now - tOldest;
+        const tRange = Math.max(0.001, this._tSpan);
+
+        const gaps = [];
+        for (let i = 1; i < data.length; i++)
+            gaps.push(data[i].t - data[i - 1].t);
+        gaps.sort((a, b) => a - b);
+        const medianGap = gaps.length > 0
+            ? gaps[Math.floor(gaps.length / 2)]
+            : tRange;
+        const maxBarTime = medianGap * 2.5;
+
+        const xPixels = data.map(d =>
+            Math.round((d.t - tOldest) / tRange * graphW));
 
         for (let i = 0; i < data.length; i++) {
             const v = data[i].v;
             const norm = (v - vMin) / vRange;
             const barH = Math.max(1, Math.round(norm * graphH));
+            const x = xPixels[i];
+            const nextT = (i < data.length - 1) ? data[i + 1].t : now;
+            const gap = nextT - data[i].t;
+            let rightEdge;
+            if (gap <= maxBarTime) {
+                rightEdge = (i < data.length - 1) ? xPixels[i + 1] : graphW;
+            } else {
+                rightEdge = Math.min(graphW,
+                    Math.round((data[i].t - tOldest + maxBarTime) / tRange * graphW));
+            }
+            const barW = Math.max(MIN_BAR_WIDTH, rightEdge - x);
+            const y = graphH - barH;
             const bar = new St.Bin({
-                width: Math.round(barWidth),
+                width: Math.min(barW, graphW - x),
                 height: barH,
-                style_class: 'vitals-history-graph-bar',
-                y_align: Clutter.ActorAlign.END,
-                x_align: Clutter.ActorAlign.CENTER
+                style_class: 'vitals-history-graph-bar'
             });
+            bar.set_position(x, y);
             this._barContainer.add_child(bar);
         }
-    }
-
-    getRangeLabel() {
-        if (this._samples.length === 0) return '';
-        const a = this._vMin;
-        const b = this._vMax;
-        const fmt = (v) => Number.isInteger(v) ? String(v) : v.toFixed(1);
-        return fmt(a) + ' – ' + fmt(b);
-    }
-
-    getRange() {
-        if (this._samples.length === 0) return null;
-        const fmt = (v) => Number.isInteger(v) ? String(v) : v.toFixed(1);
-        return { min: fmt(this._vMin), max: fmt(this._vMax) };
     }
 
     getRawRange() {
         if (this._samples.length === 0) return null;
         return { min: this._vMin, max: this._vMax };
+    }
+
+    getTimeSpan() {
+        return this._tSpan;
     }
 });
