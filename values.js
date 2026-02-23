@@ -186,7 +186,9 @@ export const Values = GObject.registerClass({
                 ending = 'mAh';
                 break;
             case 'watt':
-                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                format = (
+                    ((value > 0) ? '+' : '') + ((use_higher_precision)?'%.2f %s':'%.1f %s')
+                );
                 value = value / 1000000;
                 ending = 'W';
                 break;
