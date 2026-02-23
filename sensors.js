@@ -429,7 +429,7 @@ export const Sensors = GObject.registerClass({
             if ('POWER_NOW' in output) {
                 const powerValue = (
                     parseFloat(output['POWER_NOW']) * (output['STATUS'] === 'Discharging' ? -1 : 1)
-		);
+                );
                 this._returnValue(callback, 'Power Rate', powerValue, 'battery', 'watt');
                 this._returnValue(callback, 'battery', powerValue, 'battery-group', 'watt');
             }
