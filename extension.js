@@ -233,6 +233,12 @@ var VitalsMenuButton = GObject.registerClass({
         this._historyYAxis.add_child(this._historyYMin);
         this._historyGraphRow.add_child(this._historyYAxis);
         this._historyGraphRow.add_child(this._historyGraph);
+        this._historyGraphRightSpacer = new St.BoxLayout({
+            vertical: true,
+            width: 18,
+            style_class: 'vitals-history-graph-right-spacer'
+        });
+        this._historyGraphRow.add_child(this._historyGraphRightSpacer);
         this._historyPopout.add_child(this._historyGraphRow);
         this._historyXWrap = new St.BoxLayout({
             vertical: false,

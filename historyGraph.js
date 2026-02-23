@@ -28,7 +28,7 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-const GRAPH_WIDTH = 220;
+const GRAPH_WIDTH = 204;
 const GRAPH_HEIGHT = 90;
 const PADDING = 4;
 const BAR_GAP = 1;
@@ -49,6 +49,7 @@ export const HistoryGraph = GObject.registerClass({
         this._unit = '';
         this._vMin = 0;
         this._vMax = 0;
+        this.clip_to_allocation = true;
         this._barContainer = new St.BoxLayout({
             vertical: false,
             style_class: 'vitals-history-graph-bars',
@@ -56,6 +57,7 @@ export const HistoryGraph = GObject.registerClass({
             y_expand: true,
             y_align: Clutter.ActorAlign.END
         });
+        this._barContainer.clip_to_allocation = true;
         this.add_child(this._barContainer);
     }
 
@@ -97,7 +99,7 @@ export const HistoryGraph = GObject.registerClass({
         const tMax = data[data.length - 1].t;
         const tRange = Math.max(0.001, tMax - tMin);
 
-        const barWidth = Math.max(1, (graphW - (data.length - 1) * BAR_GAP) / data.length - BAR_GAP);
+        const barWidth = Math.max(1, Math.floor(graphW / data.length));
 
         for (let i = 0; i < data.length; i++) {
             const v = data[i].v;

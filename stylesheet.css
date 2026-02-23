@@ -19,7 +19,7 @@
 .vitals-button-box { padding: 0px; spacing: 22px; }
 
 .vitals-history-popout {
-  padding: 6px;
+  padding: 6px 14px 6px 6px;
   border-radius: 8px;
   border: 1px solid rgba(128, 128, 128, 0.4);
   background-color: rgba(30, 30, 30, 0.95);
@@ -68,12 +68,11 @@
   background-color: rgba(0, 0, 0, 0.25);
   border-radius: 4px;
   padding: 4px;
-  margin: 2px 0;
-  margin-right: 8px;
+  margin: 2px 0 2px 0;
 }
 
 .vitals-history-graph-bars {
-  spacing: 1px;
+  spacing: 0px;
 }
 
 .vitals-history-graph-bar {
