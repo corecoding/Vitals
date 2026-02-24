@@ -24,14 +24,13 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-const GRAPH_WIDTH = 204;
+const GRAPH_WIDTH = 208;
 const GRAPH_HEIGHT = 90;
 const PADDING = 4;
-const MIN_BAR_WIDTH = 2;
+const MIN_BAR_WIDTH = 1;
 
 export const HistoryGraph = GObject.registerClass({
     GTypeName: 'HistoryGraph',
@@ -49,7 +48,7 @@ export const HistoryGraph = GObject.registerClass({
         this._unit = '';
         this._vMin = 0;
         this._vMax = 0;
-        this._tSpan = 0;
+        this._base = 1;
         this.clip_to_allocation = true;
         this._barContainer = new St.Widget({
             x_expand: true,
@@ -59,10 +58,11 @@ export const HistoryGraph = GObject.registerClass({
         this.add_child(this._barContainer);
     }
 
-    setData(samples, label, unit) {
+    setData(samples, label, unit, base) {
         this._samples = Array.isArray(samples) ? samples : [];
         this._label = label || '';
         this._unit = unit || '';
+        this._base = Math.max(1, base);
         this._rebuildBars();
     }
 
@@ -83,95 +83,40 @@ export const HistoryGraph = GObject.registerClass({
         const graphH = GRAPH_HEIGHT - PADDING;
         if (graphW <= 0 || graphH <= 0) return;
 
-        const vals = data.map(d => d.v);
-        let vMin = Math.min(...vals);
-        let vMax = Math.max(...vals);
-        if (vMax <= vMin) {
-            vMin = vMin - 1;
-            vMax = vMax + 1;
+        const base = this._base;
+        const maxBars = Math.floor(graphW / MIN_BAR_WIDTH);
+        const totalBars = Math.ceil(data.length / base);
+        const numBars = Math.min(totalBars, maxBars);
+        const dataOffset = (totalBars - numBars) * base;
+        const barWidth = graphW / numBars;
+
+        let vMin = Infinity, vMax = -Infinity;
+        for (let i = dataOffset; i < data.length; i++) {
+            if (data[i].v < vMin) vMin = data[i].v;
+            if (data[i].v > vMax) vMax = data[i].v;
         }
+        if (vMax <= vMin) { vMin -= 1; vMax += 1; }
         this._vMin = vMin;
         this._vMax = vMax;
         const vRange = vMax - vMin;
 
-        const now = Date.now() / 1000;
-        const tOldest = data[0].t;
-
-        const rawGaps = [];
-        for (let i = 1; i < data.length; i++)
-            rawGaps.push(data[i].t - data[i - 1].t);
-        rawGaps.sort((a, b) => a - b);
-        const rawMedianGap = rawGaps.length > 0
-            ? rawGaps[Math.floor(rawGaps.length / 2)]
-            : 0;
-
-        const tEnd = rawMedianGap > 0
-            ? data[data.length - 1].t + rawMedianGap
-            : now;
-        this._tSpan = tEnd - tOldest;
-        const tRange = Math.max(0.001, this._tSpan);
-
-        const maxBars = Math.floor(graphW / MIN_BAR_WIDTH);
-        let displayData;
-        if (data.length <= maxBars) {
-            displayData = data;
-        } else {
-            const bucketDuration = tRange / maxBars;
-            displayData = [];
-            let di = 0;
-            for (let b = 0; b < maxBars; b++) {
-                const bEnd = tOldest + (b + 1) * bucketDuration;
-                let peak = -Infinity, count = 0;
-                while (di < data.length && data[di].t < bEnd) {
-                    if (data[di].v > peak) peak = data[di].v;
-                    count++;
-                    di++;
-                }
-                if (count > 0) {
-                    displayData.push({
-                        t: tOldest + b * bucketDuration,
-                        v: peak
-                    });
-                }
+        for (let b = 0; b < numBars; b++) {
+            const iStart = dataOffset + b * base;
+            const iEnd = Math.min(iStart + base, data.length);
+            let peak = -Infinity;
+            for (let i = iStart; i < iEnd; i++) {
+                if (data[i].v > peak) peak = data[i].v;
             }
-        }
-
-        if (displayData.length === 0) return;
-
-        const gaps = [];
-        for (let i = 1; i < displayData.length; i++)
-            gaps.push(displayData[i].t - displayData[i - 1].t);
-        gaps.sort((a, b) => a - b);
-        const medianGap = gaps.length > 0
-            ? gaps[Math.floor(gaps.length / 2)]
-            : 0;
-        const maxBarTime = medianGap > 0 ? medianGap * 2.5 : Infinity;
-
-        const xPixels = displayData.map(d =>
-            Math.round((d.t - tOldest) / tRange * graphW));
-
-        for (let i = 0; i < displayData.length; i++) {
-            const v = displayData[i].v;
-            const norm = (v - vMin) / vRange;
+            const norm = (peak - vMin) / vRange;
             const barH = Math.max(1, Math.round(norm * graphH));
-            const x = xPixels[i];
-            const nextT = (i < displayData.length - 1) ? displayData[i + 1].t : tEnd;
-            const gap = nextT - displayData[i].t;
-            let rightEdge;
-            if (gap <= maxBarTime) {
-                rightEdge = (i < displayData.length - 1) ? xPixels[i + 1] : graphW;
-            } else {
-                rightEdge = Math.min(graphW,
-                    Math.round((displayData[i].t - tOldest + maxBarTime) / tRange * graphW));
-            }
-            const barW = Math.max(MIN_BAR_WIDTH, rightEdge - x);
-            const y = graphH - barH;
+            const x = Math.round(b * barWidth);
+            const w = Math.round((b + 1) * barWidth) - x;
             const bar = new St.Bin({
-                width: Math.min(barW, graphW - x),
+                width: w,
                 height: barH,
                 style_class: 'vitals-history-graph-bar'
             });
-            bar.set_position(x, y);
+            bar.set_position(x, graphH - barH);
             this._barContainer.add_child(bar);
         }
     }
@@ -182,6 +127,7 @@ export const HistoryGraph = GObject.registerClass({
     }
 
     getTimeSpan() {
-        return this._tSpan;
+        if (this._samples.length < 2) return 0;
+        return this._samples[this._samples.length - 1].t - this._samples[0].t;
     }
 });

@@ -294,10 +294,12 @@ var VitalsMenuButton = GObject.registerClass({
         try {
             this._historyTitleLabel.text = label + ' ' + _('history');
             this._historyTitleLabel.show();
-            this._historyGraph.setData(samples, label, '');
+            const historyDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
+            const interval = Math.max(1, this._settings.get_int('update-time'));
+            const base = Math.max(1, Math.ceil(historyDuration / interval / 800));
+            this._historyGraph.setData(samples, label, '', base);
             const tSpan = this._historyGraph.getTimeSpan();
-            const maxDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
-            const clampedSpan = Math.min(tSpan, maxDuration);
+            const clampedSpan = Math.min(tSpan, historyDuration);
             this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
             const rawRange = this._historyGraph.getRawRange();
             if (rawRange) {
@@ -375,10 +377,12 @@ var VitalsMenuButton = GObject.registerClass({
         if (samples.length === 0) return;
 
         try {
-            this._historyGraph.setData(samples, label, '');
+            const historyDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
+            const interval = Math.max(1, this._settings.get_int('update-time'));
+            const base = Math.max(1, Math.ceil(historyDuration / interval / 800));
+            this._historyGraph.setData(samples, label, '', base);
             const tSpan = this._historyGraph.getTimeSpan();
-            const maxDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
-            const clampedSpan = Math.min(tSpan, maxDuration);
+            const clampedSpan = Math.min(tSpan, historyDuration);
             this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
             const rawRange = this._historyGraph.getRawRange();
             if (rawRange) {
