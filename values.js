@@ -151,10 +151,6 @@ export const Values = GObject.registerClass({
         return this._timeSeries[key].slice();
     }
 
-    isGraphableFormat(format) {
-        return this._graphableFormats.includes(format);
-    }
-
     formatValue(key, rawValue) {
         const format = key in this._timeSeriesFormat ? this._timeSeriesFormat[key] : 'percent';
         return this._legible(rawValue, format);

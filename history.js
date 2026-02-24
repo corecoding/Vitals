@@ -49,6 +49,7 @@ export const HistoryGraph = GObject.registerClass({
         this._vMin = 0;
         this._vMax = 0;
         this._base = 1;
+        this._dataOffset = 0;
         this.clip_to_allocation = true;
         this._barContainer = new St.Widget({
             x_expand: true,
@@ -88,6 +89,7 @@ export const HistoryGraph = GObject.registerClass({
         const totalBars = Math.ceil(data.length / base);
         const numBars = Math.min(totalBars, maxBars);
         const dataOffset = (totalBars - numBars) * base;
+        this._dataOffset = dataOffset;
         const barWidth = graphW / numBars;
 
         let vMin = Infinity, vMax = -Infinity;
@@ -128,7 +130,8 @@ export const HistoryGraph = GObject.registerClass({
     }
 
     getTimeSpan() {
-        if (this._samples.length < 2) return 0;
-        return this._samples[this._samples.length - 1].t - this._samples[0].t;
+        const start = this._dataOffset;
+        if (this._samples.length - start < 2) return 0;
+        return this._samples[this._samples.length - 1].t - this._samples[start].t;
     }
 });
