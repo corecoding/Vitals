@@ -94,9 +94,11 @@ export const HistoryGraph = GObject.registerClass({
 
         let vMin = Infinity, vMax = -Infinity;
         for (let i = dataOffset; i < data.length; i++) {
+            if (data[i].v === null) continue;
             if (data[i].v < vMin) vMin = data[i].v;
             if (data[i].v > vMax) vMax = data[i].v;
         }
+        if (vMin === Infinity) return;
         if (vMax <= vMin) { vMin -= 1; vMax += 1; }
         this._vMin = vMin;
         this._vMax = vMax;
@@ -106,10 +108,15 @@ export const HistoryGraph = GObject.registerClass({
             const iStart = dataOffset + b * base;
             const iEnd = Math.min(iStart + base, data.length);
             let sum = 0;
+            let count = 0;
             for (let i = iStart; i < iEnd; i++) {
-                sum += data[i].v;
+                if (data[i].v !== null) {
+                    sum += data[i].v;
+                    count++;
+                }
             }
-            const avg = sum / (iEnd - iStart);
+            if (count === 0) continue;
+            const avg = sum / count;
             const norm = (avg - vMin) / vRange;
             const barH = Math.max(1, Math.round(norm * graphH));
             const x = Math.round(b * barWidth);

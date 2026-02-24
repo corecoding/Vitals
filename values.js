@@ -69,10 +69,22 @@ export const Values = GObject.registerClass({
         const now = Date.now() / 1000;
         if (!(key in this._timeSeries)) this._timeSeries[key] = [];
         const buf = this._timeSeries[key];
-        const minInterval = Math.max(1, this._settings.get_int('update-time')) - 0.5;
-        if (buf.length > 0 && (now - buf[buf.length - 1].t) < minInterval) {
+        const interval = Math.max(1, this._settings.get_int('update-time'));
+        const minInterval = interval - 0.5;
+        if (buf.length > 0 && buf[buf.length - 1].v !== null && (now - buf[buf.length - 1].t) < minInterval) {
             buf[buf.length - 1].v = num;
             return;
+        }
+        if (buf.length > 0) {
+            const lastT = buf[buf.length - 1].t;
+            const gap = now - lastT;
+            if (gap > interval * 3) {
+                let fillT = lastT + interval;
+                while (fillT < now - interval * 0.5) {
+                    buf.push({ t: fillT, v: null });
+                    fillT += interval;
+                }
+            }
         }
         buf.push({ t: now, v: num });
         const maxAge = this._getHistoryDurationSeconds();
@@ -135,6 +147,8 @@ export const Values = GObject.registerClass({
                     continue;
                 }
                 while (buf.length > 0 && buf[0].t < cutoff)
+                    buf.shift();
+                while (buf.length > 0 && buf[0].v === null)
                     buf.shift();
                 if (buf.length === 0) {
                     delete this._timeSeries[key];
