@@ -17,7 +17,7 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as Values from './values.js';
 import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
-import * as HistoryGraph from './historyGraph.js';
+import * as HistoryGraph from './history.js';
 
 let vitalsMenu;
 
@@ -63,6 +63,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._historyPopoutLeaveId = 0;
         this._historyHideTimeoutId = null;
         this._historyPopoutSensorKey = null;
+        this._historyPopoutLabel = null;
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
@@ -289,6 +290,7 @@ var VitalsMenuButton = GObject.registerClass({
         const samples = this._values.getTimeSeries(key);
         if (samples.length === 0) return;
         this._historyPopoutSensorKey = key;
+        this._historyPopoutLabel = label;
         try {
             this._historyTitleLabel.text = label + ' ' + _('history');
             this._historyTitleLabel.show();
@@ -360,6 +362,37 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyPopout.get_parent().remove_child(this._historyPopout);
         }
         this._historyPopoutSensorKey = null;
+        this._historyPopoutLabel = null;
+    }
+
+    _refreshHistoryPopout() {
+        const key = this._historyPopoutSensorKey;
+        const label = this._historyPopoutLabel;
+        if (!key || !label) return;
+        if (!this._historyPopout || !this._historyPopout.visible) return;
+
+        const samples = this._values.getTimeSeries(key);
+        if (samples.length === 0) return;
+
+        try {
+            this._historyGraph.setData(samples, label, '');
+            const tSpan = this._historyGraph.getTimeSpan();
+            const maxDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
+            const clampedSpan = Math.min(tSpan, maxDuration);
+            this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
+            const rawRange = this._historyGraph.getRawRange();
+            if (rawRange) {
+                this._historyYMax.text = this._values.formatValue(key, rawRange.max);
+                this._historyYMin.text = this._values.formatValue(key, rawRange.min);
+                this._historyYAxis.show();
+            } else {
+                this._historyYMax.text = '';
+                this._historyYMin.text = '';
+                this._historyYAxis.hide();
+            }
+        } catch (e) {
+            // ignore
+        }
     }
 
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
@@ -824,6 +857,8 @@ var VitalsMenuButton = GObject.registerClass({
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
             this._warnings = [];
         }
+
+        this._refreshHistoryPopout();
     }
 
     _notify(msg, details, icon) {

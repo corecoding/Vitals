@@ -121,16 +121,16 @@ export const HistoryGraph = GObject.registerClass({
             let di = 0;
             for (let b = 0; b < maxBars; b++) {
                 const bEnd = tOldest + (b + 1) * bucketDuration;
-                let sum = 0, count = 0;
+                let peak = -Infinity, count = 0;
                 while (di < data.length && data[di].t < bEnd) {
-                    sum += data[di].v;
+                    if (data[di].v > peak) peak = data[di].v;
                     count++;
                     di++;
                 }
                 if (count > 0) {
                     displayData.push({
                         t: tOldest + b * bucketDuration,
-                        v: sum / count
+                        v: peak
                     });
                 }
             }
