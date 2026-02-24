@@ -66,6 +66,8 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
+        this._historyCachePath = GLib.get_user_cache_dir() + '/vitals/history.json';
+        this._values.loadTimeSeries(this._historyCachePath);
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
@@ -564,7 +566,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _updateTimeSettingChanged() {
         this._destroyTimer();
-        this._values.clearTimeSeries();
+        this._values.clearTimeSeries(this._historyCachePath);
         this._initializeTimer();
     }
 
@@ -835,6 +837,7 @@ var VitalsMenuButton = GObject.registerClass({
     destroy() {
         this._hideHistoryPopout();
         this._destroyTimer();
+        this._values.saveTimeSeries(this._historyCachePath);
         this._sensors.destroy();
 
         for (let signal of Object.values(this._settingChangedSignals))

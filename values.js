@@ -24,6 +24,8 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 
 const cbFun = (d, c) => {
@@ -79,9 +81,69 @@ export const Values = GObject.registerClass({
         while (buf.length > maxPoints) buf.shift();
     }
 
-    clearTimeSeries() {
+    clearTimeSeries(cachePath) {
         this._timeSeries = {};
         this._timeSeriesFormat = {};
+        if (cachePath) {
+            try {
+                const file = Gio.File.new_for_path(cachePath);
+                if (file.query_exists(null))
+                    file.delete(null);
+            } catch (e) {
+                // ignore
+            }
+        }
+    }
+
+    saveTimeSeries(path) {
+        try {
+            const obj = {
+                version: 1,
+                timeSeries: this._timeSeries,
+                timeSeriesFormat: this._timeSeriesFormat
+            };
+            const json = JSON.stringify(obj);
+            const dir = GLib.path_get_dirname(path);
+            GLib.mkdir_with_parents(dir, 0o755);
+            GLib.file_set_contents(path, json);
+        } catch (e) {
+            // ignore write failures
+        }
+    }
+
+    loadTimeSeries(path) {
+        try {
+            const file = Gio.File.new_for_path(path);
+            if (!file.query_exists(null)) return;
+            const [ok, contents] = GLib.file_get_contents(path);
+            if (!ok) return;
+            const decoder = new TextDecoder('utf-8');
+            const json = decoder.decode(contents);
+            const obj = JSON.parse(json);
+            if (!obj || obj.version !== 1) return;
+            if (obj.timeSeries && typeof obj.timeSeries === 'object')
+                this._timeSeries = obj.timeSeries;
+            if (obj.timeSeriesFormat && typeof obj.timeSeriesFormat === 'object')
+                this._timeSeriesFormat = obj.timeSeriesFormat;
+            const now = Date.now() / 1000;
+            const maxAge = this._getHistoryDurationSeconds();
+            const cutoff = now - maxAge;
+            for (const key in this._timeSeries) {
+                const buf = this._timeSeries[key];
+                if (!Array.isArray(buf)) {
+                    delete this._timeSeries[key];
+                    continue;
+                }
+                while (buf.length > 0 && buf[0].t < cutoff)
+                    buf.shift();
+                if (buf.length === 0) {
+                    delete this._timeSeries[key];
+                    delete this._timeSeriesFormat[key];
+                }
+            }
+        } catch (e) {
+            // ignore corrupt or missing file
+        }
     }
 
     getTimeSeries(key) {
