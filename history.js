@@ -103,11 +103,12 @@ export const HistoryGraph = GObject.registerClass({
         for (let b = 0; b < numBars; b++) {
             const iStart = dataOffset + b * base;
             const iEnd = Math.min(iStart + base, data.length);
-            let peak = -Infinity;
+            let sum = 0;
             for (let i = iStart; i < iEnd; i++) {
-                if (data[i].v > peak) peak = data[i].v;
+                sum += data[i].v;
             }
-            const norm = (peak - vMin) / vRange;
+            const avg = sum / (iEnd - iStart);
+            const norm = (avg - vMin) / vRange;
             const barH = Math.max(1, Math.round(norm * graphH));
             const x = Math.round(b * barWidth);
             const w = Math.round((b + 1) * barWidth) - x;
