@@ -341,7 +341,12 @@ var VitalsMenuButton = GObject.registerClass({
             popoutY = menuY + relY + Math.round((rowH - popoutH) / 2);
             popoutY = Math.max(0, popoutY);
         }
-        this._historyPopout.set_position(menuX - this._historyPopout.get_width() - 8, popoutY);
+        const popoutW = this._historyPopout.get_width();
+        const menuW = this.menu.actor.get_width();
+        let popoutX = menuX - popoutW - 8;
+        if (popoutX < 0)
+            popoutX = menuX + menuW + 8;
+        this._historyPopout.set_position(popoutX, popoutY);
         this._historyPopout.show();
         if (this._historyHideTimeoutId) {
             GLib.Source.remove(this._historyHideTimeoutId);
