@@ -80,7 +80,7 @@ export const HistoryGraph = GObject.registerClass({
         if (data.length === 0) return;
 
         const graphW = GRAPH_WIDTH - 2 * PADDING;
-        const graphH = GRAPH_HEIGHT - 2 * PADDING;
+        const graphH = GRAPH_HEIGHT - PADDING;
         if (graphW <= 0 || graphH <= 0) return;
 
         const vals = data.map(d => d.v);
@@ -97,37 +97,72 @@ export const HistoryGraph = GObject.registerClass({
         const now = Date.now() / 1000;
         const tOldest = data[0].t;
 
-        const gaps = [];
+        const rawGaps = [];
         for (let i = 1; i < data.length; i++)
-            gaps.push(data[i].t - data[i - 1].t);
+            rawGaps.push(data[i].t - data[i - 1].t);
+        rawGaps.sort((a, b) => a - b);
+        const rawMedianGap = rawGaps.length > 0
+            ? rawGaps[Math.floor(rawGaps.length / 2)]
+            : 0;
+
+        const tEnd = rawMedianGap > 0
+            ? data[data.length - 1].t + rawMedianGap
+            : now;
+        this._tSpan = tEnd - tOldest;
+        const tRange = Math.max(0.001, this._tSpan);
+
+        const maxBars = Math.floor(graphW / MIN_BAR_WIDTH);
+        let displayData;
+        if (data.length <= maxBars) {
+            displayData = data;
+        } else {
+            const bucketDuration = tRange / maxBars;
+            displayData = [];
+            let di = 0;
+            for (let b = 0; b < maxBars; b++) {
+                const bEnd = tOldest + (b + 1) * bucketDuration;
+                let sum = 0, count = 0;
+                while (di < data.length && data[di].t < bEnd) {
+                    sum += data[di].v;
+                    count++;
+                    di++;
+                }
+                if (count > 0) {
+                    displayData.push({
+                        t: tOldest + b * bucketDuration,
+                        v: sum / count
+                    });
+                }
+            }
+        }
+
+        if (displayData.length === 0) return;
+
+        const gaps = [];
+        for (let i = 1; i < displayData.length; i++)
+            gaps.push(displayData[i].t - displayData[i - 1].t);
         gaps.sort((a, b) => a - b);
         const medianGap = gaps.length > 0
             ? gaps[Math.floor(gaps.length / 2)]
             : 0;
         const maxBarTime = medianGap > 0 ? medianGap * 2.5 : Infinity;
 
-        const tEnd = medianGap > 0
-            ? data[data.length - 1].t + medianGap
-            : now;
-        this._tSpan = tEnd - tOldest;
-        const tRange = Math.max(0.001, this._tSpan);
-
-        const xPixels = data.map(d =>
+        const xPixels = displayData.map(d =>
             Math.round((d.t - tOldest) / tRange * graphW));
 
-        for (let i = 0; i < data.length; i++) {
-            const v = data[i].v;
+        for (let i = 0; i < displayData.length; i++) {
+            const v = displayData[i].v;
             const norm = (v - vMin) / vRange;
             const barH = Math.max(1, Math.round(norm * graphH));
             const x = xPixels[i];
-            const nextT = (i < data.length - 1) ? data[i + 1].t : tEnd;
-            const gap = nextT - data[i].t;
+            const nextT = (i < displayData.length - 1) ? displayData[i + 1].t : tEnd;
+            const gap = nextT - displayData[i].t;
             let rightEdge;
             if (gap <= maxBarTime) {
-                rightEdge = (i < data.length - 1) ? xPixels[i + 1] : graphW;
+                rightEdge = (i < displayData.length - 1) ? xPixels[i + 1] : graphW;
             } else {
                 rightEdge = Math.min(graphW,
-                    Math.round((data[i].t - tOldest + maxBarTime) / tRange * graphW));
+                    Math.round((displayData[i].t - tOldest + maxBarTime) / tRange * graphW));
             }
             const barW = Math.max(MIN_BAR_WIDTH, rightEdge - x);
             const y = graphH - barH;

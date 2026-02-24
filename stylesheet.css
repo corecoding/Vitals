@@ -67,7 +67,7 @@
 .vitals-history-graph {
   background-color: rgba(0, 0, 0, 0.25);
   border-radius: 4px;
-  padding: 4px;
+  padding: 4px 4px 0 4px;
   margin: 2px 0 2px 0;
 }
 
@@ -76,6 +76,5 @@
 }
 
 .vitals-history-graph-bar {
-  border-radius: 1px;
   background-color: rgba(51, 128, 230, 0.87);
 }
