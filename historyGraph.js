@@ -96,8 +96,6 @@ export const HistoryGraph = GObject.registerClass({
 
         const now = Date.now() / 1000;
         const tOldest = data[0].t;
-        this._tSpan = now - tOldest;
-        const tRange = Math.max(0.001, this._tSpan);
 
         const gaps = [];
         for (let i = 1; i < data.length; i++)
@@ -105,8 +103,14 @@ export const HistoryGraph = GObject.registerClass({
         gaps.sort((a, b) => a - b);
         const medianGap = gaps.length > 0
             ? gaps[Math.floor(gaps.length / 2)]
-            : tRange;
-        const maxBarTime = medianGap * 2.5;
+            : 0;
+        const maxBarTime = medianGap > 0 ? medianGap * 2.5 : Infinity;
+
+        const tEnd = medianGap > 0
+            ? data[data.length - 1].t + medianGap
+            : now;
+        this._tSpan = tEnd - tOldest;
+        const tRange = Math.max(0.001, this._tSpan);
 
         const xPixels = data.map(d =>
             Math.round((d.t - tOldest) / tRange * graphW));
@@ -116,7 +120,7 @@ export const HistoryGraph = GObject.registerClass({
             const norm = (v - vMin) / vRange;
             const barH = Math.max(1, Math.round(norm * graphH));
             const x = xPixels[i];
-            const nextT = (i < data.length - 1) ? data[i + 1].t : now;
+            const nextT = (i < data.length - 1) ? data[i + 1].t : tEnd;
             const gap = nextT - data[i].t;
             let rightEdge;
             if (gap <= maxBarTime) {
