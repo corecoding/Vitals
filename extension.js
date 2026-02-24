@@ -285,6 +285,26 @@ var VitalsMenuButton = GObject.registerClass({
         });
     }
 
+    _updateHistoryGraph(key, label, samples) {
+        const historyDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
+        const interval = Math.max(1, this._settings.get_int('update-time'));
+        const base = Math.max(1, Math.ceil(historyDuration / interval / 800));
+        this._historyGraph.setData(samples, label, '', base);
+        const tSpan = this._historyGraph.getTimeSpan();
+        const clampedSpan = Math.min(tSpan, historyDuration);
+        this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
+        const rawRange = this._historyGraph.getRawRange();
+        if (rawRange) {
+            this._historyYMax.text = this._values.formatValue(key, rawRange.max);
+            this._historyYMin.text = this._values.formatValue(key, rawRange.min);
+            this._historyYAxis.show();
+        } else {
+            this._historyYMax.text = '';
+            this._historyYMin.text = '';
+            this._historyYAxis.hide();
+        }
+    }
+
     _showHistoryPopout(key, label, itemActor) {
         if (!this._settings.get_boolean('show-sensor-history-graph')) return;
         const samples = this._values.getTimeSeries(key);
@@ -294,23 +314,7 @@ var VitalsMenuButton = GObject.registerClass({
         try {
             this._historyTitleLabel.text = label + ' ' + _('history');
             this._historyTitleLabel.show();
-            const historyDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
-            const interval = Math.max(1, this._settings.get_int('update-time'));
-            const base = Math.max(1, Math.ceil(historyDuration / interval / 800));
-            this._historyGraph.setData(samples, label, '', base);
-            const tSpan = this._historyGraph.getTimeSpan();
-            const clampedSpan = Math.min(tSpan, historyDuration);
-            this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
-            const rawRange = this._historyGraph.getRawRange();
-            if (rawRange) {
-                this._historyYMax.text = this._values.formatValue(key, rawRange.max);
-                this._historyYMin.text = this._values.formatValue(key, rawRange.min);
-                this._historyYAxis.show();
-            } else {
-                this._historyYMax.text = '';
-                this._historyYMin.text = '';
-                this._historyYAxis.hide();
-            }
+            this._updateHistoryGraph(key, label, samples);
         } catch (e) {
             this._historyYMax.text = '';
             this._historyYMin.text = '';
@@ -377,23 +381,7 @@ var VitalsMenuButton = GObject.registerClass({
         if (samples.length === 0) return;
 
         try {
-            const historyDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
-            const interval = Math.max(1, this._settings.get_int('update-time'));
-            const base = Math.max(1, Math.ceil(historyDuration / interval / 800));
-            this._historyGraph.setData(samples, label, '', base);
-            const tSpan = this._historyGraph.getTimeSpan();
-            const clampedSpan = Math.min(tSpan, historyDuration);
-            this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
-            const rawRange = this._historyGraph.getRawRange();
-            if (rawRange) {
-                this._historyYMax.text = this._values.formatValue(key, rawRange.max);
-                this._historyYMin.text = this._values.formatValue(key, rawRange.min);
-                this._historyYAxis.show();
-            } else {
-                this._historyYMax.text = '';
-                this._historyYMin.text = '';
-                this._historyYAxis.hide();
-            }
+            this._updateHistoryGraph(key, label, samples);
         } catch (e) {
             // ignore
         }
