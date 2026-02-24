@@ -347,7 +347,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _scheduleHistoryPopoutHide() {
         if (this._historyHideTimeoutId) return;
-        this._historyHideTimeoutId = GLib.timeout_add(250, GLib.PRIORITY_DEFAULT, () => {
+        this._historyHideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
             this._hideHistoryPopout();
             this._historyHideTimeoutId = null;
             return GLib.SOURCE_REMOVE;
@@ -875,6 +875,10 @@ var VitalsMenuButton = GObject.registerClass({
 
     destroy() {
         this._hideHistoryPopout();
+        if (this._historyPopout) {
+            this._historyPopout.destroy();
+            this._historyPopout = null;
+        }
         this._destroyTimer();
         this._values.saveTimeSeries(this._historyCachePath);
         this._sensors.destroy();
