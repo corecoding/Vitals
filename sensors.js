@@ -24,6 +24,7 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
@@ -59,6 +60,12 @@ export const Sensors = GObject.registerClass({
         this._nvidia_smi_process = null;
         this._nvidia_labels = [];
         this._bad_split_count = 0;
+
+        this._frameMonitorSignalId = 0;
+        this._frameMonitorLastTime = 0;
+        this._frameMonitorFrameCount = 0;
+        this._frameMonitorAccTime = 0;
+        this._frameMonitorCurrentHz = 0;
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -500,10 +507,56 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _initFrameMonitor() {
+        if (this._frameMonitorSignalId) return;
+        this._frameMonitorLastTime = 0;
+        this._frameMonitorFrameCount = 0;
+        this._frameMonitorAccTime = 0;
+        this._frameMonitorCurrentHz = 0;
+        this._frameMonitorSignalId = global.stage.connect('after-paint', () => {
+            this._onAfterPaint();
+        });
+    }
+
+    _destroyFrameMonitor() {
+        if (this._frameMonitorSignalId) {
+            global.stage.disconnect(this._frameMonitorSignalId);
+            this._frameMonitorSignalId = 0;
+        }
+        this._frameMonitorLastTime = 0;
+        this._frameMonitorCurrentHz = 0;
+    }
+
+    _onAfterPaint() {
+        const now = GLib.get_monotonic_time();
+
+        if (this._frameMonitorLastTime === 0) {
+            this._frameMonitorLastTime = now;
+            return;
+        }
+
+        const delta = now - this._frameMonitorLastTime;
+        this._frameMonitorLastTime = now;
+
+        this._frameMonitorFrameCount++;
+        this._frameMonitorAccTime += delta;
+
+        if (this._frameMonitorAccTime >= 500000) {
+            this._frameMonitorCurrentHz = this._frameMonitorFrameCount / (this._frameMonitorAccTime / 1000000);
+            this._frameMonitorFrameCount = 0;
+            this._frameMonitorAccTime = 0;
+        }
+    }
+
     _queryGpu(callback) {
+        if (this._frameMonitorCurrentHz > 0)
+            this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1', 'hertz');
+
         if (!this._nvidia_smi_process) {
             // no nvidia-smi, so we use sysfs DRM if any cards was discovered
             if (!this._gpu_drm_indices){
+                if (this._frameMonitorCurrentHz > 0)
+                    this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1-group', 'hertz');
                 this._disableGpuLabels(callback);
                 return;
             } else {
@@ -801,6 +854,7 @@ export const Sensors = GObject.registerClass({
         // Launch nvidia-smi subprocess if nvidia querying is enabled
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
+        this._initFrameMonitor();
     }
 
     _discoverGpuDrm() {
@@ -992,9 +1046,13 @@ export const Sensors = GObject.registerClass({
         this._battery_charge_status = '';
         this._nvidia_labels = [];
         this._bad_split_count = 0;
+        this._frameMonitorLastTime = 0;
+        this._frameMonitorFrameCount = 0;
+        this._frameMonitorAccTime = 0;
     }
 
     destroy() {
+        this._destroyFrameMonitor();
         this._terminateNvidiaSmiProcess();
 
         for (let signal of Object.values(this._settingChangedSignals))
