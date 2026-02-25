@@ -12,7 +12,8 @@
 .vitals-panel-icon-network { margin: 0 3px 0 0; padding: 0; }
 .vitals-panel-icon-storage { margin: 0 2px 0 0; padding: 0; }
 .vitals-panel-icon-battery { margin: 0 4px 0 0; padding: 0; }
-.vitals-panel-label {}
+.vitals-panel-label { padding: 0 6px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+.vitals-panel-graph { border-radius: 3px; margin-top: -3px; margin-bottom: -3px; }
 .vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; border: 1px solid transparent; }
 .vitals-button-action:hover, .vitals-button-action:focus { border-color: #777; }
 .vitals-button-action > StIcon { icon-size: 16px; }

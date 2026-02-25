@@ -1,3 +1,4 @@
+import Cairo from 'gi://cairo';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -53,6 +54,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._sensorMenuItems = {};
         this._hotLabels = {};
         this._hotItems = {};
+        this._hotGraphs = {};
         this._groups = {};
         this._widths = {};
         this._numGpus = 1;
@@ -481,21 +483,104 @@ var VitalsMenuButton = GObject.registerClass({
         // don't add a label when no sensors are in the panel
         if (key == '_default_icon_') return;
 
+        let overlay = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            y_expand: true,
+        });
+
+        let graph = new St.DrawingArea({
+            style_class: 'vitals-panel-graph',
+            x_expand: true,
+            y_expand: true,
+        });
+        graph.connect('repaint', (area) => {
+            this._onPanelGraphRepaint(area, key);
+        });
+        graph.visible = false;
+        this._hotGraphs[key] = graph;
+        overlay.add_child(graph);
+
         let label = new St.Label({
             style_class: 'vitals-panel-label',
             text: (value)?value:'\u2026', // ...
+            x_expand: true,
             y_expand: true,
+            x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER
         });
         // attempt to prevent ellipsizes
         label.get_clutter_text().ellipsize = 0;
         // keep track of label for removal later
         this._hotLabels[key] = label;
-        // prevent "called on the widget"  "which is not in the stage" errors by adding before width below
-        item.add_child(label);
+        overlay.add_child(label);
+
+        item.add_child(overlay);
 
         // support for fixed widths #55, save label (text) width
         this._widths[key] = label.get_clutter_text().width;
+    }
+
+    _onPanelGraphRepaint(area, key) {
+        let cr = area.get_context();
+        const width = area.width;
+        const height = area.height;
+
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.paint();
+        cr.setOperator(Cairo.Operator.OVER);
+
+        const allSamples = this._values.getTimeSeries(key);
+        const validSamples = allSamples.filter(s => s.v !== null);
+
+        if (validSamples.length < 2) {
+            cr.$dispose();
+            return;
+        }
+
+        const stepX = 2;
+        const maxPoints = Math.floor(width / stepX);
+        const plotPoints = validSamples.length > maxPoints
+            ? validSamples.slice(-maxPoints)
+            : validSamples;
+
+        let minVal = Infinity, maxVal = -Infinity;
+        for (let s of plotPoints) {
+            if (s.v < minVal) minVal = s.v;
+            if (s.v > maxVal) maxVal = s.v;
+        }
+
+        const range = maxVal - minVal;
+
+        cr.setLineWidth(1.5);
+
+        if (range === 0) {
+            cr.setSourceRGBA(0.2, 0.5, 0.9, 0.85);
+            cr.moveTo(0, height / 2);
+            cr.lineTo(width, height / 2);
+            cr.stroke();
+            cr.$dispose();
+            return;
+        }
+
+        const startX = width - plotPoints.length * stepX;
+        for (let i = 0; i < plotPoints.length; i++) {
+            const x = startX + i * stepX;
+            const normalized = (plotPoints[i].v - minVal) / range;
+            const y = height - normalized * height;
+            if (i === 0) cr.moveTo(x, y);
+            else cr.lineTo(x, y);
+        }
+
+        cr.setSourceRGBA(0.2, 0.5, 0.9, 0.85);
+        cr.strokePreserve();
+
+        cr.lineTo(width, height);
+        cr.lineTo(startX, height);
+        cr.closePath();
+        cr.setSourceRGBA(0.2, 0.5, 0.9, 0.15);
+        cr.fill();
+
+        cr.$dispose();
     }
 
     _showHideSensorsChanged(self, sensor) {
@@ -556,6 +641,7 @@ var VitalsMenuButton = GObject.registerClass({
             this._hotItems[key].destroy();
             delete this._hotItems[key];
             delete this._hotLabels[key];
+            delete this._hotGraphs[key];
             delete this._widths[key];
         }
     }
@@ -855,6 +941,14 @@ var VitalsMenuButton = GObject.registerClass({
         if (this._warnings.length > 0) {
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
             this._warnings = [];
+        }
+
+        for (let key in this._hotGraphs) {
+            const samples = this._values.getTimeSeries(key);
+            const hasData = samples.filter(s => s.v !== null).length >= 2;
+            this._hotGraphs[key].visible = hasData;
+            if (hasData)
+                this._hotGraphs[key].queue_repaint();
         }
 
         this._refreshHistoryPopout();
