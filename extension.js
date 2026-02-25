@@ -60,7 +60,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._newGpuDetectedCount = 0;
         this._last_query = new Date().getTime();
         this._historyPopout = null;
-        this._historyPopoutLeaveId = 0;
         this._historyHideTimeoutId = null;
         this._historyPopoutSensorKey = null;
         this._historyPopoutLabel = null;
@@ -287,12 +286,15 @@ var VitalsMenuButton = GObject.registerClass({
 
     _updateHistoryGraph(key, label, samples) {
         const historyDuration = Math.max(60, this._settings.get_int('sensor-history-duration'));
-        const interval = Math.max(1, this._settings.get_int('update-time'));
-        const base = Math.max(1, Math.ceil(historyDuration / interval / 800));
-        this._historyGraph.setData(samples, label, '', base);
-        const tSpan = this._historyGraph.getTimeSpan();
-        const clampedSpan = Math.min(tSpan, historyDuration);
-        this._historyXLeft.text = this._values.formatDuration(clampedSpan) + ' ' + _('ago');
+        const nowSec = Date.now() / 1000;
+        const cutoff = nowSec - historyDuration;
+        const windowed = samples.filter(s => s.t >= cutoff);
+        while (windowed.length > 0 && windowed[0].v === null) windowed.shift();
+        const base = Math.max(1, Math.ceil(windowed.length / 200));
+        this._historyGraph.setData(windowed, label, '', base);
+        const actualSpan = this._historyGraph.getTimeSpan();
+        const displayDuration = actualSpan > 0 ? Math.min(historyDuration, Math.round(actualSpan)) : historyDuration;
+        this._historyXLeft.text = this._values.formatDuration(displayDuration) + ' ' + _('ago');
         const rawRange = this._historyGraph.getRawRange();
         if (rawRange) {
             this._historyYMax.text = this._values.formatValue(key, rawRange.max);

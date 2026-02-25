@@ -98,8 +98,21 @@ export const HistoryGraph = GObject.registerClass({
             if (data[i].v < vMin) vMin = data[i].v;
             if (data[i].v > vMax) vMax = data[i].v;
         }
-        if (vMin === Infinity) return;
-        if (vMax <= vMin) { vMin -= 1; vMax += 1; }
+        if (vMin === Infinity) {
+            vMin = 0;
+            vMax = 1;
+        } else if (vMax <= vMin) {
+            const v = vMin;
+            if (v >= 0 && v <= 1) {
+                const margin = 0.05;
+                vMin = Math.max(0, v - margin);
+                vMax = Math.min(1, v + margin);
+                if (vMax <= vMin) vMax = vMin + margin;
+            } else {
+                vMin -= 1;
+                vMax += 1;
+            }
+        }
         this._vMin = vMin;
         this._vMax = vMax;
         const vRange = vMax - vMin;
