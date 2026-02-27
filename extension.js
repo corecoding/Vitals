@@ -19,16 +19,19 @@ import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
 import * as HistoryGraph from './history.js';
 
-let vitalsMenu;
+let vitalsMenus = [];
 
 var VitalsMenuButton = GObject.registerClass({
     GTypeName: 'VitalsMenuButton',
 }, class VitalsMenuButton extends PanelMenu.Button {
-    _init(extensionObject) {
+    _init(extensionObject, options = {}) {
         super._init(Clutter.ActorAlign.FILL);
 
         this._extensionObject = extensionObject;
         this._settings = extensionObject.getSettings();
+        this._isPrimary = !options.mirror;
+        this._dtpPanel = options.panel || null;
+        this._onSensorUpdate = null;
 
         this._sensorIcons = {
             'temperature' : { 'icon': 'temperature-symbolic.svg' },
@@ -64,10 +67,16 @@ var VitalsMenuButton = GObject.registerClass({
         this._historyPopoutSensorKey = null;
         this._historyPopoutLabel = null;
 
-        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
-        this._values = new Values.Values(this._settings, this._sensorIcons);
-        this._historyCachePath = GLib.get_user_cache_dir() + '/vitals/history.json';
-        this._values.loadTimeSeries(this._historyCachePath);
+        if (this._isPrimary) {
+            this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
+            this._values = new Values.Values(this._settings, this._sensorIcons);
+            this._historyCachePath = GLib.get_user_cache_dir() + '/vitals/history.json';
+            this._values.loadTimeSeries(this._historyCachePath);
+        } else {
+            this._sensors = null;
+            this._values = null;
+            this._historyCachePath = null;
+        }
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
@@ -83,7 +92,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._settingChangedSignals = [];
         this._refreshTimeoutId = null;
 
-        this._addSettingChangedSignal('update-time', this._updateTimeSettingChanged.bind(this));
+        if (this._isPrimary)
+            this._addSettingChangedSignal('update-time', this._updateTimeSettingChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
@@ -99,11 +109,13 @@ var VitalsMenuButton = GObject.registerClass({
         this._initializeMenu();
         this._createHistoryPopout();
 
-        // start off with fresh sensors
-        this._querySensors();
+        if (this._isPrimary) {
+            // start off with fresh sensors
+            this._querySensors();
 
-        // start monitoring sensors
-        this._initializeTimer();
+            // start monitoring sensors
+            this._initializeTimer();
+        }
     }
 
     _initializeMenu() {
@@ -142,6 +154,8 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round refresh button
         let refreshButton = this._createRoundButton('view-refresh-symbolic', _('Refresh'));
         refreshButton.connect('clicked', (self) => {
+            if (!this._isPrimary) return;
+
             // force refresh by clearing history
             this._sensors.resetHistory();
             this._values.resetHistory(this._numGpus);
@@ -178,13 +192,13 @@ var VitalsMenuButton = GObject.registerClass({
 
         // query sensors on menu open
         this._menuStateChangeId = this.menu.connect('open-state-changed', (self, isMenuOpen) => {
-            if (isMenuOpen) {
+            if (isMenuOpen && this._isPrimary) {
                 // make sure timer fires at next full interval
                 this._updateTimeChanged();
 
                 // refresh sensors now
                 this._querySensors();
-            } else {
+            } else if (!isMenuOpen) {
                 this._hideHistoryPopout();
             }
         });
@@ -499,7 +513,8 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _showHideSensorsChanged(self, sensor) {
-        this._sensors.resetHistory();
+        if (this._isPrimary)
+            this._sensors.resetHistory();
 
         const sensorName = sensor.substr(5);
         if(sensorName === 'gpu') {
@@ -514,10 +529,11 @@ var VitalsMenuButton = GObject.registerClass({
         let position = this._positionInPanel();
 
         // allows easily addressable boxes
+        let panel = this._dtpPanel ? this._dtpPanel.panel : Main.panel;
         let boxes = {
-            left: Main.panel._leftBox,
-            center: Main.panel._centerBox,
-            right: Main.panel._rightBox
+            left: panel._leftBox,
+            center: panel._centerBox,
+            right: panel._rightBox
         };
 
         // update position when changed from preferences
@@ -525,9 +541,10 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _redrawDetailsMenuIcons() {
-        // updates the icons on the 'details' menu, the one 
+        // updates the icons on the 'details' menu, the one
         // you have to click to appear
-        this._sensors.resetHistory();
+        if (this._isPrimary)
+            this._sensors.resetHistory();
         for (const sensor in this._sensorIcons) {
             if (sensor == "gpu") continue;
             this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
@@ -571,9 +588,12 @@ var VitalsMenuButton = GObject.registerClass({
         }
 
         this._drawMenu();
-        this._sensors.resetHistory();
-        this._values.resetHistory(this._numGpus);
-        this._querySensors();
+
+        if (this._isPrimary) {
+            this._sensors.resetHistory();
+            this._values.resetHistory(this._numGpus);
+            this._querySensors();
+        }
     }
 
     _drawMenu() {
@@ -843,8 +863,13 @@ var VitalsMenuButton = GObject.registerClass({
             }
 
             let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
-            for (let item of Object.values(items))
+            for (let item of Object.values(items)) {
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
+
+                // broadcast to mirror buttons
+                if (this._onSensorUpdate)
+                    this._onSensorUpdate(_(item[0]), item[1], item[2], item[3]);
+            }
         }, dwell);
 
         //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
@@ -868,15 +893,22 @@ var VitalsMenuButton = GObject.registerClass({
         source.notify(notification);
     }
 
+    updateFromPrimary(label, value, type, key) {
+        this._updateDisplay(label, value, type, key);
+    }
+
     destroy() {
         this._hideHistoryPopout();
         if (this._historyPopout) {
             this._historyPopout.destroy();
             this._historyPopout = null;
         }
-        this._destroyTimer();
-        this._values.saveTimeSeries(this._historyCachePath);
-        this._sensors.destroy();
+
+        if (this._isPrimary) {
+            this._destroyTimer();
+            this._values.saveTimeSeries(this._historyCachePath);
+            this._sensors.destroy();
+        }
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
@@ -887,13 +919,126 @@ var VitalsMenuButton = GObject.registerClass({
 
 export default class VitalsExtension extends Extension {
     enable() {
-        vitalsMenu = new VitalsMenuButton(this);
-        let position = vitalsMenu._positionInPanel();
-        Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, position[1], position[0]);
+        this._settings = this.getSettings();
+        this._dtpSignalId = null;
+        this._settingSignalId = null;
+        this._dtpWaitId = null;
+
+        this._setupPanels();
+
+        // react to multimonitor setting changes
+        this._settingSignalId = this._settings.connect('changed::show-multimonitor', () => {
+            this._destroyAll();
+            this._setupPanels();
+        });
+    }
+
+    _setupPanels() {
+        vitalsMenus = [];
+
+        let useMultiMonitor = this._settings.get_boolean('show-multimonitor');
+        let hasDtP = global.dashToPanel?.panels?.length > 0;
+
+        if (useMultiMonitor && hasDtP) {
+            this._setupDashToPanelPanels();
+
+            // listen for DtP panel recreation
+            this._dtpSignalId = global.dashToPanel.connect('panels-created', () => {
+                this._destroyAll();
+                this._setupDashToPanelPanels();
+            });
+        } else if (useMultiMonitor && !hasDtP) {
+            // DtP might not be ready yet — create single panel now and wait for DtP
+            this._createSinglePanel();
+
+            // poll for global.dashToPanel to appear (DtP may load after us)
+            this._dtpWaitId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                if (global.dashToPanel?.panels?.length > 0) {
+                    this._destroyAll();
+                    this._setupDashToPanelPanels();
+
+                    // listen for future DtP panel recreation
+                    this._dtpSignalId = global.dashToPanel.connect('panels-created', () => {
+                        this._destroyAll();
+                        this._setupDashToPanelPanels();
+                    });
+
+                    this._dtpWaitId = null;
+                    return GLib.SOURCE_REMOVE;
+                }
+                return GLib.SOURCE_CONTINUE;
+            });
+        } else {
+            this._createSinglePanel();
+
+            // if DtP exists, listen for panel recreation so we can re-add to primary
+            if (global.dashToPanel) {
+                this._dtpSignalId = global.dashToPanel.connect('panels-created', () => {
+                    this._destroyAll();
+                    this._createSinglePanel();
+                });
+            }
+        }
+    }
+
+    _createSinglePanel() {
+        let primary = new VitalsMenuButton(this);
+        let position = primary._positionInPanel();
+        Main.panel.addToStatusArea('vitalsMenu', primary, position[1], position[0]);
+        vitalsMenus.push(primary);
+    }
+
+    _setupDashToPanelPanels() {
+        let panels = global.dashToPanel.panels.filter(p => p);
+        if (panels.length === 0) {
+            this._createSinglePanel();
+            return;
+        }
+
+        // create primary button on first panel
+        let primary = new VitalsMenuButton(this, { mirror: false, panel: panels[0] });
+        let position = primary._positionInPanel();
+        panels[0].panel.addToStatusArea('vitalsMenu0', primary, position[1], position[0]);
+        vitalsMenus.push(primary);
+
+        // create mirror buttons on remaining panels
+        let mirrors = [];
+        for (let i = 1; i < panels.length; i++) {
+            let mirror = new VitalsMenuButton(this, { mirror: true, panel: panels[i] });
+            let pos = mirror._positionInPanel();
+            panels[i].panel.addToStatusArea('vitalsMenu' + i, mirror, pos[1], pos[0]);
+            vitalsMenus.push(mirror);
+            mirrors.push(mirror);
+        }
+
+        // wire primary to broadcast sensor data to mirrors
+        primary._onSensorUpdate = (label, value, type, key) => {
+            for (let mirror of mirrors)
+                mirror.updateFromPrimary(label, value, type, key);
+        };
+    }
+
+    _destroyAll() {
+        if (this._dtpWaitId) {
+            GLib.Source.remove(this._dtpWaitId);
+            this._dtpWaitId = null;
+        }
+
+        if (this._dtpSignalId && global.dashToPanel) {
+            global.dashToPanel.disconnect(this._dtpSignalId);
+            this._dtpSignalId = null;
+        }
+
+        for (let menu of vitalsMenus)
+            menu.destroy();
+        vitalsMenus = [];
     }
 
     disable() {
-        vitalsMenu.destroy();
-        vitalsMenu = null;
+        if (this._settingSignalId) {
+            this._settings.disconnect(this._settingSignalId);
+            this._settingSignalId = null;
+        }
+        this._destroyAll();
     }
 }

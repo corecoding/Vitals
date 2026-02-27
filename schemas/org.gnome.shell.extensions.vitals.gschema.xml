@@ -161,5 +161,10 @@
       <summary>Sensor history duration (seconds)</summary>
       <description>How many seconds of history to keep and display in the hover graph (e.g. 3600 for 1 hour)</description>
     </key>
+    <key type="b" name="show-multimonitor">
+      <default>false</default>
+      <summary>Show on all panels</summary>
+      <description>When Dash to Panel is installed, show Vitals on all panels instead of just the primary</description>
+    </key>
   </schema>
 </schemalist>
