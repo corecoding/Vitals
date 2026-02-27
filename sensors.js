@@ -377,11 +377,19 @@ export const Sensors = GObject.registerClass({
         let free = this.storage.bfree * this.storage.block_size;
         let used = total - free;
         let reserved = (total - avail) - used;
+        let freePercent = 0;
+        let usedPercent = 0;
+        if (total > 0) {
+          freePercent = Math.round((free / total) * 100);
+          usedPercent = Math.round((used / total) * 100);
+        }
 
         this._returnValue(callback, 'Total', total, 'storage', 'storage');
         this._returnValue(callback, 'Used', used, 'storage', 'storage');
         this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
         this._returnValue(callback, 'Free', avail, 'storage', 'storage');
+        this._returnValue(callback, 'Used %', usedPercent + '%', 'storage', 'string');
+        this._returnValue(callback, 'Free %', freePercent + '%', 'storage', 'string');
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     }
 
