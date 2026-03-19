@@ -106,6 +106,17 @@ var VitalsMenuButton = GObject.registerClass({
         this._initializeTimer();
     }
 
+    _getActor(item) {
+        return item?.actor ?? item;
+    }
+
+    _closeMenu() {
+        if (this.menu?.close)
+            this.menu.close();
+        else if (this.menu?._getTopMenu)
+            this.menu._getTopMenu().close();
+    }
+
     _initializeMenu() {
         // display sensor categories
         for (let sensor in this._sensorIcons) {
@@ -157,7 +168,7 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round monitor button
         let monitorButton = this._createRoundButton('org.gnome.SystemMonitor-symbolic', _('System Monitor'));
         monitorButton.connect('clicked', (self) => {
-            this.menu._getTopMenu().close();
+            this._closeMenu();
             Util.spawn(this._settings.get_string('monitor-cmd').split(" "));
         });
         customButtonBox.add_child(monitorButton);
@@ -165,13 +176,13 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round preferences button
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
-            this.menu._getTopMenu().close();
+            this._closeMenu();
             this._extensionObject.openPreferences();
         });
         customButtonBox.add_child(prefsButton);
 
         // now add the buttons to the top bar
-        item.actor.add_child(customButtonBox);
+        this._getActor(item).add_child(customButtonBox);
 
         // add buttons
         this.menu.addMenuItem(item);
@@ -397,14 +408,15 @@ var VitalsMenuButton = GObject.registerClass({
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
         this._groups[groupName] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(groupName) + menuSuffix), true);
         this._groups[groupName].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(groupName));
+        const groupActor = this._getActor(this._groups[groupName]);
 
         // hide menu items that user has requested to not include
         if (!this._settings.get_boolean('show-' + optionName))
-            this._groups[groupName].actor.hide();
+            groupActor.hide();
 
         if (!this._groups[groupName].status) {
             this._groups[groupName].status = this._defaultLabel();
-            this._groups[groupName].actor.insert_child_at_index(this._groups[groupName].status, 4);
+            groupActor.insert_child_at_index(this._groups[groupName].status, 4);
             this._groups[groupName].status.text = _('No Data');
         }
 
@@ -504,13 +516,15 @@ var VitalsMenuButton = GObject.registerClass({
         const sensorName = sensor.substr(5);
         if(sensorName === 'gpu') {
             for(let i = 1; i <= this._numGpus; i++)
-                this._groups[sensorName + '#' + i].visible = this._settings.get_boolean(sensor);
+                this._getActor(this._groups[sensorName + '#' + i]).visible = this._settings.get_boolean(sensor);
         } else
-            this._groups[sensorName].visible = this._settings.get_boolean(sensor);
+            this._getActor(this._groups[sensorName]).visible = this._settings.get_boolean(sensor);
     }
 
     _positionInPanelChanged() {
-        this.container.get_parent().remove_child(this.container);
+        const parent = this.container.get_parent();
+        if (parent)
+            parent.remove_child(this.container);
         let position = this._positionInPanel();
 
         // allows easily addressable boxes

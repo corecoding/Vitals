@@ -81,6 +81,11 @@ export const Sensors = GObject.registerClass({
         this._settingChangedSignals.push(this._settings.connect('changed::' + key, callback));
     }
 
+    _parseNumber(value) {
+        const number = typeof value === 'number' ? value : Number.parseFloat(value);
+        return Number.isFinite(number) ? number : null;
+    }
+
     _refreshIPAddress(callback) {
         // check IP address
         new FileModule.File('https://ipv4.corecoding.com').read().then(contents => {
@@ -148,9 +153,9 @@ export const Sensors = GObject.registerClass({
             if (values = lines.match(/MemFree:(\s+)(\d+) kB/)) memFree = values[2];
 
             let used = total - avail
-            let utilized = used / total;
+            let utilized = total > 0 ? used / total : 0;
             let swapUsed = swapTotal - swapFree
-            let swapUtilized = swapUsed / swapTotal;
+            let swapUtilized = swapTotal > 0 ? swapUsed / swapTotal : 0;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
@@ -197,13 +202,16 @@ export const Sensors = GObject.registerClass({
 
                 // make sure we have data to report
                 if (this._last_processor['core'][cpu] > 0) {
-                    let delta = (total - this._last_processor['core'][cpu]) / dwell;
+                    let sampleDwell = dwell > 0 ? dwell : 1;
+                    let delta = (total - this._last_processor['core'][cpu]) / sampleDwell;
 
                     // /proc/stat provides overall usage for us under the 'cpu' heading
                     if (cpu == 'cpu') {
-                        delta = delta / cores;
-                        this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
-                        this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
+                        if (cores > 0) {
+                            delta = delta / cores;
+                            this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
+                            this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
+                        }
                     } else {
                         this._returnValue(callback, _('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
                     }
@@ -233,6 +241,9 @@ export const Sensors = GObject.registerClass({
                     if (value) freqs.push(parseFloat(value[2]));
                 }
 
+                if (freqs.length === 0)
+                    return;
+
                 let sum = freqs.reduce((a, b) => a + b);
                 let hertz = (sum / freqs.length) * 1000 * 1000;
                 this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
@@ -243,13 +254,17 @@ export const Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
             }).catch(err => { });
         // if frequency scaling is enabled, cpu-freq reports
-        } else if (Object.values(this._last_processor['speed']).length > 0) {
-            let sum = this._last_processor['speed'].reduce((a, b) => a + b);
-            let hertz = (sum / this._last_processor['speed'].length) * 1000;
+        } else {
+            const speeds = this._last_processor['speed'].filter(speed => Number.isFinite(speed));
+            if (speeds.length === 0)
+                return;
+
+            let sum = speeds.reduce((a, b) => a + b);
+            let hertz = (sum / speeds.length) * 1000;
             this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-            let max_hertz = this._last_processor['speed'].reduce((a, b) => Math.max(a, b)) * 1000;
+            let max_hertz = speeds.reduce((a, b) => Math.max(a, b)) * 1000;
             this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
-            let min_hertz = this._last_processor['speed'].reduce((a, b) => Math.min(a, b)) * 1000;
+            let min_hertz = speeds.reduce((a, b) => Math.min(a, b)) * 1000;
             this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
         }
     }
@@ -325,11 +340,16 @@ export const Sensors = GObject.registerClass({
             // if multiple wireless device, we use the last one
             for (let line of lines) {
                 let netArray = line.trim().split(/\s+/);
-                let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
-                let signal = netArray[3].substr(0, netArray[3].length-1);
+                if (netArray.length < 4)
+                    continue;
 
-                this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
-                this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
+                let quality = this._parseNumber(netArray[2].replace(/\.$/, ''));
+                let signal = this._parseNumber(netArray[3].replace(/\.$/, ''));
+
+                if (quality !== null)
+                    this._returnValue(callback, 'WiFi Link Quality', quality / 70, 'network', 'percent');
+                if (signal !== null)
+                    this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
             }
         }).catch(err => { });
     }
@@ -353,13 +373,22 @@ export const Sensors = GObject.registerClass({
         new FileModule.File('/proc/diskstats').read("\n").then(lines => {
             for (let line of lines) {
                 let loadArray = line.trim().split(/\s+/);
+                if (loadArray.length < 10)
+                    continue;
+
                 if ('/dev/' + loadArray[2] == this._storageDevice) {
-                    var read = (loadArray[5] * 512);
-                    var write = (loadArray[9] * 512);
+                    const readSectors = this._parseNumber(loadArray[5]);
+                    const writeSectors = this._parseNumber(loadArray[9]);
+                    if (readSectors === null || writeSectors === null)
+                        break;
+
+                    const read = readSectors * 512;
+                    const write = writeSectors * 512;
+                    let sampleDwell = dwell > 0 ? dwell : 1;
                     this._returnValue(callback, 'Read total', read, 'storage', 'storage');
                     this._returnValue(callback, 'Write total', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
-                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
+                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / sampleDwell, 'storage', 'storage');
+                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / sampleDwell, 'storage', 'storage');
                     this._lastRead = read;
                     this._lastWrite = write;
                     break;
@@ -414,8 +443,23 @@ export const Sensors = GObject.registerClass({
             let output = {};
             for (let line of lines) {
                 let split = line.split('=');
-                output[split[0].replace('POWER_SUPPLY_', '')] = split[1];
+                if (split.length < 2)
+                    continue;
+                output[split[0].replace('POWER_SUPPLY_', '')] = split.slice(1).join('=');
             }
+
+            const voltageNow = this._parseNumber(output['VOLTAGE_NOW']);
+            const currentNow = this._parseNumber(output['CURRENT_NOW']);
+            const powerNowRaw = this._parseNumber(output['POWER_NOW']);
+            const capacity = this._parseNumber(output['CAPACITY']);
+            const chargeFull = this._parseNumber(output['CHARGE_FULL']);
+            const chargeFullDesign = this._parseNumber(output['CHARGE_FULL_DESIGN']);
+            const chargeNow = this._parseNumber(output['CHARGE_NOW']);
+            const voltageMinDesign = this._parseNumber(output['VOLTAGE_MIN_DESIGN']);
+            let energyFull = this._parseNumber(output['ENERGY_FULL']);
+            let energyFullDesign = this._parseNumber(output['ENERGY_FULL_DESIGN']);
+            let energyNow = this._parseNumber(output['ENERGY_NOW']);
+            let powerNow = powerNowRaw;
 
             if ('STATUS' in output) {
                 this._returnValue(callback, 'State', output['STATUS'], 'battery', '');
@@ -425,71 +469,69 @@ export const Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Cycles', output['CYCLE_COUNT'], 'battery', '');
             }
 
-            if ('VOLTAGE_NOW' in output) {
-                this._returnValue(callback, 'Voltage', output['VOLTAGE_NOW'] / 1000, 'battery', 'in');
+            if (voltageNow !== null) {
+                this._returnValue(callback, 'Voltage', voltageNow / 1000, 'battery', 'in');
             }
 
             if ('CAPACITY_LEVEL' in output) {
                 this._returnValue(callback, 'Level', output['CAPACITY_LEVEL'], 'battery', '');
             }
 
-            if ('CAPACITY' in output) {
-                this._returnValue(callback, 'Percentage', output['CAPACITY'] / 100, 'battery', 'percent');
+            if (capacity !== null) {
+                this._returnValue(callback, 'Percentage', capacity / 100, 'battery', 'percent');
             }
 
-            if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output))) {
-                output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
+            if (powerNow === null && voltageNow !== null && currentNow !== null) {
+                powerNow = (voltageNow * currentNow) / 1000000;
             }
 
-            if ('POWER_NOW' in output) {
-                const powerValue = (
-                    parseFloat(output['POWER_NOW']) * (output['STATUS'] === 'Discharging' ? -1 : 1)
-                );
+            if (powerNow !== null) {
+                const powerValue = powerNow * (output['STATUS'] === 'Discharging' ? -1 : 1);
                 this._returnValue(callback, 'Power Rate', powerValue, 'battery', 'watt');
                 this._returnValue(callback, 'battery', powerValue, 'battery-group', 'watt');
             }
 
-            if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output))) {
-                output['ENERGY_FULL'] = (output['CHARGE_FULL'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+            if (energyFull === null && chargeFull !== null && voltageMinDesign !== null) {
+                energyFull = (chargeFull * voltageMinDesign) / 1000000;
             }
 
-            if ('ENERGY_FULL' in output) {
-                this._returnValue(callback, 'Energy (full)', output['ENERGY_FULL'], 'battery', 'watt-hour');
+            if (energyFull !== null) {
+                this._returnValue(callback, 'Energy (full)', energyFull, 'battery', 'watt-hour');
             }
 
-            if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output))) {
-                output['ENERGY_FULL_DESIGN'] = (output['CHARGE_FULL_DESIGN'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+            if (energyFullDesign === null && chargeFullDesign !== null && voltageMinDesign !== null) {
+                energyFullDesign = (chargeFullDesign * voltageMinDesign) / 1000000;
             }
 
-            if ('ENERGY_FULL_DESIGN' in output) {
-                this._returnValue(callback, 'Energy (design)', output['ENERGY_FULL_DESIGN'], 'battery', 'watt-hour');
+            if (energyFullDesign !== null) {
+                this._returnValue(callback, 'Energy (design)', energyFullDesign, 'battery', 'watt-hour');
 
-                if ('ENERGY_FULL' in output) {
-                    this._returnValue(callback, 'Capacity', (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), 'battery', 'percent');
+                if (energyFull !== null && energyFullDesign > 0) {
+                    this._returnValue(callback, 'Capacity', (energyFull / energyFullDesign), 'battery', 'percent');
                 }
             }
 
-            if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output))) {
-                output['ENERGY_NOW'] = (output['VOLTAGE_MIN_DESIGN'] * output['CHARGE_NOW']) / 1000000;
+            if (energyNow === null && voltageMinDesign !== null && chargeNow !== null) {
+                energyNow = (voltageMinDesign * chargeNow) / 1000000;
             }
 
-            if ('ENERGY_NOW' in output) {
-                this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], 'battery', 'watt-hour');
+            if (energyNow !== null) {
+                this._returnValue(callback, 'Energy (now)', energyNow, 'battery', 'watt-hour');
             }
 
-            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output && output['POWER_NOW'] !== 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
+            if (energyFull !== null && energyNow !== null && powerNow !== null && powerNow !== 0 && 'STATUS' in output && (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
 
                 let timeLeft = 0;
 
                 // two different formulas depending on if we are charging or discharging
                 if (output['STATUS'] == 'Charging') {
-                    timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
+                    timeLeft = ((energyFull - energyNow) / powerNow);
                 } else {
-                    timeLeft = (output['ENERGY_NOW'] / Math.abs(output['POWER_NOW']));
+                    timeLeft = (energyNow / Math.abs(powerNow));
                 }
 
                 // don't process Infinity values
-                if (timeLeft !== Infinity) {
+                if (Number.isFinite(timeLeft) && timeLeft >= 0) {
                     if (this._battery_charge_status != output['STATUS']) {
                         // clears history due to state change
                         this._battery_time_left_history = [];
@@ -603,7 +645,7 @@ export const Sensors = GObject.registerClass({
 
     _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
         const expectedSplitLength = 19;
-        let csv_split = csv.split(',');
+        let csv_split = csv.split(',').map(value => value.trim());
 
         // occasionally the nvidia-smi command can get cut off before it can be fully read, thus the parse function only gets part of a line
         // hence we count the number of bad splits and only terminate the process after a few bad splits in a row
@@ -649,43 +691,63 @@ export const Sensors = GObject.registerClass({
 
         const typeName = 'gpu#' + gpuNum;
         const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
-        const memTempValid = !isNaN(parseInt(temp_mem));
+        const fanSpeedPct = this._parseNumber(fan_speed_pct);
+        const tempGpu = this._parseNumber(temp_gpu);
+        const tempMem = this._parseNumber(temp_mem);
+        const memTotal = this._parseNumber(mem_total);
+        const memUsed = this._parseNumber(mem_used);
+        const memReserved = this._parseNumber(mem_reserved);
+        const memFree = this._parseNumber(mem_free);
+        const utilGpu = this._parseNumber(util_gpu);
+        const utilMem = this._parseNumber(util_mem);
+        const utilEncoder = this._parseNumber(util_encoder);
+        const utilDecoder = this._parseNumber(util_decoder);
+        const clockGpu = this._parseNumber(clock_gpu);
+        const clockMem = this._parseNumber(clock_mem);
+        const clockEncodeDecode = this._parseNumber(clock_encode_decode);
+        const powerDraw = this._parseNumber(power);
+        const averagePowerDraw = this._parseNumber(power_avg);
+        const tempLimit = this._parseNumber(staticInfo['temp_limit']);
+        const powerLimit = this._parseNumber(staticInfo['power_limit']);
+        const memTempValid = tempMem !== null;
 
-        this._returnGpuValue(callback, 'Graphics', parseInt(util_gpu) * 0.01, typeName + '-group', 'percent');
+        this._returnGpuValue(callback, 'Graphics', utilGpu !== null ? utilGpu * 0.01 : null, typeName + '-group', 'percent');
 
         this._returnGpuValue(callback, 'Name', label, typeName, '');
 
-        this._returnGpuValue(callback, globalLabel, parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
-        this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, typeName, 'percent');
+        this._returnGpuValue(callback, globalLabel, fanSpeedPct !== null ? fanSpeedPct * 0.01 : null, 'fan', 'percent');
+        this._returnGpuValue(callback, 'Fan', fanSpeedPct !== null ? fanSpeedPct * 0.01 : null, typeName, 'percent');
 
-        this._returnGpuValue(callback, globalLabel, parseInt(temp_gpu) * 1000, 'temperature', 'temp');
-        this._returnGpuValue(callback, 'Temperature', parseInt(temp_gpu) * 1000, typeName, 'temp');
-        this._returnGpuValue(callback, 'Memory Temperature', parseInt(temp_mem) * 1000, typeName, 'temp', memTempValid);
-        this._returnStaticGpuValue(callback, 'Temperature Limit', parseInt(staticInfo['temp_limit']) * 1000, typeName, 'temp');
+        this._returnGpuValue(callback, globalLabel, tempGpu !== null ? tempGpu * 1000 : null, 'temperature', 'temp');
+        this._returnGpuValue(callback, 'Temperature', tempGpu !== null ? tempGpu * 1000 : null, typeName, 'temp');
+        this._returnGpuValue(callback, 'Memory Temperature', tempMem !== null ? tempMem * 1000 : null, typeName, 'temp', memTempValid);
+        this._returnStaticGpuValue(callback, 'Temperature Limit', tempLimit !== null ? tempLimit * 1000 : null, typeName, 'temp');
 
-        this._returnGpuValue(callback, 'Memory Usage', parseInt(mem_used) / parseInt(mem_total), typeName, 'percent');
-        this._returnGpuValue(callback, 'Memory Total', parseInt(mem_total) * 1000, typeName, 'memory');
-        this._returnGpuValue(callback, 'Memory Used', parseInt(mem_used) * 1000, typeName, 'memory');
-        this._returnGpuValue(callback, 'Memory Reserved', parseInt(mem_reserved) * 1000, typeName, 'memory');
-        this._returnGpuValue(callback, 'Memory Free', parseInt(mem_free) * 1000, typeName, 'memory');
+        this._returnGpuValue(callback, 'Memory Usage', memTotal > 0 && memUsed !== null ? memUsed / memTotal : null, typeName, 'percent');
+        this._returnGpuValue(callback, 'Memory Total', memTotal !== null ? memTotal * 1000 : null, typeName, 'memory');
+        this._returnGpuValue(callback, 'Memory Used', memUsed !== null ? memUsed * 1000 : null, typeName, 'memory');
+        this._returnGpuValue(callback, 'Memory Reserved', memReserved !== null ? memReserved * 1000 : null, typeName, 'memory');
+        this._returnGpuValue(callback, 'Memory Free', memFree !== null ? memFree * 1000 : null, typeName, 'memory');
 
-        this._returnGpuValue(callback, 'Memory Utilization', parseInt(util_mem) * 0.01, typeName, 'percent');
-        this._returnGpuValue(callback, 'Utilization', parseInt(util_gpu) * 0.01, typeName, 'percent');
-        this._returnGpuValue(callback, 'Encoder Utilization', parseInt(util_encoder) * 0.01, typeName, 'percent');
-        this._returnGpuValue(callback, 'Decoder Utilization', parseInt(util_decoder) * 0.01, typeName, 'percent');
+        this._returnGpuValue(callback, 'Memory Utilization', utilMem !== null ? utilMem * 0.01 : null, typeName, 'percent');
+        this._returnGpuValue(callback, 'Utilization', utilGpu !== null ? utilGpu * 0.01 : null, typeName, 'percent');
+        this._returnGpuValue(callback, 'Encoder Utilization', utilEncoder !== null ? utilEncoder * 0.01 : null, typeName, 'percent');
+        this._returnGpuValue(callback, 'Decoder Utilization', utilDecoder !== null ? utilDecoder * 0.01 : null, typeName, 'percent');
 
-        this._returnGpuValue(callback, 'Frequency', parseInt(clock_gpu) * 1000 * 1000, typeName, 'hertz');
-        this._returnGpuValue(callback, 'Memory Frequency', parseInt(clock_mem) * 1000 * 1000, typeName, 'hertz');
-        this._returnGpuValue(callback, 'Encoder/Decoder Frequency', parseInt(clock_encode_decode) * 1000 * 1000, typeName, 'hertz');
+        this._returnGpuValue(callback, 'Frequency', clockGpu !== null ? clockGpu * 1000 * 1000 : null, typeName, 'hertz');
+        this._returnGpuValue(callback, 'Memory Frequency', clockMem !== null ? clockMem * 1000 * 1000 : null, typeName, 'hertz');
+        this._returnGpuValue(callback, 'Encoder/Decoder Frequency', clockEncodeDecode !== null ? clockEncodeDecode * 1000 * 1000 : null, typeName, 'hertz');
 
         //this._returnGpuValue(callback, 'Encoder Sessions', parseInt(encoder_sessions), typeName, 'string');
 
-        this._returnGpuValue(callback, 'Power', power, typeName, 'watt-gpu');
-        this._returnGpuValue(callback, 'Average Power', power_avg, typeName, 'watt-gpu');
-        this._returnStaticGpuValue(callback, 'Power Limit', parseInt(staticInfo['power_limit']), typeName, 'watt-gpu');
+        this._returnGpuValue(callback, 'Power', powerDraw, typeName, 'watt-gpu');
+        this._returnGpuValue(callback, 'Average Power', averagePowerDraw, typeName, 'watt-gpu');
+        this._returnStaticGpuValue(callback, 'Power Limit', powerLimit, typeName, 'watt-gpu');
 
-        this._returnGpuValue(callback, 'Link Speed', link_gen_current + 'x' + link_width_current, typeName, 'pcie');
-        this._returnStaticGpuValue(callback, 'Maximum Link Speed', staticInfo['link_gen_max'] + 'x' + staticInfo['link_width_max'], typeName, 'pcie');
+        if (link_gen_current && link_width_current)
+            this._returnGpuValue(callback, 'Link Speed', link_gen_current + 'x' + link_width_current, typeName, 'pcie');
+        if (staticInfo['link_gen_max'] && staticInfo['link_width_max'])
+            this._returnStaticGpuValue(callback, 'Maximum Link Speed', staticInfo['link_gen_max'] + 'x' + staticInfo['link_width_max'], typeName, 'pcie');
 
         this._returnStaticGpuValue(callback, 'Addressing Mode', staticInfo['addressing_mode'], typeName, 'string');
 
@@ -761,7 +823,9 @@ export const Sensors = GObject.registerClass({
     _returnGpuValue(callback, label, value, type, format, display = true) {
         if(!display) return;
 
-        if(format !== "string" && (value === 'N/A' || value === '[N/A]' || isNaN(value))) return;
+        if (!['', 'string', 'pcie'].includes(format) &&
+            (value === 'N/A' || value === '[N/A]' || !Number.isFinite(value)))
+            return;
 
         let nvidiaLabel = {'label': label, 'type': type, 'format': format};
         if (!this._nvidia_labels.includes(nvidiaLabel))
@@ -771,8 +835,9 @@ export const Sensors = GObject.registerClass({
     }
 
     _returnValue(callback, label, value, type, format) {
-        // don't return if value is not a number - will revisit later
-        //if (isNaN(value)) return;
+        if (typeof value === 'number' && !Number.isFinite(value))
+            return;
+
         callback(label, value, type, format);
     }
 

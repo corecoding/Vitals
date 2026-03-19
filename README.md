@@ -109,13 +109,15 @@ Sensor data is obtained from the system using hwmon and GTop. Core Coding and th
 
 | Description | Command |
 | --- | --- |
-| Launch preferences | `gnome-shell-extension-prefs Vitals@CoreCoding.com` |
+| Launch preferences | `gnome-extensions prefs Vitals@CoreCoding.com` |
 | View logs | ``journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f \| grep Vitals`` |
 | Compile schemas | `glib-compile-schemas --strict schemas/` |
 | Compile translation file | `msgfmt vitals.po -o vitals.mo` |
-| Launch Wayland virtual window | `dbus-run-session -- gnome-shell --nested --wayland` |
+| Launch Wayland virtual window | `dbus-run-session -- gnome-shell --devkit --wayland` |
 | Read hot-sensors value | `dconf read /org/gnome/shell/extensions/vitals/hot-sensors` |
 | Write hot-sensors value | `dconf write /org/gnome/shell/extensions/vitals/hot-sensors "['_memory_usage_', '_system_load_1m_']"`<br/>This value configures the list of sensors that show up in the panel. To specify a sensor name, click on the extension to show the drop-down menu, then take the category label and the label of the individual sensor, convert them to `snake_case`, and format them like this: `_category_sensor_`.|
+
+GNOME Shell 50 is supported. For older GNOME Shell versions that do not support `--devkit`, use `dbus-run-session -- gnome-shell --nested --wayland` when testing in a nested session.
 
 ## Donations
 [Please consider donating if you find this extension useful.](https://corecoding.com/donate.php)
