@@ -420,8 +420,25 @@ export const Values = GObject.registerClass({
             this._pushTimePoint('__' + type + '_ses__', sessionVal / memUnit, 'memory');
             output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
 
+            if (!previousValue) {
+                if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
+                this._networkSpeeds[direction][label] = 0;
+
+                let sumNum = 0;
+                for (let iface in this._networkSpeeds[direction])
+                    sumNum += parseFloat(this._networkSpeeds[direction][iface]);
+
+                let legibleSpeed = this._legible(sumNum, 'speed');
+                output.push(['Device ' + direction, legibleSpeed, 'network-' + direction, '__network-' + direction + '_max__']);
+                if (direction == 'rx')
+                    output.push([type, legibleSpeed, type + '-group', '']);
+                output.push([label, this._legible(0, 'speed'), type, key]);
+                return output;
+            }
+
             // calculate speed for this interface
-            let speed = (value - previousValue[1]) / dwell;
+            let sampleDwell = dwell > 0 ? dwell : 1;
+            let speed = (value - previousValue[1]) / sampleDwell;
             output.push([label, this._legible(speed, 'speed'), type, key]);
             this._pushTimePoint(key, speed, 'speed');
 

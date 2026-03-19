@@ -34,7 +34,11 @@ export const MenuItem = GObject.registerClass({
         this._valueLabel.set_y_expand(true);
         this.add_child(this._valueLabel);
 
-        this.actor._delegate = this;
+        this._getActor()._delegate = this;
+    }
+
+    _getActor() {
+        return this.actor ?? this;
     }
 
     get checked() {
@@ -59,7 +63,7 @@ export const MenuItem = GObject.registerClass({
 
     // prevents menu from being closed
     activate(event) {
-    this._checked = !this._checked;
+        this._checked = !this._checked;
         this._updateOrnament();
         this.emit('toggle', event);
     }
