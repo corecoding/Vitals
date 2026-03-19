@@ -67,13 +67,14 @@ export const Sensors = GObject.registerClass({
         this._frameMonitorAccTime = 0;
         this._frameMonitorCurrentHz = 0;
 
+        this._storageDevice = '';
+        this._findStorageDevice();
+
+        this._lastRead = 0;
+        this._lastWrite = 0;
+
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
-            this._storageDevice = '';
-            this._findStorageDevice();
-
-            this._lastRead = 0;
-            this._lastWrite = 0;
         }
     }
 
