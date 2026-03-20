@@ -705,7 +705,8 @@ export const Sensors = GObject.registerClass({
         const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
         for (let z = 0; z < this._gpu_drm_indices.length; z++ ) {
             let i = this._gpu_drm_indices[z];
-            const typeName = 'gpu#' + i;
+            const gpuIndex = z + 1;
+            const typeName = 'gpu#' + gpuIndex;
             const vendor = this._gpu_drm_vendors[z];
 
             // AMD
