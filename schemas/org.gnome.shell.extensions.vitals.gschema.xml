@@ -151,5 +151,15 @@
       <summary>Icon styles</summary>
       <description>Set the style for the displayed sensor icons ('original', 'updated')</description>
     </key>
+    <key type="b" name="show-sensor-history-graph">
+      <default>true</default>
+      <summary>Show sensor history graph on hover</summary>
+      <description>When hovering a sensor row in the menu, show a pop-out graph of its history to the left</description>
+    </key>
+    <key type="i" name="sensor-history-duration">
+      <default>3600</default>
+      <summary>Sensor history duration (seconds)</summary>
+      <description>How many seconds of history to keep and display in the hover graph (e.g. 3600 for 1 hour)</description>
+    </key>
   </schema>
 </schemalist>
