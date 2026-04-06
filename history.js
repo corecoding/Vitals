@@ -68,17 +68,19 @@ export const HistoryGraph = GObject.registerClass({
     }
 
     _rebuildBars() {
-        try {
-            const children = this._barContainer.get_children();
-            if (children && children.length > 0) {
-                for (let i = children.length - 1; i >= 0; i--)
-                    children[i].destroy();
-            }
-        } catch (e) {
-            // ignore
-        }
         const data = this._samples;
-        if (data.length === 0) return;
+        let children;
+        try {
+            children = this._barContainer.get_children();
+        } catch (e) {
+            return;
+        }
+        if (data.length === 0) {
+            // hide all existing bars
+            for (let i = 0; i < children.length; i++)
+                children[i].hide();
+            return;
+        }
 
         const graphW = GRAPH_WIDTH - 2 * PADDING;
         const graphH = GRAPH_HEIGHT - PADDING;
@@ -117,6 +119,8 @@ export const HistoryGraph = GObject.registerClass({
         this._vMax = vMax;
         const vRange = vMax - vMin;
 
+        // reuse existing St.Bin widgets to avoid GC pressure from destroy/recreate
+        let barIdx = 0;
         for (let b = 0; b < numBars; b++) {
             const iStart = dataOffset + b * base;
             const iEnd = Math.min(iStart + base, data.length);
@@ -134,14 +138,30 @@ export const HistoryGraph = GObject.registerClass({
             const barH = Math.max(1, Math.round(norm * graphH));
             const x = Math.round(b * barWidth);
             const w = Math.round((b + 1) * barWidth) - x;
-            const bar = new St.Bin({
-                width: w,
-                height: barH,
-                style_class: 'vitals-history-graph-bar'
-            });
-            bar.set_position(x, graphH - barH);
-            this._barContainer.add_child(bar);
+
+            let bar;
+            if (barIdx < children.length) {
+                // reuse existing bar widget
+                bar = children[barIdx];
+                bar.set_size(w, barH);
+                bar.set_position(x, graphH - barH);
+                bar.show();
+            } else {
+                // create new bar only when pool is exhausted
+                bar = new St.Bin({
+                    width: w,
+                    height: barH,
+                    style_class: 'vitals-history-graph-bar'
+                });
+                bar.set_position(x, graphH - barH);
+                this._barContainer.add_child(bar);
+            }
+            barIdx++;
         }
+
+        // hide surplus bars from previous render
+        for (let i = barIdx; i < children.length; i++)
+            children[i].hide();
     }
 
     getRawRange() {

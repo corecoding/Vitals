@@ -89,8 +89,33 @@ export const Values = GObject.registerClass({
         buf.push({ t: now, v: num });
         const maxAge = this._getHistoryDurationSeconds();
         while (buf.length > 0 && buf[0].t < now - maxAge) buf.shift();
-        const maxPoints = 3600;
-        while (buf.length > maxPoints) buf.shift();
+        // downsample to cap object count and reduce GC pressure
+        const maxPoints = 200;
+        if (buf.length > maxPoints * 1.5) {
+            this._timeSeries[key] = this._downsample(buf, maxPoints);
+        }
+    }
+
+    _downsample(buf, targetLen) {
+        const result = [];
+        const bucketSize = buf.length / targetLen;
+        for (let b = 0; b < targetLen; b++) {
+            const iStart = Math.floor(b * bucketSize);
+            const iEnd = Math.floor((b + 1) * bucketSize);
+            let maxVal = -Infinity, count = 0;
+            for (let i = iStart; i < iEnd; i++) {
+                if (buf[i].v !== null) {
+                    if (buf[i].v > maxVal) maxVal = buf[i].v;
+                    count++;
+                }
+            }
+            const midT = (buf[iStart].t + buf[Math.min(iEnd - 1, buf.length - 1)].t) / 2;
+            if (count > 0)
+                result.push({ t: midT, v: maxVal });
+            else
+                result.push({ t: midT, v: null });
+        }
+        return result;
     }
 
     clearTimeSeries(cachePath) {
