@@ -62,6 +62,7 @@ export const Values = GObject.registerClass({
     }
 
     _pushTimePoint(key, value, format) {
+        if (!this._settings.get_boolean('show-sensor-history-graph')) return;
         if (!this._graphableFormats.includes(format)) return;
         const num = typeof value === 'number' ? value : parseFloat(value);
         if (num !== num) return; // NaN check
