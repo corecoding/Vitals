@@ -323,13 +323,11 @@ var VitalsMenuButton = GObject.registerClass({
         if (!this._settings.get_boolean('show-sensor-history-graph')) return;
         // lazy-load persisted time series on first popout open, merging with in-memory data
         if (!this._timeSeriesLoaded) {
-            // save current in-memory data before loading cache
-            const memSeries = {};
-            const memFormat = {};
-            for (const k in this._values._timeSeries)
-                memSeries[k] = this._values._timeSeries[k].slice();
-            for (const k in this._values._timeSeriesFormat)
-                memFormat[k] = this._values._timeSeriesFormat[k];
+            // Snapshot references to the in-memory (since-boot) series/format before loading cache.
+            // `loadTimeSeries()` replaces `this._values._timeSeries` / `_timeSeriesFormat`, so we need
+            // these references to merge any points collected before the first hover-popout.
+            const memSeries = this._values._timeSeries;
+            const memFormat = this._values._timeSeriesFormat;
 
             this._values.loadTimeSeries(this._historyCachePath);
 
