@@ -152,7 +152,7 @@
       <description>Set the style for the displayed sensor icons ('original', 'updated')</description>
     </key>
     <key type="b" name="show-sensor-history-graph">
-      <default>true</default>
+      <default>false</default>
       <summary>Show sensor history graph on hover</summary>
       <description>When hovering a sensor row in the menu, show a pop-out graph of its history to the left</description>
     </key>
