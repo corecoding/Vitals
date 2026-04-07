@@ -67,7 +67,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._historyCachePath = GLib.get_user_cache_dir() + '/vitals/history.json';
-        this._values.loadTimeSeries(this._historyCachePath);
+        if (this._settings.get_boolean('show-sensor-history-graph'))
+            this._values.loadTimeSeries(this._historyCachePath);
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
@@ -87,6 +88,14 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
+        this._addSettingChangedSignal('show-sensor-history-graph', () => {
+            if (!this._settings.get_boolean('show-sensor-history-graph')) {
+                this._hideHistoryPopout();
+                this._values.clearTimeSeries(this._historyCachePath);
+            } else {
+                this._values.loadTimeSeries(this._historyCachePath);
+            }
+        });
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement', 'include-static-info', 'include-static-gpu-info', 'show-sensor-history-graph' ];
         for (let setting of Object.values(settings))
@@ -875,7 +884,8 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyPopout = null;
         }
         this._destroyTimer();
-        this._values.saveTimeSeries(this._historyCachePath);
+        if (this._settings.get_boolean('show-sensor-history-graph'))
+            this._values.saveTimeSeries(this._historyCachePath);
         this._sensors.destroy();
 
         for (let signal of Object.values(this._settingChangedSignals))
