@@ -68,9 +68,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._historyCachePath = GLib.get_user_cache_dir() + '/vitals/history.json';
         this._timeSeriesLoaded = false;
-
-        if (this._settings.get_boolean('show-sensor-history-graph'))
-            this._values.loadTimeSeries(this._historyCachePath);
+        // History cache: load on first hover (see _showHistoryPopout) or when the user turns the graph on in prefs.
 
         this._menuLayout = new St.BoxLayout({
             vertical: false,
@@ -94,9 +92,13 @@ var VitalsMenuButton = GObject.registerClass({
         this._addSettingChangedSignal('show-sensor-history-graph', () => {
             if (!this._settings.get_boolean('show-sensor-history-graph')) {
                 this._hideHistoryPopout();
+                this._values.setRecordHistoryGraph(false);
                 this._values.clearTimeSeries(this._historyCachePath);
+                this._timeSeriesLoaded = false;
             } else {
+                this._values.setRecordHistoryGraph(true);
                 this._values.loadTimeSeries(this._historyCachePath);
+                this._timeSeriesLoaded = true;
             }
         });
 
@@ -321,7 +323,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _showHistoryPopout(key, label, itemActor) {
         if (!this._settings.get_boolean('show-sensor-history-graph')) return;
-        // lazy-load persisted time series on first popout open, merging with in-memory data
+        // Lazy-load cache once per session if not already loaded (prefs-on loads immediately; see setting handler).
         if (!this._timeSeriesLoaded) {
             // Snapshot references to the in-memory (since-boot) series/format before loading cache.
             // `loadTimeSeries()` replaces `this._values._timeSeries` / `_timeSeriesFormat`, so we need

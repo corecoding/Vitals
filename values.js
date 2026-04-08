@@ -53,6 +53,11 @@ export const Values = GObject.registerClass({
         this._timeSeriesFormat = {};
         this._graphableFormats = ['temp', 'in', 'fan', 'percent', 'hertz', 'memory', 'speed', 'storage', 'watt', 'watt-gpu', 'milliamp', 'milliamp-hour', 'load'];
         this.resetHistory();
+        this._recordHistoryGraph = this._settings.get_boolean('show-sensor-history-graph');
+    }
+
+    setRecordHistoryGraph(enabled) {
+        this._recordHistoryGraph = !!enabled;
     }
 
     _getHistoryDurationSeconds() {
@@ -62,7 +67,7 @@ export const Values = GObject.registerClass({
     }
 
     _pushTimePoint(key, value, format) {
-        if (!this._settings.get_boolean('show-sensor-history-graph')) return;
+        if (!this._recordHistoryGraph) return;
         if (!this._graphableFormats.includes(format)) return;
         const num = typeof value === 'number' ? value : parseFloat(value);
         if (num !== num) return; // NaN check
