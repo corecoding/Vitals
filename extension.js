@@ -69,9 +69,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._historyCachePath = GLib.get_user_cache_dir() + '/vitals/history.json';
         this._timeSeriesLoaded = false;
 
-        if (this._settings.get_boolean('show-sensor-history-graph'))
-            this._values.loadTimeSeries(this._historyCachePath);
-
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
@@ -95,8 +92,12 @@ var VitalsMenuButton = GObject.registerClass({
             if (!this._settings.get_boolean('show-sensor-history-graph')) {
                 this._hideHistoryPopout();
                 this._values.clearTimeSeries(this._historyCachePath);
+                this._values._recordTimeSeries = false;
+                this._timeSeriesLoaded = false;
             } else {
                 this._values.loadTimeSeries(this._historyCachePath);
+                this._values._recordTimeSeries = true;
+                this._timeSeriesLoaded = true;
             }
         });
 
@@ -319,42 +320,40 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
+    _ensureTimeSeriesLoaded() {
+        if (this._timeSeriesLoaded) return;
+        const memSeries = {};
+        const memFormat = {};
+        for (const k in this._values._timeSeries)
+            memSeries[k] = this._values._timeSeries[k].slice();
+        for (const k in this._values._timeSeriesFormat)
+            memFormat[k] = this._values._timeSeriesFormat[k];
+
+        this._values.loadTimeSeries(this._historyCachePath);
+
+        for (const k in memSeries) {
+            if (!(k in this._values._timeSeries)) {
+                this._values._timeSeries[k] = memSeries[k];
+            } else {
+                const cached = this._values._timeSeries[k];
+                const mem = memSeries[k];
+                const lastCacheT = cached.length > 0 ? cached[cached.length - 1].t : 0;
+                for (let i = 0; i < mem.length; i++) {
+                    if (mem[i].t > lastCacheT)
+                        cached.push(mem[i]);
+                }
+                this._values._timeSeries[k] = cached;
+            }
+            if (k in memFormat)
+                this._values._timeSeriesFormat[k] = memFormat[k];
+        }
+
+        this._timeSeriesLoaded = true;
+    }
+
     _showHistoryPopout(key, label, itemActor) {
         if (!this._settings.get_boolean('show-sensor-history-graph')) return;
-        // lazy-load persisted time series on first popout open, merging with in-memory data
-        if (!this._timeSeriesLoaded) {
-            // save current in-memory data before loading cache
-            const memSeries = {};
-            const memFormat = {};
-            for (const k in this._values._timeSeries)
-                memSeries[k] = this._values._timeSeries[k].slice();
-            for (const k in this._values._timeSeriesFormat)
-                memFormat[k] = this._values._timeSeriesFormat[k];
-
-            this._values.loadTimeSeries(this._historyCachePath);
-
-            // merge: use cache as prefix, append newer in-memory entries
-            for (const k in memSeries) {
-                if (!(k in this._values._timeSeries)) {
-                    this._values._timeSeries[k] = memSeries[k];
-                } else {
-                    const cached = this._values._timeSeries[k];
-                    const mem = memSeries[k];
-                    const lastCacheT = cached.length > 0 ? cached[cached.length - 1].t : 0;
-                    // append in-memory points newer than last cache entry
-                    for (let i = 0; i < mem.length; i++) {
-                        if (mem[i].t > lastCacheT)
-                            cached.push(mem[i]);
-                    }
-                    this._values._timeSeries[k] = cached;
-                }
-                // preserve format from in-memory if available
-                if (k in memFormat)
-                    this._values._timeSeriesFormat[k] = memFormat[k];
-            }
-
-            this._timeSeriesLoaded = true;
-        }
+        this._ensureTimeSeriesLoaded();
         const samples = this._values.getTimeSeries(key);
         if (samples.length === 0) return;
         this._historyPopoutSensorKey = key;
@@ -921,8 +920,10 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyPopout = null;
         }
         this._destroyTimer();
-        if (this._settings.get_boolean('show-sensor-history-graph'))
+        if (this._settings.get_boolean('show-sensor-history-graph')) {
+            this._ensureTimeSeriesLoaded();
             this._values.saveTimeSeries(this._historyCachePath);
+        }
         this._sensors.destroy();
 
         for (let signal of Object.values(this._settingChangedSignals))
