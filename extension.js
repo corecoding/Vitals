@@ -436,20 +436,6 @@ var VitalsMenuButton = GObject.registerClass({
             }
         }
 
-        // update panel icon for network country types (Public IP flag)
-        if (this._hotItems[key] && !this._settings.get_boolean('hide-icons')) {
-            let split = type.split('-');
-            if (split[0] === 'network' && split.length === 2 && split[1] !== 'tx' && split[1] !== 'rx') {
-                let gicon = Gio.icon_new_for_string(this._sensorIconPath('network', 'icon-' + split[1]));
-                for (const child of this._hotItems[key].get_children()) {
-                    if (child instanceof St.Icon) {
-                        child.gicon = gicon;
-                        break;
-                    }
-                }
-            }
-        }
-
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
         if (item) {
@@ -626,13 +612,18 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._sensors.query((label, value, type, format) => {
             const typeKey = type.replace('-group', '');
-            let keyType = typeKey;
+            let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
             if (typeKey.startsWith('network-')) {
-                const suffix = typeKey.split('-')[1];
-                if (suffix !== 'tx' && suffix !== 'rx')
-                    keyType = 'network';
+                const suffix = typeKey.split('-');
+                if (suffix[1] !== 'tx' && suffix[1] !== 'rx') {
+                    key = '_' + suffix[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
+                    if (this._hotItems[key] && !this._settings.get_boolean('hide-icons')) {
+                        let icon = this._hotItems[key].get_first_child();
+                        if (icon instanceof St.Icon)
+                            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath('network', 'icon-' + suffix[1]));
+                    }
+                }
             }
-            let key = '_' + keyType + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
