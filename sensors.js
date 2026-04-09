@@ -85,7 +85,10 @@ export const Sensors = GObject.registerClass({
         // check IP address
         new FileModule.File('https://ipv4.corecoding.com').read().then(contents => {
             let obj = JSON.parse(contents);
-            this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
+            let cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
+            let ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
+            let typeOut = (/^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
+            this._returnValue(callback, 'Public IP', ip, typeOut, 'string');
         }).catch(err => { });
     }
 

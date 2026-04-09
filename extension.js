@@ -436,6 +436,20 @@ var VitalsMenuButton = GObject.registerClass({
             }
         }
 
+        // update panel icon for network country types (Public IP flag)
+        if (this._hotItems[key] && !this._settings.get_boolean('hide-icons')) {
+            let split = type.split('-');
+            if (split[0] === 'network' && split.length === 2 && split[1] !== 'tx' && split[1] !== 'rx') {
+                let gicon = Gio.icon_new_for_string(this._sensorIconPath('network', 'icon-' + split[1]));
+                for (const child of this._hotItems[key].get_children()) {
+                    if (child instanceof St.Icon) {
+                        child.gicon = gicon;
+                        break;
+                    }
+                }
+            }
+        }
+
         // have we added this sensor before?
         let item = this._sensorMenuItems[key];
         if (item) {
@@ -540,6 +554,19 @@ var VitalsMenuButton = GObject.registerClass({
         let sensorKey = sensor;
         if(sensor.startsWith('gpu')) sensorKey = 'gpu';
 
+        // Public IP: `sensors.js` emits `network-<cc>` where <cc> is ISO 3166-1 alpha-2.
+        // `_appendMenuItem()` turns that into `icon-<cc>`. If we have a corresponding flag SVG,
+        // prefer it; otherwise fall back to the regular network icon(s).
+        if (sensorKey === 'network') {
+            let match = (typeof icon === 'string') ? icon.match(/^icon-([a-z]{2})$/) : null;
+            if (match) {
+                const cc = match[1];
+                const flagPath = this._extensionObject.path + '/icons/flags/1x1/' + cc + '.svg';
+                if (GLib.file_test(flagPath, GLib.FileTest.EXISTS))
+                    return flagPath;
+            }
+        }
+
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
         return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
     }
@@ -599,7 +626,13 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._sensors.query((label, value, type, format) => {
             const typeKey = type.replace('-group', '');
-            let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
+            let keyType = typeKey;
+            if (typeKey.startsWith('network-')) {
+                const suffix = typeKey.split('-')[1];
+                if (suffix !== 'tx' && suffix !== 'rx')
+                    keyType = 'network';
+            }
+            let key = '_' + keyType + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
@@ -610,7 +643,7 @@ var VitalsMenuButton = GObject.registerClass({
             }
 
             // add/initialize any gpu groups that we haven't added yet
-            if(typeKey.startsWith('gpu') && typeKey !== 'gpu#1') {
+            if (typeKey.startsWith('gpu') && typeKey !== 'gpu#1') {
                 const split = typeKey.split('#');
                 if(split.length == 2 && this._numGpus < parseInt(split[1])) {
                     // occasionally two lines from nvidia-smi will be read at once
