@@ -269,7 +269,7 @@ var VitalsMenuButton = GObject.registerClass({
         );
     }
 
-    _createHotItem(key, value) {
+    _createHotItem(key, value, gicon) {
         let item = new St.BoxLayout({
             style_class: 'vitals-panel-item',
         });
@@ -278,6 +278,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         if (!this._settings.get_boolean('hide-icons') || key == '_default_icon_') {
             let icon = this._defaultIcon(key);
+            if (gicon) icon.gicon = gicon;
             item.add_child(icon);
         }
 
@@ -468,7 +469,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (self.checked) {
                 // add selected sensor to panel
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, self.value);
+                this._createHotItem(self.key, self.value, self.gicon);
             } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
