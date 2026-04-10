@@ -18,11 +18,8 @@ jobs:
       - name: Fetch tags
         run: git fetch --tags
 
-      - name: Validate GSettings schemas
-        run: |
-          mkdir -p /tmp/vitals-schema-validate
-          cp schemas/*.xml /tmp/vitals-schema-validate/
-          /usr/bin/glib-compile-schemas --strict /tmp/vitals-schema-validate/
+      - name: Compile schemas
+        run: /usr/bin/glib-compile-schemas --strict schemas/
 
       - name: Install msgfmt command
         run: sudo apt-get install gettext
@@ -38,7 +35,7 @@ jobs:
 #        run: git commit && git push
 
       - name: Build project # This would actually build your project, using zip for an example artifact
-        run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "howtouse.gif" -x "schemas/gschemas.compiled"
+        run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "howtouse.gif"
 
       - name: Grab version from meta data
         run: echo "METATAG=$(jq .version metadata.json)" >> $GITHUB_ENV
