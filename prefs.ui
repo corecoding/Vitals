@@ -8,7 +8,7 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkBox" id="network_prefs">
-    <property name="can_focus">0</property>
+    <property name="can_focus">1</property>
     <property name="margin_top">12</property>
     <property name="margin_bottom">12</property>
     <property name="margin_start">6</property>
@@ -16,10 +16,10 @@
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkFrame">
-        <property name="can_focus">0</property>
+        <property name="can_focus">1</property>
         <property name="child">
           <object class="GtkListBox">
-            <property name="can_focus">0</property>
+            <property name="can_focus">1</property>
             <property name="selection_mode">none</property>
             <child>
               <object class="GtkListBoxRow">
@@ -50,6 +50,68 @@
                     </child>
                   </object>
                 </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="selectable">1</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">12</property>
+                    <property name="margin_top">6</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Update in minutes</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSpinButton" id="network-public-ip-interval">
+                        <!-- <property name="can_focus">True</property> -->
+                        <property name="editable">1</property>
+                        <property name="numeric">1</property>
+                        <property name="update_policy">if-valid</property>
+                        <property name="adjustment">
+                          <object class="GtkAdjustment">
+                            <property name="lower">1</property>
+                            <property name="upper">1440</property>
+                            <property name="step_increment">1</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="margin-top">10</property>
+                    <property name="margin-bottom">10</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-end">10</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Show country flag</property>
+                        <property name="xalign">0</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="network-public-ip-show-flag">
+                        <property name="visible">True</property>
+                        <property name="halign">end</property>
+                        <property name="hexpand">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

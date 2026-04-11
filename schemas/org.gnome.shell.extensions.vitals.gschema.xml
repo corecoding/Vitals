@@ -81,6 +81,14 @@
       <summary>Include public IP address</summary>
       <description>Display public IP address of internet connection</description>
     </key>
+    <key type="i" name="network-public-ip-interval">
+      <default>60</default>
+      <summary>Public IP refresh interval in minutes</summary>
+    </key>
+    <key name="network-public-ip-show-flag" type="b">
+        <default>true</default>
+        <summary>Show country flag for public IP</summary>
+    </key>
     <key type="i" name="network-speed-format">
       <default>0</default>
       <summary>Network speed format</summary>
