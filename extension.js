@@ -38,7 +38,11 @@ var VitalsMenuButton = GObject.registerClass({
                  'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
                            'icon-rx': 'network-download-symbolic.svg',
-                           'icon-tx': 'network-upload-symbolic.svg' },
+                           'icon-tx': 'network-upload-symbolic.svg',
+                           'icon-us': '../flags/1x1/us.svg',
+                           'icon-eu': '../flags/1x1/eu.svg',
+                           'icon-nl': '../flags/1x1/nl.svg' 
+                },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' },
                     'gpu' : { 'icon': 'gpu-symbolic.svg' }
@@ -539,23 +543,38 @@ var VitalsMenuButton = GObject.registerClass({
     _sensorIconPath(sensor, icon = 'icon') {
         // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
         let sensorKey = sensor;
-        if(sensor.startsWith('gpu')) sensorKey = 'gpu';
+        if (sensor.startsWith('gpu')) sensorKey = 'gpu';
 
-        // Public IP: `sensors.js` emits `network-<cc>` where <cc> is ISO 3166-1 alpha-2.
-        // `_appendMenuItem()` turns that into `icon-<cc>`. If we have a corresponding flag SVG,
-        // prefer it; otherwise fall back to the regular network icon(s).
-        if (sensorKey === 'network') {
-            let match = (typeof icon === 'string') ? icon.match(/^icon-([a-z]{2})$/) : null;
-            if (match) {
-                const cc = match[1];
-                const flagPath = this._extensionObject.path + '/icons/flags/1x1/' + cc + '.svg';
-                if (GLib.file_test(flagPath, GLib.FileTest.EXISTS))
-                    return flagPath;
-            }
+        const base = this._extensionObject.path;
+        const iconPathPrefixIndex = this._settings.get_int('icon-style');
+        const themedPrefix = base + this._sensorsIconPathPrefix[iconPathPrefixIndex];
+
+        const country = this._sensorIcons[sensorKey]?.[icon];
+        if (country !== undefined) {
+            if (country.startsWith('icons/'))
+                return base + '/' + country;
+            return themedPrefix + country;
         }
 
-        const iconPathPrefixIndex = this._settings.get_int('icon-style');
-        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
+        // First request for e.g. icon-us: probe flags dir once, then cache under network for later lookups.
+/*
+        if (sensorKey === 'network' && icon !== 'icon' && icon !== 'icon-rx' && icon !== 'icon-tx' &&
+            typeof icon === 'string' && icon.startsWith('icon-')) {
+            const rel = 'icons/flags/1x1/' + icon.slice('icon-'.length) + '.svg';
+            const flagPath = base + '/' + rel + 'c';
+            //console.log('chris looking for', flagPath);
+            if (GLib.file_test(flagPath, GLib.FileTest.EXISTS)) {
+                //console.log('chris here 1');
+                this._sensorIcons.network[icon] = rel;
+                return flagPath;
+            }
+            //    console.log('chris here 2');
+            return themedPrefix + this._sensorIcons.network.icon;
+        }
+*/
+
+        //        console.log('chris here 3');
+        return themedPrefix + this._sensorIcons[sensorKey][icon];
     }
 
     _ucFirst(string) {
@@ -612,19 +631,11 @@ var VitalsMenuButton = GObject.registerClass({
         this._last_query = now;
 
         this._sensors.query((label, value, type, format) => {
-            const typeKey = type.replace('-group', '');
-            let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
-            if (typeKey.startsWith('network-')) {
-                const suffix = typeKey.split('-');
-                if (suffix[1] !== 'tx' && suffix[1] !== 'rx') {
-                    key = '_' + suffix[0] + '_' + label.replace(' ', '_').toLowerCase() + '_';
-                    if (this._hotItems[key] && !this._settings.get_boolean('hide-icons')) {
-                        let icon = this._hotItems[key].get_first_child();
-                        if (icon instanceof St.Icon)
-                            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath('network', 'icon-' + suffix[1]));
-                    }
-                }
+            let typeKey = type.replace('-group', '');
+            if (/^network-(?!rx$|tx$)/.test(typeKey)) {
+                typeKey = 'network';
             }
+            let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
@@ -658,8 +669,29 @@ var VitalsMenuButton = GObject.registerClass({
             }
 
             let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
-            for (let item of Object.values(items))
+            for (let item of Object.values(items)) {
+                let type2 = item[2];
+
+                if (type2.startsWith('network-') && type2.length == 10 && type2 != 'network-rx' && type2 != 'network-tx') {
+                    let key2 = item[3];
+
+                    // Geo / flags: stable key (no country in key); type stays network-<cc> for icon-us etc.
+                    const stem = type2.slice('network-'.length);
+                    let flagGIcon = Gio.icon_new_for_string(this._sensorIconPath('network', 'icon-' + stem));
+                    if (this._hotItems[key2] && !this._settings.get_boolean('hide-icons')) {
+                        // change icon in menu bar
+                        let icon = this._hotItems[key2].get_first_child();
+                        if (icon instanceof St.Icon)
+                        icon.gicon = flagGIcon;
+                    }
+                    // change icon in dropdown
+                    let menuRow = this._sensorMenuItems[key2];
+                    if (menuRow) menuRow.gicon = flagGIcon;
+                    console.log('changing menu row icon to', flagGIcon);
+                }
+
                 this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
+            }
         }, dwell);
 
         //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu

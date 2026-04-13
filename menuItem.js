@@ -21,7 +21,8 @@ export const MenuItem = GObject.registerClass({
         this._gIcon = icon;
 
         // add icon
-        this.add_child(new St.Icon({ style_class: 'popup-menu-icon', gicon : this._gIcon }));
+        this._iconActor = new St.Icon({ style_class: 'popup-menu-icon', gicon : this._gIcon });
+        this.add_child(this._iconActor);
 
         // add label
         this._labelActor = new St.Label({ text: label });
@@ -47,6 +48,12 @@ export const MenuItem = GObject.registerClass({
 
     get gicon() {
         return this._gIcon;
+    }
+
+    set gicon(icon) {
+        this._gIcon = icon;
+        if (this._iconActor)
+            this._iconActor.gicon = icon;
     }
 
     set value(value) {
