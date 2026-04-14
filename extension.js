@@ -338,6 +338,7 @@ var VitalsMenuButton = GObject.registerClass({
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-speed-format', 'storage-measurement',
                          'include-static-info', 'include-static-gpu-info' ];
+
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -531,10 +532,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._hotItems[key] = item;
         this._menuLayout.add_child(item);
 
-        let isPublicIP = key.includes('public_ip');
-        let shouldHideIcon = isPublicIP && this._settings.get_boolean('network-public-ip-show-flag');
-
-        if ((!this._settings.get_boolean('hide-icons') || key == '_default_icon_') && !shouldHideIcon) {
+        if (!this._settings.get_boolean('hide-icons') || key == '_default_icon_') {
             let icon = this._defaultIcon(key);
             if (gicon) icon.gicon = gicon;
             item.add_child(icon);

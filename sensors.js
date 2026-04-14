@@ -31,18 +31,6 @@ import * as FileModule from './helpers/file.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import NM from 'gi://NM';
 
-
-function getFlagEmoji(countryCode) {
-    if (!countryCode || countryCode.length !== 2) return '🌐';
-    try {
-        return countryCode
-            .toUpperCase()
-            .replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
-    } catch (e) {
-        return '🌐';
-    }
-}
-
 let GTop, hasGTop = true;
 try {
     ({default: GTop} = await import('gi://GTop'));
@@ -95,22 +83,14 @@ export const Sensors = GObject.registerClass({
     }
 
     _refreshIPAddress(callback) {
+        // check IP address
         new FileModule.File('https://ipv4.corecoding.com').read().then(contents => {
-            try {
-                let obj = JSON.parse(contents);
-                if (!obj.IPv4) throw new Error("No IP");
-
-                let flag = getFlagEmoji(obj.countryCode);
-                let display = this._settings.get_boolean('network-public-ip-show-flag')
-                    ? `${flag} ${obj.IPv4}`
-                    : obj.IPv4;
-                this._returnValue(callback, 'Public IP', display, 'network', 'string');
-            } catch (e) {
-                this._returnValue(callback, 'Public IP', '🏳️ Parse Error', 'network', 'string');
-            }
-        }).catch(err => {
-            this._returnValue(callback, 'Public IP', '📡 Offline', 'network', 'string');
-        });
+            let obj = JSON.parse(contents);
+            let cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
+            let ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
+            let typeOut = (/^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
+            this._returnValue(callback, 'Public IP', ip, typeOut, 'string');
+        }).catch(err => { });
     }
 
     _findStorageDevice() {
