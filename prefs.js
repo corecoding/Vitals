@@ -47,8 +47,8 @@ const Settings = new GObject.Class({
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
-                        'show-battery', 'fixed-widths', 'hide-icons', 
-                        'menu-centered', 'include-static-info', 
+                        'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
+                        'hide-icons', 'menu-centered', 'include-static-info',
                         'show-gpu', 'include-static-gpu-info' ];
 
         for (let key in sensors) {
@@ -74,6 +74,9 @@ const Settings = new GObject.Class({
         }
 
         this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
+
+        this._settings.bind('network-public-ip-interval', this.builder.get_object('network-public-ip-interval'),
+            'value', Gio.SettingsBindFlags.DEFAULT);
 
         // process individual text entry sensor preferences
         sensors = [ 'storage-path', 'monitor-cmd' ];
