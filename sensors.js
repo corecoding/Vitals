@@ -88,7 +88,8 @@ export const Sensors = GObject.registerClass({
             let obj = JSON.parse(contents);
             let cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
             let ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
-            let typeOut = (/^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
+            const showFlag = this._settings.get_boolean('network-public-ip-show-flag');
+            let typeOut = (showFlag && /^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
             this._returnValue(callback, 'Public IP', ip, typeOut, 'string');
         }).catch(err => { });
     }
