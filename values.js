@@ -242,7 +242,7 @@ export const Values = GObject.registerClass({
                 return output;
 
             // add label as it was sent from sensors class; type stays e.g. network-us for display/icons
-            output.push([label, legible, type, key]);
+            output.push({ label, value: legible, type, key });
         }
 
         // save previous values to update screen on changes only
@@ -256,21 +256,21 @@ export const Values = GObject.registerClass({
             // show value in group even if there is one value present
             let sum = vals.reduce((a, b) => a + b);
             let avg = this._legible(sum / vals.length, format);
-            output.push([type, avg, type + '-group', '']);
+            output.push({ label: type, value: avg, type: type + '-group', key: '' });
 
             // If only one value is present, don't display avg, min and max
             if (vals.length > 1) {
-                output.push(['Average', avg, type, '__' + type + '_avg__']);
+                output.push({ label: 'Average', value: avg, type, key: '__' + type + '_avg__' });
 
                 // calculate Minimum value
                 let min = Math.min(...vals);
                 min = this._legible(min, format);
-                output.push(['Minimum', min, type, '__' + type + '_min__']);
+                output.push({ label: 'Minimum', value: min, type, key: '__' + type + '_min__' });
 
                 // calculate Maximum value
                 let max = Math.max(...vals);
                 max = this._legible(max, format);
-                output.push(['Maximum', max, type, '__' + type + '_max__']);
+                output.push({ label: 'Maximum', value: max, type, key: '__' + type + '_max__' });
             }
         } else if (type == 'network-rx' || type == 'network-tx') {
             let direction = type.split('-')[1];
@@ -279,18 +279,18 @@ export const Values = GObject.registerClass({
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
             const memUnit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
-            output.push(['Boot ' + direction, this._legible(sum, format), type, '__' + type + '_boot__']);
+            output.push({ label: 'Boot ' + direction, value: this._legible(sum, format), type, key: '__' + type + '_boot__' });
 
             // keeps track of session start point
             if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
                 this._networkSpeedOffset[key] = sum;
 
             // outputs session upload and download for all interfaces for #234
-            output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
+            output.push({ label: 'Session ' + direction, value: this._legible(sum - this._networkSpeedOffset[key], format), type, key: '__' + type + '_ses__' });
 
             // calculate speed for this interface
             let speed = (value - previousValue[1]) / dwell;
-            output.push([label, this._legible(speed, 'speed'), type, key]);
+            output.push({ label, value: this._legible(speed, 'speed'), type, key });
 
             // store speed for Device report
             if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
@@ -307,9 +307,9 @@ export const Values = GObject.registerClass({
                     sumNum += parseFloat(this._networkSpeeds[direction][iface]);
 
                 let sum = this._legible(sumNum, 'speed');
-                output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_max__']);
+                output.push({ label: 'Device ' + direction, value: sum, type: 'network-' + direction, key: '__network-' + direction + '_max__' });
                 // append download speed to group itself
-                if (direction == 'rx') output.push([type, sum, type + '-group', '']);
+                if (direction == 'rx') output.push({ label: type, value: sum, type: type + '-group', key: '' });
             }
         }
 

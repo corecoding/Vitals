@@ -886,28 +886,23 @@ var VitalsMenuButton = GObject.registerClass({
             }
 
             let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
-            for (let item of Object.values(items)) {
-                let type2 = item[2];
-
-                if (type2.startsWith('network-') && type2.length == 10 && type2 != 'network-rx' && type2 != 'network-tx') {
-                    let key2 = item[3];
-
+            for (let item of items) {
+                if (item.type.startsWith('network-') && item.type.length == 10 && item.type != 'network-rx' && item.type != 'network-tx') {
                     // Geo / flags: stable key (no country in key); type stays network-<cc> for icon-us etc.
-                    const stem = type2.slice('network-'.length);
+                    const stem = item.type.slice('network-'.length);
                     let flagGIcon = Gio.icon_new_for_string(this._sensorIconPath('network', 'icon-' + stem));
-                    if (this._hotItems[key2] && !this._settings.get_boolean('hide-icons')) {
+                    if (this._hotItems[item.key] && !this._settings.get_boolean('hide-icons')) {
                         // change icon in menu bar
-                        let icon = this._hotItems[key2].get_first_child();
+                        let icon = this._hotItems[item.key].get_first_child();
                         if (icon instanceof St.Icon)
                         icon.gicon = flagGIcon;
                     }
                     // change icon in dropdown
-                    let menuRow = this._sensorMenuItems[key2];
+                    let menuRow = this._sensorMenuItems[item.key];
                     if (menuRow) menuRow.gicon = flagGIcon;
-                    console.log('changing menu row icon to', flagGIcon);
                 }
 
-                this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
+                this._updateDisplay(_(item.label), item.value, item.type, item.key);
             }
         }, dwell);
 
