@@ -94,6 +94,11 @@
       <summary>Network speed format</summary>
       <description>Should speed display in bits or bytes?</description>
     </key>
+    <key type="s" name="network-ping-host">
+      <default>""</default>
+      <summary>Ping target host</summary>
+      <description>Hostname or IP address to ping for latency measurement</description>
+    </key>
     <key type="s" name="storage-path">
       <default>"/"</default>
       <summary>Storage path</summary>
