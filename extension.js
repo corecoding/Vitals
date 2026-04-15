@@ -39,6 +39,7 @@ var VitalsMenuButton = GObject.registerClass({
                 'network' : { 'icon': 'network-symbolic.svg',
                            'icon-rx': 'network-download-symbolic.svg',
                            'icon-tx': 'network-upload-symbolic.svg',
+                           'icon-ping': 'network-ping-symbolic.svg',
                            'icon-ad': '../flags/1x1/ad.svg',
                            'icon-ae': '../flags/1x1/ae.svg',
                            'icon-af': '../flags/1x1/af.svg',
@@ -337,7 +338,8 @@ var VitalsMenuButton = GObject.registerClass({
                          'fixed-widths', 'hide-icons', 'unit',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-speed-format', 'storage-measurement',
-                         'include-static-info', 'include-static-gpu-info' ];
+                         'include-static-info', 'include-static-gpu-info',
+                         'network-ping-host' ];
 
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));

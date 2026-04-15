@@ -147,6 +147,47 @@
                 </property>
               </object>
             </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="hexpand">1</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">1</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Ping host</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="network-ping-host">
+                        <property name="placeholder_text" translatable="no">e.g. 1.1.1.1</property>
+                        <property name="can_focus">1</property>
+                        <property name="editable">1</property>
+                        <property name="width_chars">18</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="network-ping-host-save">
+                        <property name="can_focus">1</property>
+                        <property name="sensitive">0</property>
+                        <property name="tooltip_text" translatable="yes">Save ping host</property>
+                        <property name="icon_name">object-select-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </property>
       </object>

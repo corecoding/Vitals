@@ -27,6 +27,7 @@
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
+import Gio from 'gi://Gio';
 import * as FileModule from './helpers/file.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import NM from 'gi://NM';
@@ -46,6 +47,8 @@ export const Sensors = GObject.registerClass({
         this._settings = settings;
         this._sensorIcons = sensorIcons;
 
+        this._pingCancellable = null;
+
         this.resetHistory();
 
         this._last_processor = { 'core': {}, 'speed': [] };
@@ -54,6 +57,7 @@ export const Sensors = GObject.registerClass({
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('network-public-ip-interval', () => {this._lastPublicIPCheck = 0;});
+        this._addSettingChangedSignal('network-ping-host', () => this._pingCancellable?.cancel());
         //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._gpu_drm_vendors = null;
@@ -338,6 +342,63 @@ export const Sensors = GObject.registerClass({
                 this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
             }
         }).catch(err => { });
+
+        this._pollPing(value => {
+            this._returnValue(callback, 'Ping', value, 'network-ping', 'string');
+        });
+    }
+
+    _pollPing(callback) {
+        let host = this._settings.get_string('network-ping-host').trim();
+        if (!host) return;
+
+        this._pingCancellable?.cancel();
+        this._pingCancellable = new Gio.Cancellable();
+        let cancellable = this._pingCancellable;
+
+        let subprocess;
+        try {
+            subprocess = new Gio.Subprocess({
+                argv: ['ping', '-c', '1', '-W', '5', host],
+                flags: Gio.SubprocessFlags.STDOUT_PIPE |
+                       Gio.SubprocessFlags.STDERR_PIPE,
+            });
+            subprocess.init(null);
+        } catch (e) {
+            callback('?? ms');
+            return;
+        }
+
+        cancellable.connect(() => subprocess.force_exit());
+
+        subprocess.communicate_utf8_async(null, cancellable, (proc, result) => {
+            let value = this._parsePingResult(proc, result, cancellable);
+            callback(value);
+        });
+    }
+
+    _parsePingResult(proc, result, cancellable) {
+        let stdout, exitStatus;
+        try {
+            [, stdout] = proc.communicate_utf8_finish(result);
+            exitStatus = proc.get_exit_status();
+        } catch (e) {
+            let cancelled = cancellable.is_cancelled();
+            return cancelled ? this._pingTimeoutLabel() : '?? ms';
+        }
+
+        if (exitStatus === 0 && stdout) {
+            let match = /time[=<]([\d.]+)\s*ms/.exec(stdout);
+            if (match)
+                return `${parseFloat(match[1]).toFixed(1)} ms`;
+        }
+
+        return exitStatus === 1 ? this._pingTimeoutLabel() : '?? ms';
+    }
+
+    _pingTimeoutLabel() {
+        let timeoutMs = Math.min(Math.max(this._settings.get_int('update-time'), 1), 5) * 1000;
+        return `${timeoutMs}+ ms`;
     }
 
     _queryStorage(callback, dwell) {
@@ -1066,11 +1127,13 @@ export const Sensors = GObject.registerClass({
         this._frameMonitorLastTime = 0;
         this._frameMonitorFrameCount = 0;
         this._frameMonitorAccTime = 0;
+        this._pingCancellable?.cancel();
     }
 
     destroy() {
         this._destroyFrameMonitor();
         this._terminateNvidiaSmiProcess();
+        this._pingCancellable?.cancel();
 
         for (let signal of Object.values(this._settingChangedSignals))
             this._settings.disconnect(signal);
