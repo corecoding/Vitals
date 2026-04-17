@@ -24,6 +24,7 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
 const cbFun = (d, c) => {
@@ -186,7 +187,9 @@ export const Values = GObject.registerClass({
                 ending = 'mAh';
                 break;
             case 'watt':
-                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                format = (
+                    ((value > 0) ? '+' : '') + ((use_higher_precision)?'%.2f %s':'%.1f %s')
+                );
                 value = value / 1000000;
                 ending = 'W';
                 break;
@@ -212,7 +215,7 @@ export const Values = GObject.registerClass({
                 break;
         }
 
-        return format.format(value, ending);
+        return format.format(value, ending).trim();
     }
 
     returnIfDifferent(dwell, label, value, type, format, key) {
@@ -272,6 +275,7 @@ export const Values = GObject.registerClass({
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
+            const memUnit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
             output.push(['Boot ' + direction, this._legible(sum, format), type, '__' + type + '_boot__']);
 
             // keeps track of session start point
@@ -295,11 +299,11 @@ export const Values = GObject.registerClass({
 
             // calculate total upload and download device speed
             for (let direction in this._networkSpeeds) {
-                let sum = 0;
+                let sumNum = 0;
                 for (let iface in this._networkSpeeds[direction])
-                    sum += parseFloat(this._networkSpeeds[direction][iface]);
+                    sumNum += parseFloat(this._networkSpeeds[direction][iface]);
 
-                sum = this._legible(sum, 'speed');
+                let sum = this._legible(sumNum, 'speed');
                 output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_max__']);
                 // append download speed to group itself
                 if (direction == 'rx') output.push([type, sum, type + '-group', '']);

@@ -51,7 +51,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._warnings = [];
         this._sensorMenuItems = {};
         this._hotLabels = {};
-        this._hotIcons = {};
+        this._hotItems = {};
         this._groups = {};
         this._widths = {};
         this._numGpus = 1;
@@ -67,7 +67,8 @@ var VitalsMenuButton = GObject.registerClass({
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
-            x_expand: true
+            x_expand: true,
+            style_class: 'vitals-panel-menu'
         });
 
         this._drawMenu();
@@ -75,7 +76,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._settingChangedSignals = [];
         this._refreshTimeoutId = null;
 
-        this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
+        this._addSettingChangedSignal('update-time', this._updateTimeSettingChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
         this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
@@ -219,8 +220,7 @@ var VitalsMenuButton = GObject.registerClass({
             // removes sensors that are no longer available
             if (!this._sensorMenuItems[sensor]) {
                 hotSensors.splice(i, 1);
-                this._removeHotLabel(sensor);
-                this._removeHotIcon(sensor);
+                this._removeHotItem(sensor);
             }
         }
 
@@ -245,19 +245,24 @@ var VitalsMenuButton = GObject.registerClass({
             GLib.PRIORITY_DEFAULT,
             update_time,
             (self) => {
-                // only update menu if we have hot sensors
-                if (Object.values(this._hotLabels).length > 0)
-                    this._querySensors();
-                    // keep the timer running
-                    return GLib.SOURCE_CONTINUE;
+                // always query sensors (for panel display when hot)
+                this._querySensors();
+                return GLib.SOURCE_CONTINUE;
             }
         );
     }
 
     _createHotItem(key, value) {
-        let icon = this._defaultIcon(key);
-        this._hotIcons[key] = icon;
-        this._menuLayout.add_child(icon)
+        let item = new St.BoxLayout({
+            style_class: 'vitals-panel-item',
+        });
+        this._hotItems[key] = item;
+        this._menuLayout.add_child(item);
+
+        if (!this._settings.get_boolean('hide-icons') || key == '_default_icon_') {
+            let icon = this._defaultIcon(key);
+            item.add_child(icon);
+        }
 
         // don't add a label when no sensors are in the panel
         if (key == '_default_icon_') return;
@@ -268,18 +273,15 @@ var VitalsMenuButton = GObject.registerClass({
             y_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
-
         // attempt to prevent ellipsizes
         label.get_clutter_text().ellipsize = 0;
-
         // keep track of label for removal later
         this._hotLabels[key] = label;
-
         // prevent "called on the widget"  "which is not in the stage" errors by adding before width below
-        this._menuLayout.add_child(label);
+        item.add_child(label);
 
         // support for fixed widths #55, save label (text) width
-        this._widths[key] = label.width;
+        this._widths[key] = label.get_clutter_text().width;
     }
 
     _showHideSensorsChanged(self, sensor) {
@@ -329,35 +331,23 @@ var VitalsMenuButton = GObject.registerClass({
         this._redrawMenu();
     }
 
-    _removeHotLabel(key) {
-        if (key in this._hotLabels) {
-            let label = this._hotLabels[key];
+    _removeHotItems(){
+        for (let key in this._hotItems) {
+            this._removeHotItem(key);
+        }
+    }
+
+    _removeHotItem(key) {
+        if (key in this._hotItems) {
+            this._hotItems[key].destroy();
+            delete this._hotItems[key];
             delete this._hotLabels[key];
-            // make sure set_label is not called on non existent actor
-            label.destroy();
+            delete this._widths[key];
         }
-    }
-
-    _removeHotLabels() {
-        for (let key in this._hotLabels)
-            this._removeHotLabel(key);
-    }
-
-    _removeHotIcon(key) {
-        if (key in this._hotIcons) {
-            this._hotIcons[key].destroy();
-            delete this._hotIcons[key];
-        }
-    }
-
-    _removeHotIcons() {
-        for (let key in this._hotIcons)
-            this._removeHotIcon(key);
     }
 
     _redrawMenu() {
-        this._removeHotIcons();
-        this._removeHotLabels();
+        this._removeHotItems();
 
         for (let key in this._sensorMenuItems) {
             if (key.includes('-group')) continue;
@@ -389,6 +379,11 @@ var VitalsMenuButton = GObject.registerClass({
             GLib.Source.remove(this._refreshTimeoutId);
             this._refreshTimeoutId = null;
         }
+    }
+
+    _updateTimeSettingChanged() {
+        this._destroyTimer();
+        this._initializeTimer();
     }
 
     _updateTimeChanged() {
@@ -452,8 +447,7 @@ var VitalsMenuButton = GObject.registerClass({
             } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
-                this._removeHotLabel(self.key);
-                this._removeHotIcon(self.key);
+                this._removeHotItem(self.key);
             }
 
             if (hotSensors.length <= 0) {
@@ -465,7 +459,7 @@ var VitalsMenuButton = GObject.registerClass({
                 if (defIconPos >= 0) {
                     // remove generic icon from panel when sensors are selected
                     hotSensors.splice(defIconPos, 1);
-                    this._removeHotIcon('_default_icon_');
+                    this._removeHotItem('_default_icon_');
                 }
             }
 
@@ -508,7 +502,7 @@ var VitalsMenuButton = GObject.registerClass({
         // don't use the default system icon if the type is a gpu; use the universal gpu icon instead
         if (type == 'default' || (!(type in this._sensorIcons) && !type.startsWith('gpu'))) {
             icon.gicon = Gio.icon_new_for_string(this._sensorIconPath('system'));
-        } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
+        } else { // support for hide icons #80
             let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
             icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(type, iconObj));
         }
