@@ -75,7 +75,7 @@
                         <property name="update_policy">if-valid</property>
                         <property name="adjustment">
                           <object class="GtkAdjustment">
-                            <property name="lower">1</property>
+                            <property name="lower">15</property>
                             <property name="upper">1440</property>
                             <property name="step_increment">1</property>
                           </object>
