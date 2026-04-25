@@ -829,7 +829,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._last_query = now;
 
         this._sensors.query((label, value, type, format) => {
-            const typeKey = type.replace('-group', '');
+            let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
             let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
