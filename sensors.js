@@ -979,7 +979,8 @@ export const Sensors = GObject.registerClass({
                                 trisensors[key2] = {
                                     'type': sensor_types[sensor_type],
                                   'format': sensor_type,
-                                   'label': path + '/name'
+                                   // if name = 'drivetemp' I put the drive model
+                                   'label': path + (name == 'drivetemp' ? '/device/model' : '/name')
                                 };
                             }
 
@@ -1012,8 +1013,8 @@ export const Sensors = GObject.registerClass({
     }
 
     _addTempVoltFan(callback, obj, name, label, extra, value) {
-        // prepend module that provided sensor data
-        if (name != label) label = name + ' ' + label;
+        // prepend module that provided sensor data (I don't do this for drivetemp)
+        if (name != label && name != "drivetemp") label = name + ' ' + label;
 
         //if (label == 'nvme Composite') label = 'NVMe';
         //if (label == 'nouveau') label = 'Nvidia';
