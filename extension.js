@@ -325,7 +325,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._drawMenu();
         this.add_child(this._menuLayout);
         this._settingChangedSignals = [];
-        this._trackedSignals = [];
         this._refreshTimeoutId = null;
 
         this._addSettingChangedSignal('update-time', this._updateTimeSettingChanged.bind(this));
@@ -353,22 +352,6 @@ var VitalsMenuButton = GObject.registerClass({
 
         // start monitoring sensors
         this._initializeTimer();
-    }
-
-    _trackConnect(object, signalName, handler) {
-        let id = object.connect(signalName, handler);
-        this._trackedSignals.push({ object, id });
-        return id;
-    }
-
-    _untrackObjectSignals(object) {
-        this._trackedSignals = this._trackedSignals.filter((entry) => {
-            if (entry.object === object) {
-                entry.object.disconnect(entry.id);
-                return false;
-            }
-            return true;
-        });
     }
 
     _initializeMenu() {
@@ -406,7 +389,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         // custom round refresh button
         let refreshButton = this._createRoundButton('view-refresh-symbolic', _('Refresh'));
-        this._trackConnect(refreshButton, 'clicked', (self) => {
+        refreshButton.connect('clicked', (self) => {
             // force refresh by clearing history
             this._sensors.resetHistory();
             this._values.resetHistory(this._numGpus);
@@ -421,15 +404,14 @@ var VitalsMenuButton = GObject.registerClass({
 
         // custom round monitor button
         let monitorButton = this._createRoundButton('org.gnome.SystemMonitor-symbolic', _('System Monitor'));
-        this._trackConnect(monitorButton, 'clicked', (self) => {
+        monitorButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
             Util.spawn(this._settings.get_string('monitor-cmd').split(" "));
         });
         customButtonBox.add_child(monitorButton);
 
         // custom round preferences button
-        let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
-        this._trackConnect(prefsButton, 'clicked', (self) => {
+        prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
             this._extensionObject.openPreferences();
         });
@@ -442,7 +424,7 @@ var VitalsMenuButton = GObject.registerClass({
         this.menu.addMenuItem(item);
 
         // query sensors on menu open
-        this._trackConnect(this.menu, 'open-state-changed', (self, isMenuOpen) => {
+        this._menuStateChangeId = this.menu.connect('open-state-changed', (self, isMenuOpen) => {
             if (isMenuOpen) {
                 // make sure timer fires at next full interval
                 this._updateTimeChanged();
@@ -625,9 +607,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let key in this._sensorMenuItems) {
             if (key.includes('-group')) continue;
-            let menuItem = this._sensorMenuItems[key];
-            this._untrackObjectSignals(menuItem);
-            menuItem.destroy();
+            this._sensorMenuItems[key].destroy();
             delete this._sensorMenuItems[key];
         }
 
@@ -669,12 +649,6 @@ var VitalsMenuButton = GObject.registerClass({
 
     _addSettingChangedSignal(key, callback) {
         this._settingChangedSignals.push(this._settings.connect('changed::' + key, callback));
-    }
-
-    _disconnectSettingsSignals() {
-        for (let handlerId of this._settingChangedSignals)
-            this._settings.disconnect(handlerId);
-        this._settingChangedSignals = [];
     }
 
     _updateDisplay(label, value, type, key) {
@@ -719,7 +693,7 @@ var VitalsMenuButton = GObject.registerClass({
         let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon));
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
-        this._trackConnect(item, 'toggle', (self) => {
+        item.connect('toggle', (self) => {
             let hotSensors = this._settings.get_strv('hot-sensors');
 
             if (self.checked) {
@@ -938,7 +912,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._destroyTimer();
         this._sensors.destroy();
 
-        this._disconnectSettingsSignals();
+        for (let signal of Object.values(this._settingChangedSignals))
+            this._settings.disconnect(signal);
 
         super.destroy();
     }
@@ -952,10 +927,7 @@ export default class VitalsExtension extends Extension {
     }
 
     disable() {
-        if (vitalsMenu) {
-            vitalsMenu._disconnectSettingsSignals();
-            vitalsMenu.destroy();
-        }
+        vitalsMenu.destroy();
         vitalsMenu = null;
     }
 }
