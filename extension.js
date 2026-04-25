@@ -288,14 +288,13 @@ var VitalsMenuButton = GObject.registerClass({
                            'icon-za': '../flags/1x1/za.svg',
                            'icon-zm': '../flags/1x1/zm.svg',
                            'icon-zw': '../flags/1x1/zw.svg'
-                      
                 },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' },
                     'gpu' : { 'icon': 'gpu-symbolic.svg' }
         }
 
-        // list with the prefixes for the according themes, the index of each 
+        // list with the prefixes for the according themes, the index of each
         // item must match the index on the combo box
         this._sensorsIconPathPrefix = ['/icons/original/', '/icons/gnome/'];
 
@@ -411,6 +410,7 @@ var VitalsMenuButton = GObject.registerClass({
         customButtonBox.add_child(monitorButton);
 
         // custom round preferences button
+        let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
             this._extensionObject.openPreferences();
@@ -567,7 +567,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _redrawDetailsMenuIcons() {
-        // updates the icons on the 'details' menu, the one 
+        // updates the icons on the 'details' menu, the one
         // you have to click to appear
         this._sensors.resetHistory();
         for (const sensor in this._sensorIcons) {
@@ -579,7 +579,7 @@ var VitalsMenuButton = GObject.registerClass({
         const gpuKeys = Object.keys(this._groups).filter(key => key.startsWith("gpu#"));
         gpuKeys.forEach((gpuKey) => {
             this._groups[gpuKey].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath("gpu"));
-        }); 
+        });
     }
 
     _iconStyleChanged() {
