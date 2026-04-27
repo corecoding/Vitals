@@ -78,6 +78,24 @@ const Settings = new GObject.Class({
         this._settings.bind('network-public-ip-interval', this.builder.get_object('network-public-ip-interval'),
             'value', Gio.SettingsBindFlags.DEFAULT);
 
+        let pingHostEntry = this.builder.get_object('network-ping-host');
+        let pingHostSave = this.builder.get_object('network-ping-host-save');
+        let getSavedPingHost = () => this._settings.get_string('network-ping-host');
+        let savePingHost = () => {
+            if (pingHostEntry.get_text() === getSavedPingHost())
+                return;
+
+            this._settings.set_string('network-ping-host', pingHostEntry.get_text());
+            pingHostSave.set_sensitive(false);
+        };
+
+        pingHostEntry.set_text(getSavedPingHost());
+        pingHostEntry.connect('changed', (widget) => {
+            pingHostSave.set_sensitive(widget.get_text() !== getSavedPingHost());
+        });
+        pingHostEntry.connect('activate', () => savePingHost());
+        pingHostSave.connect('clicked', () => savePingHost());
+
         // process individual text entry sensor preferences
         sensors = [ 'storage-path', 'monitor-cmd' ];
         for (let key in sensors) {
