@@ -221,30 +221,33 @@ export const Values = GObject.registerClass({
     returnIfDifferent(dwell, label, value, type, format, key) {
         let output = [];
 
+        // Use one history bucket for network-<cc> types (geo IP), except for rx/tx.
+        let historyType = (/^network-(?!rx$|tx$)[a-z]{2}(?:-group)?$/.test(type)) ? 'network' : type;
+
         // make sure the keys exist
-        if (!(type in this._history)) this._history[type] = {};
+        if (!(historyType in this._history)) this._history[historyType] = {};
 
         // no sense in continuing when the raw value has not changed
-        if (type != 'network-rx' && type != 'network-tx' &&
-            key in this._history[type] && this._history[type][key][1] == value)
+        if (historyType != 'network-rx' && historyType != 'network-tx' &&
+            key in this._history[historyType] && this._history[historyType][key][1] == value)
                 return output;
 
         // is the value different from last time?
         let legible = this._legible(value, format);
 
         // don't return early when dealing with network traffic
-        if (type != 'network-rx' && type != 'network-tx') {
+        if (historyType != 'network-rx' && historyType != 'network-tx') {
             // only update when we are coming through for the first time, or if a value has changed
-            if (key in this._history[type] && this._history[type][key][0] == legible)
+            if (key in this._history[historyType] && this._history[historyType][key][0] == legible)
                 return output;
 
-            // add label as it was sent from sensors class
-            output.push([label, legible, type, key]);
+            // add label as it was sent from sensors class; type stays e.g. network-us for display/icons
+            output.push({ label, value: legible, type, key });
         }
 
         // save previous values to update screen on changes only
-        let previousValue = this._history[type][key];
-        this._history[type][key] = [legible, value];
+        let previousValue = this._history[historyType][key];
+        this._history[historyType][key] = [legible, value];
 
         // process average, min and max values
         if (type == 'temperature' || type == 'voltage' || type == 'fan') {
@@ -253,21 +256,21 @@ export const Values = GObject.registerClass({
             // show value in group even if there is one value present
             let sum = vals.reduce((a, b) => a + b);
             let avg = this._legible(sum / vals.length, format);
-            output.push([type, avg, type + '-group', '']);
+            output.push({ label: type, value: avg, type: type + '-group', key: '' });
 
             // If only one value is present, don't display avg, min and max
             if (vals.length > 1) {
-                output.push(['Average', avg, type, '__' + type + '_avg__']);
+                output.push({ label: 'Average', value: avg, type, key: '__' + type + '_avg__' });
 
                 // calculate Minimum value
                 let min = Math.min(...vals);
                 min = this._legible(min, format);
-                output.push(['Minimum', min, type, '__' + type + '_min__']);
+                output.push({ label: 'Minimum', value: min, type, key: '__' + type + '_min__' });
 
                 // calculate Maximum value
                 let max = Math.max(...vals);
                 max = this._legible(max, format);
-                output.push(['Maximum', max, type, '__' + type + '_max__']);
+                output.push({ label: 'Maximum', value: max, type, key: '__' + type + '_max__' });
             }
         } else if (type == 'network-rx' || type == 'network-tx') {
             let direction = type.split('-')[1];
@@ -276,18 +279,18 @@ export const Values = GObject.registerClass({
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
             const memUnit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
-            output.push(['Boot ' + direction, this._legible(sum, format), type, '__' + type + '_boot__']);
+            output.push({ label: 'Boot ' + direction, value: this._legible(sum, format), type, key: '__' + type + '_boot__' });
 
             // keeps track of session start point
             if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
                 this._networkSpeedOffset[key] = sum;
 
             // outputs session upload and download for all interfaces for #234
-            output.push(['Session ' + direction, this._legible(sum - this._networkSpeedOffset[key], format), type, '__' + type + '_ses__']);
+            output.push({ label: 'Session ' + direction, value: this._legible(sum - this._networkSpeedOffset[key], format), type, key: '__' + type + '_ses__' });
 
             // calculate speed for this interface
             let speed = (value - previousValue[1]) / dwell;
-            output.push([label, this._legible(speed, 'speed'), type, key]);
+            output.push({ label, value: this._legible(speed, 'speed'), type, key });
 
             // store speed for Device report
             if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
@@ -304,35 +307,11 @@ export const Values = GObject.registerClass({
                     sumNum += parseFloat(this._networkSpeeds[direction][iface]);
 
                 let sum = this._legible(sumNum, 'speed');
-                output.push(['Device ' + direction, sum, 'network-' + direction, '__network-' + direction + '_max__']);
+                output.push({ label: 'Device ' + direction, value: sum, type: 'network-' + direction, key: '__network-' + direction + '_max__' });
                 // append download speed to group itself
-                if (direction == 'rx') output.push([type, sum, type + '-group', '']);
+                if (direction == 'rx') output.push({ label: type, value: sum, type: type + '-group', key: '' });
             }
         }
-
-/*
-        global.log('before', JSON.stringify(output));
-        for (let i = output.length - 1; i >= 0; i--) {
-            let sensor = output[i];
-            // sensor[0]=label, sensor[1]=value, sensor[2]=type, sensor[3]=key)
-
-            //["CPU Core 5","46°C","temperature","_temperature_hwmon8temp7_"]
-
-            // make sure the keys exist
-            if (!(sensor[2] in this._history2)) this._history2[sensor[2]] = {};
-
-            if (sensor[3] in this._history2[sensor[2]]) {
-                if (this._history2[sensor[2]][sensor[3]] == sensor[1]) {
-                    output.splice(i, 1);
-                }
-            }
-
-            this._history2[sensor[2]][sensor[3]] = sensor[1];
-        }
-
-        global.log(' after', JSON.stringify(output));
-        global.log('***************************');
-*/
 
         return output;
     }

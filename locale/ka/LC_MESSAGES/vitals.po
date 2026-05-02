@@ -1,0 +1,740 @@
+# Georgian translation for vitals.
+# Copyright (C) 2026 vitals's authors.
+# This file is distributed under the same license as the vitals package.
+# Ekaterine Papava <papava.e@gtu.ge>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vitals\n"
+"POT-Creation-Date: 2023-10-22 21:04+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"POT-Revision-Date: 2018-12-29 10:26+0100\n"
+"X-Generator: Poedit 3.9\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: _returnValue:2\n"
+"X-Poedit-SearchPath-0: values.js\n"
+"X-Poedit-SearchPath-1: sensors.js\n"
+"X-Poedit-SearchPath-2: prefs.js\n"
+"X-Poedit-SearchPath-3: menuItem.js\n"
+"X-Poedit-SearchPath-4: extension.js\n"
+"X-Poedit-SearchPath-5: schemas/"
+"org.gnome.shell.extensions.vitals.gschema.xml\n"
+"X-Poedit-SearchPath-6: prefs.ui\n"
+
+#: extension.js:109
+msgid "Batteries"
+msgstr "ელემენტები"
+
+#: extension.js:133
+msgid "No Data"
+msgstr "მონაცემების გარეშე"
+
+#: extension.js:159
+msgid "Refresh"
+msgstr "განახლება"
+
+#: extension.js:174
+msgid "System Monitor"
+msgstr "სისტემური მონიტორი"
+
+#: extension.js:182 prefs.js:106
+msgid "Preferences"
+msgstr "მორგება"
+
+#: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
+msgid "Include public IP address"
+msgstr "საჯარო IP მისამართის ჩასმა"
+
+#: prefs.ui:70
+msgid "Format"
+msgstr "ფორმატი"
+
+#: prefs.ui:78
+msgid "Bytes"
+msgstr "ბაიტი"
+
+#: prefs.ui:79
+msgid "Bits"
+msgstr "ბიტი"
+
+#: prefs.ui:121
+msgid "General"
+msgstr "ზოგადი"
+
+#: prefs.ui:149 schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
+msgid "Seconds between updates"
+msgstr "წამები განახლებებს შორის"
+
+#: prefs.ui:184 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
+msgid "Position in panel"
+msgstr "მდებარეობა პანელზე"
+
+#: prefs.ui:193
+msgid "Left"
+msgstr "მარცხენა"
+
+#: prefs.ui:194
+msgid "Center"
+msgstr "ცენტრი"
+
+#: prefs.ui:195
+msgid "Right"
+msgstr "მარჯვენა"
+
+#: prefs.ui:196
+msgid "Far Left"
+msgstr "შორეული მარცხენა"
+
+#: prefs.ui:197
+msgid "Far Right"
+msgstr "შორებული მარჯვენა"
+
+#: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
+msgid "Use higher precision"
+msgstr "უფრო მაღალი სიზუსტის გამოყენება"
+
+#: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
+msgid "Alphabetize sensors"
+msgstr "სენსორების ანბანით დალაგება"
+
+#: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
+msgid "Hide zero values"
+msgstr "ნულოვანი მნიშვნელობების დამალვა"
+
+#: prefs.ui:301
+msgid "Use fixed widths"
+msgstr "ფიქსირებული სიგანეების გამოყენება"
+
+#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:171
+msgid "Hide icons in top bar"
+msgstr "ხატულების დამალვა ზედა ზოლში"
+
+#: prefs.ui:355
+msgid "Menu always centered"
+msgstr "მენიუ ყოველთვის ცენტრში"
+
+#: prefs.ui:379
+msgid "About"
+msgstr "შესახებ"
+
+#: prefs.ui:394
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
+"href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
+"useful."
+msgstr ""
+"გაქვთ იდეები, ან გნებავთ, შეცდომის შესახებ შეგვატყობინოთ? ეწვიეთ <a "
+"href=\"https://github.com/corecoding/Vitals/issues\">GitHub</a>. ყოველგვარი "
+"გარანტიის გარეშე. <a href=\"https://corecoding.com/donate.php\">შემოგვწირეთ</"
+"a>, თუ ეს პროგრამა მოგეწონათ."
+
+#: prefs.ui:421
+msgid "Sensors"
+msgstr "სენსორები"
+
+#: prefs.ui:449 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+msgid "Monitor temperature"
+msgstr "ტემპერატურის მონიტორი"
+
+#: prefs.ui:500 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+msgid "Monitor voltage"
+msgstr "ძაბვის მონიტორი"
+
+#: prefs.ui:528 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+msgid "Monitor fan"
+msgstr "ვენტილატორის მონიტორი"
+
+#: prefs.ui:556 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+msgid "Monitor memory"
+msgstr "მეხსიერების მონიტორი"
+
+#: prefs.ui:607 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+msgid "Monitor processor"
+msgstr "პროცესორის მონიტორი"
+
+#: prefs.ui:658 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+msgid "Monitor system"
+msgstr "სისტემის მონიტორი"
+
+#: prefs.ui:709 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+msgid "Monitor network"
+msgstr "ქსელის მონიტორი"
+
+#: prefs.ui:760 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+msgid "Monitor storage"
+msgstr "საცავის მონიტორი"
+
+#: prefs.ui:811 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+msgid "Monitor battery"
+msgstr "ეკრანის ელემენტი"
+
+#: prefs.ui:890
+msgid "Path"
+msgstr "ბილიკი"
+
+#: prefs.ui:922 prefs.ui:1031
+msgid "Measurement"
+msgstr "საზომი ერთეული"
+
+#: prefs.ui:930 prefs.ui:1039
+msgid "Binary"
+msgstr "ორობითი"
+
+#: prefs.ui:931 prefs.ui:1040
+msgid "Decimal"
+msgstr "ათობითი"
+
+#: prefs.ui:976
+msgid "Unit"
+msgstr "ერთეული"
+
+#: prefs.ui:985
+msgid "°C"
+msgstr "°C"
+
+#: prefs.ui:986
+msgid "°F"
+msgstr "°F"
+
+#: prefs.ui:1086
+msgid "Monitor BAT0"
+msgstr "BAT0-ის მონიტორი"
+
+#: prefs.ui:1116
+msgid "Monitor BAT1"
+msgstr "BAT1-ის მონიტორი"
+
+#: prefs.ui:1146
+msgid "Monitor BAT2"
+msgstr "BAT2-ის მონიტორი"
+
+#: prefs.ui:1176
+msgid "Monitor CMB0"
+msgstr "CMB0-ის მონიტორი"
+
+#: prefs.ui:1206
+msgid "Monitor macsmc-battery"
+msgstr "macsmc-battery-ის მონიტორი"
+
+#: prefs.ui:1247
+msgid "Calculate Combined Values"
+msgstr "კომბინირებული მნიშვნელობების გამოთვლა"
+
+#: prefs.ui:1277 schemas/org.gnome.shell.extensions.vitals.gschema.xml:141
+msgid "Include BAT0"
+msgstr "BAT0-ის ჩასმა"
+
+#: prefs.ui:1307 schemas/org.gnome.shell.extensions.vitals.gschema.xml:146
+msgid "Include BAT1"
+msgstr "BAT1-ის ჩასმა"
+
+#: prefs.ui:1337 schemas/org.gnome.shell.extensions.vitals.gschema.xml:151
+msgid "Include BAT2"
+msgstr "BAT2-ის ჩასმა"
+
+#: prefs.ui:1367 schemas/org.gnome.shell.extensions.vitals.gschema.xml:156
+msgid "Include CMB0"
+msgstr "CMB0-ის ჩასმა"
+
+#: prefs.ui:1397 schemas/org.gnome.shell.extensions.vitals.gschema.xml:161
+msgid "Include macsmc-battery"
+msgstr "macsmc-battery-ის ჩასმა"
+
+#: prefs.ui:1446
+msgid "Monitor command"
+msgstr "ბრძანების მონიტორი"
+
+#: prefs.ui:1498
+msgid "Include static info"
+msgstr "სტატიკური ინფორმაციის ჩასმა"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
+msgid "Sensors to show in panel"
+msgstr "პანელზე საჩვენებელი სენსორები"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
+msgid "List of sensors to be shown in the panel"
+msgstr "პანელზე საჩვენებელი სენსორების სია"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
+msgid "Delay between sensor polling"
+msgstr "დაყოვნება სენსორებიდან მონაცემების გამოთხოვას შორის"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
+msgid "Position in Panel ('left', 'center', 'right')"
+msgstr "პოზიცია პანელზე ('მარცხნივ', 'ცენტრი', 'მარჯვნივ')"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
+msgid "Show one extra digit after decimal"
+msgstr "ერთი ციფრის ჩვენება წილადის შემდეგ"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
+msgid "Display sensors in alphabetical order"
+msgstr "სენსორების ჩვენება ანბანის მიმდევრობით"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
+msgid "Hide data from sensors that are invalid"
+msgstr "არასწორი მონაცემების მქონე სენსორების დამალვა"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
+msgid "Display temperature of various components"
+msgstr "სხვადასხვა კომპონენტების ტემპერატურის ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
+msgid "Temperature unit"
+msgstr "ტემპერატურის ერთეული"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
+msgid ""
+"The unit ('centigrade' or 'fahrenheit') the extension should display the "
+"temperature in"
+msgstr ""
+"ერთეული ('ცელსიუსი', ან 'ფარენჰეიტი'), რომლითაც გაფართოებამ ტემპერატურა უნდა "
+"აჩვენოს"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
+msgid "Display voltage of various components"
+msgstr "სხვადასხვა კომპონენტების ძაბვის ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
+msgid "Display fan rotation per minute"
+msgstr "ბრუნვის სიჩქარის ჩვენება (წუთში)"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
+msgid "Display memory information"
+msgstr "მეხსიერების ინფორმაციის გამოტანა"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
+msgid "Display processor information"
+msgstr "პროცესორის ინფორმაციის ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
+msgid "Display system information"
+msgstr "სისტემის ინფორმაციის ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
+msgid "Display storage information"
+msgstr "საცავის ინფორმაციის ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
+msgid "Display network information"
+msgstr "ქსელის ინფორმაციის ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
+msgid "Display public IP address of internet connection"
+msgstr "ინტერნეტკავშირის საჯარო IP მისამართის ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
+msgid "Network speed format"
+msgstr "ქსელის სიჩქარის ფორმატი"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
+msgid "Should speed display in bits or bytes?"
+msgstr "სიჩქარე უნდა იყოს ნაჩვენები ბიტებში, თუ ბაიტებში?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
+msgid "Storage path"
+msgstr "საცავის ბილიკი"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
+msgid "Storage path for monitoring"
+msgstr "საცავის ბილიკი მონიტორინგისთვის"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
+msgid "Monitor battery health"
+msgstr "ელემენტის ჯანმრთელობის მონიტორინგი"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
+msgid "Memory measurement"
+msgstr "მეხსიერების გაზომვა"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
+msgid "Can use gigabyte or gibibyte for memory"
+msgstr "მეხსიერებისთვის შეიძლება გიგაბაიტების გამოყენება, თუ გიბიბაიტების"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
+msgid "Storage measurement"
+msgstr "საცავის გაზომვა"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
+msgid "Can use gigabyte or gibibyte for storage"
+msgstr "საცავისთვის შეიძლება გიგაბაიტების გამოყენება, თუ გიბიბაიტების"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
+msgid "Display battery BAT0"
+msgstr "ელემენტის BAT0 ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
+msgid "Should battery 'BAT0' be displayed?"
+msgstr "უნდა იყოს თუ არა ნაჩვენები ელემენტი 'BAT0'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
+msgid "Display battery BAT1"
+msgstr "ელემენტის BAT1 ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+msgid "Should battery 'BAT1' be displayed?"
+msgstr "უნდა იყოს თუ არა ნაჩვენები ელემენტი 'BAT1'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+msgid "Display battery BAT2"
+msgstr "ელემენტის BAT2 ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+msgid "Should battery 'BAT2' be displayed?"
+msgstr "უნდა იყოს თუ არა ნაჩვენები ელემენტი 'BAT2'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:126
+msgid "Display battery CMB0"
+msgstr "ელემენტის CMB0 ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:127
+msgid "Should battery 'CMB0' be displayed?"
+msgstr "უნდა იყოს თუ არა ნაჩვენები ელემენტი 'CMB0'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:131
+msgid "Display battery macsmc-battery"
+msgstr "ელემენტის macsmc-battery ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:132
+msgid "Should battery 'macsmc-battery' be displayed?"
+msgstr "უნდა იყოს თუ არა ნაჩვენები ელემენტი 'macsmc-battery'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:136
+msgid "Display combined battery data"
+msgstr "ელემენტის კომბინირებული მონაცემების ჩვენება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:137
+msgid "Display combined values for selected batteries"
+msgstr "კომბინირებული მნიშვნელობების ჩვენება მონიშნული ელემენტებისთვის"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:142
+msgid "Include 'BAT0' when calculating combined Battery"
+msgstr "'BAT0'-ის ჩასმა კომბინირებული ელემენტის გამოთვლისას"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:147
+msgid "Include 'BAT1' when calculating combined Battery"
+msgstr "'BAT1'-ის ჩასმა კომბინირებული ელემენტის გამოთვლისას"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:152
+msgid "Include 'BAT2' when calculating combined Battery"
+msgstr "'BAT2'-ის ჩასმა კომბინირებული ელემენტის გამოთვლისას"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:157
+msgid "Include 'CMB0' when calculating combined Battery"
+msgstr "'CMB0'-ის ჩასმა კომბინირებული ელემენტის გამოთვლისას"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:162
+msgid "Include 'macsmc-battery' when calculating combined Battery"
+msgstr "'macsmc-battery'-ის ჩასმა კომბინირებული ელემენტის გამოთვლისას"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:166
+msgid "Use fixed widths in top bar"
+msgstr "ფიქსირებული სიგანეების გამოყენება ზედა პანელში"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:167
+msgid "Keep sensors in top bar from jumping around"
+msgstr "ზედა პანელში არსებული სენსორების გადალაგების გამორთვა"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:172
+msgid "Keep top bar clean by only showing sensor values"
+msgstr ""
+"ზედა პანელის სუფთად შენარჩუნება, მხოლოდ, სენსორის მნიშვნელობების ჩვენებით"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:176
+msgid "Make the menu centered"
+msgstr "მენიუ ყოველთვის ცენტრში"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:177
+msgid "Center the menu to the icon regardless of the position in the panel"
+msgstr "მენიუს ცენტრში ჩვენება მისი პანელზე მდებარეობის მიუხედავად"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:181
+msgid "System Monitor command"
+msgstr "სისტემური მონიტორის ბრძანება"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:182
+msgid "The command run when system monitor button is clicked"
+msgstr ""
+"ბრძანება, რომელიც გაეშვება, როცა სისტემური მონიტორის ღილაკზე დააწკაპუნებთ"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:186
+msgid "Include processor static information"
+msgstr "პროცესორის სტატიკური ინფორმაციის ჩასმა"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:187
+msgid "Display processor static information that doesn't change"
+msgstr "პროცესორის უცვლელი, სტატიკური ინფორმაციის ჩვენება"
+
+#: sensors.js:65
+msgid "Public IP"
+msgstr "გარე IP"
+
+#: sensors.js:133 sensors.js:181
+msgid "Usage"
+msgstr "გამოყენება"
+
+#: sensors.js:134
+msgid "memory"
+msgstr "მეხსიერება"
+
+#: sensors.js:135
+msgid "Physical"
+msgstr "ფიზიკური"
+
+#: sensors.js:136
+msgid "Available"
+msgstr "ხელმისაწვდომია"
+
+#: sensors.js:137
+msgid "Allocated"
+msgstr "გამოყოფილი"
+
+#: sensors.js:138
+msgid "Cached"
+msgstr "დაქეშილი"
+
+#: sensors.js:139 sensors.js:355
+msgid "Free"
+msgstr "უფასო"
+
+#: sensors.js:140
+msgid "Swap"
+msgstr "სვაპი"
+
+#: sensors.js:248
+msgid "Average"
+msgstr "საშუალო"
+
+#: sensors.js:180
+msgid "processor"
+msgstr "პროცესორი"
+
+#: sensors.js:183
+#, javascript-format
+msgid "Core %d"
+msgstr "ბირთვი %d"
+
+#: sensors.js:213 sensors.js:222
+msgid "Frequency"
+msgstr "სიხშირე"
+
+#: sensors.js:231
+msgid "Open Files"
+msgstr "ფაილების გახსნა"
+
+#: sensors.js:238
+msgid "Load 1m"
+msgstr "დატვირთვა 1წთ"
+
+#: sensors.js:239
+msgid "system"
+msgstr "სისტემა"
+
+#: sensors.js:240
+msgid "Load 5m"
+msgstr "დატვირთვა 5წთ"
+
+#: sensors.js:241
+msgid "Load 15m"
+msgstr "დატვირთვა 15წთ"
+
+#: sensors.js:242
+msgid "Threads Active"
+msgstr "აქტიური ნაკადები"
+
+#: sensors.js:243
+msgid "Threads Total"
+msgstr "სულ ნაკადები"
+
+#: sensors.js:248
+msgid "Uptime"
+msgstr "ჩართულობის დრო"
+
+#: sensors.js:252
+msgid "Process Time"
+msgstr "პროცესის დრო"
+
+#: sensors.js:302
+msgid "WiFi Link Quality"
+msgstr "WiFi კავშირის ხარისხი"
+
+#: sensors.js:303
+msgid "WiFi Signal Level"
+msgstr "WiFi-ის სიგნალის დონე"
+
+#: sensors.js:318
+msgid "ARC Target"
+msgstr "ARC სამიზნე"
+
+#: sensors.js:319
+msgid "ARC Maximum"
+msgstr "ARC მაქსიმუმი"
+
+#: sensors.js:320
+msgid "ARC Current"
+msgstr "ARC მიმდინარე"
+
+#: sensors.js:330
+msgid "Read total"
+msgstr "წაკითხული სულ"
+
+#: sensors.js:331
+msgid "Write total"
+msgstr "ჩაწერილი სულ"
+
+#: sensors.js:332
+msgid "Read rate"
+msgstr "კითხვის სიჩქარე"
+
+#: sensors.js:333
+msgid "Write rate"
+msgstr "ჩაწერის სიჩქარე"
+
+#: sensors.js:352
+msgid "Total"
+msgstr "სულ"
+
+#: sensors.js:353
+msgid "Used"
+msgstr "გამოყენებულია"
+
+#: sensors.js:354
+msgid "Reserved"
+msgstr "რეზერვირებული"
+
+#: sensors.js:356
+msgid "storage"
+msgstr "საცავი"
+
+#: sensors.js:393
+msgid "Label"
+msgstr "ჭდე"
+
+#: sensors.js:404 sensors.js:529
+msgid "State"
+msgstr "მდგომარეობა"
+
+#: sensors.js:409 sensors.js:519
+msgid "Cycles"
+msgstr "ციკლები"
+
+#: sensors.js:414
+msgid "Voltage"
+msgstr "ძაბვა"
+
+#: sensors.js:418
+msgid "Level"
+msgstr "დონე"
+
+#: sensors.js:422 sensors.js:553
+msgid "Percentage"
+msgstr "პროცენტი"
+
+#: sensors.js:432 sensors.js:527
+msgid "Rate"
+msgstr "ტარიფი"
+
+#: sensors.js:442 sensors.js:535
+msgid "Energy (full)"
+msgstr "ენერგია (სრული)"
+
+#: sensors.js:451 sensors.js:541
+msgid "Energy (design)"
+msgstr "ენერგია (დიზაინი)"
+
+#: sensors.js:455
+msgid "Capacity"
+msgstr "ტევადობა"
+
+#: sensors.js:464 sensors.js:547
+msgid "Energy (now)"
+msgstr "ენერგია (ახლა)"
+
+#: sensors.js:501 sensors.js:504 sensors.js:588 sensors.js:591
+msgid "Time left"
+msgstr "დარჩენილი დრო"
+
+#: sensors.js:677
+msgid "Vendor"
+msgstr "მომწოდებელი"
+
+#: sensors.js:678
+msgid "Bogomips"
+msgstr "Bogomips"
+
+#: sensors.js:679
+msgid "Sockets"
+msgstr "სოკეტები"
+
+#: sensors.js:680
+msgid "Cache"
+msgstr "კეში"
+
+#: sensors.js:685
+msgid "Kernel"
+msgstr "ბირთვი"
+
+#: prefs.js:98
+msgid "Temperature"
+msgstr "ტემპერატურა"
+
+#: prefs.js:98
+msgid "Network"
+msgstr "ქსელი"
+
+#: prefs.js:98
+msgid "Storage"
+msgstr "საცავი"
+
+#: prefs.js:98
+msgid "Memory"
+msgstr "მეხსიერება"
+
+#: prefs.js:98
+msgid "Battery"
+msgstr "ელემენტი"
+
+#: extension.js:112
+msgid "Battery 1"
+msgstr "ელემენტი 1"
+
+#: extension.js:112
+msgid "Battery 2"
+msgstr "ელემენტი 2"
+
+#: extension.js:112
+msgid "Battery 3"
+msgstr "ელემენტი 3"
+
+#: extension.js:112
+msgid "Battery 4"
+msgstr "ელემენტი 4"
+
+#: extension.js:112
+msgid "Battery 5"
+msgstr "ელემენტი 5"
+
+#: extension.js:115
+msgid "Battery (hidden)"
+msgstr "ელემენტი (დამალული)"
+
+#: prefs.js:98
+msgid "System"
+msgstr "სისტემა"
+
+#: prefs.js:98
+msgid "Processor"
+msgstr "პროცესორი"
+
+#: sensors.js:759
+msgid "Fan"
+msgstr "ვენტილატორი"

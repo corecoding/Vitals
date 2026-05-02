@@ -54,6 +54,7 @@ export const Sensors = GObject.registerClass({
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
+        this._addSettingChangedSignal('network-public-ip-interval', () => {this._lastPublicIPCheck = 0;});
         //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._gpu_drm_vendors = null;
@@ -86,7 +87,11 @@ export const Sensors = GObject.registerClass({
         // check IP address
         new FileModule.File('https://ipv4.corecoding.com').read().then(contents => {
             let obj = JSON.parse(contents);
-            this._returnValue(callback, 'Public IP', obj['IPv4'], 'network', 'string');
+            let cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
+            let ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
+            const showFlag = this._settings.get_boolean('network-public-ip-show-flag');
+            let typeOut = (showFlag && /^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
+            this._returnValue(callback, 'Public IP', ip, typeOut, 'string');
         }).catch(err => { });
     }
 
@@ -358,7 +363,8 @@ export const Sensors = GObject.registerClass({
         if (this._settings.get_boolean('include-public-ip')) {
             // check the public ip every hour or when waking from sleep
             if (this._next_public_ip_check <= 0) {
-                this._next_public_ip_check = 3600;
+                let intervalMinutes = this._settings.get_int('network-public-ip-interval');
+                this._next_public_ip_check = intervalMinutes * 60;
 
                 this._refreshIPAddress(callback);
             }
