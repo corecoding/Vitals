@@ -122,7 +122,7 @@ export const Sensors = GObject.registerClass({
                     this._queryTempVoltFan(callback, sensor);
                 } else {
                     // directly call queryFunction below
-                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
                     this[method](callback, dwell);
                 }
             }
@@ -401,52 +401,33 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryIoDevices(callback) {
-        // read USB devices from sysfs
+        // read USB device info from sysfs using the same File module as other sensors
         let usbBase = '/sys/bus/usb/devices/';
-        let deviceList = [];
+        let deviceCount = 0;
 
         new FileModule.File(usbBase).list().then(entries => {
-            let pending = entries.length;
-            if (pending === 0) {
-                this._returnValue(callback, 'io-devices', deviceList.length, 'io-devices-group', 'string');
-                return;
-            }
-
             for (let entry of entries) {
-                // skip interfaces (contain ':'), only want devices
-                if (entry.indexOf(':') !== -1) {
-                    pending--;
-                    if (pending === 0) {
-                        this._returnValue(callback, 'Connected Devices', deviceList.length, 'io-devices', 'string');
-                        this._returnValue(callback, 'io-devices', deviceList.length + ' devices', 'io-devices-group', 'string');
-                    }
-                    continue;
-                }
+                // skip interfaces (contain ':'), only want actual devices
+                if (entry.indexOf(':') !== -1) continue;
 
-                new FileModule.File(usbBase + entry + '/product').read().then(product => {
-                    let vendor = '';
+                let productPath = usbBase + entry + '/product';
+
+                new FileModule.File(productPath).read().then(product => {
+                    deviceCount++;
                     new FileModule.File(usbBase + entry + '/manufacturer').read().then(mfr => {
-                        vendor = mfr;
-                        deviceList.push(vendor ? (vendor + ' ' + product) : product);
-                        this._returnValue(callback, product, vendor || '', 'io-devices', 'string');
+                        this._returnValue(callback, product, mfr, 'io-devices', 'string');
                     }).catch(err => {
-                        deviceList.push(product);
                         this._returnValue(callback, product, '', 'io-devices', 'string');
-                    }).finally(() => {
-                        pending--;
-                        if (pending === 0) {
-                            this._returnValue(callback, 'Connected Devices', deviceList.length, 'io-devices', 'string');
-                            this._returnValue(callback, 'io-devices', deviceList.length + ' devices', 'io-devices-group', 'string');
-                        }
                     });
                 }).catch(err => {
-                    pending--;
-                    if (pending === 0) {
-                        this._returnValue(callback, 'Connected Devices', deviceList.length, 'io-devices', 'string');
-                        this._returnValue(callback, 'io-devices', deviceList.length + ' devices', 'io-devices-group', 'string');
-                    }
                 });
             }
+
+            // update group label after listing
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+                this._returnValue(callback, 'io-devices', deviceCount + ' devices', 'io-devices-group', 'string');
+                return GLib.SOURCE_REMOVE;
+            });
         }).catch(err => { });
     }
 
