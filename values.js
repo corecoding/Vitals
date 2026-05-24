@@ -265,9 +265,16 @@ export const Values = GObject.registerClass({
         if (type == 'temperature' || type == 'voltage' || type == 'fan') {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
+            // for fans, exclude 0 RPM ghost sensors from average calculation (#547)
+            let avgVals = vals;
+            if (type == 'fan') {
+                let nonZero = vals.filter(v => v > 0);
+                if (nonZero.length > 0) avgVals = nonZero;
+            }
+
             // show value in group even if there is one value present
-            let sum = vals.reduce((a, b) => a + b);
-            let avg = this._legible(sum / vals.length, format);
+            let sum = avgVals.reduce((a, b) => a + b);
+            let avg = this._legible(sum / avgVals.length, format);
             output.push({ label: type, value: avg, type: type + '-group', key: '' });
 
             // If only one value is present, don't display avg, min and max
@@ -275,12 +282,12 @@ export const Values = GObject.registerClass({
                 output.push({ label: 'Average', value: avg, type, key: '__' + type + '_avg__' });
 
                 // calculate Minimum value
-                let min = Math.min(...vals);
+                let min = Math.min(...avgVals);
                 min = this._legible(min, format);
                 output.push({ label: 'Minimum', value: min, type, key: '__' + type + '_min__' });
 
                 // calculate Maximum value
-                let max = Math.max(...vals);
+                let max = Math.max(...avgVals);
                 max = this._legible(max, format);
                 output.push({ label: 'Maximum', value: max, type, key: '__' + type + '_max__' });
             }
