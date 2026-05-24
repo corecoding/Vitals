@@ -291,6 +291,7 @@ var VitalsMenuButton = GObject.registerClass({
                 },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' },
+            'io-devices' : { 'icon': 'system-symbolic.svg' },
                     'gpu' : { 'icon': 'gpu-symbolic.svg' }
         }
 

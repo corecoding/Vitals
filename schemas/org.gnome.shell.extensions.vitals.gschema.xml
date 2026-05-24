@@ -164,5 +164,10 @@
       <summary>Icon styles</summary>
       <description>Set the style for the displayed sensor icons ('original', 'updated')</description>
     </key>
+    <key type="b" name="show-io-devices">
+      <default>false</default>
+      <summary>Monitor I/O devices</summary>
+      <description>Display connected USB and input devices</description>
+    </key>
   </schema>
 </schemalist>

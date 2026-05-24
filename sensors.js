@@ -26,6 +26,7 @@
 
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Gio from 'gi://Gio';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -397,6 +398,56 @@ export const Sensors = GObject.registerClass({
         this._returnValue(callback, 'Used %', usedPercent + '%', 'storage', 'string');
         this._returnValue(callback, 'Free %', freePercent + '%', 'storage', 'string');
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
+    }
+
+    _queryIoDevices(callback) {
+        // read USB devices from sysfs
+        let usbBase = '/sys/bus/usb/devices/';
+        let deviceList = [];
+
+        new FileModule.File(usbBase).list().then(entries => {
+            let pending = entries.length;
+            if (pending === 0) {
+                this._returnValue(callback, 'io-devices', deviceList.length, 'io-devices-group', 'string');
+                return;
+            }
+
+            for (let entry of entries) {
+                // skip interfaces (contain ':'), only want devices
+                if (entry.indexOf(':') !== -1) {
+                    pending--;
+                    if (pending === 0) {
+                        this._returnValue(callback, 'Connected Devices', deviceList.length, 'io-devices', 'string');
+                        this._returnValue(callback, 'io-devices', deviceList.length + ' devices', 'io-devices-group', 'string');
+                    }
+                    continue;
+                }
+
+                new FileModule.File(usbBase + entry + '/product').read().then(product => {
+                    let vendor = '';
+                    new FileModule.File(usbBase + entry + '/manufacturer').read().then(mfr => {
+                        vendor = mfr;
+                        deviceList.push(vendor ? (vendor + ' ' + product) : product);
+                        this._returnValue(callback, product, vendor || '', 'io-devices', 'string');
+                    }).catch(err => {
+                        deviceList.push(product);
+                        this._returnValue(callback, product, '', 'io-devices', 'string');
+                    }).finally(() => {
+                        pending--;
+                        if (pending === 0) {
+                            this._returnValue(callback, 'Connected Devices', deviceList.length, 'io-devices', 'string');
+                            this._returnValue(callback, 'io-devices', deviceList.length + ' devices', 'io-devices-group', 'string');
+                        }
+                    });
+                }).catch(err => {
+                    pending--;
+                    if (pending === 0) {
+                        this._returnValue(callback, 'Connected Devices', deviceList.length, 'io-devices', 'string');
+                        this._returnValue(callback, 'io-devices', deviceList.length + ' devices', 'io-devices-group', 'string');
+                    }
+                });
+            }
+        }).catch(err => { });
     }
 
     _queryBattery(callback) {
