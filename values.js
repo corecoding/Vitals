@@ -141,11 +141,23 @@ export const Values = GObject.registerClass({
 
                 break;
             case 'speed':
+                let fixed_unit = this._settings.get_int('network-speed-unit');
+
                 if (value > 0) {
                     if (use_bps) value *= 8;
-                    exp = Math.floor(Math.log(value) / Math.log(unit));
-                    if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
-                    value = parseFloat((value / Math.pow(unit, exp)));
+
+                    if (fixed_unit > 0) {
+                        // fixed unit: force to K (exp=1) or M (exp=2)
+                        exp = fixed_unit;
+                        value = parseFloat((value / Math.pow(unit, exp)));
+                    } else {
+                        // auto: current behavior
+                        exp = Math.floor(Math.log(value) / Math.log(unit));
+                        if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
+                        value = parseFloat((value / Math.pow(unit, exp)));
+                    }
+                } else {
+                    exp = 0;
                 }
 
                 format = (use_higher_precision)?'%.1f %s':'%.0f %s';
