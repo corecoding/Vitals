@@ -97,7 +97,7 @@ export const Values = GObject.registerClass({
                 break;
             case 'hertz':
                 if (value > 0) {
-                    exp = Math.floor(Math.log(value) / Math.log(unit));
+                    exp = Math.max(0, Math.floor(Math.log(value) / Math.log(unit)));
                     if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
                     value = parseFloat((value / Math.pow(unit, exp)));
                 }
