@@ -73,8 +73,7 @@ export const Sensors = GObject.registerClass({
             this._storageDevice = '';
             this._findStorageDevice();
 
-            this._lastRead = 0;
-            this._lastWrite = 0;
+            this._storageHistory = {};
         }
     }
 
@@ -355,48 +354,69 @@ export const Sensors = GObject.registerClass({
             this._returnValue(callback, 'ARC Current', current, 'storage', 'storage');
         }).catch(err => { });
 
-        // check disk performance stats
-        new FileModule.File('/proc/diskstats').read("\n").then(lines => {
-            for (let line of lines) {
-                let loadArray = line.trim().split(/\s+/);
-                if ('/dev/' + loadArray[2] == this._storageDevice) {
-                    var read = (loadArray[5] * 512);
-                    var write = (loadArray[9] * 512);
-                    this._returnValue(callback, 'Read total', read, 'storage', 'storage');
-                    this._returnValue(callback, 'Write total', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
-                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
-                    this._lastRead = read;
-                    this._lastWrite = write;
-                    break;
-                }
-            }
-        }).catch(err => { });
-
         // skip rest of stats if gtop not available
         if (!hasGTop) return;
 
-        GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
+        let paths = this._settings.get_strv('storage-path') || [];
+        if (paths.length === 0) return;
 
-        let total = this.storage.blocks * this.storage.block_size;
-        let avail = this.storage.bavail * this.storage.block_size;
-        let free = this.storage.bfree * this.storage.block_size;
-        let used = total - free;
-        let reserved = (total - avail) - used;
-        let freePercent = 0;
-        let usedPercent = 0;
-        if (total > 0) {
-          freePercent = Math.round((free / total) * 100);
-          usedPercent = Math.round((used / total) * 100);
-        }
+        // check disk performance stats
+        Promise.all([
+            new FileModule.File('/proc/mounts').read("\n"),
+            new FileModule.File('/proc/diskstats').read("\n")
+        ]).then(([mounts, stats]) => {
+            let pathDeviceMap = {};
+            for (let line of mounts) {
+                let parts = line.trim().split(/\s+/);
+                if (parts.length >= 2) pathDeviceMap[parts[1]] = parts[0].replace('/dev/', '');
+            }
 
-        this._returnValue(callback, 'Total', total, 'storage', 'storage');
-        this._returnValue(callback, 'Used', used, 'storage', 'storage');
-        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
-        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
-        this._returnValue(callback, 'Used %', usedPercent + '%', 'storage', 'string');
-        this._returnValue(callback, 'Free %', freePercent + '%', 'storage', 'string');
-        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
+            let deviceData = {};
+            for (let line of stats) {
+                let parts = line.trim().split(/\s+/);
+                if (parts.length > 10) {
+                    deviceData[parts[2]] = {
+                        read: parseInt(parts[5]) * 512,
+                        write: parseInt(parts[9]) * 512
+                    };
+                }
+            }
+
+            paths.forEach(path => {
+                if (!path) return;
+
+                GTop.glibtop_get_fsusage(this.storage, path);
+                let total = this.storage.blocks * this.storage.block_size;
+                let avail = this.storage.bavail * this.storage.block_size;
+                let free = this.storage.bfree * this.storage.block_size;
+                let used = total - free;
+                let usedPct = Math.round((used / (used + avail)) * 100);
+
+                let suffix = ` (${path})`;
+                this._returnValue(callback, _('Used %') + suffix, usedPct + '%', 'storage', 'string');
+                this._returnValue(callback, _('Free') + suffix, avail, 'storage', 'storage');
+
+                let dev = pathDeviceMap[path];
+                if (dev && deviceData[dev]) {
+                    let currentRead = deviceData[dev].read;
+                    let currentWrite = deviceData[dev].write;
+
+                    this._returnValue(callback, _('Read total') + suffix, currentRead, 'storage', 'storage');
+                    this._returnValue(callback, _('Write total') + suffix, currentWrite, 'storage', 'storage');
+                    if (this._storageHistory[dev]) {
+                        let rRate = (currentRead - this._storageHistory[dev].read) / dwell;
+                        let wRate = (currentWrite - this._storageHistory[dev].write) / dwell;
+                        this._returnValue(callback, _('Read rate') + suffix, rRate, 'storage', 'storage');
+                        this._returnValue(callback, _('Write rate') + suffix, wRate, 'storage', 'storage');
+                    }
+
+                    this._storageHistory[dev] = { read: currentRead, write: currentWrite };
+                }
+
+                if (path == paths[0])
+                    this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
+            });
+        }).catch(err => { });
     }
 
     _queryBattery(callback) {

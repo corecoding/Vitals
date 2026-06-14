@@ -38,6 +38,70 @@ const Settings = new GObject.Class({
         this._bind_settings();
     },
 
+    _setup_storage_list: function() {
+        let entryWidget = this.builder.get_object('storage-path');
+            let parentBox = entryWidget.get_parent();
+            parentBox.remove(entryWidget);
+
+            let listContainer = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 6 });
+            parentBox.append(listContainer);
+
+            let paths = this._settings.get_strv('storage-path');
+
+            let renderRows = () => {
+                let child = listContainer.get_first_child();
+                while (child) {
+                    listContainer.remove(child);
+                    child = listContainer.get_first_child();
+                }
+
+                let currentPaths = this._settings.get_strv('storage-path') || [];
+                currentPaths.forEach((path, index) => {
+                    let row = new Gtk.Box({ spacing: 6 });
+                    let entry = new Gtk.Entry({ text: path, hexpand: true });
+
+                    entry.connect('activate', (w) => {
+                        let p = this._settings.get_strv('storage-path');
+                        p[index] = w.get_text();
+                        this._settings.set_strv('storage-path', p);
+                    });
+                    let focusController = new Gtk.EventControllerFocus();
+                    focusController.connect('leave', () => {
+                        let p = this._settings.get_strv('storage-path');
+                        let text = entry.get_text();
+                        if (p[index] !== text) {
+                            p[index] = text;
+                            this._settings.set_strv('storage-path', p);
+                        }
+                    });
+                    entry.add_controller(focusController);
+
+                    let delBtn = new Gtk.Button({ icon_name: 'list-remove-symbolic' });
+                    delBtn.connect('clicked', () => {
+                        let p = this._settings.get_strv('storage-path') || [];
+                        p.splice(index, 1);
+                        this._settings.set_strv('storage-path', p);
+                        renderRows();
+                    });
+
+                    row.append(entry);
+                    row.append(delBtn);
+                    listContainer.append(row);
+                });
+
+                let addBtn = new Gtk.Button({ label: _('Add Path'), icon_name: 'list-add-symbolic' });
+                addBtn.connect('clicked', () => {
+                    let p = this._settings.get_strv('storage-path');
+                    p.push('/');
+                    this._settings.set_strv('storage-path', p);
+                    renderRows();
+                });
+                listContainer.append(addBtn);
+            };
+
+        renderRows();
+    },
+
     // Bind the gtk window to the schema settings
     _bind_settings: function() {
         let widget;
@@ -79,7 +143,9 @@ const Settings = new GObject.Class({
             'value', Gio.SettingsBindFlags.DEFAULT);
 
         // process individual text entry sensor preferences
-        sensors = [ 'storage-path', 'monitor-cmd' ];
+        this._setup_storage_list();
+        sensors = [ 'monitor-cmd' ];
+
         for (let key in sensors) {
             let sensor = sensors[key];
 

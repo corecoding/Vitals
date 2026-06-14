@@ -94,8 +94,8 @@
       <summary>Network speed format</summary>
       <description>Should speed display in bits or bytes?</description>
     </key>
-    <key type="s" name="storage-path">
-      <default>"/"</default>
+    <key type="as" name="storage-path">
+      <default>["/"]</default>
       <summary>Storage path</summary>
       <description>Storage path for monitoring</description>
     </key>
