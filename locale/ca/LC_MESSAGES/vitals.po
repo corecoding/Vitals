@@ -4,20 +4,21 @@
 # gnome-shell-extension-vitals package.
 #
 # Federico Trillo <aguasmenores@protonmail.com>, 2019
+# Daniel Talens <dtalens@dtalens.com>, 2026
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2022-04-10 21:29+0200\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Federico Trillo\n"
+"Last-Translator: Daniel Talens <dtalens@dtalens.com>\n"
 "Language-Team: \n"
-"Language: it\n"
+"Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.8\n"
 
 #: extension.js:129
 msgid "Refresh"
@@ -57,7 +58,7 @@ msgstr "Segons entre actualitzacions"
 
 #: prefs.ui:184 schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
 msgid "Position in panel"
-msgstr "Posició al panel"
+msgstr "Posició al tauler"
 
 #: prefs.ui:193
 msgid "Left"
@@ -72,14 +73,12 @@ msgid "Right"
 msgstr "Dreta"
 
 #: prefs.ui:196
-#, fuzzy
 msgid "Far Left"
-msgstr "Esquerra"
+msgstr "Extrem esquerre"
 
 #: prefs.ui:197
-#, fuzzy
 msgid "Far Right"
-msgstr "Dreta"
+msgstr "Extrem dret"
 
 #: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
@@ -95,11 +94,11 @@ msgstr "Amaga els valors zero"
 
 #: prefs.ui:301
 msgid "Use fixed widths"
-msgstr ""
+msgstr "Utilitza amplades fixes"
 
 #: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
 msgid "Hide icons in top bar"
-msgstr ""
+msgstr "Amaga les icones a la barra superior"
 
 #: prefs.ui:352
 msgid "About"
@@ -156,9 +155,8 @@ msgid "Monitor storage"
 msgstr "Monitor d'emmagatzematge"
 
 #: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
-#, fuzzy
 msgid "Monitor battery"
-msgstr "Monitor de memòria"
+msgstr "Monitor de bateria"
 
 #: prefs.ui:817
 msgid "Path"
@@ -166,7 +164,7 @@ msgstr "Ruta"
 
 #: prefs.ui:849 prefs.ui:958
 msgid "Measurement"
-msgstr ""
+msgstr "Mesura"
 
 #: prefs.ui:903
 msgid "Unit"
@@ -174,145 +172,142 @@ msgstr "Unitat"
 
 #: prefs.ui:1012
 msgid "Display Battery"
-msgstr ""
+msgstr "Mostra la bateria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
-#, fuzzy
 msgid "Sensors to show in panel"
-msgstr "Posició al panel"
+msgstr "Sensors a mostrar al tauler"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
-msgstr ""
+msgstr "Llista de sensors que es mostraran al tauler"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
 msgid "Delay between sensor polling"
-msgstr ""
+msgstr "Retard entre sondejos de sensors"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
 msgid "Position in Panel ('left', 'center', 'right')"
-msgstr ""
+msgstr "Posició al tauler ('esquerra', 'centre', 'dreta')"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
 msgid "Show one extra digit after decimal"
-msgstr ""
+msgstr "Mostra un dígit addicional després del decimal"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
 msgid "Display sensors in alphabetical order"
-msgstr ""
+msgstr "Mostra els sensors per ordre alfabètic"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
 msgid "Hide data from sensors that are invalid"
-msgstr ""
+msgstr "Amaga les dades dels sensors que no són vàlids"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
 msgid "Display temperature of various components"
-msgstr ""
+msgstr "Mostra la temperatura de diversos components"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
-#, fuzzy
 msgid "Temperature unit"
-msgstr "Temperatura"
+msgstr "Unitat de temperatura"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
 msgid ""
 "The unit ('centigrade' or 'fahrenheit') the extension should display the "
 "temperature in"
 msgstr ""
+"La unitat ('centígrads' o 'fahrenheit') en què l'extensió ha de mostrar la "
+"temperatura"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
 msgid "Display voltage of various components"
-msgstr ""
+msgstr "Mostra el voltatge de diversos components"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
 msgid "Display fan rotation per minute"
-msgstr ""
+msgstr "Mostra la rotació del ventilador per minut"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
 msgid "Display memory information"
-msgstr ""
+msgstr "Mostrar la informació de memòria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
 msgid "Display processor information"
-msgstr ""
+msgstr "Mostra la informació del processador"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
 msgid "Display system information"
-msgstr ""
+msgstr "Mostrar la informació del sistema"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
 msgid "Display storage information"
-msgstr ""
+msgstr "Mostra la informació d'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
 msgid "Display network information"
-msgstr ""
+msgstr "Mostrar la informació de xarxa"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
 msgid "Display public IP address of internet connection"
-msgstr ""
+msgstr "Mostra l'adreça IP pública de la connexió a Internet"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
 msgid "Network speed format"
-msgstr ""
+msgstr "Format de velocitat de xarxa"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
 msgid "Should speed display in bits or bytes?"
-msgstr ""
+msgstr "La velocitat s'ha de mostrar en bits o en bytes?"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
-#, fuzzy
 msgid "Storage path"
-msgstr "Emmagatzematge"
+msgstr "Ruta d'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
 msgid "Storage path for monitoring"
-msgstr ""
+msgstr "Ruta d'emmagatzematge per a la monitorització"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
-#, fuzzy
 msgid "Monitor battery health"
-msgstr "Monitor de temperatura"
+msgstr "Monitor de la salut de la bateria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
 msgid "Memory measurement"
-msgstr ""
+msgstr "Mesurament de la memòria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
 msgid "Can use gigabyte or gibibyte for memory"
-msgstr ""
+msgstr "Podeu utilitzar gigabyte o gibibyte per a la memòria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
-#, fuzzy
 msgid "Storage measurement"
-msgstr "Preferèncias d'emmagatzematge"
+msgstr "Mesures d'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
 msgid "Can use gigabyte or gibibyte for storage"
-msgstr ""
+msgstr "Podeu utilitzar gigabyte o gibibyte per a l'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
 msgid "Battery slot to monitor"
-msgstr ""
+msgstr "Bateria a monitorar"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Which numerical battery slot should vitals monitor"
-msgstr ""
+msgstr "Bateria a monitorar per vitals"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Use fixed widths in top bar"
-msgstr ""
+msgstr "Utilitza amplades fixes a la barra superior"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
 msgid "Keep sensors in top bar from jumping around"
 msgstr ""
+"Evita que els sensors de la barra superior saltin d'un costat a l'altre"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
 msgid "Keep top bar clean by only showing sensor values"
-msgstr ""
+msgstr "Mantingueu la barra superior neta mostrant només els valors del sensor"
 
 #: sensors.js:42
-#, fuzzy
 msgid "Temperature"
 msgstr "Temperatura"
 
@@ -341,7 +336,6 @@ msgid "Network"
 msgstr "Xarxa"
 
 #: sensors.js:49
-#, fuzzy
 msgid "Storage"
 msgstr "Emmagatzematge"
 
@@ -354,9 +348,8 @@ msgid "Usage"
 msgstr "Ús"
 
 #: sensors.js:145
-#, fuzzy
 msgid "memory"
-msgstr "Memòria"
+msgstr "memòria"
 
 #: sensors.js:146
 msgid "Physical"
@@ -379,9 +372,8 @@ msgid "Average"
 msgstr "Mitjana"
 
 #: sensors.js:190
-#, fuzzy
 msgid "processor"
-msgstr "Processador"
+msgstr "processador"
 
 #: sensors.js:192
 #, javascript-format
@@ -398,32 +390,31 @@ msgstr "Turbo"
 
 #: sensors.js:238
 msgid "Vendor"
-msgstr ""
+msgstr "Proveïdor"
 
 #: sensors.js:239
 msgid "Bogomips"
-msgstr ""
+msgstr "Bogomips"
 
 #: sensors.js:240
 msgid "Sockets"
-msgstr ""
+msgstr "Sòcols"
 
 #: sensors.js:241
 msgid "Cache"
-msgstr ""
+msgstr "Memòria cau"
 
 #: sensors.js:250
 msgid "Open Files"
-msgstr ""
+msgstr "Fitxers oberts"
 
 #: sensors.js:258
 msgid "Load 1m"
 msgstr "Càrrega (1m)"
 
 #: sensors.js:259
-#, fuzzy
 msgid "system"
-msgstr "Sistema"
+msgstr "sistema"
 
 #: sensors.js:260
 msgid "Load 5m"
@@ -443,7 +434,7 @@ msgstr "Total de fils"
 
 #: sensors.js:269
 msgid "Uptime"
-msgstr ""
+msgstr "Temps de funcionament"
 
 #: sensors.js:273
 msgid "Process Time"
@@ -451,78 +442,75 @@ msgstr "Temps actiu mitjà"
 
 #: sensors.js:290
 msgid "State"
-msgstr ""
+msgstr "Estat"
 
 #: sensors.js:295
 msgid "Cycles"
-msgstr ""
+msgstr "Cicles"
 
 #: sensors.js:300 sensors.js:330
 msgid "Energy (full)"
-msgstr ""
+msgstr "Energia (plena)"
 
 #: sensors.js:302 sensors.js:332
 msgid "Capacity"
-msgstr ""
+msgstr "Capacitat"
 
 #: sensors.js:303 sensors.js:333
 msgid "Energy (design)"
-msgstr ""
+msgstr "Energia (disseny)"
 
 #: sensors.js:311 sensors.js:340
 msgid "Rate"
-msgstr ""
+msgstr "Taxa"
 
 #: sensors.js:312 sensors.js:341
-#, fuzzy
 msgid "battery"
-msgstr "Monitor de memòria"
+msgstr "bateria"
 
 #: sensors.js:316 sensors.js:344
 msgid "Energy (now)"
-msgstr ""
+msgstr "Energia (actual)"
 
 #: sensors.js:322 sensors.js:350
 msgid "Percentage"
-msgstr ""
+msgstr "Percentatge"
 
 #: sensors.js:411
 msgid "WiFi Link Quality"
-msgstr ""
+msgstr "Qualitat de l'enllaç WiFi"
 
 #: sensors.js:412
 msgid "WiFi Signal Level"
-msgstr ""
+msgstr "Nivell de senyal wifi"
 
 #: sensors.js:432
 msgid "ARC Target"
-msgstr ""
+msgstr "ARC objectiu"
 
 #: sensors.js:433
-#, fuzzy
 msgid "ARC Maximum"
-msgstr "Màxim "
+msgstr "ARC màxim"
 
 #: sensors.js:434
 msgid "ARC Current"
-msgstr ""
+msgstr "ARC actual"
 
 #: sensors.js:445
-#, fuzzy
 msgid "Read total"
-msgstr "Total de fils"
+msgstr "Total lectura"
 
 #: sensors.js:446
 msgid "Write total"
-msgstr ""
+msgstr "Total escriptura"
 
 #: sensors.js:447
 msgid "Read rate"
-msgstr ""
+msgstr "Taxa lectura"
 
 #: sensors.js:448
 msgid "Write rate"
-msgstr ""
+msgstr "Taxa escriptura"
 
 #: sensors.js:467
 msgid "Total"
@@ -541,6 +529,5 @@ msgid "Free"
 msgstr "Lliure"
 
 #: sensors.js:471
-#, fuzzy
 msgid "storage"
-msgstr "Monitor d'emmagatzematge"
+msgstr "emmagatzematge"

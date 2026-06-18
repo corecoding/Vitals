@@ -1,0 +1,763 @@
+# Traditional Chinese (Taiwan) translation for gnome-shell-extension-vitals.
+#
+# This file is distributed under the same license as the
+# gnome-shell-extension-vitals package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extension-vitals master\n"
+"POT-Creation-Date: 2023-10-22 21:04+0200\n"
+"PO-Revision-Date: 2026-05-29 02:37+0800\n"
+"Last-Translator: Peter Dave Hello <hsu@peterdavehello.org>\n"
+"Language-Team: \n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.4\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: _returnValue:2\n"
+"X-Poedit-SearchPath-0: values.js\n"
+"X-Poedit-SearchPath-1: sensors.js\n"
+"X-Poedit-SearchPath-2: prefs.js\n"
+"X-Poedit-SearchPath-3: menuItem.js\n"
+"X-Poedit-SearchPath-4: extension.js\n"
+"X-Poedit-SearchPath-5: schemas/org.gnome.shell.extensions."
+"vitals.gschema.xml\n"
+"X-Poedit-SearchPath-6: prefs.ui\n"
+
+#: extension.js:109
+msgid "Batteries"
+msgstr "電池"
+
+#: extension.js:133
+msgid "No Data"
+msgstr "無資料"
+
+#: extension.js:159
+msgid "Refresh"
+msgstr "重新整理"
+
+#: extension.js:174
+msgid "System Monitor"
+msgstr "系統監視器"
+
+#: extension.js:182 prefs.js:106
+msgid "Preferences"
+msgstr "偏好設定"
+
+#: prefs.ui:42
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
+msgid "Include public IP address"
+msgstr "包含公用 IP 位址"
+
+#: prefs.ui:70
+msgid "Format"
+msgstr "格式"
+
+#: prefs.ui:78
+msgid "Bytes"
+msgstr "位元組"
+
+#: prefs.ui:79
+msgid "Bits"
+msgstr "位元"
+
+#: prefs.ui:121
+msgid "General"
+msgstr "一般"
+
+#: prefs.ui:149
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:11
+msgid "Seconds between updates"
+msgstr "更新間隔秒數"
+
+#: prefs.ui:184
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:16
+msgid "Position in panel"
+msgstr "面板位置"
+
+#: prefs.ui:193
+msgid "Left"
+msgstr "靠左"
+
+#: prefs.ui:194
+msgid "Center"
+msgstr "置中"
+
+#: prefs.ui:195
+msgid "Right"
+msgstr "靠右"
+
+#: prefs.ui:196
+msgid "Far Left"
+msgstr "最左"
+
+#: prefs.ui:197
+msgid "Far Right"
+msgstr "最右"
+
+#: prefs.ui:220
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
+msgid "Use higher precision"
+msgstr "使用較高精確度"
+
+#: prefs.ui:247
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
+msgid "Alphabetize sensors"
+msgstr "感測器依字母排序"
+
+#: prefs.ui:274
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
+msgid "Hide zero values"
+msgstr "隱藏零值"
+
+#: prefs.ui:301
+msgid "Use fixed widths"
+msgstr "使用固定寬度"
+
+#: prefs.ui:328
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:171
+msgid "Hide icons in top bar"
+msgstr "隱藏頂端列的圖示"
+
+#: prefs.ui:355
+msgid "Menu always centered"
+msgstr "選單總是置中"
+
+#: prefs.ui:379
+msgid "About"
+msgstr "關於"
+
+#: prefs.ui:394
+msgid ""
+"Feature requests or bugs? Please visit <a href=\"https://github."
+"com/corecoding/Vitals/issues\">GitHub</a>. No warranty, "
+"expressed or implied. <a href=\"https://corecoding.com/donate."
+"php\">Donate</a> if you found this useful."
+msgstr ""
+"有功能需求或發現問題嗎？請前往 <a href=\"https://github."
+"com/corecoding/Vitals/issues\">GitHub</a>。不提供任何明示或暗示的"
+"保固。若覺得實用，歡迎 <a href=\"https://corecoding.com/donate."
+"php\">捐款</a>。"
+
+#: prefs.ui:421
+msgid "Sensors"
+msgstr "感測器"
+
+#: prefs.ui:449
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+msgid "Monitor temperature"
+msgstr "監測溫度"
+
+#: prefs.ui:500
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+msgid "Monitor voltage"
+msgstr "監測電壓"
+
+#: prefs.ui:528
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+msgid "Monitor fan"
+msgstr "監測風扇"
+
+#: prefs.ui:556
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+msgid "Monitor memory"
+msgstr "監測記憶體"
+
+#: prefs.ui:607
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+msgid "Monitor processor"
+msgstr "監測處理器"
+
+#: prefs.ui:658
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+msgid "Monitor system"
+msgstr "監測系統"
+
+#: prefs.ui:709
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+msgid "Monitor network"
+msgstr "監測網路"
+
+#: prefs.ui:760
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+msgid "Monitor storage"
+msgstr "監測儲存空間"
+
+#: prefs.ui:811
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+msgid "Monitor battery"
+msgstr "監測電池"
+
+#: prefs.ui:890
+msgid "Path"
+msgstr "路徑"
+
+#: prefs.ui:922 prefs.ui:1031
+msgid "Measurement"
+msgstr "計量方式"
+
+#: prefs.ui:930 prefs.ui:1039
+msgid "Binary"
+msgstr "二進位"
+
+#: prefs.ui:931 prefs.ui:1040
+msgid "Decimal"
+msgstr "十進位"
+
+#: prefs.ui:976
+msgid "Unit"
+msgstr "單位"
+
+#: prefs.ui:985
+msgid "°C"
+msgstr "°C"
+
+#: prefs.ui:986
+msgid "°F"
+msgstr "°F"
+
+#: prefs.ui:1086
+msgid "Monitor BAT0"
+msgstr "監測 BAT0"
+
+#: prefs.ui:1116
+msgid "Monitor BAT1"
+msgstr "監測 BAT1"
+
+#: prefs.ui:1146
+msgid "Monitor BAT2"
+msgstr "監測 BAT2"
+
+#: prefs.ui:1176
+msgid "Monitor CMB0"
+msgstr "監測 CMB0"
+
+#: prefs.ui:1206
+msgid "Monitor macsmc-battery"
+msgstr "監測 macsmc-battery"
+
+#: prefs.ui:1247
+msgid "Calculate Combined Values"
+msgstr "計算合併數值"
+
+#: prefs.ui:1277
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:141
+msgid "Include BAT0"
+msgstr "包含 BAT0"
+
+#: prefs.ui:1307
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:146
+msgid "Include BAT1"
+msgstr "包含 BAT1"
+
+#: prefs.ui:1337
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:151
+msgid "Include BAT2"
+msgstr "包含 BAT2"
+
+#: prefs.ui:1367
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:156
+msgid "Include CMB0"
+msgstr "包含 CMB0"
+
+#: prefs.ui:1397
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:161
+msgid "Include macsmc-battery"
+msgstr "包含 macsmc-battery"
+
+#: prefs.ui:1446
+msgid "Monitor command"
+msgstr "系統監視器指令"
+
+#: prefs.ui:1498
+msgid "Include static info"
+msgstr "包含靜態資訊"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
+msgid "Sensors to show in panel"
+msgstr "面板上顯示的感測器"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
+msgid "List of sensors to be shown in the panel"
+msgstr "要在面板中顯示的感測器清單"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:12
+msgid "Delay between sensor polling"
+msgstr "感測器輪詢間隔"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:17
+msgid "Position in Panel ('left', 'center', 'right')"
+msgstr "面板位置 (「靠左」、「置中」、「靠右」)"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:22
+msgid "Show one extra digit after decimal"
+msgstr "小數點後多顯示一位數字"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:27
+msgid "Display sensors in alphabetical order"
+msgstr "以字母順序顯示感測器"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:32
+msgid "Hide data from sensors that are invalid"
+msgstr "隱藏感測器的無效資料"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:37
+msgid "Display temperature of various components"
+msgstr "顯示各元件的溫度"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:41
+msgid "Temperature unit"
+msgstr "溫度單位"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:42
+msgid ""
+"The unit ('centigrade' or 'fahrenheit') the extension should "
+"display the temperature in"
+msgstr ""
+"擴充功能顯示溫度時應使用的單位"
+" (「攝氏」或「華氏」)"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:47
+msgid "Display voltage of various components"
+msgstr "顯示各元件的電壓"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:52
+msgid "Display fan rotation per minute"
+msgstr "顯示風扇每分鐘轉速"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
+msgid "Display memory information"
+msgstr "顯示記憶體資訊"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
+msgid "Display processor information"
+msgstr "顯示處理器資訊"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
+msgid "Display system information"
+msgstr "顯示系統資訊"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
+msgid "Display storage information"
+msgstr "顯示儲存空間資訊"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
+msgid "Display network information"
+msgstr "顯示網路資訊"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
+msgid "Display public IP address of internet connection"
+msgstr "顯示網路連線的公用 IP 位址"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:86
+msgid "Network speed format"
+msgstr "網路速度格式"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:87
+msgid "Should speed display in bits or bytes?"
+msgstr "速度應以位元或位元組顯示？"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:91
+msgid "Storage path"
+msgstr "儲存空間路徑"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:92
+msgid "Storage path for monitoring"
+msgstr "要監測的儲存空間路徑"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:97
+msgid "Monitor battery health"
+msgstr "監測電池健康狀態"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:101
+msgid "Memory measurement"
+msgstr "記憶體計量方式"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:102
+msgid "Can use gigabyte or gibibyte for memory"
+msgstr "記憶體可使用 gigabyte 或 gibibyte"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:106
+msgid "Storage measurement"
+msgstr "儲存空間計量方式"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:107
+msgid "Can use gigabyte or gibibyte for storage"
+msgstr "儲存空間可使用 gigabyte 或 gibibyte"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
+msgid "Display battery BAT0"
+msgstr "顯示電池 BAT0"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
+msgid "Should battery 'BAT0' be displayed?"
+msgstr "是否顯示電池「BAT0」？"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
+msgid "Display battery BAT1"
+msgstr "顯示電池 BAT1"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+msgid "Should battery 'BAT1' be displayed?"
+msgstr "是否顯示電池「BAT1」？"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+msgid "Display battery BAT2"
+msgstr "顯示電池 BAT2"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+msgid "Should battery 'BAT2' be displayed?"
+msgstr "是否顯示電池「BAT2」？"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:126
+msgid "Display battery CMB0"
+msgstr "顯示電池 CMB0"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:127
+msgid "Should battery 'CMB0' be displayed?"
+msgstr "是否顯示電池「CMB0」？"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:131
+msgid "Display battery macsmc-battery"
+msgstr "顯示電池 macsmc-battery"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:132
+msgid "Should battery 'macsmc-battery' be displayed?"
+msgstr "是否顯示電池「macsmc-battery」？"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:136
+msgid "Display combined battery data"
+msgstr "顯示合併電池資料"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:137
+msgid "Display combined values for selected batteries"
+msgstr "顯示所選電池的合併數值"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:142
+msgid "Include 'BAT0' when calculating combined Battery"
+msgstr "計算合併電池時包含「BAT0」"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:147
+msgid "Include 'BAT1' when calculating combined Battery"
+msgstr "計算合併電池時包含「BAT1」"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:152
+msgid "Include 'BAT2' when calculating combined Battery"
+msgstr "計算合併電池時包含「BAT2」"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:157
+msgid "Include 'CMB0' when calculating combined Battery"
+msgstr "計算合併電池時包含「CMB0」"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:162
+msgid "Include 'macsmc-battery' when calculating combined Battery"
+msgstr "計算合併電池時包含「macsmc-battery」"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:166
+msgid "Use fixed widths in top bar"
+msgstr "在頂端列使用固定寬度"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:167
+msgid "Keep sensors in top bar from jumping around"
+msgstr "避免頂端列的感測器資訊跳動"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:172
+msgid "Keep top bar clean by only showing sensor values"
+msgstr "僅顯示感測器數值以保持頂端列整潔"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:176
+msgid "Make the menu centered"
+msgstr "將選單置中"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:177
+msgid ""
+"Center the menu to the icon regardless of the position in the "
+"panel"
+msgstr ""
+"無論面板位置為何，選單皆置中"
+"對齊圖示"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:181
+msgid "System Monitor command"
+msgstr "系統監視器指令"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:182
+msgid "The command run when system monitor button is clicked"
+msgstr "按下系統監視器按鈕時執行的指令"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:186
+msgid "Include processor static information"
+msgstr "包含處理器靜態資訊"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:187
+msgid "Display processor static information that doesn't change"
+msgstr "顯示不會變動的處理器靜態資訊"
+
+#: sensors.js:65
+msgid "Public IP"
+msgstr "公用 IP"
+
+#: sensors.js:133 sensors.js:181
+msgid "Usage"
+msgstr "使用率"
+
+#: sensors.js:134
+msgid "memory"
+msgstr "記憶體"
+
+#: sensors.js:135
+msgid "Physical"
+msgstr "實體"
+
+#: sensors.js:136
+msgid "Available"
+msgstr "可用"
+
+#: sensors.js:137
+msgid "Allocated"
+msgstr "已配置"
+
+#: sensors.js:138
+msgid "Cached"
+msgstr "已快取"
+
+#: sensors.js:139 sensors.js:355
+msgid "Free"
+msgstr "剩餘"
+
+#: sensors.js:140
+msgid "Swap"
+msgstr "交換空間"
+
+#: sensors.js:248
+msgid "Average"
+msgstr "平均"
+
+#: sensors.js:180
+msgid "processor"
+msgstr "處理器"
+
+#: sensors.js:183
+#, javascript-format
+msgid "Core %d"
+msgstr "核心 %d"
+
+#: sensors.js:213 sensors.js:222
+msgid "Frequency"
+msgstr "頻率"
+
+#: sensors.js:231
+msgid "Open Files"
+msgstr "開啟檔案數"
+
+#: sensors.js:238
+msgid "Load 1m"
+msgstr "1 分鐘負載"
+
+#: sensors.js:239
+msgid "system"
+msgstr "系統"
+
+#: sensors.js:240
+msgid "Load 5m"
+msgstr "5 分鐘負載"
+
+#: sensors.js:241
+msgid "Load 15m"
+msgstr "15 分鐘負載"
+
+#: sensors.js:242
+msgid "Threads Active"
+msgstr "活躍執行緒"
+
+#: sensors.js:243
+msgid "Threads Total"
+msgstr "執行緒總數"
+
+#: sensors.js:248
+msgid "Uptime"
+msgstr "運作時間"
+
+#: sensors.js:252
+msgid "Process Time"
+msgstr "處理時間"
+
+#: sensors.js:302
+msgid "WiFi Link Quality"
+msgstr "WiFi 連線品質"
+
+#: sensors.js:303
+msgid "WiFi Signal Level"
+msgstr "WiFi 訊號強度"
+
+#: sensors.js:318
+msgid "ARC Target"
+msgstr "ARC 目標值"
+
+#: sensors.js:319
+msgid "ARC Maximum"
+msgstr "ARC 最大值"
+
+#: sensors.js:320
+msgid "ARC Current"
+msgstr "ARC 目前值"
+
+#: sensors.js:330
+msgid "Read total"
+msgstr "讀取總量"
+
+#: sensors.js:331
+msgid "Write total"
+msgstr "寫入總量"
+
+#: sensors.js:332
+msgid "Read rate"
+msgstr "讀取速率"
+
+#: sensors.js:333
+msgid "Write rate"
+msgstr "寫入速率"
+
+#: sensors.js:352
+msgid "Total"
+msgstr "總計"
+
+#: sensors.js:353
+msgid "Used"
+msgstr "已使用"
+
+#: sensors.js:354
+msgid "Reserved"
+msgstr "已保留"
+
+#: sensors.js:356
+msgid "storage"
+msgstr "儲存空間"
+
+#: sensors.js:393
+msgid "Label"
+msgstr "標籤"
+
+#: sensors.js:404 sensors.js:529
+msgid "State"
+msgstr "狀態"
+
+#: sensors.js:409 sensors.js:519
+msgid "Cycles"
+msgstr "循環次數"
+
+#: sensors.js:414
+msgid "Voltage"
+msgstr "電壓"
+
+#: sensors.js:418
+msgid "Level"
+msgstr "電量"
+
+#: sensors.js:422 sensors.js:553
+msgid "Percentage"
+msgstr "百分比"
+
+#: sensors.js:432 sensors.js:527
+msgid "Rate"
+msgstr "速率"
+
+#: sensors.js:442 sensors.js:535
+msgid "Energy (full)"
+msgstr "電量 (充滿)"
+
+#: sensors.js:451 sensors.js:541
+msgid "Energy (design)"
+msgstr "電量 (設計值)"
+
+#: sensors.js:455
+msgid "Capacity"
+msgstr "容量"
+
+#: sensors.js:464 sensors.js:547
+msgid "Energy (now)"
+msgstr "電量 (目前)"
+
+#: sensors.js:501 sensors.js:504 sensors.js:588 sensors.js:591
+msgid "Time left"
+msgstr "剩餘時間"
+
+#: sensors.js:677
+msgid "Vendor"
+msgstr "製造商"
+
+#: sensors.js:678
+msgid "Bogomips"
+msgstr "Bogomips"
+
+#: sensors.js:679
+msgid "Sockets"
+msgstr "插槽數"
+
+#: sensors.js:680
+msgid "Cache"
+msgstr "快取"
+
+#: sensors.js:685
+msgid "Kernel"
+msgstr "核心"
+
+
+#: prefs.js:98
+msgid "Temperature"
+msgstr "溫度"
+
+#: prefs.js:98
+msgid "Network"
+msgstr "網路"
+
+#: prefs.js:98
+msgid "Storage"
+msgstr "儲存空間"
+
+#: prefs.js:98
+msgid "Memory"
+msgstr "記憶體"
+
+#: prefs.js:98
+msgid "Battery"
+msgstr "電池"
+
+#: extension.js:112
+msgid "Battery 1"
+msgstr "電池 1"
+
+#: extension.js:112
+msgid "Battery 2"
+msgstr "電池 2"
+
+#: extension.js:112
+msgid "Battery 3"
+msgstr "電池 3"
+
+#: extension.js:112
+msgid "Battery 4"
+msgstr "電池 4"
+
+#: extension.js:112
+msgid "Battery 5"
+msgstr "電池 5"
+
+#: extension.js:115
+msgid "Battery (hidden)"
+msgstr "電池 (隱藏)"
+
+#: prefs.js:98
+msgid "System"
+msgstr "系統"
+
+#: prefs.js:98
+msgid "Processor"
+msgstr "處理器"
+
+#: sensors.js:759
+msgid "Fan"
+msgstr "風扇"

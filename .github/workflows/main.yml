@@ -34,6 +34,16 @@ jobs:
 #      - name: Push compiled assets
 #        run: git commit && git push
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run shexli
+        run: |
+          python -m pip install -U pip shexli
+          shexli .
+
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "howtouse.gif"
 
