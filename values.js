@@ -141,11 +141,23 @@ export const Values = GObject.registerClass({
 
                 break;
             case 'speed':
+                let fixed_unit = this._settings.get_int('network-speed-unit');
+
                 if (value > 0) {
                     if (use_bps) value *= 8;
-                    exp = Math.floor(Math.log(value) / Math.log(unit));
-                    if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
-                    value = parseFloat((value / Math.pow(unit, exp)));
+
+                    if (fixed_unit > 0) {
+                        // fixed unit: force to K (exp=1) or M (exp=2)
+                        exp = fixed_unit;
+                        value = parseFloat((value / Math.pow(unit, exp)));
+                    } else {
+                        // auto: current behavior
+                        exp = Math.floor(Math.log(value) / Math.log(unit));
+                        if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
+                        value = parseFloat((value / Math.pow(unit, exp)));
+                    }
+                } else {
+                    exp = 0;
                 }
 
                 format = (use_higher_precision)?'%.1f %s':'%.0f %s';
@@ -253,9 +265,16 @@ export const Values = GObject.registerClass({
         if (type == 'temperature' || type == 'voltage' || type == 'fan') {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
+            // for fans, exclude 0 RPM ghost sensors from average calculation (#547)
+            let avgVals = vals;
+            if (type == 'fan') {
+                let nonZero = vals.filter(v => v > 0);
+                if (nonZero.length > 0) avgVals = nonZero;
+            }
+
             // show value in group even if there is one value present
-            let sum = vals.reduce((a, b) => a + b);
-            let avg = this._legible(sum / vals.length, format);
+            let sum = avgVals.reduce((a, b) => a + b);
+            let avg = this._legible(sum / avgVals.length, format);
             output.push({ label: type, value: avg, type: type + '-group', key: '' });
 
             // If only one value is present, don't display avg, min and max
@@ -263,12 +282,12 @@ export const Values = GObject.registerClass({
                 output.push({ label: 'Average', value: avg, type, key: '__' + type + '_avg__' });
 
                 // calculate Minimum value
-                let min = Math.min(...vals);
+                let min = Math.min(...avgVals);
                 min = this._legible(min, format);
                 output.push({ label: 'Minimum', value: min, type, key: '__' + type + '_min__' });
 
                 // calculate Maximum value
-                let max = Math.max(...vals);
+                let max = Math.max(...avgVals);
                 max = this._legible(max, format);
                 output.push({ label: 'Maximum', value: max, type, key: '__' + type + '_max__' });
             }

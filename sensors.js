@@ -26,6 +26,7 @@
 
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Gio from 'gi://Gio';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -121,7 +122,7 @@ export const Sensors = GObject.registerClass({
                     this._queryTempVoltFan(callback, sensor);
                 } else {
                     // directly call queryFunction below
-                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
                     this[method](callback, dwell);
                 }
             }
@@ -397,6 +398,37 @@ export const Sensors = GObject.registerClass({
         this._returnValue(callback, 'Used %', usedPercent + '%', 'storage', 'string');
         this._returnValue(callback, 'Free %', freePercent + '%', 'storage', 'string');
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
+    }
+
+    _queryIoDevices(callback) {
+        // read USB device info from sysfs using the same File module as other sensors
+        let usbBase = '/sys/bus/usb/devices/';
+        let deviceCount = 0;
+
+        new FileModule.File(usbBase).list().then(entries => {
+            for (let entry of entries) {
+                // skip interfaces (contain ':'), only want actual devices
+                if (entry.indexOf(':') !== -1) continue;
+
+                let productPath = usbBase + entry + '/product';
+
+                new FileModule.File(productPath).read().then(product => {
+                    deviceCount++;
+                    new FileModule.File(usbBase + entry + '/manufacturer').read().then(mfr => {
+                        this._returnValue(callback, product, mfr, 'io-devices', 'string');
+                    }).catch(err => {
+                        this._returnValue(callback, product, '', 'io-devices', 'string');
+                    });
+                }).catch(err => {
+                });
+            }
+
+            // update group label after listing
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+                this._returnValue(callback, 'io-devices', deviceCount + ' devices', 'io-devices-group', 'string');
+                return GLib.SOURCE_REMOVE;
+            });
+        }).catch(err => { });
     }
 
     _queryBattery(callback) {

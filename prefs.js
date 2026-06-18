@@ -49,7 +49,7 @@ const Settings = new GObject.Class({
                         'alphabetize', 'hide-zeros', 'include-public-ip',
                         'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
                         'hide-icons', 'menu-centered', 'include-static-info',
-                        'show-gpu', 'include-static-gpu-info' ];
+                        'show-gpu', 'include-static-gpu-info', 'show-io-devices' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
@@ -62,7 +62,7 @@ const Settings = new GObject.Class({
         }
 
         // process individual drop down sensor preferences
-        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style' ];
+        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'network-speed-unit', 'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 

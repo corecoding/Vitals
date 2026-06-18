@@ -94,6 +94,11 @@
       <summary>Network speed format</summary>
       <description>Should speed display in bits or bytes?</description>
     </key>
+    <key type="i" name="network-speed-unit">
+      <default>0</default>
+      <summary>Fixed network speed unit</summary>
+      <description>Fix the network speed unit instead of auto-scaling. 0=Auto, 1=Kbps/KiB/s, 2=Mbps/MiB/s</description>
+    </key>
     <key type="s" name="storage-path">
       <default>"/"</default>
       <summary>Storage path</summary>
@@ -158,6 +163,11 @@
       <default>0</default>
       <summary>Icon styles</summary>
       <description>Set the style for the displayed sensor icons ('original', 'updated')</description>
+    </key>
+    <key type="b" name="show-io-devices">
+      <default>false</default>
+      <summary>Monitor I/O devices</summary>
+      <description>Display connected USB and input devices</description>
     </key>
   </schema>
 </schemalist>

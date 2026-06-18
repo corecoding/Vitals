@@ -291,6 +291,7 @@ var VitalsMenuButton = GObject.registerClass({
                 },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' },
+            'io-devices' : { 'icon': 'system-symbolic.svg' },
                     'gpu' : { 'icon': 'gpu-symbolic.svg' }
         }
 
@@ -334,7 +335,7 @@ var VitalsMenuButton = GObject.registerClass({
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
                          'fixed-widths', 'hide-icons', 'unit',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
-                         'network-public-ip-show-flag', 'network-speed-format', 'storage-measurement',
+                         'network-public-ip-show-flag', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
                          'include-static-info', 'include-static-gpu-info' ];
 
         for (let setting of Object.values(settings))
@@ -674,7 +675,11 @@ var VitalsMenuButton = GObject.registerClass({
             item.value = value;
         } else if (type.includes('-group')) {
             // update text next to group header
-            let group = type.split('-')[0];
+            let group = type.replace('-group', '');
+            // for multi-word sensor names like io-devices, use full name
+            // for network-rx-group, fall back to first segment
+            if (!this._groups[group])
+                group = type.split('-')[0];
             if (this._groups[group]) {
                 this._groups[group].status.text = value;
                 this._sensorMenuItems[type] = this._groups[group];
@@ -689,8 +694,15 @@ var VitalsMenuButton = GObject.registerClass({
     _appendMenuItem(sensor, key) {
         let split = sensor.type.split('-');
         let type = split[0];
-        let icon = (split.length == 2)?'icon-' + split[1]:'icon';
-        let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon));
+        let iconKey = (split.length == 2)?'icon-' + split[1]:'icon';
+
+        // special handling for multi-word sensor names
+        if (sensor.type == 'io-devices' || sensor.type == 'io-devices-group') {
+            type = sensor.type;
+            iconKey = 'icon';
+        }
+
+        let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, iconKey));
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {

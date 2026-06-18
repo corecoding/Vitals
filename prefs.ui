@@ -147,6 +147,40 @@
                 </property>
               </object>
             </child>
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Speed Unit</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="network-speed-unit">
+                        <property name="can_focus">0</property>
+                        <property name="active">0</property>
+                        <items>
+                          <item translatable="yes">Auto</item>
+                          <item translatable="yes">Kbps / KiB/s</item>
+                          <item translatable="yes">Mbps / MiB/s</item>
+                        </items>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </property>
       </object>
@@ -990,6 +1024,34 @@
                                     <property name="margin-end">5</property>
                                   </object>
                                 </child>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="width_request">100</property>
+                        <property name="selectable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="can_focus">0</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="hexpand">1</property>
+                                <property name="can_focus">0</property>
+                                <property name="halign">start</property>
+                                <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
+                                <property name="label" translatable="yes">Monitor I/O Devices</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSwitch" id="show-io-devices">
+                                <property name="halign">end</property>
+                                <property name="valign">center</property>
+                                <property name="margin-end">5</property>
                               </object>
                             </child>
                           </object>
