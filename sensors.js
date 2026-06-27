@@ -87,9 +87,9 @@ export const Sensors = GObject.registerClass({
         const provider = this._settings.get_int('network-public-ip-provider');
         let url;
         if (provider === 1)
-            url = 'https://api.ipify.org?format=json';
-        else if (provider === 2)
             url = 'https://api.myip.com';
+        else if (provider === 2)
+            url = 'https://api.ipify.org?format=json';
         else
             url = 'https://ipv4.corecoding.com';
 
@@ -98,10 +98,10 @@ export const Sensors = GObject.registerClass({
             let cc = '';
             let ip = '';
             if (provider === 1) {
-                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
-            } else if (provider === 2) {
                 cc = (obj && typeof obj['cc'] === 'string') ? obj['cc'].trim().toLowerCase() : '';
                 if (cc === 'xx') cc = ''; // MyIP.com uses XX when country is unknown; not a real flag
+                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
+            } else if (provider === 2) {
                 ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
             } else {
                 cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';

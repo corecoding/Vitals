@@ -111,8 +111,8 @@
                         <property name="active">0</property>
                         <items>
                           <item translatable="yes">Core Coding</item>
-                          <item translatable="yes">ipify</item>
                           <item translatable="yes">MyIP.com</item>
+                          <item translatable="yes">ipify</item>
                         </items>
                       </object>
                     </child>
