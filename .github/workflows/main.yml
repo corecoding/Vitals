@@ -18,9 +18,6 @@ jobs:
       - name: Fetch tags
         run: git fetch --tags
 
-      - name: Compile schemas
-        run: /usr/bin/glib-compile-schemas --strict schemas/
-
       - name: Install msgfmt command
         run: sudo apt-get install gettext
 
@@ -40,7 +37,7 @@ jobs:
           python-version: "3.x"
 
       - name: Build project # This would actually build your project, using zip for an example artifact
-        run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "howtouse.gif"
+        run: zip vitals.zip -r * -x "README.md" -x "locale/*.po" -x "locale/vitals.pot" -x "howtouse.gif" -x "schemas/gschemas.compiled"
 
       - name: Run shexli
         run: |
