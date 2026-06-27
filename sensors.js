@@ -97,11 +97,11 @@ export const Sensors = GObject.registerClass({
             let obj = JSON.parse(contents);
             let cc = '';
             let ip = '';
-            if (provider === 2) {
-                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
-            } else if (provider === 1) {
+            if (provider === 1) {
                 cc = (obj && typeof obj['cc'] === 'string') ? obj['cc'].trim().toLowerCase() : '';
                 if (cc === 'xx') cc = ''; // MyIP.com uses XX when country is unknown; not a real flag
+                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
+            } else if (provider === 2) {
                 ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
             } else {
                 cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
