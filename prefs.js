@@ -76,7 +76,7 @@ const Settings = new GObject.Class({
         let providerWidget = this.builder.get_object('network-public-ip-provider');
         let flagWidget = this.builder.get_object('network-public-ip-show-flag');
         let updateFlagSensitivity = () => {
-            flagWidget.set_sensitive(providerWidget.get_active() !== 1);
+            flagWidget.set_sensitive(providerWidget.get_active() !== 2);
         };
         updateFlagSensitivity();
         providerWidget.connect('changed', updateFlagSensitivity);
