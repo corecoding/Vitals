@@ -101,7 +101,7 @@ export const Sensors = GObject.registerClass({
                 ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
             } else if (provider === 2) {
                 cc = (obj && typeof obj['cc'] === 'string') ? obj['cc'].trim().toLowerCase() : '';
-                if (cc === 'xx') cc = '';
+                if (cc === 'xx') cc = ''; // MyIP.com uses XX when country is unknown; not a real flag
                 ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
             } else {
                 cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
