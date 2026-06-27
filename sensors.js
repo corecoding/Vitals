@@ -53,7 +53,8 @@ export const Sensors = GObject.registerClass({
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
-        this._addSettingChangedSignal('network-public-ip-interval', () => {this._lastPublicIPCheck = 0;});
+        this._addSettingChangedSignal('network-public-ip-interval', () => {this._next_public_ip_check = 0;});
+        this._addSettingChangedSignal('network-public-ip-provider', () => {this._next_public_ip_check = 0;});
         //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._gpu_drm_vendors = null;
@@ -83,11 +84,29 @@ export const Sensors = GObject.registerClass({
     }
 
     _refreshIPAddress(callback) {
-        // check IP address
-        new FileModule.File('https://ipv4.corecoding.com').read().then(contents => {
+        const provider = this._settings.get_int('network-public-ip-provider');
+        let url;
+        if (provider === 1)
+            url = 'https://api.ipify.org?format=json';
+        else if (provider === 2)
+            url = 'https://api.myip.com';
+        else
+            url = 'https://ipv4.corecoding.com';
+
+        new FileModule.File(url).read().then(contents => {
             let obj = JSON.parse(contents);
-            let cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
-            let ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
+            let cc = '';
+            let ip = '';
+            if (provider === 1) {
+                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
+            } else if (provider === 2) {
+                cc = (obj && typeof obj['cc'] === 'string') ? obj['cc'].trim().toLowerCase() : '';
+                if (cc === 'xx') cc = ''; // MyIP.com uses XX when country is unknown; not a real flag
+                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
+            } else {
+                cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
+                ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
+            }
             const showFlag = this._settings.get_boolean('network-public-ip-show-flag');
             let typeOut = (showFlag && /^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
             this._returnValue(callback, 'Public IP', ip, typeOut, 'string');

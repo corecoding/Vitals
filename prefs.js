@@ -62,7 +62,7 @@ const Settings = new GObject.Class({
         }
 
         // process individual drop down sensor preferences
-        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style' ];
+        sensors = [ 'position-in-panel', 'unit', 'network-speed-format', 'network-speed-unit', 'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style', 'network-public-ip-provider' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 
@@ -72,6 +72,14 @@ const Settings = new GObject.Class({
                 this._settings.set_int(sensor, widget.get_active());
             });
         }
+
+        let providerWidget = this.builder.get_object('network-public-ip-provider');
+        let flagWidget = this.builder.get_object('network-public-ip-show-flag');
+        let updateFlagSensitivity = () => {
+            flagWidget.set_sensitive(providerWidget.get_active() !== 1);
+        };
+        updateFlagSensitivity();
+        providerWidget.connect('changed', updateFlagSensitivity);
 
         this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
 
