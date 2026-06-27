@@ -88,6 +88,40 @@
             </child>
             <child>
               <object class="GtkListBoxRow">
+                <property name="width_request">100</property>
+                <property name="selectable">0</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="can_focus">0</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">1</property>
+                        <property name="can_focus">0</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Public IP provider</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="network-public-ip-provider">
+                        <property name="can_focus">0</property>
+                        <property name="active">0</property>
+                        <items>
+                          <item translatable="yes">Core Coding</item>
+                          <item translatable="yes">ipify</item>
+                          <item translatable="yes">MyIP.com</item>
+                        </items>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBoxRow">
                 <property name="visible">True</property>
                 <child>
                   <object class="GtkBox">

@@ -334,7 +334,7 @@ var VitalsMenuButton = GObject.registerClass({
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
                          'fixed-widths', 'hide-icons', 'unit',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
-                         'network-public-ip-show-flag', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
+                         'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
                          'include-static-info', 'include-static-gpu-info' ];
 
         for (let setting of Object.values(settings))
