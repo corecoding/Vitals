@@ -299,6 +299,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._sensorsIconPathPrefix = ['/icons/original/', '/icons/gnome/'];
 
         this._warnings = [];
+        this._isDestroyed = false;
         this._sensorMenuItems = {};
         this._hotLabels = {};
         this._hotItems = {};
@@ -323,26 +324,9 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._drawMenu();
         this.add_child(this._menuLayout);
-        this._settingChangedSignals = [];
         this._refreshTimeoutId = null;
 
-        this._addSettingChangedSignal('update-time', this._updateTimeSettingChanged.bind(this));
-        this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
-        this._addSettingChangedSignal('menu-centered', this._positionInPanelChanged.bind(this));
-        this._addSettingChangedSignal('icon-style', this._iconStyleChanged.bind(this));
-
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
-                         'fixed-widths', 'hide-icons', 'unit',
-                         'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
-                         'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
-                         'include-static-info', 'include-static-gpu-info' ];
-
-        for (let setting of Object.values(settings))
-            this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
-
-        // add signals for show- preference based categories
-        for (let sensor in this._sensorIcons)
-            this._addSettingChangedSignal('show-' + sensor, this._showHideSensorsChanged.bind(this));
+        this._connectSettingsSignals();
 
         this._initializeMenu();
 
@@ -351,6 +335,27 @@ var VitalsMenuButton = GObject.registerClass({
 
         // start monitoring sensors
         this._initializeTimer();
+    }
+
+    _connectSettingsSignals() {
+        this._settings.connectObject(
+            'changed::update-time', this._updateTimeSettingChanged.bind(this),
+            'changed::position-in-panel', this._positionInPanelChanged.bind(this),
+            'changed::menu-centered', this._positionInPanelChanged.bind(this),
+            'changed::icon-style', this._iconStyleChanged.bind(this),
+            this);
+
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
+                         'fixed-widths', 'hide-icons', 'unit',
+                         'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
+                         'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
+                         'include-static-info', 'include-static-gpu-info' ];
+
+        for (let setting of settings)
+            this._settings.connectObject('changed::' + setting, this._redrawMenu.bind(this), this);
+
+        for (let sensor in this._sensorIcons)
+            this._settings.connectObject('changed::show-' + sensor, this._showHideSensorsChanged.bind(this), this);
     }
 
     _initializeMenu() {
@@ -424,7 +429,7 @@ var VitalsMenuButton = GObject.registerClass({
         this.menu.addMenuItem(item);
 
         // query sensors on menu open
-        this._menuStateChangeId = this.menu.connect('open-state-changed', (self, isMenuOpen) => {
+        this.menu.connectObject('open-state-changed', (menu, isMenuOpen) => {
             if (isMenuOpen) {
                 // make sure timer fires at next full interval
                 this._updateTimeChanged();
@@ -432,7 +437,7 @@ var VitalsMenuButton = GObject.registerClass({
                 // refresh sensors now
                 this._querySensors();
             }
-        });
+        }, this);
     }
 
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
@@ -443,10 +448,10 @@ var VitalsMenuButton = GObject.registerClass({
         if (!this._settings.get_boolean('show-' + optionName))
             this._groups[groupName].actor.hide();
 
-        if (!this._groups[groupName].status) {
-            this._groups[groupName].status = this._defaultLabel();
-            this._groups[groupName].actor.insert_child_at_index(this._groups[groupName].status, 4);
-            this._groups[groupName].status.text = _('No Data');
+        if (!this._groups[groupName]._statusLabel) {
+            this._groups[groupName]._statusLabel = this._defaultLabel();
+            this._groups[groupName].actor.insert_child_at_index(this._groups[groupName]._statusLabel, 4);
+            this._groups[groupName]._statusLabel.text = _('No Data');
         }
 
         if(position == -1) this.menu.addMenuItem(this._groups[groupName]);
@@ -595,10 +600,10 @@ var VitalsMenuButton = GObject.registerClass({
 
     _removeHotItem(key) {
         if (key in this._hotItems) {
-            this._hotItems[key].destroy();
-            delete this._hotItems[key];
             delete this._hotLabels[key];
             delete this._widths[key];
+            this._hotItems[key].destroy();
+            delete this._hotItems[key];
         }
     }
 
@@ -607,8 +612,9 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let key in this._sensorMenuItems) {
             if (key.includes('-group')) continue;
-            this._sensorMenuItems[key].destroy();
+            let item = this._sensorMenuItems[key];
             delete this._sensorMenuItems[key];
+            item.destroy();
         }
 
         this._drawMenu();
@@ -647,21 +653,21 @@ var VitalsMenuButton = GObject.registerClass({
         this._initializeTimer();
     }
 
-    _addSettingChangedSignal(key, callback) {
-        this._settingChangedSignals.push(this._settings.connect('changed::' + key, callback));
-    }
-
     _updateDisplay(label, value, type, key) {
+        if (this._isDestroyed)
+            return;
+
         // update sensor value in menubar
-        if (this._hotLabels[key]) {
-            this._hotLabels[key].set_text(value);
+        let hotLabel = this._hotLabels[key];
+        if (hotLabel) {
+            hotLabel.set_text(value);
 
             // support for fixed widths #55
             if (this._settings.get_boolean('fixed-widths')) {
                 // grab text box width and see if new text is wider than old text
-                let width2 = this._hotLabels[key].get_clutter_text().width;
+                let width2 = hotLabel.get_clutter_text().width;
                 if (width2 > this._widths[key]) {
-                    this._hotLabels[key].set_width(width2);
+                    hotLabel.set_width(width2);
                     this._widths[key] = width2;
                 }
             }
@@ -675,11 +681,12 @@ var VitalsMenuButton = GObject.registerClass({
         } else if (type.includes('-group')) {
             // update text next to group header
             let group = type.split('-')[0];
-            if (this._groups[group]) {
-                this._groups[group].status.text = value;
+            let statusLabel = this._groups[group]?._statusLabel;
+            if (statusLabel) {
+                statusLabel.text = value;
                 this._sensorMenuItems[type] = this._groups[group];
             }
-        } else {
+        } else if (!this._isDestroyed) {
             // add item to group for the first time
             let sensor = { 'label': label, 'value': value, 'type': type }
             this._appendMenuItem(sensor, key);
@@ -829,6 +836,9 @@ var VitalsMenuButton = GObject.registerClass({
         this._last_query = now;
 
         this._sensors.query((label, value, type, format) => {
+            if (this._isDestroyed)
+                return;
+
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
             let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
@@ -905,11 +915,16 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
+        this._isDestroyed = true;
         this._destroyTimer();
         this._sensors.destroy();
 
-        for (let signal of Object.values(this._settingChangedSignals))
-            this._settings.disconnect(signal);
+        this._settings.disconnectObject(this);
+        this.menu.disconnectObject(this);
+
+        this._hotLabels = {};
+        this._hotItems = {};
+        this._sensorMenuItems = {};
 
         super.destroy();
     }
