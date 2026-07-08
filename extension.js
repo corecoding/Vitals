@@ -301,6 +301,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._warnings = [];
         this._isDestroyed = false;
         this._sensorMenuItems = {};
+        this._availableSensors = {};
+        this._availableSensorsSig = '';
         this._hotLabels = {};
         this._hotItems = {};
         this._groups = {};
@@ -343,6 +345,7 @@ var VitalsMenuButton = GObject.registerClass({
             'changed::position-in-panel', this._positionInPanelChanged.bind(this),
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
             'changed::icon-style', this._iconStyleChanged.bind(this),
+            'changed::hot-sensors', this._hotSensorsChanged.bind(this),
             this);
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
@@ -496,6 +499,40 @@ var VitalsMenuButton = GObject.registerClass({
                 return hotSensors.indexOf(item) == pos;
             }
         ));
+    }
+
+    _hotSensorsChanged() {
+        // 'hot-sensors' changed. When the change came from the dropdown the
+        // panel already matches, so only redraw when it actually differs from
+        // what is currently shown (e.g. the change came from the preferences
+        // sensor selector, in this same or another process). Comparing sets is
+        // timing-independent, unlike a flag (the 'changed' signal is async).
+        let desired = this._settings.get_strv('hot-sensors');
+        let current = Object.keys(this._hotItems);
+        if (desired.length === current.length && desired.every(k => current.includes(k)))
+            return;
+
+        this._redrawMenu();
+    }
+
+    // publishes the list of sensors discovered so far into a setting the
+    // preferences window (a separate process) can read to build its selector
+    _publishAvailableSensors() {
+        let list = [];
+        for (let key in this._availableSensors) {
+            let sensor = this._availableSensors[key];
+            list.push({ key: key, label: sensor.label, group: sensor.group });
+        }
+
+        // stable ordering so the signature only changes when the set changes
+        list.sort((a, b) =>
+            a.group.localeCompare(b.group) ||
+            a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: 'base' }));
+
+        let json = JSON.stringify(list);
+        if (json === this._availableSensorsSig) return;
+        this._availableSensorsSig = json;
+        this._settings.set_string('available-sensors', json);
     }
 
     _initializeTimer() {
@@ -698,6 +735,10 @@ var VitalsMenuButton = GObject.registerClass({
         let type = split[0];
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon));
+
+        // remember this sensor so the preferences selector can list it
+        this._availableSensors[key] = { label: sensor.label, group: type };
+        this._publishAvailableSensors();
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {

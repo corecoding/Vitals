@@ -138,12 +138,141 @@ export default class VitalsPrefs extends ExtensionPreferences {
         let settings = new Settings(this);
         let widget = settings.widget;
 
-        const page = new Adw.PreferencesPage();
+        const page = new Adw.PreferencesPage({
+            title: _('General'),
+            icon_name: 'preferences-system-symbolic'
+        });
         const group = new Adw.PreferencesGroup({});
         group.add(widget);
         page.add(group);
         window.add(page);
         window.set_default_size(widget.width, widget.height);
         widget.show();
+
+        // second page: pick exactly which sensors show in the top bar
+        this._buildPanelSensorsPage(window, window._settings);
+    }
+
+    // Builds a page that lists every sensor the extension has discovered,
+    // grouped by category, with a switch per sensor. Toggling a switch adds or
+    // removes that sensor from 'hot-sensors' (the sensors shown in the panel).
+    _buildPanelSensorsPage(window, settings) {
+        const page = new Adw.PreferencesPage({
+            title: _('Panel'),
+            icon_name: 'utilities-system-monitor-symbolic'
+        });
+        window.add(page);
+
+        // groups we add dynamically, so we can rebuild when the sensor list changes
+        let dynamicGroups = [];
+        let keyToSwitch = {};
+        // guards against feedback loops between our writes and the change signals
+        let updating = false;
+
+        const rebuild = () => {
+            for (let g of dynamicGroups) page.remove(g);
+            dynamicGroups = [];
+            keyToSwitch = {};
+
+            let available = [];
+            try {
+                available = JSON.parse(settings.get_string('available-sensors'));
+            } catch (e) {
+                available = [];
+            }
+
+            if (!available.length) {
+                let empty = new Adw.PreferencesGroup({
+                    title: _('Sensors in the panel'),
+                    description: _('Open the Vitals menu in the top bar once so your sensors can be detected. They will then appear here to be toggled on or off.')
+                });
+                page.add(empty);
+                dynamicGroups.push(empty);
+                return;
+            }
+
+            let intro = new Adw.PreferencesGroup({
+                title: _('Sensors in the panel'),
+                description: _('Choose which sensors are shown in the top bar.')
+            });
+            page.add(intro);
+            dynamicGroups.push(intro);
+
+            // bucket sensors by their category
+            let byGroup = {};
+            for (let sensor of available) {
+                if (!byGroup[sensor.group]) byGroup[sensor.group] = [];
+                byGroup[sensor.group].push(sensor);
+            }
+
+            let hot = settings.get_strv('hot-sensors');
+
+            for (let groupName of Object.keys(byGroup).sort()) {
+                let pg = new Adw.PreferencesGroup({ title: this._groupDisplayName(groupName) });
+
+                for (let sensor of byGroup[groupName]) {
+                    let row = new Adw.SwitchRow({
+                        title: sensor.label,
+                        active: hot.indexOf(sensor.key) >= 0
+                    });
+                    keyToSwitch[sensor.key] = row;
+
+                    row.connect('notify::active', () => {
+                        if (updating) return;
+
+                        let list = settings.get_strv('hot-sensors');
+                        let idx = list.indexOf(sensor.key);
+                        if (row.active && idx < 0) list.push(sensor.key);
+                        else if (!row.active && idx >= 0) list.splice(idx, 1);
+                        else return;
+
+                        // same invariant the panel uses: show the generic
+                        // placeholder icon only when no real sensor is selected
+                        let defIdx = list.indexOf('_default_icon_');
+                        if (defIdx >= 0) list.splice(defIdx, 1);
+                        if (list.length === 0) list.push('_default_icon_');
+
+                        updating = true;
+                        settings.set_strv('hot-sensors', list);
+                        updating = false;
+                    });
+
+                    pg.add(row);
+                }
+
+                page.add(pg);
+                dynamicGroups.push(pg);
+            }
+        };
+
+        rebuild();
+
+        // extension discovered new sensors (or the app just started) -> rebuild
+        let availId = settings.connect('changed::available-sensors', () => rebuild());
+
+        // hot-sensors changed elsewhere (e.g. the dropdown) -> reflect in switches
+        let hotId = settings.connect('changed::hot-sensors', () => {
+            if (updating) return;
+            let hot = settings.get_strv('hot-sensors');
+            updating = true;
+            for (let key in keyToSwitch)
+                keyToSwitch[key].active = hot.indexOf(key) >= 0;
+            updating = false;
+        });
+
+        // avoid leaking the signal handlers when the window is closed
+        window.connect('close-request', () => {
+            settings.disconnect(availId);
+            settings.disconnect(hotId);
+            return false;
+        });
+    }
+
+    _groupDisplayName(group) {
+        if (group.startsWith('gpu')) {
+            let n = group.split('#')[1];
+            return n ? _('Graphics') + ' ' + n : _('Graphics');
+        }
+        return group.charAt(0).toUpperCase() + group.slice(1);
     }
 }
