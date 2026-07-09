@@ -66,14 +66,18 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 ##### &nbsp;&nbsp;&nbsp;&nbsp;Remove existing copy of vitals - expert users only!
 
-    # rm -ri ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
+    rm -rI ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
 
 ### 2) Clone from GitHub
 
     mkdir -p ~/.local/share/gnome-shell/extensions
     git clone https://github.com/corecoding/Vitals.git ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com -b develop
 
-### 3) Activate develop version
+### 3) Compile Schemas
+
+    glib-compile-schemas --strict ~/.local/share/gnome-shell/extensions/Vitals\@CoreCoding.com/schemas/
+
+### 4) Activate develop version
 
 #### Ubuntu/Debian/Fedora
 
