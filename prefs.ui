@@ -1406,7 +1406,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="monitor-cmd">
-                        <property name="placeholder_text" translatable="no">gnome-system-monitor</property>
+                        <property name="placeholder_text" translatable="no">resources</property>
                         <property name="can_focus">1</property>
                         <property name="editable">1</property>
                         <property name="width_chars">24</property>
