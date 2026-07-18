@@ -6,6 +6,11 @@
       <summary>Sensors to show in panel</summary>
       <description>List of sensors to be shown in the panel</description>
     </key>
+    <key name="available-sensors" type="s">
+      <default>"[]"</default>
+      <summary>Discovered sensors</summary>
+      <description>JSON list of sensors discovered by the extension, published so the preferences window can offer a selector for which sensors appear in the panel</description>
+    </key>
     <key type="i" name="update-time">
       <default>5</default>
       <summary>Seconds between updates</summary>
