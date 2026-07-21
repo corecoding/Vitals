@@ -169,5 +169,15 @@
       <summary>Icon styles</summary>
       <description>Set the style for the displayed sensor icons ('original', 'updated')</description>
     </key>
+    <key type="b" name="show-custom">
+      <default>true</default>
+      <summary>Monitor custom metrics</summary>
+      <description>Display metrics loaded from user-provided JSON files</description>
+    </key>
+    <key name="custom-metrics-paths" type="as">
+      <default>[]</default>
+      <summary>Custom metrics JSON file paths</summary>
+      <description>List of absolute paths to JSON files describing custom metrics</description>
+    </key>
   </schema>
 </schemalist>

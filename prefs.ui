@@ -1064,6 +1064,59 @@
                         </property>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="width_request">100</property>
+                        <property name="selectable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="can_focus">0</property>
+                            <property name="valign">center</property>
+                            <property name="margin_top">6</property>
+                            <property name="margin_bottom">6</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="hexpand">1</property>
+                                <property name="can_focus">0</property>
+                                <property name="halign">start</property>
+                                <property name="margin-start">5</property>
+                                <property name="margin-end">5</property>
+                                <property name="label" translatable="yes">Monitor custom metrics</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="can_focus">0</property>
+                                <property name="spacing">6</property>
+                                <child>
+                                  <object class="GtkButton" id="custom-prefs">
+                                    <property name="receives_default">1</property>
+                                    <property name="halign">center</property>
+                                    <property name="valign">center</property>
+                                    <child>
+                                      <object class="GtkImage">
+                                        <property name="can_focus">0</property>
+                                        <property name="icon_name">emblem-system-symbolic</property>
+                                      </object>
+                                    </child>
+                                    <style>
+                                      <class name="circular"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkSwitch" id="show-custom">
+                                    <property name="halign">end</property>
+                                    <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child type="label_item">
@@ -1518,6 +1571,46 @@
             </child>
           </object>
         </property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkBox" id="custom_prefs">
+    <property name="can_focus">1</property>
+    <property name="margin_top">12</property>
+    <property name="margin_bottom">12</property>
+    <property name="margin_start">6</property>
+    <property name="margin_end">6</property>
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkLabel">
+        <property name="can_focus">0</property>
+        <property name="halign">start</property>
+        <property name="wrap">1</property>
+        <property name="label" translatable="yes">Point Vitals at JSON files that expose your own metrics (title, metricsBarValue, metrics[]). Each source appears in the Custom Metrics menu and any row can be pinned to the top bar.</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkFrame">
+        <property name="can_focus">1</property>
+        <property name="child">
+          <object class="GtkListBox" id="custom-paths-listbox">
+            <property name="can_focus">1</property>
+            <property name="selection_mode">none</property>
+          </object>
+        </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="can_focus">0</property>
+        <property name="halign">end</property>
+        <child>
+          <object class="GtkButton" id="custom-add-path">
+            <property name="receives_default">1</property>
+            <property name="label" translatable="yes">Add JSON File…</property>
+          </object>
+        </child>
       </object>
     </child>
   </object>
