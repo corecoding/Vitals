@@ -49,7 +49,7 @@ const Settings = new GObject.Class({
                         'alphabetize', 'hide-zeros', 'include-public-ip',
                         'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
                         'hide-icons', 'menu-centered', 'include-static-info',
-                        'show-gpu', 'include-static-gpu-info' ];
+                        'show-gpu', 'include-static-gpu-info', 'show-custom' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
@@ -102,7 +102,7 @@ const Settings = new GObject.Class({
         }
 
         // makes individual sensor preference boxes appear
-        sensors = [ 'temperature', 'network', 'storage', 'memory', 'battery', 'system', 'processor', 'gpu' ];
+        sensors = [ 'temperature', 'network', 'storage', 'memory', 'battery', 'system', 'processor', 'gpu', 'custom' ];
         for (let key in sensors) {
             let sensor = sensors[key];
 
@@ -126,6 +126,72 @@ const Settings = new GObject.Class({
 
                 dialog.show();
             });
+        }
+
+        this._bindCustomMetrics();
+    },
+
+    // manage the list of custom metrics JSON files
+    _bindCustomMetrics: function() {
+        this._customPathsListbox = this.builder.get_object('custom-paths-listbox');
+
+        this._refreshCustomPathsListbox();
+
+        this.builder.get_object('custom-add-path').connect('clicked', () => {
+            let dialog = new Gtk.FileDialog({ title: _('Select Custom Metrics JSON File') });
+
+            let filter = new Gtk.FileFilter();
+            filter.add_pattern('*.json');
+            filter.set_name(_('JSON files'));
+            let filters = new Gio.ListStore({ item_type: Gtk.FileFilter });
+            filters.append(filter);
+            dialog.set_filters(filters);
+
+            dialog.open(this.widget.get_root(), null, (self, res) => {
+                try {
+                    let file = self.open_finish(res);
+                    let path = file.get_path();
+                    if (!path) return;
+
+                    let paths = this._settings.get_strv('custom-metrics-paths');
+                    if (!paths.includes(path)) {
+                        paths.push(path);
+                        this._settings.set_strv('custom-metrics-paths', paths);
+                        this._refreshCustomPathsListbox();
+                    }
+                } catch (e) { } // user cancelled the dialog
+            });
+        });
+    },
+
+    _refreshCustomPathsListbox: function() {
+        let listbox = this._customPathsListbox;
+
+        // clear existing rows
+        let row;
+        while ((row = listbox.get_row_at_index(0)) !== null)
+            listbox.remove(row);
+
+        let paths = this._settings.get_strv('custom-metrics-paths');
+        for (let path of paths) {
+            let box = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 12,
+                margin_top: 6, margin_bottom: 6, margin_start: 6, margin_end: 6,
+            });
+
+            let label = new Gtk.Label({ label: path, hexpand: true, halign: Gtk.Align.START, ellipsize: 3 });
+            box.append(label);
+
+            let removeButton = new Gtk.Button({ icon_name: 'user-trash-symbolic' });
+            removeButton.connect('clicked', () => {
+                let updated = this._settings.get_strv('custom-metrics-paths').filter(p => p !== path);
+                this._settings.set_strv('custom-metrics-paths', updated);
+                this._refreshCustomPathsListbox();
+            });
+            box.append(removeButton);
+
+            listbox.append(new Gtk.ListBoxRow({ child: box, selectable: false }));
         }
     }
 });

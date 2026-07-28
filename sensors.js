@@ -543,6 +543,47 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _queryCustom(callback) {
+        let paths = this._settings.get_strv('custom-metrics-paths');
+
+        for (let path of paths) {
+            new FileModule.File(path).read().then(contents => {
+                let data;
+                try {
+                    data = JSON.parse(contents);
+                } catch (e) {
+                    this._returnValue(callback, this._customSourceTitle(path), 'disabled', 'custom', 'string');
+                    return;
+                }
+
+                if (!data || typeof data.title !== 'string' || !Array.isArray(data.metrics)) {
+                    this._returnValue(callback, this._customSourceTitle(path), 'disabled', 'custom', 'string');
+                    return;
+                }
+
+                let title = data.title;
+                let barValue = (typeof data.metricsBarValue === 'string' && data.metricsBarValue)
+                    ? data.metricsBarValue
+                    : ((data.metrics[0] && typeof data.metrics[0].formattedValue === 'string') ? data.metrics[0].formattedValue : 'N/A');
+
+                // pinnable summary row, shown in the group and available for the top bar
+                this._returnValue(callback, title, barValue, 'custom', 'string');
+                this._returnValue(callback, 'custom', barValue, 'custom-group', 'string');
+
+                for (let metric of data.metrics) {
+                    if (!metric || typeof metric.title !== 'string' || typeof metric.formattedValue !== 'string') continue;
+                    this._returnValue(callback, title + ' · ' + metric.title, metric.formattedValue, 'custom', 'string');
+                }
+            }).catch(err => {
+                this._returnValue(callback, this._customSourceTitle(path), 'disabled', 'custom', 'string');
+            });
+        }
+    }
+
+    _customSourceTitle(path) {
+        return path.split('/').pop().replace(/\.json$/i, '');
+    }
+
     _initFrameMonitor() {
         if (this._frameMonitorSignalId) return;
         this._frameMonitorLastTime = 0;

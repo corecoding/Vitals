@@ -87,6 +87,32 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 ##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Vitals
 
+## Custom Metrics
+
+Point Vitals at your own JSON file(s) to surface any metric you can write to disk — build status, a script's output, a remote API poll, anything. Enable it under Preferences → Monitor custom metrics → ⚙ → **Add JSON File…**.
+
+Each file is polled on the same interval as every other sensor (`update-time`) and must look like:
+
+```json
+{
+  "title": "Claude Code",
+  "metricsBarValue": "5.4%",
+  "metrics": [
+    { "title": "Model", "formattedValue": "Sonnet 5" },
+    { "title": "Context", "formattedValue": "5.4%" },
+    { "title": "5h window", "formattedValue": "16.4%" }
+  ]
+}
+```
+
+* `title` (required) — the source's name, used as the row/label prefix.
+* `metricsBarValue` (optional) — shown on the source's pinnable summary row; falls back to the first metric's value if omitted.
+* `metrics` (required) — array of `{ title, formattedValue }`. Each becomes its own row under the "Custom" menu, labeled `<title> · <metric title>`.
+
+Values are rendered exactly as provided — no unit conversion or rounding is applied, so format them the way you want them to appear. Any row (including the summary row) can be pinned to the top bar the same way any other sensor can. A missing or invalid file shows as disabled rather than breaking the extension. Give each source a unique `title` — two sources sharing a title will collide in the menu.
+
+**Example:** [custom_metrics/claude-code-usage/](custom_metrics/claude-code-usage/) is a ready-to-run script + login item that keeps a Claude Code usage source (model, context %, 5h/7d rate-limit usage) fed from Claude Code's own `statusLine` hook.
+
 ## Credits
 Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured system monitoring tool. My biggest pet peeve was random system delays because of I/O blocking polls, and thus, the idea for Vitals was born! It has been refactored several times over, so most of the code is new or different.
 

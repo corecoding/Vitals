@@ -291,7 +291,8 @@ var VitalsMenuButton = GObject.registerClass({
                 },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' },
-                    'gpu' : { 'icon': 'gpu-symbolic.svg' }
+                    'gpu' : { 'icon': 'gpu-symbolic.svg' },
+                 'custom' : { 'icon': 'custom-symbolic.svg' }
         }
 
         // list with the prefixes for the according themes, the index of each
@@ -349,7 +350,7 @@ var VitalsMenuButton = GObject.registerClass({
                          'fixed-widths', 'hide-icons', 'unit',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
-                         'include-static-info', 'include-static-gpu-info' ];
+                         'include-static-info', 'include-static-gpu-info', 'custom-metrics-paths' ];
 
         for (let setting of settings)
             this._settings.connectObject('changed::' + setting, this._redrawMenu.bind(this), this);
