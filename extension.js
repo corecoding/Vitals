@@ -355,6 +355,15 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let sensor in this._sensorIcons)
             this._settings.connectObject('changed::show-' + sensor, this._showHideSensorsChanged.bind(this), this);
+
+        // process sensor group toggles
+        let sensorGroups = [ 'show-temperature', 'show-voltage', 'show-fan',
+                        'show-memory', 'show-processor', 'show-system',
+                        'show-network', 'show-storage', 'show-battery',
+                        'show-gpu'];
+
+        for (let group of sensorGroups)
+            this._settings.connectObject('changed::' + group, this._redrawMenu.bind(this), this);
     }
 
     _initializeMenu() {
@@ -624,6 +633,20 @@ var VitalsMenuButton = GObject.registerClass({
         this._querySensors();
     }
 
+    // Map hotItem (top bar element) to sensor group
+    _getSensorGroupFromKey(key) {
+        if (key.includes("temperature")) return "temperature";
+        if (key.includes("voltage")) return "voltage";
+        if (key.includes("fan")) return "fan";
+        if (key.includes("memory")) return "memory";
+        if (key.includes("processor")) return "processor";
+        if (key.includes("system")) return "system";
+        if (key.includes("network")) return "network";
+        if (key.includes("storage")) return "storage";
+        if (key.includes("battery")) return "battery";
+        if (key.includes("gpu")) return "gpu";
+    }
+
     _drawMenu() {
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
@@ -632,7 +655,18 @@ var VitalsMenuButton = GObject.registerClass({
             if (key == '__max_network-download__') key = '__network-rx_max__';
             if (key == '__max_network-upload__') key = '__network-tx_max__';
 
-            this._createHotItem(key);
+            let sensorGroup = this._getSensorGroupFromKey(key);
+            if (sensorGroup) {
+                let isEnabled = this._settings.get_boolean("show-" + sensorGroup);
+
+                if (!isEnabled) {
+                    this._removeHotItem(key);
+                }
+
+                if (isEnabled) {
+                    this._createHotItem(key);
+                }
+            }
         }
     }
 
