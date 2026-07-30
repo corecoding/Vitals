@@ -145,7 +145,7 @@
       <description>Center the menu to the icon regardless of the position in the panel</description>
     </key>
     <key type="s" name="monitor-cmd">
-      <default>"gnome-system-monitor"</default>
+      <default>"resources"</default>
       <summary>System Monitor command</summary>
       <description>The command run when system monitor button is clicked</description>
     </key>
