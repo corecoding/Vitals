@@ -355,15 +355,6 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let sensor in this._sensorIcons)
             this._settings.connectObject('changed::show-' + sensor, this._showHideSensorsChanged.bind(this), this);
-
-        // process sensor group toggles
-        let sensorGroups = [ 'show-temperature', 'show-voltage', 'show-fan',
-                        'show-memory', 'show-processor', 'show-system',
-                        'show-network', 'show-storage', 'show-battery',
-                        'show-gpu'];
-
-        for (let group of sensorGroups)
-            this._settings.connectObject('changed::' + group, this._redrawMenu.bind(this), this);
     }
 
     _initializeMenu() {
@@ -556,14 +547,17 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _showHideSensorsChanged(self, sensor) {
-        this._sensors.resetHistory();
-
+        // show or hide the matching accordion group in the dropdown
         const sensorName = sensor.substr(5);
         if(sensorName === 'gpu') {
             for(let i = 1; i <= this._numGpus; i++)
                 this._groups[sensorName + '#' + i].visible = this._settings.get_boolean(sensor);
         } else
             this._groups[sensorName].visible = this._settings.get_boolean(sensor);
+
+        // refresh panel icons so disabled groups no longer appear in the top bar
+        this._removeHotItems();
+        this._drawMenu();
     }
 
     _positionInPanelChanged() {
@@ -633,18 +627,12 @@ var VitalsMenuButton = GObject.registerClass({
         this._querySensors();
     }
 
-    // Map hotItem (top bar element) to sensor group
+    // return the sensor category for a hot-sensor key (e.g. _memory_usage_ -> memory)
     _getSensorGroupFromKey(key) {
-        if (key.includes("temperature")) return "temperature";
-        if (key.includes("voltage")) return "voltage";
-        if (key.includes("fan")) return "fan";
-        if (key.includes("memory")) return "memory";
-        if (key.includes("processor")) return "processor";
-        if (key.includes("system")) return "system";
-        if (key.includes("network")) return "network";
-        if (key.includes("storage")) return "storage";
-        if (key.includes("battery")) return "battery";
-        if (key.includes("gpu")) return "gpu";
+        for (let group in this._sensorIcons) {
+            if (key.includes(group))
+                return group;
+        }
     }
 
     _drawMenu() {
@@ -655,18 +643,22 @@ var VitalsMenuButton = GObject.registerClass({
             if (key == '__max_network-download__') key = '__network-rx_max__';
             if (key == '__max_network-upload__') key = '__network-tx_max__';
 
-            let sensorGroup = this._getSensorGroupFromKey(key);
-            if (sensorGroup) {
-                let isEnabled = this._settings.get_boolean("show-" + sensorGroup);
-
-                if (!isEnabled) {
-                    this._removeHotItem(key);
-                }
-
-                if (isEnabled) {
-                    this._createHotItem(key);
-                }
+            // skip panel icons whose sensor group is disabled in preferences
+            if (key != '_default_icon_') {
+                let sensorGroup = this._getSensorGroupFromKey(key);
+                if (sensorGroup && !this._settings.get_boolean('show-' + sensorGroup))
+                    continue;
             }
+
+            // reuse last known value/icon so toggles don't flash "..." until the next poll
+            let value, gicon;
+            let menuItem = this._sensorMenuItems[key];
+            if (menuItem) {
+                value = menuItem.value;
+                gicon = menuItem.gicon;
+            }
+
+            this._createHotItem(key, value, gicon);
         }
     }
 
