@@ -338,7 +338,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _connectSettingsSignals() {
         this._settings.connectObject(
-            'changed::update-time', this._updateTimeSettingChanged.bind(this),
+            'changed::update-time', this._initializeTimer.bind(this),
             'changed::position-in-panel', this._positionInPanelChanged.bind(this),
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
             'changed::icon-style', this._iconStyleChanged.bind(this),
@@ -398,7 +398,7 @@ var VitalsMenuButton = GObject.registerClass({
             this._values.resetHistory(this._numGpus);
 
             // make sure timer fires at next full interval
-            this._updateTimeChanged();
+            this._initializeTimer();
 
             // refresh sensors now
             this._querySensors();
@@ -431,7 +431,7 @@ var VitalsMenuButton = GObject.registerClass({
         this.menu.connectObject('open-state-changed', (menu, isMenuOpen) => {
             if (isMenuOpen) {
                 // make sure timer fires at next full interval
-                this._updateTimeChanged();
+                this._initializeTimer();
 
                 // refresh sensors now
                 this._querySensors();
@@ -498,6 +498,8 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _initializeTimer() {
+        this._destroyTimer();
+
         // used to query sensors and update display
         let update_time = this._settings.get_int('update-time');
         this._refreshTimeoutId = GLib.timeout_add_seconds(
@@ -635,21 +637,10 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _destroyTimer() {
-        // invalidate and reinitialize timer
         if (this._refreshTimeoutId != null) {
             GLib.Source.remove(this._refreshTimeoutId);
             this._refreshTimeoutId = null;
         }
-    }
-
-    _updateTimeSettingChanged() {
-        this._destroyTimer();
-        this._initializeTimer();
-    }
-
-    _updateTimeChanged() {
-        this._destroyTimer();
-        this._initializeTimer();
     }
 
     _updateDisplay(label, value, type, key) {
