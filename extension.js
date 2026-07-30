@@ -299,7 +299,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._sensorsIconPathPrefix = ['/icons/original/', '/icons/gnome/'];
 
         this._warnings = [];
-        this._isDestroyed = false;
         this._sensorMenuItems = {};
         this._hotLabels = {};
         this._hotItems = {};
@@ -654,9 +653,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _updateDisplay(label, value, type, key) {
-        if (this._isDestroyed)
-            return;
-
         // update sensor value in menubar
         let hotLabel = this._hotLabels[key];
         if (hotLabel) {
@@ -686,7 +682,7 @@ var VitalsMenuButton = GObject.registerClass({
                 statusLabel.text = value;
                 this._sensorMenuItems[type] = this._groups[group];
             }
-        } else if (!this._isDestroyed) {
+        } else {
             // add item to group for the first time
             let sensor = { 'label': label, 'value': value, 'type': type }
             this._appendMenuItem(sensor, key);
@@ -836,9 +832,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._last_query = now;
 
         this._sensors.query((label, value, type, format) => {
-            if (this._isDestroyed)
-                return;
-
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
             let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
@@ -915,7 +908,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
-        this._isDestroyed = true;
         this._destroyTimer();
         this._sensors.destroy();
 
