@@ -1,11 +1,6 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib'
-
-// convert Uint8Array into a literal string
-function convertUint8ArrayToString(contents) {
-    const decoder = new TextDecoder('utf-8');
-    return decoder.decode(contents).trim();
-}
+import { convertUint8ArrayToString } from './bytes.js';
 
 export function File(path) {
     if (path.indexOf('https://') == -1)
