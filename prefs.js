@@ -45,6 +45,9 @@ const Settings = new GObject.Class({
         // so we do not construct dozens of Gtk.ColorButtons up front.
         this._thresholdColorsInitialized = {};
         this._thresholdColorGroups = {};
+        // Session-only stash of panel sensors removed when a group is toggled off,
+        // so turning the group back on before closing prefs can restore them.
+        this._removedHotSensors = {};
         this._bind_sensor_page_gates();
         this._bind_settings();
     },
@@ -187,17 +190,45 @@ const Settings = new GObject.Class({
     // Keys look like _memory_usage_ / __network-rx_max__; group name is in the key.
     _remove_hot_sensors_for_group: function(group) {
         let hotSensors = this._settings.get_strv('hot-sensors');
+        let removed = [];
         let filtered = hotSensors.filter(key => {
             if (key === '_default_icon_')
                 return true;
-            return !key.includes(group);
+            if (key.includes(group)) {
+                removed.push(key);
+                return false;
+            }
+            return true;
         });
+
+        if (removed.length === 0)
+            return;
+
+        this._removedHotSensors[group] = removed;
 
         if (filtered.length === 0)
             filtered.push('_default_icon_');
 
-        if (filtered.length !== hotSensors.length)
-            this._settings.set_strv('hot-sensors', filtered);
+        this._settings.set_strv('hot-sensors', filtered);
+    },
+
+    // Restore sensors stashed earlier in this prefs session when the group is re-enabled.
+    _restore_hot_sensors_for_group: function(group) {
+        let restored = this._removedHotSensors[group];
+        if (!restored || restored.length === 0)
+            return;
+
+        delete this._removedHotSensors[group];
+
+        let hotSensors = this._settings.get_strv('hot-sensors').filter(
+            key => key !== '_default_icon_'
+        );
+        for (let key of restored) {
+            if (!hotSensors.includes(key))
+                hotSensors.push(key);
+        }
+
+        this._settings.set_strv('hot-sensors', hotSensors);
     },
 
     // Bind the gtk window to the schema settings
@@ -219,9 +250,14 @@ const Settings = new GObject.Class({
             widget = this.builder.get_object(sensor);
             widget.set_active(this._settings.get_boolean(sensor));
             widget.connect('state-set', (_, val) => {
-                // prune before flipping show-* so the extension redraw sees the new list
-                if (!val && sensor.startsWith('show-'))
-                    this._remove_hot_sensors_for_group(sensor.substring(5));
+                // update hot-sensors before flipping show-* so the extension redraw sees it
+                if (sensor.startsWith('show-')) {
+                    let group = sensor.substring(5);
+                    if (!val)
+                        this._remove_hot_sensors_for_group(group);
+                    else
+                        this._restore_hot_sensors_for_group(group);
+                }
                 this._settings.set_boolean(sensor, val);
             });
         }
