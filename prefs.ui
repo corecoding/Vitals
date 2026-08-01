@@ -29,14 +29,17 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Seconds between updates</property>
-            <property name="activatable-widget">update-time</property>
+            <property name="activatable">False</property>
             <child type="suffix">
-              <object class="GtkSpinButton" id="update-time">
+              <object class="GtkScale" id="update-time">
+                <property name="orientation">horizontal</property>
                 <property name="valign">center</property>
-                <property name="climb-rate">1</property>
+                <property name="hexpand">True</property>
+                <property name="width-request">200</property>
+                <property name="draw-value">True</property>
                 <property name="digits">0</property>
-                <property name="numeric">True</property>
-                <property name="snap-to-ticks">True</property>
+                <property name="round-digits">0</property>
+                <property name="value-pos">right</property>
                 <property name="adjustment">update-time-adjustment</property>
               </object>
             </child>

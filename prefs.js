@@ -200,7 +200,11 @@ const Settings = new GObject.Class({
             this._sync_sensor_page_sensitivity('network');
         });
 
-        this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
+        let updateTime = this.builder.get_object('update-time');
+        updateTime.set_value(this._settings.get_int('update-time'));
+        updateTime.connect('value-changed', (widget) => {
+            this._settings.set_int('update-time', Math.round(widget.get_value()));
+        });
 
         this._settings.bind('network-public-ip-interval', this.builder.get_object('network-public-ip-interval'),
             'value', Gio.SettingsBindFlags.DEFAULT);
