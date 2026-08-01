@@ -27,7 +27,7 @@
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
-import {colorsKeyForSensor, getUsageColor} from './helpers/colors.js';
+import {sensorCatalog, sensorGroupFromType} from './helpers/sensorCatalog.js';
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
@@ -36,6 +36,83 @@ const cbFun = (d, c) => {
 
     return [d[0] + aa, bb];
 };
+
+// Threshold color entries are stored as: "threshold r g b"
+function parseColorEntry(colorEntry) {
+    if (typeof colorEntry !== 'string')
+        return null;
+
+    const parts = colorEntry.split(' ');
+    if (parts.length !== 4)
+        return null;
+
+    const [threshold, red, green, blue] = parts.map(Number);
+    if (![threshold, red, green, blue].every(Number.isFinite))
+        return null;
+
+    return {threshold, red, green, blue};
+}
+
+function normalizeColorComponent(component) {
+    if (!Number.isFinite(component))
+        return null;
+
+    const scaled = component > 1 ? component : component * 255;
+    return Math.max(0, Math.min(255, Math.round(scaled)));
+}
+
+function getUsageColor(value, colors) {
+    if (!colors || colors.length === 0)
+        return '';
+
+    const normalizedValue = Array.isArray(value)
+        ? Math.max(...value.filter(Number.isFinite))
+        : value;
+
+    if (!Number.isFinite(normalizedValue))
+        return '';
+
+    const thresholds = colors
+        .map(parseColorEntry)
+        .filter(Boolean)
+        .sort((a, b) => a.threshold - b.threshold)
+        .map(entry => {
+            const red = normalizeColorComponent(entry.red);
+            const green = normalizeColorComponent(entry.green);
+            const blue = normalizeColorComponent(entry.blue);
+            if (red === null || green === null || blue === null)
+                return null;
+
+            return {
+                threshold: entry.threshold,
+                style: `color: rgb(${red}, ${green}, ${blue});`,
+            };
+        })
+        .filter(Boolean);
+
+    if (thresholds.length === 0)
+        return '';
+
+    for (let index = thresholds.length - 1; index >= 0; index--) {
+        if (normalizedValue >= thresholds[index].threshold)
+            return thresholds[index].style;
+    }
+
+    return '';
+}
+
+function colorsKeyForSensor(type, format) {
+    // All temperatures share the temperature threshold UI, including GPU rows.
+    if (format === 'temp')
+        return 'temperature-colors';
+
+    const group = sensorGroupFromType(type);
+    const formats = sensorCatalog[group]?.colorFormats;
+    if (formats && formats.includes(format))
+        return `${group}-colors`;
+
+    return null;
+}
 
 export const Values = GObject.registerClass({
        GTypeName: 'Values',

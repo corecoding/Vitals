@@ -6,11 +6,34 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import {
-    formatColorEntry,
-    sanitizeAndSortColorEntries,
-} from './helpers/colors.js';
 import {sensorCatalog} from './helpers/sensorCatalog.js';
+
+// Threshold color entries are stored as: "threshold r g b"
+function parseColorEntry(colorEntry) {
+    if (typeof colorEntry !== 'string')
+        return null;
+
+    const parts = colorEntry.split(' ');
+    if (parts.length !== 4)
+        return null;
+
+    const [threshold, red, green, blue] = parts.map(Number);
+    if (![threshold, red, green, blue].every(Number.isFinite))
+        return null;
+
+    return {threshold, red, green, blue};
+}
+
+function formatColorEntry({threshold, red, green, blue}) {
+    return `${threshold} ${red} ${green} ${blue}`;
+}
+
+function sanitizeAndSortColorEntries(colorsArray) {
+    return colorsArray
+        .map(parseColorEntry)
+        .filter(Boolean)
+        .sort((a, b) => a.threshold - b.threshold);
+}
 
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
@@ -313,7 +336,7 @@ const Settings = new GObject.Class({
         // kept for compatibility; pages initialize lazily via ensure_threshold_colors_for_page()
     },
 
-    // Runtime matching is `value >= threshold` (see helpers/colors.js), so each band is
+    // Runtime matching is `value >= threshold` (see values.js), so each band is
     // [low, high). Integer breakpoints use high-1 in the label (0–39, 40–59, …).
     // Float breakpoints keep an explicit half-open label (0 – <0.5).
     _band_title: function(low, high) {
