@@ -792,8 +792,11 @@ var VitalsMenuButton = GObject.registerClass({
         let split = key.replaceAll('_', ' ').trim().split(' ')[0].split('-');
         let type = split[0];
 
+        // gpus are numbered (gpu#1, gpu#2, ...); share one css class like _sensorIconPath does
+        let styleClass = type.startsWith('gpu') ? 'gpu' : type;
+
         let icon = new St.Icon({
-          style_class: 'system-status-icon vitals-panel-icon-' + type,
+          style_class: 'system-status-icon vitals-panel-icon-' + styleClass,
             reactive: true
         });
 
