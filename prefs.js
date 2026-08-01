@@ -89,13 +89,13 @@ const Settings = new GObject.Class({
             return;
 
         let colorPages = {
-            'temperature': ['temperature-page', 'temperature-colors', _('Temperature color thresholds in the current unit (°C or °F).')],
-            'fan': ['fan-page', 'fan-colors', _('Fan color thresholds in RPM, or percent for GPU fans.')],
-            'memory': ['memory-page', 'memory-colors', _('Memory color thresholds for usage percentage.')],
-            'processor': ['processor-page', 'processor-colors', _('Processor color thresholds for usage percentage.')],
-            'system': ['system-page', 'system-colors', _('System color thresholds for load average.')],
-            'battery': ['battery-page', 'battery-colors', _('Battery color thresholds for percentage remaining.')],
-            'gpu': ['gpu-page', 'gpu-colors', _('GPU color thresholds for utilization percentages.')],
+            'temperature': ['temperature-page', 'temperature-colors'],
+            'fan': ['fan-page', 'fan-colors'],
+            'memory': ['memory-page', 'memory-colors'],
+            'processor': ['processor-page', 'processor-colors'],
+            'system': ['system-page', 'system-colors'],
+            'battery': ['battery-page', 'battery-colors'],
+            'gpu': ['gpu-page', 'gpu-colors'],
         };
 
         let entry = colorPages[pageName];
@@ -103,7 +103,7 @@ const Settings = new GObject.Class({
             return;
 
         this._thresholdColorsInitialized[pageName] = true;
-        this._add_threshold_colors_group(entry[0], entry[1], entry[2], pageName);
+        this._add_threshold_colors_group(entry[0], entry[1], pageName);
     },
 
     _action_row_for: function(widget) {
@@ -348,11 +348,11 @@ const Settings = new GObject.Class({
         });
     },
 
-    _add_threshold_colors_group: function(pageId, settingsKey, description, pageName) {
+    _add_threshold_colors_group: function(pageId, settingsKey, pageName) {
         let page = this.builder.get_object(pageId);
         let group = new Adw.PreferencesGroup({
             title: _('Threshold Colors'),
-            description: description + ' ' + _('Colors apply between breakpoints. Values below the lowest breakpoint use the default text color.'),
+            description: _('The sensor changes color when its value goes above a breakpoint. Below the lowest breakpoint, the default text color is used.'),
             margin_start: 10,
             margin_end: 10,
         });
@@ -365,7 +365,7 @@ const Settings = new GObject.Class({
         });
         let addRow = new Adw.ActionRow({
             title: _('Add Breakpoint'),
-            subtitle: _('Add a lower bound that starts a new color band.'),
+            subtitle: _('Each color covers the range up to the next breakpoint.'),
             activatable_widget: addButton,
         });
         addRow.add_suffix(addButton);
