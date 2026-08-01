@@ -530,19 +530,13 @@ export default class VitalsPrefs extends ExtensionPreferences {
         // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
         window.get_content().set_child(root);
 
-        let pages = [
-            { name: 'general' },
-            { name: 'temperature', section: _('Sensors') },
-            { name: 'voltage' },
-            { name: 'fan' },
-            { name: 'memory' },
-            { name: 'processor' },
-            { name: 'system' },
-            { name: 'network' },
-            { name: 'storage' },
-            { name: 'battery' },
-            { name: 'gpu' },
-        ];
+        let pages = [{ name: 'general' }];
+        for (let name of Object.keys(sensorCatalog)) {
+            let page = { name };
+            if (pages.length === 1)
+                page.section = _('Sensors');
+            pages.push(page);
+        }
 
         for (let i = 0; i < pages.length; i++) {
             let info = pages[i];
