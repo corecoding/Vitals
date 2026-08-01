@@ -169,5 +169,40 @@
       <summary>Icon styles</summary>
       <description>Set the style for the displayed sensor icons ('original', 'updated')</description>
     </key>
+    <key name="temperature-colors" type="as">
+      <default>["60 0.9647058844566345 0.8274509906768799 0.1764705926179886", "75 1 0.47058823704719543 0", "90 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>
+      <summary>Temperature color thresholds</summary>
+      <description>Color rules matched against the displayed temperature value. Entries are "threshold r g b".</description>
+    </key>
+    <key name="fan-colors" type="as">
+      <default>[]</default>
+      <summary>Fan color thresholds</summary>
+      <description>Color rules matched against fan RPM or fan percentage. Entries are "threshold r g b".</description>
+    </key>
+    <key name="memory-colors" type="as">
+      <default>["65 0.9647058844566345 0.8274509906768799 0.1764705926179886", "80 1 0.47058823704719543 0", "92 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>
+      <summary>Memory usage color thresholds</summary>
+      <description>Color rules matched against memory usage percentage. Entries are "threshold r g b".</description>
+    </key>
+    <key name="processor-colors" type="as">
+      <default>["65 0.9647058844566345 0.8274509906768799 0.1764705926179886", "80 1 0.47058823704719543 0", "92 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>
+      <summary>Processor usage color thresholds</summary>
+      <description>Color rules matched against processor usage percentage. Entries are "threshold r g b".</description>
+    </key>
+    <key name="system-colors" type="as">
+      <default>[]</default>
+      <summary>System load color thresholds</summary>
+      <description>Color rules matched against system load average. Entries are "threshold r g b".</description>
+    </key>
+    <key name="battery-colors" type="as">
+      <default>["0 0.8784313797950745 0.10588235408067703 0.1411764770746231", "15 1 0.47058823704719543 0", "30 0.9647058844566345 0.8274509906768799 0.1764705926179886", "50 0.1803921568627451 0.7607843137254902 0.5019607843137255"]</default>
+      <summary>Battery color thresholds</summary>
+      <description>Color rules matched against battery percentage. Entries are "threshold r g b".</description>
+    </key>
+    <key name="gpu-colors" type="as">
+      <default>["65 0.9647058844566345 0.8274509906768799 0.1764705926179886", "80 1 0.47058823704719543 0", "92 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>
+      <summary>GPU usage color thresholds</summary>
+      <description>Color rules matched against GPU utilization percentages. Entries are "threshold r g b".</description>
+    </key>
   </schema>
 </schemalist>

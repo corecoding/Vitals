@@ -17,6 +17,7 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as Values from './values.js';
 import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
+import * as Colors from './helpers/colors.js';
 
 let vitalsMenu;
 
@@ -353,8 +354,18 @@ var VitalsMenuButton = GObject.registerClass({
         for (let setting of settings)
             this._settings.connectObject('changed::' + setting, this._redrawMenu.bind(this), this);
 
+        let colorSettings = [ 'temperature-colors', 'fan-colors', 'memory-colors',
+                              'processor-colors', 'system-colors', 'battery-colors', 'gpu-colors' ];
+        for (let setting of colorSettings)
+            this._settings.connectObject('changed::' + setting, this._thresholdColorsChanged.bind(this), this);
+
         for (let sensor in this._sensorIcons)
             this._settings.connectObject('changed::show-' + sensor, this._showHideSensorsChanged.bind(this), this);
+    }
+
+    _thresholdColorsChanged() {
+        this._values.resetHistory(this._numGpus);
+        this._querySensors();
     }
 
     _initializeMenu() {
@@ -669,11 +680,17 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
-    _updateDisplay(label, value, type, key) {
+    _updateDisplay(label, value, type, key, numeric = null, format = null) {
+        let style = '';
+        let colorsKey = Colors.colorsKeyForSensor(type, format);
+        if (colorsKey && numeric !== null && Number.isFinite(numeric))
+            style = Colors.getUsageColor(numeric, this._settings.get_strv(colorsKey));
+
         // update sensor value in menubar
         let hotLabel = this._hotLabels[key];
         if (hotLabel) {
             hotLabel.set_text(value);
+            hotLabel.style = style || null;
 
             // support for fixed widths #55
             if (this._settings.get_boolean('fixed-widths')) {
@@ -691,18 +708,24 @@ var VitalsMenuButton = GObject.registerClass({
         if (item) {
             // update sensor value in the group
             item.value = value;
+            if (item.valueStyle !== undefined)
+                item.valueStyle = style;
         } else if (type.includes('-group')) {
             // update text next to group header
             let group = type.split('-')[0];
             let statusLabel = this._groups[group]?._statusLabel;
             if (statusLabel) {
                 statusLabel.text = value;
+                statusLabel.style = style || null;
                 this._sensorMenuItems[type] = this._groups[group];
             }
         } else {
             // add item to group for the first time
             let sensor = { 'label': label, 'value': value, 'type': type }
             this._appendMenuItem(sensor, key);
+            item = this._sensorMenuItems[key];
+            if (item && item.valueStyle !== undefined)
+                item.valueStyle = style;
         }
     }
 
@@ -901,7 +924,7 @@ var VitalsMenuButton = GObject.registerClass({
                     if (menuRow) menuRow.gicon = flagGIcon;
                 }
 
-                this._updateDisplay(_(item.label), item.value, item.type, item.key);
+                this._updateDisplay(_(item.label), item.value, item.type, item.key, item.numeric, item.format);
             }
         }, dwell);
 

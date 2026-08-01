@@ -5,6 +5,11 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import {
+    formatColorEntry,
+    sanitizeAndSortColorEntries,
+} from './helpers/colors.js';
+
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
 
@@ -31,14 +36,6 @@ const Settings = new GObject.Class({
 
         this._settings = extensionObject.getSettings();
 
-        this._provider = new Gtk.CssProvider();
-        this._provider.load_from_path(this._extensionObject.path + '/prefs.css');
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(),
-            this._provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        );
-
         let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
         let iconStyle = this._settings.get_int('icon-style');
         let iconDirs = ['original', 'gnome'];
@@ -53,6 +50,31 @@ const Settings = new GObject.Class({
         this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
 
         this._bind_settings();
+        // Threshold color editors are built lazily when each page is first shown,
+        // so we do not construct dozens of Gtk.ColorButtons up front.
+        this._thresholdColorsInitialized = {};
+    },
+
+    ensure_threshold_colors_for_page: function(pageName) {
+        if (this._thresholdColorsInitialized[pageName])
+            return;
+
+        let colorPages = {
+            'temperature': ['temperature-page', 'temperature-colors', _('Temperature color thresholds in the current unit (°C or °F).')],
+            'fan': ['fan-page', 'fan-colors', _('Fan color thresholds in RPM, or percent for GPU fans.')],
+            'memory': ['memory-page', 'memory-colors', _('Memory color thresholds for usage percentage.')],
+            'processor': ['processor-page', 'processor-colors', _('Processor color thresholds for usage percentage.')],
+            'system': ['system-page', 'system-colors', _('System color thresholds for load average.')],
+            'battery': ['battery-page', 'battery-colors', _('Battery color thresholds for percentage remaining.')],
+            'gpu': ['gpu-page', 'gpu-colors', _('GPU color thresholds for utilization percentages.')],
+        };
+
+        let entry = colorPages[pageName];
+        if (!entry)
+            return;
+
+        this._thresholdColorsInitialized[pageName] = true;
+        this._add_threshold_colors_group(entry[0], entry[1], entry[2]);
     },
 
     // Bind the gtk window to the schema settings
@@ -128,6 +150,135 @@ const Settings = new GObject.Class({
         this.builder.get_object('donate-row').connect('activated', () => {
             Gtk.UriLauncher.new('https://corecoding.com/donate.php').launch(null, null, null);
         });
+    },
+
+    _bind_threshold_colors: function() {
+        // kept for compatibility; pages initialize lazily via ensure_threshold_colors_for_page()
+    },
+
+    _band_title: function(low, high) {
+        if (high === null || high === undefined)
+            return _('%s and above').format(low);
+        return `${low} – ${high}`;
+    },
+
+    _refresh_band_titles: function(rows) {
+        let items = rows.map(row => ({
+            row: row,
+            threshold: Number.parseFloat(row._thresholdEntry.text) || 0,
+        }));
+        items.sort((a, b) => a.threshold - b.threshold);
+
+        for (let i = 0; i < items.length; i++) {
+            let low = items[i].threshold;
+            let high = (i < items.length - 1) ? items[i + 1].threshold : null;
+            items[i].row.title = this._band_title(low, high);
+        }
+    },
+
+    _sync_threshold_colors: function(settingsKey, rows) {
+        let items = rows.map(row => {
+            let rgba = row._colorButton.get_rgba();
+            return {
+                threshold: Number.parseFloat(row._thresholdEntry.text) || 0,
+                red: rgba.red,
+                green: rgba.green,
+                blue: rgba.blue,
+            };
+        });
+        items.sort((a, b) => a.threshold - b.threshold);
+        this._settings.set_strv(settingsKey, items.map(entry => formatColorEntry(entry)));
+        this._refresh_band_titles(rows);
+    },
+
+    _make_color_row: function(settingsKey, group, rows, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
+        let entry = new Gtk.Entry({
+            input_purpose: Gtk.InputPurpose.NUMBER,
+            text: text,
+            width_chars: 7,
+            valign: Gtk.Align.CENTER,
+            tooltip_text: _('Lower bound for this color band'),
+        });
+
+        let colorButton = new Gtk.ColorButton({
+            rgba: new Gdk.RGBA({red, green, blue, alpha: 1.0}),
+            valign: Gtk.Align.CENTER,
+            tooltip_text: _('Band color'),
+        });
+
+        let deleteButton = new Gtk.Button({
+            icon_name: 'edit-delete-symbolic',
+            tooltip_text: _('Remove breakpoint'),
+            valign: Gtk.Align.CENTER,
+        });
+
+        let row = new Adw.ActionRow({
+            title: this._band_title(Number.parseFloat(text) || 0, null),
+            activatable: false,
+        });
+        row._thresholdEntry = entry;
+        row._colorButton = colorButton;
+        row.add_suffix(entry);
+        row.add_suffix(colorButton);
+        row.add_suffix(deleteButton);
+        group.add(row);
+        rows.push(row);
+
+        entry.connect('changed', () => {
+            this._sync_threshold_colors(settingsKey, rows);
+        });
+        colorButton.connect('color-set', () => {
+            this._sync_threshold_colors(settingsKey, rows);
+        });
+        deleteButton.connect('clicked', () => {
+            let index = rows.indexOf(row);
+            if (index < 0)
+                return;
+
+            group.remove(row);
+            rows.splice(index, 1);
+            this._sync_threshold_colors(settingsKey, rows);
+        });
+    },
+
+    _add_threshold_colors_group: function(pageId, settingsKey, description) {
+        let page = this.builder.get_object(pageId);
+        let group = new Adw.PreferencesGroup({
+            title: _('Threshold Colors'),
+            description: description + ' ' + _('Colors apply between breakpoints. Values below the lowest breakpoint use the default text color.'),
+            margin_start: 10,
+            margin_end: 10,
+        });
+
+        let rows = [];
+        let addButton = new Gtk.Button({
+            icon_name: 'list-add-symbolic',
+            tooltip_text: _('Add breakpoint'),
+            valign: Gtk.Align.CENTER,
+        });
+        let addRow = new Adw.ActionRow({
+            title: _('Add Breakpoint'),
+            subtitle: _('Add a lower bound that starts a new color band.'),
+            activatable_widget: addButton,
+        });
+        addRow.add_suffix(addButton);
+        group.add(addRow);
+
+        let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
+        this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
+
+        for (let key in sorted) {
+            let entry = sorted[key];
+            this._make_color_row(settingsKey, group, rows, `${entry.threshold}`, entry.red, entry.green, entry.blue);
+        }
+        this._refresh_band_titles(rows);
+
+        addButton.connect('clicked', () => {
+            this._make_color_row(settingsKey, group, rows);
+            this._sync_threshold_colors(settingsKey, rows);
+        });
+
+        page.add(group);
     }
 });
 
@@ -135,14 +286,23 @@ const Settings = new GObject.Class({
 export default class VitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window._settings = this.getSettings();
-        window.add_css_class('vitals-preferences');
 
         let settings = new Settings(this);
 
         let pages = [ 'general', 'temperature', 'voltage', 'fan', 'memory',
                       'processor', 'system', 'network', 'storage', 'battery', 'gpu' ];
         for (let key in pages) {
-            window.add(settings.builder.get_object(pages[key] + '-page'));
+            let page = settings.builder.get_object(pages[key] + '-page');
+            window.add(page);
         }
+
+        // Build threshold editors when a page is selected (avoids constructing all ColorButtons at once).
+        let loadVisible = () => {
+            let visible = window.visible_page;
+            if (visible && visible.name)
+                settings.ensure_threshold_colors_for_page(visible.name);
+        };
+        window.connect('notify::visible-page', loadVisible);
+        loadVisible();
     }
 }
