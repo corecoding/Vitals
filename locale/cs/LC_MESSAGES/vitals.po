@@ -770,8 +770,8 @@ msgid "Memory Total"
 msgstr "Paměť Celkem"
 
 #: prefs.ui:901
-msgid "Monitor GPU (beta)"
-msgstr "Sledování GPU (beta)"
+msgid "Monitor GPU"
+msgstr "Sledování GPU"
 
 #: prefs.ui:1378
 msgid "Include static GPU info"
