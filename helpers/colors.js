@@ -3,7 +3,7 @@
   Entries are stored as: "threshold r g b" (r/g/b as 0–1 floats or 0–255).
 */
 
-import {sensorIcons, sensorGroupFromType} from './sensorIcons.js';
+import {sensorGroups, sensorGroupFromType} from './sensorGroups.js';
 
 export function parseColorEntry(colorEntry, separator = ' ') {
     if (typeof colorEntry !== 'string')
@@ -83,7 +83,7 @@ export function colorsKeyForSensor(type, format) {
         return 'temperature-colors';
 
     const group = sensorGroupFromType(type);
-    const formats = sensorIcons[group]?.colorFormats;
+    const formats = sensorGroups[group]?.colorFormats;
     if (formats && formats.includes(format))
         return `${group}-colors`;
 
