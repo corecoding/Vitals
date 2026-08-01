@@ -271,12 +271,6 @@ export function sensorGroupFromType(type) {
     return group.replace(/#\d+$/, '');
 }
 
-export function colorsKeyForGroup(group) {
-    if (group && sensorCatalog[group]?.colorFormats)
-        return `${group}-colors`;
-    return null;
-}
-
 export function colorSettingsKeys() {
     return Object.keys(sensorCatalog)
         .filter(group => sensorCatalog[group].colorFormats)

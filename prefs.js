@@ -35,23 +35,6 @@ function sanitizeAndSortColorEntries(colorsArray) {
         .sort((a, b) => a.threshold - b.threshold);
 }
 
-/*
-        if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
-
-            let val = true;
-
-            try {
-                let GTop = imports.gi.GTop;
-            } catch (e) {
-                val = false;
-            }
-
-            let now = new Date().getTime();
-            this._notify("Vitals", "Please run sudo apt install gir1.2-gtop-2.0", 'folder-symbolic');
-
-        }
-*/
-
 const Settings = new GObject.Class({
     Name: 'Vitals.Settings',
 
@@ -330,10 +313,6 @@ const Settings = new GObject.Class({
         this.builder.get_object('donate-row').connect('activated', () => {
             Gtk.UriLauncher.new('https://corecoding.com/donate.php').launch(null, null, null);
         });
-    },
-
-    _bind_threshold_colors: function() {
-        // kept for compatibility; pages initialize lazily via ensure_threshold_colors_for_page()
     },
 
     // Runtime matching is `value >= threshold` (see values.js), so each band is

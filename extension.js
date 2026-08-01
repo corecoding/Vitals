@@ -13,9 +13,7 @@ import * as Sensors from './sensors.js';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as Values from './values.js';
-import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
 import * as SensorCatalog from './helpers/catalog.js';
 
@@ -36,7 +34,6 @@ var VitalsMenuButton = GObject.registerClass({
         // item must match the index on the combo box
         this._sensorsIconPathPrefix = ['/icons/original/', '/icons/gnome/'];
 
-        this._warnings = [];
         this._sensorMenuItems = {};
         this._hotLabels = {};
         this._hotItems = {};
@@ -637,19 +634,6 @@ var VitalsMenuButton = GObject.registerClass({
         if(this._newGpuDetected) this._newGpuDetectedCount++;
         else this._newGpuDetectedCount = 0;
         this._newGpuDetected = false;
-
-        if (this._warnings.length > 0) {
-            this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
-            this._warnings = [];
-        }
-    }
-
-    _notify(msg, details, icon) {
-        let source = new MessageTray.Source('MyApp Information', icon);
-        Main.messageTray.add(source);
-        let notification = new MessageTray.Notification(source, msg, details);
-        notification.setTransient(true);
-        source.notify(notification);
     }
 
     destroy() {

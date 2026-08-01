@@ -24,7 +24,6 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
 import {sensorCatalog, sensorGroupFromType} from './helpers/catalog.js';
@@ -62,14 +61,7 @@ function normalizeColorComponent(component) {
 }
 
 function getUsageColor(value, colors) {
-    if (!colors || colors.length === 0)
-        return '';
-
-    const normalizedValue = Array.isArray(value)
-        ? Math.max(...value.filter(Number.isFinite))
-        : value;
-
-    if (!Number.isFinite(normalizedValue))
+    if (!colors || colors.length === 0 || !Number.isFinite(value))
         return '';
 
     const thresholds = colors
@@ -94,7 +86,7 @@ function getUsageColor(value, colors) {
         return '';
 
     for (let index = thresholds.length - 1; index >= 0; index--) {
-        if (normalizedValue >= thresholds[index].threshold)
+        if (value >= thresholds[index].threshold)
             return thresholds[index].style;
     }
 
@@ -127,7 +119,6 @@ export const Values = GObject.registerClass({
 
         this._history = {};
         this._lastNumeric = null;
-        //this._history2 = {};
         this.resetHistory();
     }
 
@@ -412,7 +403,6 @@ export const Values = GObject.registerClass({
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
-            const memUnit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
             let bootText = this._legible(sum, format);
             output.push({
                 label: 'Boot ' + direction,
@@ -495,8 +485,6 @@ export const Values = GObject.registerClass({
 
             this._history[sensor] = {};
             this._history[sensor + '-group'] = {};
-            //this._history2[sensor] = {};
-            //this._history2[sensor + '-group'] = {};
         }
 
         for(let i = 1; i <= numGpus; i++){
