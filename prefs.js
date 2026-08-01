@@ -286,23 +286,62 @@ const Settings = new GObject.Class({
 export default class VitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window._settings = this.getSettings();
+        window.set_search_enabled(false);
+        window.set_default_size(960, 700);
 
         let settings = new Settings(this);
+        let root = settings.builder.get_object('prefs-root');
+        let stack = settings.builder.get_object('prefs-stack');
+        let sidebar = settings.builder.get_object('prefs-sidebar');
+        let contentPage = settings.builder.get_object('prefs-content-page');
 
-        let pages = [ 'general', 'temperature', 'voltage', 'fan', 'memory',
-                      'processor', 'system', 'network', 'storage', 'battery', 'gpu' ];
-        for (let key in pages) {
-            let page = settings.builder.get_object(pages[key] + '-page');
-            window.add(page);
+        // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
+        window.get_content().set_child(root);
+
+        let pages = [
+            { name: 'general' },
+            { name: 'temperature', section: _('Sensors') },
+            { name: 'voltage' },
+            { name: 'fan' },
+            { name: 'memory' },
+            { name: 'processor' },
+            { name: 'system' },
+            { name: 'network' },
+            { name: 'storage' },
+            { name: 'battery' },
+            { name: 'gpu' },
+        ];
+
+        for (let i = 0; i < pages.length; i++) {
+            let info = pages[i];
+            let page = settings.builder.get_object(info.name + '-page');
+            let title = page.get_title();
+            let iconName = page.get_icon_name();
+            // Header bar already shows the section title; hide the page banner.
+            page.set_title('');
+
+            let stackPage = stack.add_titled_with_icon(page, info.name, title, iconName);
+            if (info.section) {
+                stackPage.set_starts_section(true);
+                stackPage.set_section_title(info.section);
+            }
         }
 
-        // Build threshold editors when a page is selected (avoids constructing all ColorButtons at once).
-        let loadVisible = () => {
-            let visible = window.visible_page;
-            if (visible && visible.name)
-                settings.ensure_threshold_colors_for_page(visible.name);
+        let syncVisiblePage = () => {
+            let name = stack.get_visible_child_name();
+            let visible = stack.get_visible_child();
+            if (visible) {
+                let stackPage = stack.get_page(visible);
+                contentPage.set_title(stackPage.get_title());
+            }
+            if (name)
+                settings.ensure_threshold_colors_for_page(name);
         };
-        window.connect('notify::visible-page', loadVisible);
-        loadVisible();
+
+        stack.connect('notify::visible-child', syncVisiblePage);
+        sidebar.connect('activated', () => {
+            root.set_show_content(true);
+        });
+        syncVisiblePage();
     }
 }

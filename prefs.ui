@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <requires lib="libadwaita" version="1.0"/>
+  <requires lib="libadwaita" version="1.9"/>
 
   <object class="GtkAdjustment" id="update-time-adjustment">
     <property name="lower">1</property>
@@ -204,8 +204,6 @@
     <property name="icon-name">temperature-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Temperature</property>
-        <property name="description" translatable="yes">Display temperature of various components.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -247,8 +245,6 @@
     <property name="icon-name">voltage-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Voltage</property>
-        <property name="description" translatable="yes">Display voltage of various components.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -274,8 +270,6 @@
     <property name="icon-name">fan-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Fan</property>
-        <property name="description" translatable="yes">Display fan rotation speed.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -301,8 +295,6 @@
     <property name="icon-name">memory-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Memory</property>
-        <property name="description" translatable="yes">Display memory information.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -344,8 +336,6 @@
     <property name="icon-name">cpu-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Processor</property>
-        <property name="description" translatable="yes">Display processor information.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -383,8 +373,6 @@
     <property name="icon-name">system-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">System</property>
-        <property name="description" translatable="yes">Display system information.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -425,8 +413,6 @@
     <property name="icon-name">network-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Network</property>
-        <property name="description" translatable="yes">Display network information.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -543,8 +529,6 @@
     <property name="icon-name">storage-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Storage</property>
-        <property name="description" translatable="yes">Display storage information.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -601,8 +585,6 @@
     <property name="icon-name">battery-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Battery</property>
-        <property name="description" translatable="yes">Monitor battery health.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -650,8 +632,6 @@
     <property name="icon-name">gpu-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">GPU</property>
-        <property name="description" translatable="yes">Display GPU information.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
@@ -680,5 +660,54 @@
         </child>
       </object>
     </child>
+  </object>
+
+  <!-- Settings-style left sidebar + content (wired in prefs.js) -->
+  <object class="AdwNavigationSplitView" id="prefs-root">
+    <property name="vexpand">True</property>
+    <property name="hexpand">True</property>
+    <property name="min-sidebar-width">220</property>
+    <property name="max-sidebar-width">320</property>
+    <property name="sidebar-width-fraction">0.28</property>
+    <property name="sidebar">
+      <object class="AdwNavigationPage" id="prefs-sidebar-page">
+        <property name="title" translatable="yes">Vitals</property>
+        <property name="child">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar">
+                <property name="show-end-title-buttons">False</property>
+              </object>
+            </child>
+            <property name="content">
+              <object class="AdwViewSwitcherSidebar" id="prefs-sidebar">
+                <property name="stack">prefs-stack</property>
+                <property name="mode">sidebar</property>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+    <property name="content">
+      <object class="AdwNavigationPage" id="prefs-content-page">
+        <property name="title" translatable="yes">General</property>
+        <property name="child">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar">
+                <property name="show-start-title-buttons">False</property>
+              </object>
+            </child>
+            <property name="content">
+              <object class="AdwViewStack" id="prefs-stack">
+                <property name="vexpand">True</property>
+                <property name="hexpand">True</property>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
   </object>
 </interface>
