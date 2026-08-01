@@ -325,24 +325,22 @@ export const Values = GObject.registerClass({
             key in this._history[historyType] && this._history[historyType][key][1] == value)
                 return output;
 
-        // history entries are [displayText, rawValue]
-        let formatted = this._legible(value, format);
-        let legible = formatted.text;
-        let numeric = formatted.numeric;
+        // is the value different from last time?
+        let legible = this._legible(value, format);
 
         // don't return early when dealing with network traffic
         if (historyType != 'network-rx' && historyType != 'network-tx') {
             // only update when we are coming through for the first time, or if a value has changed
-            if (key in this._history[historyType] && this._history[historyType][key][0] == legible)
+            if (key in this._history[historyType] && this._history[historyType][key][0] == legible.text)
                 return output;
 
             // add label as it was sent from sensors class; type stays e.g. network-us for display/icons
-            output.push({ label, value: legible, style: this._styleFor(numeric, type, format), type, key });
+            output.push({ label, value: legible.text, style: this._styleFor(legible.numeric, type, format), type, key });
         }
 
         // save previous values to update screen on changes only
         let previousValue = this._history[historyType][key];
-        this._history[historyType][key] = [legible, value];
+        this._history[historyType][key] = [legible.text, value];
 
         // process average, min and max values
         if (type == 'temperature' || type == 'voltage' || type == 'fan') {
@@ -350,8 +348,7 @@ export const Values = GObject.registerClass({
 
             // show value in group even if there is one value present
             let sum = vals.reduce((a, b) => a + b);
-            let avgRaw = sum / vals.length;
-            let avg = this._legible(avgRaw, format);
+            let avg = this._legible(sum / vals.length, format);
             output.push({
                 label: type,
                 value: avg.text,
