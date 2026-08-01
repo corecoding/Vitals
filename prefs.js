@@ -1,293 +1,148 @@
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-const PAGE_IDS = [
-    'general-page',
-    'temperature-page',
-    'voltage-page',
-    'fan-page',
-    'memory-page',
-    'processor-page',
-    'system-page',
-    'network-page',
-    'storage-page',
-    'battery-page',
-    'gpu-page',
-];
+/*
+        if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
 
-const ICON_STYLE_DIRS = ['original', 'gnome'];
+            let val = true;
 
-const VitalsPrefsWidget = GObject.registerClass(
-class VitalsPrefsWidget extends GObject.Object {
-    _init({settings, path, metadata}) {
-        super._init();
+            try {
+                let GTop = imports.gi.GTop;
+            } catch (e) {
+                val = false;
+            }
 
-        this._settings = settings;
-        this._path = path;
-        this._metadata = metadata;
-        this._iconSearchPaths = [];
+            let now = new Date().getTime();
+            this._notify("Vitals", "Please run sudo apt install gir1.2-gtop-2.0", 'folder-symbolic');
+
+        }
+*/
+
+const Settings = new GObject.Class({
+    Name: 'Vitals.Settings',
+
+    _init: function(extensionObject, params) {
+        this._extensionObject = extensionObject
+        this.parent(params);
+
+        this._settings = extensionObject.getSettings();
 
         this._provider = new Gtk.CssProvider();
-        this._provider.load_from_path(`${this._path}/prefs.css`);
+        this._provider.load_from_path(this._extensionObject.path + '/prefs.css');
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(),
             this._provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         );
 
+        let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+        let iconStyle = this._settings.get_int('icon-style');
+        let iconDirs = ['original', 'gnome'];
+        let preferred = iconDirs[iconStyle] || 'original';
+        iconDirs = [preferred].concat(iconDirs.filter(dir => dir !== preferred));
+        for (let key in iconDirs) {
+            iconTheme.add_search_path(this._extensionObject.path + '/icons/' + iconDirs[key]);
+        }
+
         this.builder = new Gtk.Builder();
-        this.builder.set_translation_domain(this._metadata['gettext-domain']);
-        this.builder.add_from_file(`${this._path}/prefs.ui`);
-    }
+        this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
+        this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
 
-    _obj(id) {
-        return this.builder.get_object(id);
-    }
+        this._bind_settings();
+    },
 
-    _registerIconPaths() {
-        const display = Gdk.Display.get_default();
-        if (!display)
-            return;
+    // Bind the gtk window to the schema settings
+    _bind_settings: function() {
+        let widget;
 
-        const iconTheme = Gtk.IconTheme.get_for_display(display);
-        const preferred = ICON_STYLE_DIRS[this._settings.get_int('icon-style')] ?? 'original';
-        const orderedDirs = [preferred, ...ICON_STYLE_DIRS.filter(dir => dir !== preferred)];
+        // process sensor toggles
+        let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
+                        'show-memory', 'show-processor', 'show-system',
+                        'show-network', 'show-storage', 'use-higher-precision',
+                        'alphabetize', 'hide-zeros', 'include-public-ip',
+                        'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
+                        'hide-icons', 'menu-centered', 'include-static-info',
+                        'show-gpu', 'include-static-gpu-info' ];
 
-        for (const dir of orderedDirs) {
-            const iconPath = GLib.build_filenamev([this._path, 'icons', dir]);
-            if (!GLib.file_test(iconPath, GLib.FileTest.IS_DIR))
-                continue;
+        for (let key in sensors) {
+            let sensor = sensors[key];
 
-            if (!this._iconSearchPaths.includes(iconPath)) {
-                iconTheme.add_search_path(iconPath);
-                this._iconSearchPaths.push(iconPath);
-            }
+            widget = this.builder.get_object(sensor);
+            widget.set_active(this._settings.get_boolean(sensor));
+            widget.connect('state-set', (_, val) => {
+                this._settings.set_boolean(sensor, val);
+            });
         }
-    }
 
-    _bindSwitch(settingsKey) {
-        this._settings.bind(
-            settingsKey,
-            this._obj(settingsKey),
-            'active',
-            Gio.SettingsBindFlags.DEFAULT
-        );
-    }
-
-    _bindSpin(settingsKey) {
-        this._settings.bind(
-            settingsKey,
-            this._obj(settingsKey),
-            'value',
-            Gio.SettingsBindFlags.DEFAULT
-        );
-    }
-
-    _bindCombo(settingsKey) {
-        const widget = this._obj(settingsKey);
-        widget.set_active(this._settings.get_int(settingsKey));
-        widget.connect('changed', () => {
-            this._settings.set_int(settingsKey, widget.get_active());
-        });
-    }
-
-    _bindEntry(settingsKey, placeholder = null) {
-        const widget = this._obj(settingsKey);
-        widget.set_text(this._settings.get_string(settingsKey));
-        widget.connect('changed', () => {
-            let text = widget.get_text();
-            if (!text && placeholder)
-                text = placeholder;
-            this._settings.set_string(settingsKey, text);
-        });
-    }
-
-    _setWidgetsSensitive(widgets, sensitive) {
-        for (const widget of widgets)
-            widget.sensitive = sensitive;
-    }
-
-    _bindEnabled(toggle, widgets) {
-        const update = () => this._setWidgetsSensitive(widgets, toggle.active);
-        toggle.connect('notify::active', update);
-        update();
-    }
-
-    _bindSettings() {
-        const switches = [
-            'menu-centered',
-            'use-higher-precision',
-            'alphabetize',
-            'hide-zeros',
-            'fixed-widths',
-            'hide-icons',
-            'show-temperature',
-            'show-voltage',
-            'show-fan',
-            'show-memory',
-            'show-processor',
-            'include-static-info',
-            'show-system',
-            'show-network',
-            'include-public-ip',
-            'network-public-ip-show-flag',
-            'show-storage',
-            'show-battery',
-            'show-gpu',
-            'include-static-gpu-info',
+        // process individual drop down sensor preferences
+        sensors = [
+            'position-in-panel', 'unit', 'network-speed-format', 'network-speed-unit',
+            'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style',
+            'network-public-ip-provider'
         ];
-        for (const key of switches)
-            this._bindSwitch(key);
+        for (let key in sensors) {
+            let sensor = sensors[key];
 
-        this._bindSpin('update-time');
-        this._bindSpin('network-public-ip-interval');
+            widget = this.builder.get_object(sensor);
+            widget.set_active(this._settings.get_int(sensor));
+            widget.connect('changed', (widget) => {
+                this._settings.set_int(sensor, widget.get_active());
+            });
+        }
 
-        const combos = [
-            'position-in-panel',
-            'icon-style',
-            'unit',
-            'memory-measurement',
-            'network-public-ip-provider',
-            'network-speed-format',
-            'network-speed-unit',
-            'storage-measurement',
-            'battery-slot',
-        ];
-        for (const key of combos)
-            this._bindCombo(key);
-
-        this._bindEntry('monitor-cmd', 'gnome-system-monitor');
-        this._bindEntry('storage-path', '/');
-
-        this._bindEnabled(this._obj('show-temperature'), [this._obj('unit')]);
-        this._bindEnabled(this._obj('show-memory'), [this._obj('memory-measurement')]);
-        this._bindEnabled(this._obj('show-processor'), [this._obj('include-static-info')]);
-        this._bindEnabled(this._obj('show-system'), [this._obj('monitor-cmd')]);
-        this._bindEnabled(this._obj('show-storage'), [
-            this._obj('storage-path'),
-            this._obj('storage-measurement'),
-        ]);
-        this._bindEnabled(this._obj('show-battery'), [this._obj('battery-slot')]);
-        this._bindEnabled(this._obj('show-gpu'), [this._obj('include-static-gpu-info')]);
-
-        const showNetwork = this._obj('show-network');
-        const publicIpProvider = this._obj('network-public-ip-provider');
-        const showFlag = this._obj('network-public-ip-show-flag');
-        const networkDetailWidgets = [
-            this._obj('include-public-ip'),
-            this._obj('network-public-ip-interval'),
-            publicIpProvider,
-            this._obj('network-speed-format'),
-            this._obj('network-speed-unit'),
-        ];
-        const updateNetworkSensitivity = () => {
-            const enabled = showNetwork.active;
-            this._setWidgetsSensitive(networkDetailWidgets, enabled);
-            showFlag.sensitive = enabled && publicIpProvider.get_active() !== 2;
+        let providerWidget = this.builder.get_object('network-public-ip-provider');
+        let flagWidget = this.builder.get_object('network-public-ip-show-flag');
+        let updateFlagSensitivity = () => {
+            flagWidget.set_sensitive(providerWidget.get_active() !== 2);
         };
-        showNetwork.connect('notify::active', updateNetworkSensitivity);
-        publicIpProvider.connect('changed', updateNetworkSensitivity);
-        updateNetworkSensitivity();
+        updateFlagSensitivity();
+        providerWidget.connect('changed', updateFlagSensitivity);
 
-        this._obj('github-row').connect('activated', () => {
-            this._openUri('https://github.com/corecoding/Vitals/issues');
-        });
-        this._obj('donate-row').connect('activated', () => {
-            this._openUri('https://corecoding.com/donate.php');
-        });
-    }
+        this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
 
-    _openUri(uri) {
-        if (typeof Gtk.UriLauncher === 'function') {
-            const launcher = new Gtk.UriLauncher({uri});
-            launcher.launch(null, null, null);
-            return;
+        this._settings.bind('network-public-ip-interval', this.builder.get_object('network-public-ip-interval'),
+            'value', Gio.SettingsBindFlags.DEFAULT);
+
+        // process individual text entry sensor preferences
+        sensors = [ 'storage-path', 'monitor-cmd' ];
+        for (let key in sensors) {
+            let sensor = sensors[key];
+
+            widget = this.builder.get_object(sensor);
+            widget.set_text(this._settings.get_string(sensor));
+
+            widget.connect('changed', (widget) => {
+                let text = widget.get_text();
+                if (!text) text = widget.get_placeholder_text();
+                this._settings.set_string(sensor, text);
+            });
         }
 
-        Gtk.show_uri(null, uri, Gdk.CURRENT_TIME);
-    }
-
-    _cleanupCssProvider() {
-        if (!this._provider)
-            return;
-
-        const display = Gdk.Display.get_default();
-        if (display)
-            Gtk.StyleContext.remove_provider_for_display(display, this._provider);
-
-        this._provider = null;
-    }
-
-    _relaxPreferencesWindowClamps(window) {
-        const stack = [window];
-
-        while (stack.length > 0) {
-            const widget = stack.pop();
-            if (!widget)
-                continue;
-
-            if (widget instanceof Adw.Clamp) {
-                widget.hexpand = true;
-                widget.halign = Gtk.Align.FILL;
-
-                if (typeof widget.set_maximum_size === 'function')
-                    widget.set_maximum_size(2400);
-                else if ('maximum_size' in widget)
-                    widget.maximum_size = 2400;
-
-                if (typeof widget.set_tightening_threshold === 'function')
-                    widget.set_tightening_threshold(800);
-                else if ('tightening_threshold' in widget)
-                    widget.tightening_threshold = 800;
-            }
-
-            let child = widget.get_first_child?.() ?? null;
-            while (child) {
-                stack.push(child);
-                child = child.get_next_sibling?.() ?? null;
-            }
-        }
-    }
-
-    fillPreferencesWindow(window) {
-        window.add_css_class('vitals-preferences');
-
-        if (window.set_title)
-            window.set_title(this._metadata?.name ?? _('Vitals'));
-
-        if (window.set_search_enabled)
-            window.set_search_enabled(true);
-
-        this._registerIconPaths();
-        this._bindSettings();
-
-        for (const pageId of PAGE_IDS)
-            window.add(this._obj(pageId));
-
-        window.connect('close-request', () => {
-            this._cleanupCssProvider();
-            return false;
+        this.builder.get_object('github-row').connect('activated', () => {
+            Gtk.UriLauncher.new('https://github.com/corecoding/Vitals/issues').launch(null, null, null);
         });
-
-        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-            this._relaxPreferencesWindowClamps(window);
-            return GLib.SOURCE_REMOVE;
+        this.builder.get_object('donate-row').connect('activated', () => {
+            Gtk.UriLauncher.new('https://corecoding.com/donate.php').launch(null, null, null);
         });
     }
 });
 
+
 export default class VitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
-        const widget = new VitalsPrefsWidget({
-            settings: this.getSettings(),
-            path: this.path,
-            metadata: this.metadata,
-        });
-        widget.fillPreferencesWindow(window);
+        window._settings = this.getSettings();
+        window.add_css_class('vitals-preferences');
+
+        let settings = new Settings(this);
+
+        let pages = [ 'general', 'temperature', 'voltage', 'fan', 'memory',
+                      'processor', 'system', 'network', 'storage', 'battery', 'gpu' ];
+        for (let key in pages) {
+            window.add(settings.builder.get_object(pages[key] + '-page'));
+        }
     }
 }
