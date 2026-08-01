@@ -69,7 +69,7 @@ export function getUsageColor(value, colors, separator = ' ') {
         return '';
 
     for (let index = thresholds.length - 1; index >= 0; index--) {
-        if (normalizedValue > thresholds[index].threshold)
+        if (normalizedValue >= thresholds[index].threshold)
             return thresholds[index].style;
     }
 

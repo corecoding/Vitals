@@ -312,10 +312,22 @@ const Settings = new GObject.Class({
         // kept for compatibility; pages initialize lazily via ensure_threshold_colors_for_page()
     },
 
+    // Runtime matching is `value >= threshold` (see helpers/colors.js), so each band is
+    // [low, high). Labels end at high-1 so adjacent bands do not share an endpoint.
+    _band_end_before: function(high) {
+        if (Number.isFinite(high) && Math.round(high) === high)
+            return high - 1;
+        return null;
+    },
+
     _band_title: function(low, high) {
         if (high === null || high === undefined)
             return _('%s and above').format(low);
-        return `${low} – ${high}`;
+
+        let end = this._band_end_before(high);
+        if (end !== null)
+            return `${low} – ${end}`;
+        return `${low} – <${high}`;
     },
 
     _refresh_band_titles: function(rows) {
@@ -353,7 +365,7 @@ const Settings = new GObject.Class({
             text: text,
             width_chars: 7,
             valign: Gtk.Align.CENTER,
-            tooltip_text: _('Lower bound for this color band'),
+            tooltip_text: _('Color applies at this value and up to the next breakpoint'),
         });
 
         let colorButton = new Gtk.ColorButton({
@@ -401,7 +413,7 @@ const Settings = new GObject.Class({
         let page = this.builder.get_object(pageId);
         let group = new Adw.PreferencesGroup({
             title: _('Threshold Colors'),
-            description: _('The sensor changes color when its value goes above a breakpoint. Below the lowest breakpoint, the default text color is used.'),
+            description: _('The sensor changes color when its value reaches a breakpoint. Below the lowest breakpoint, the default text color is used.'),
             margin_start: 10,
             margin_end: 10,
         });
