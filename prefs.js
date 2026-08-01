@@ -367,7 +367,7 @@ export default class VitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window._settings = this.getSettings();
         window.set_search_enabled(false);
-        window.set_default_size(960, 700);
+        window.set_default_size(720, 520);
 
         let settings = new Settings(this);
         let root = settings.builder.get_object('prefs-root');
