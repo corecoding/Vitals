@@ -387,12 +387,12 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
-    _updateDisplay(label, value, type, key, style = '') {
+    _updateDisplay(label, value, type, key, style) {
         // update sensor value in menubar
         let hotLabel = this._hotLabels[key];
         if (hotLabel) {
             hotLabel.set_text(value);
-            hotLabel.style = style || null;
+            hotLabel.style = style;
 
             // support for fixed widths #55
             if (this._settings.get_boolean('fixed-widths')) {
@@ -410,24 +410,21 @@ var VitalsMenuButton = GObject.registerClass({
         if (item) {
             // update sensor value in the group
             item.value = value;
-            if (item.valueStyle !== undefined)
-                item.valueStyle = style;
+            item.valueStyle = style;
         } else if (type.includes('-group')) {
             // update text next to group header
             let group = type.split('-')[0];
             let statusLabel = this._groups[group]?._statusLabel;
             if (statusLabel) {
                 statusLabel.text = value;
-                statusLabel.style = style || null;
+                statusLabel.style = style;
                 this._sensorMenuItems[type] = this._groups[group];
             }
         } else {
             // add item to group for the first time
             let sensor = { 'label': label, 'value': value, 'type': type }
             this._appendMenuItem(sensor, key);
-            item = this._sensorMenuItems[key];
-            if (item && item.valueStyle !== undefined)
-                item.valueStyle = style;
+            this._sensorMenuItems[key].valueStyle = style;
         }
     }
 
