@@ -9,7 +9,7 @@ import {
     formatColorEntry,
     sanitizeAndSortColorEntries,
 } from './helpers/colors.js';
-import {sensorGroups} from './helpers/sensorGroups.js';
+import {sensorCatalog} from './helpers/sensorCatalog.js';
 
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
@@ -92,7 +92,7 @@ const Settings = new GObject.Class({
         if (this._thresholdColorsInitialized[pageName])
             return;
 
-        if (!sensorGroups[pageName]?.colorFormats)
+        if (!sensorCatalog[pageName]?.colorFormats)
             return;
 
         this._thresholdColorsInitialized[pageName] = true;

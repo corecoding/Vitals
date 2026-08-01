@@ -18,7 +18,7 @@ import * as Values from './values.js';
 import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
 import * as Colors from './helpers/colors.js';
-import * as SensorGroups from './helpers/sensorGroups.js';
+import * as SensorCatalog from './helpers/sensorCatalog.js';
 
 let vitalsMenu;
 
@@ -31,7 +31,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._extensionObject = extensionObject;
         this._settings = extensionObject.getSettings();
 
-        this._sensorIcons = SensorGroups.sensorGroups;
+        this._sensorIcons = SensorCatalog.sensorCatalog;
 
         // list with the prefixes for the according themes, the index of each
         // item must match the index on the combo box
@@ -92,7 +92,7 @@ var VitalsMenuButton = GObject.registerClass({
         for (let setting of settings)
             this._settings.connectObject('changed::' + setting, this._redrawMenu.bind(this), this);
 
-        for (let setting of SensorGroups.colorSettingsKeys())
+        for (let setting of SensorCatalog.colorSettingsKeys())
             this._settings.connectObject('changed::' + setting, this._thresholdColorsChanged.bind(this), this);
 
         for (let sensor in this._sensorIcons)

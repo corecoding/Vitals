@@ -1,5 +1,5 @@
-/* Shared sensor group catalog for shell and preferences. */
-export const sensorGroups = {
+/* Shared sensor catalog for shell and preferences. */
+export const sensorCatalog = {
     'temperature' : { 'icon': 'temperature-symbolic.svg', colorFormats: ['temp'] },
         'voltage' : { 'icon': 'voltage-symbolic.svg' },
             'fan' : { 'icon': 'fan-symbolic.svg', colorFormats: ['fan', 'percent'] },
@@ -272,13 +272,13 @@ export function sensorGroupFromType(type) {
 }
 
 export function colorsKeyForGroup(group) {
-    if (group && sensorGroups[group]?.colorFormats)
+    if (group && sensorCatalog[group]?.colorFormats)
         return `${group}-colors`;
     return null;
 }
 
 export function colorSettingsKeys() {
-    return Object.keys(sensorGroups)
-        .filter(group => sensorGroups[group].colorFormats)
+    return Object.keys(sensorCatalog)
+        .filter(group => sensorCatalog[group].colorFormats)
         .map(group => `${group}-colors`);
 }
