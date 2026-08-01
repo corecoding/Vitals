@@ -49,10 +49,12 @@ const Settings = new GObject.Class({
         this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
         this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
 
-        this._bind_settings();
         // Threshold color editors are built lazily when each page is first shown,
         // so we do not construct dozens of Gtk.ColorButtons up front.
         this._thresholdColorsInitialized = {};
+        this._thresholdColorGroups = {};
+        this._bind_sensor_page_gates();
+        this._bind_settings();
     },
 
     ensure_threshold_colors_for_page: function(pageName) {
@@ -74,7 +76,84 @@ const Settings = new GObject.Class({
             return;
 
         this._thresholdColorsInitialized[pageName] = true;
-        this._add_threshold_colors_group(entry[0], entry[1], entry[2]);
+        this._add_threshold_colors_group(entry[0], entry[1], entry[2], pageName);
+    },
+
+    _action_row_for: function(widget) {
+        let current = widget;
+        while (current) {
+            if (current instanceof Adw.ActionRow)
+                return current;
+            current = current.get_parent();
+        }
+        return widget;
+    },
+
+    _set_dependent_widgets_sensitive: function(widgetIds, sensitive) {
+        for (let id of widgetIds) {
+            let widget = this.builder.get_object(id);
+            if (!widget)
+                continue;
+            this._action_row_for(widget).set_sensitive(sensitive);
+        }
+    },
+
+    _sync_sensor_page_sensitivity: function(pageName) {
+        let gate = this._sensorPageGates[pageName];
+        if (!gate)
+            return;
+
+        let enabled = this.builder.get_object(gate.toggle).get_active();
+        this._set_dependent_widgets_sensitive(gate.widgets, enabled);
+
+        let thresholdGroup = this._thresholdColorGroups[pageName];
+        if (thresholdGroup)
+            thresholdGroup.set_sensitive(enabled);
+
+        if (gate.afterSync)
+            gate.afterSync(enabled);
+    },
+
+    _bind_sensor_page_gates: function() {
+        let providerWidget = this.builder.get_object('network-public-ip-provider');
+        let flagWidget = this.builder.get_object('network-public-ip-show-flag');
+
+        this._sensorPageGates = {
+            'temperature': { toggle: 'show-temperature', widgets: ['unit'] },
+            'voltage': { toggle: 'show-voltage', widgets: [] },
+            'fan': { toggle: 'show-fan', widgets: [] },
+            'memory': { toggle: 'show-memory', widgets: ['memory-measurement'] },
+            'processor': { toggle: 'show-processor', widgets: ['include-static-info'] },
+            'system': { toggle: 'show-system', widgets: ['monitor-cmd'] },
+            'network': {
+                toggle: 'show-network',
+                widgets: [
+                    'include-public-ip',
+                    'network-public-ip-interval',
+                    'network-public-ip-provider',
+                    'network-public-ip-show-flag',
+                    'network-speed-format',
+                    'network-speed-unit',
+                ],
+                afterSync: (networkEnabled) => {
+                    // Keep flag disabled for ipify even when network monitoring is on.
+                    this._action_row_for(flagWidget).set_sensitive(
+                        networkEnabled && providerWidget.get_active() !== 2);
+                },
+            },
+            'storage': { toggle: 'show-storage', widgets: ['storage-path', 'storage-measurement'] },
+            'battery': { toggle: 'show-battery', widgets: ['battery-slot'] },
+            'gpu': { toggle: 'show-gpu', widgets: ['include-static-gpu-info'] },
+        };
+
+        for (let pageName in this._sensorPageGates) {
+            let gate = this._sensorPageGates[pageName];
+            let toggle = this.builder.get_object(gate.toggle);
+            toggle.connect('notify::active', () => {
+                this._sync_sensor_page_sensitivity(pageName);
+            });
+            this._sync_sensor_page_sensitivity(pageName);
+        }
     },
 
     // Bind the gtk window to the schema settings
@@ -117,12 +196,9 @@ const Settings = new GObject.Class({
         }
 
         let providerWidget = this.builder.get_object('network-public-ip-provider');
-        let flagWidget = this.builder.get_object('network-public-ip-show-flag');
-        let updateFlagSensitivity = () => {
-            flagWidget.set_sensitive(providerWidget.get_active() !== 2);
-        };
-        updateFlagSensitivity();
-        providerWidget.connect('changed', updateFlagSensitivity);
+        providerWidget.connect('changed', () => {
+            this._sync_sensor_page_sensitivity('network');
+        });
 
         this._settings.bind('update-time', this.builder.get_object('update-time'), 'value', Gio.SettingsBindFlags.DEFAULT);
 
@@ -241,7 +317,7 @@ const Settings = new GObject.Class({
         });
     },
 
-    _add_threshold_colors_group: function(pageId, settingsKey, description) {
+    _add_threshold_colors_group: function(pageId, settingsKey, description, pageName) {
         let page = this.builder.get_object(pageId);
         let group = new Adw.PreferencesGroup({
             title: _('Threshold Colors'),
@@ -279,6 +355,10 @@ const Settings = new GObject.Class({
         });
 
         page.add(group);
+        if (pageName) {
+            this._thresholdColorGroups[pageName] = group;
+            this._sync_sensor_page_sensitivity(pageName);
+        }
     }
 });
 
