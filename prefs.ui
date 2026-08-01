@@ -604,7 +604,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Monitor GPU (beta)</property>
+            <property name="title" translatable="yes">Monitor GPU</property>
             <property name="activatable-widget">show-gpu</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-gpu">
