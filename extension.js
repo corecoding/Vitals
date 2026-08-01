@@ -17,7 +17,6 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as Values from './values.js';
 import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
-import * as Colors from './helpers/colors.js';
 import * as SensorCatalog from './helpers/sensorCatalog.js';
 
 let vitalsMenu;
@@ -391,12 +390,7 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
-    _updateDisplay(label, value, type, key, numeric = null, format = null) {
-        let style = '';
-        let colorsKey = Colors.colorsKeyForSensor(type, format);
-        if (colorsKey && numeric !== null && Number.isFinite(numeric))
-            style = Colors.getUsageColor(numeric, this._settings.get_strv(colorsKey));
-
+    _updateDisplay(label, value, type, key, style = '') {
         // update sensor value in menubar
         let hotLabel = this._hotLabels[key];
         if (hotLabel) {
@@ -635,7 +629,7 @@ var VitalsMenuButton = GObject.registerClass({
                     if (menuRow) menuRow.gicon = flagGIcon;
                 }
 
-                this._updateDisplay(_(item.label), item.value, item.type, item.key, item.numeric, item.format);
+                this._updateDisplay(_(item.label), item.value, item.type, item.key, item.style);
             }
         }, dwell);
 
