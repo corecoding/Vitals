@@ -183,6 +183,23 @@ const Settings = new GObject.Class({
         }
     },
 
+    // Drop panel-pinned sensors that belong to a disabled sensor group.
+    // Keys look like _memory_usage_ / __network-rx_max__; group name is in the key.
+    _remove_hot_sensors_for_group: function(group) {
+        let hotSensors = this._settings.get_strv('hot-sensors');
+        let filtered = hotSensors.filter(key => {
+            if (key === '_default_icon_')
+                return true;
+            return !key.includes(group);
+        });
+
+        if (filtered.length === 0)
+            filtered.push('_default_icon_');
+
+        if (filtered.length !== hotSensors.length)
+            this._settings.set_strv('hot-sensors', filtered);
+    },
+
     // Bind the gtk window to the schema settings
     _bind_settings: function() {
         let widget;
@@ -202,6 +219,9 @@ const Settings = new GObject.Class({
             widget = this.builder.get_object(sensor);
             widget.set_active(this._settings.get_boolean(sensor));
             widget.connect('state-set', (_, val) => {
+                // prune before flipping show-* so the extension redraw sees the new list
+                if (!val && sensor.startsWith('show-'))
+                    this._remove_hot_sensors_for_group(sensor.substring(5));
                 this._settings.set_boolean(sensor, val);
             });
         }

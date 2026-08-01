@@ -558,7 +558,6 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _showHideSensorsChanged(self, sensor) {
-        // show or hide the matching accordion group in the dropdown
         const sensorName = sensor.substr(5);
         if(sensorName === 'gpu') {
             for(let i = 1; i <= this._numGpus; i++)
@@ -566,9 +565,8 @@ var VitalsMenuButton = GObject.registerClass({
         } else
             this._groups[sensorName].visible = this._settings.get_boolean(sensor);
 
-        // refresh panel icons so disabled groups no longer appear in the top bar
-        this._removeHotItems();
-        this._drawMenu();
+        // prefs may have removed this group's sensors from hot-sensors; rebuild panel/menu
+        this._redrawMenu();
     }
 
     _positionInPanelChanged() {
@@ -638,14 +636,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._querySensors();
     }
 
-    // return the sensor category for a hot-sensor key (e.g. _memory_usage_ -> memory)
-    _getSensorGroupFromKey(key) {
-        for (let group in this._sensorIcons) {
-            if (key.includes(group))
-                return group;
-        }
-    }
-
     _drawMenu() {
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
@@ -654,22 +644,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (key == '__max_network-download__') key = '__network-rx_max__';
             if (key == '__max_network-upload__') key = '__network-tx_max__';
 
-            // skip panel icons whose sensor group is disabled in preferences
-            if (key != '_default_icon_') {
-                let sensorGroup = this._getSensorGroupFromKey(key);
-                if (sensorGroup && !this._settings.get_boolean('show-' + sensorGroup))
-                    continue;
-            }
-
-            // reuse last known value/icon so toggles don't flash "..." until the next poll
-            let value, gicon;
-            let menuItem = this._sensorMenuItems[key];
-            if (menuItem) {
-                value = menuItem.value;
-                gicon = menuItem.gicon;
-            }
-
-            this._createHotItem(key, value, gicon);
+            this._createHotItem(key);
         }
     }
 
