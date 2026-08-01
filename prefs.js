@@ -1,5 +1,6 @@
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
@@ -313,42 +314,82 @@ const Settings = new GObject.Class({
     },
 
     // Runtime matching is `value >= threshold` (see helpers/colors.js), so each band is
-    // [low, high). Labels end at high-1 so adjacent bands do not share an endpoint.
-    _band_end_before: function(high) {
-        if (Number.isFinite(high) && Math.round(high) === high)
-            return high - 1;
-        return null;
-    },
-
+    // [low, high). Integer breakpoints use high-1 in the label (0–39, 40–59, …).
+    // Float breakpoints keep an explicit half-open label (0 – <0.5).
     _band_title: function(low, high) {
         if (high === null || high === undefined)
             return _('%s and above').format(low);
 
-        let end = this._band_end_before(high);
-        if (end !== null)
-            return `${low} – ${end}`;
+        if (!(high > low))
+            return `${low}`;
+
+        if (Number.isInteger(low) && Number.isInteger(high))
+            return `${low} – ${high - 1}`;
+
         return `${low} – <${high}`;
     },
 
+    _threshold_for_row: function(row) {
+        let text = row._thresholdEntry.text.trim();
+        let value = Number.parseFloat(text);
+        if (text === '' || !Number.isFinite(value))
+            return row._committedThreshold;
+        return value;
+    },
+
+    _commit_threshold_entry: function(row) {
+        let text = row._thresholdEntry.text.trim();
+        let value = Number.parseFloat(text);
+        if (text === '' || !Number.isFinite(value)) {
+            row._thresholdEntry.text = `${row._committedThreshold}`;
+            return row._committedThreshold;
+        }
+
+        row._committedThreshold = value;
+        return value;
+    },
+
+    // Band pairing stays on committed order so mid-edit typing does not move
+    // "and above" between rows; label numbers use the live entry text.
     _refresh_band_titles: function(rows) {
         let items = rows.map(row => ({
             row: row,
-            threshold: Number.parseFloat(row._thresholdEntry.text) || 0,
+            orderKey: row._committedThreshold,
+            value: this._threshold_for_row(row),
         }));
-        items.sort((a, b) => a.threshold - b.threshold);
+        items.sort((a, b) => a.orderKey - b.orderKey || a.value - b.value);
 
         for (let i = 0; i < items.length; i++) {
-            let low = items[i].threshold;
-            let high = (i < items.length - 1) ? items[i + 1].threshold : null;
-            items[i].row.title = this._band_title(low, high);
+            let low = items[i].value;
+            let high = (i < items.length - 1) ? items[i + 1].value : null;
+            // ActionRow titles are Pango markup; unescaped `<` in float labels
+            // (e.g. "0 – <0.5") fails to apply and leaves the old "and above" title.
+            items[i].row.set_title(
+                GLib.markup_escape_text(this._band_title(low, high), -1));
         }
     },
 
-    _sync_threshold_colors: function(settingsKey, rows) {
+    _reorder_threshold_rows: function(group, rows) {
+        let sorted = rows.slice().sort(
+            (a, b) => a._committedThreshold - b._committedThreshold);
+        if (sorted.every((row, i) => row === rows[i]))
+            return;
+
+        for (let i = 0; i < rows.length; i++)
+            group.remove(rows[i]);
+
+        rows.length = 0;
+        for (let i = 0; i < sorted.length; i++) {
+            group.add(sorted[i]);
+            rows.push(sorted[i]);
+        }
+    },
+
+    _sync_threshold_colors: function(settingsKey, group, rows) {
         let items = rows.map(row => {
             let rgba = row._colorButton.get_rgba();
             return {
-                threshold: Number.parseFloat(row._thresholdEntry.text) || 0,
+                threshold: this._threshold_for_row(row),
                 red: rgba.red,
                 green: rgba.green,
                 blue: rgba.blue,
@@ -356,13 +397,18 @@ const Settings = new GObject.Class({
         });
         items.sort((a, b) => a.threshold - b.threshold);
         this._settings.set_strv(settingsKey, items.map(entry => formatColorEntry(entry)));
+        this._reorder_threshold_rows(group, rows);
         this._refresh_band_titles(rows);
     },
 
     _make_color_row: function(settingsKey, group, rows, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
+        let initial = Number.parseFloat(text);
+        if (!Number.isFinite(initial))
+            initial = 0;
+
         let entry = new Gtk.Entry({
             input_purpose: Gtk.InputPurpose.NUMBER,
-            text: text,
+            text: `${initial}`,
             width_chars: 7,
             valign: Gtk.Align.CENTER,
             tooltip_text: _('Color applies at this value and up to the next breakpoint'),
@@ -381,22 +427,34 @@ const Settings = new GObject.Class({
         });
 
         let row = new Adw.ActionRow({
-            title: this._band_title(Number.parseFloat(text) || 0, null),
+            title: '',
             activatable: false,
         });
         row._thresholdEntry = entry;
         row._colorButton = colorButton;
+        row._committedThreshold = initial;
         row.add_suffix(entry);
         row.add_suffix(colorButton);
         row.add_suffix(deleteButton);
         group.add(row);
         rows.push(row);
+        this._refresh_band_titles(rows);
+
+        let commitAndSync = () => {
+            this._commit_threshold_entry(row);
+            this._sync_threshold_colors(settingsKey, group, rows);
+        };
 
         entry.connect('changed', () => {
-            this._sync_threshold_colors(settingsKey, rows);
+            this._refresh_band_titles(rows);
+        });
+        entry.connect('activate', commitAndSync);
+        entry.connect('notify::has-focus', () => {
+            if (!entry.has_focus)
+                commitAndSync();
         });
         colorButton.connect('color-set', () => {
-            this._sync_threshold_colors(settingsKey, rows);
+            this._sync_threshold_colors(settingsKey, group, rows);
         });
         deleteButton.connect('clicked', () => {
             let index = rows.indexOf(row);
@@ -405,7 +463,7 @@ const Settings = new GObject.Class({
 
             group.remove(row);
             rows.splice(index, 1);
-            this._sync_threshold_colors(settingsKey, rows);
+            this._sync_threshold_colors(settingsKey, group, rows);
         });
     },
 
@@ -443,7 +501,7 @@ const Settings = new GObject.Class({
 
         addButton.connect('clicked', () => {
             this._make_color_row(settingsKey, group, rows);
-            this._sync_threshold_colors(settingsKey, rows);
+            this._sync_threshold_colors(settingsKey, group, rows);
         });
 
         page.add(group);
