@@ -307,12 +307,6 @@ const Settings = new GObject.Class({
             });
         }
 
-        this.builder.get_object('github-row').connect('activated', () => {
-            Gtk.UriLauncher.new('https://github.com/corecoding/Vitals/issues').launch(null, null, null);
-        });
-        this.builder.get_object('donate-row').connect('activated', () => {
-            Gtk.UriLauncher.new('https://corecoding.com/donate.php').launch(null, null, null);
-        });
     },
 
     // Runtime matching is `value >= threshold` (see values.js), so each band is

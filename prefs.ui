@@ -156,33 +156,9 @@
     <child>
       <object class="AdwPreferencesGroup">
         <property name="title" translatable="yes">About</property>
-        <property name="description" translatable="yes">No warranty, expressed or implied.</property>
+        <property name="description" translatable="yes">Feature requests or bugs? Please visit &lt;a href=&quot;https://github.com/corecoding/Vitals/issues&quot;&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href=&quot;https://corecoding.com/donate.php&quot;&gt;Donate&lt;/a&gt; if you found this useful.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
-        <child>
-          <object class="AdwActionRow" id="github-row">
-            <property name="title" translatable="yes">GitHub</property>
-            <property name="activatable">True</property>
-            <child type="suffix">
-              <object class="GtkImage">
-                <property name="icon-name">adw-external-link-symbolic</property>
-                <property name="valign">center</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwActionRow" id="donate-row">
-            <property name="title" translatable="yes">Donate</property>
-            <property name="activatable">True</property>
-            <child type="suffix">
-              <object class="GtkImage">
-                <property name="icon-name">adw-external-link-symbolic</property>
-                <property name="valign">center</property>
-              </object>
-            </child>
-          </object>
-        </child>
       </object>
     </child>
   </object>
