@@ -2,7 +2,7 @@
 export const sensorCatalog = {
     'temperature' : { 'icon': 'temperature-symbolic.svg', colorFormats: ['temp'] },
         'voltage' : { 'icon': 'voltage-symbolic.svg' },
-            'fan' : { 'icon': 'fan-symbolic.svg', colorFormats: ['fan', 'percent'] },
+            'fan' : { 'icon': 'fan-symbolic.svg', colorFormats: ['fan'] },
          'memory' : { 'icon': 'memory-symbolic.svg', colorFormats: ['percent'] },
       'processor' : { 'icon': 'cpu-symbolic.svg', colorFormats: ['percent'] },
          'system' : { 'icon': 'system-symbolic.svg', colorFormats: ['load'] },

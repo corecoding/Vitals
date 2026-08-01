@@ -681,7 +681,6 @@ export const Sensors = GObject.registerClass({
 
         this._returnGpuValue(callback, 'Name', label, typeName, '');
 
-        this._returnGpuValue(callback, globalLabel, parseInt(fan_speed_pct) * 0.01, 'fan', 'percent');
         this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, typeName, 'percent');
 
         this._returnGpuValue(callback, globalLabel, parseInt(temp_gpu) * 1000, 'temperature', 'temp');
