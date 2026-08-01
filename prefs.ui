@@ -24,13 +24,11 @@
     <child>
       <object class="AdwPreferencesGroup">
         <property name="title" translatable="yes">Behavior</property>
-        <property name="description" translatable="yes">Choose how Vitals behaves in GNOME Shell.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Refresh Interval</property>
-            <property name="subtitle" translatable="yes">Controls how often sensor values are updated.</property>
+            <property name="title" translatable="yes">Seconds between updates</property>
             <property name="activatable-widget">update-time</property>
             <child type="suffix">
               <object class="GtkSpinButton" id="update-time">
@@ -46,8 +44,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Panel Position</property>
-            <property name="subtitle" translatable="yes">Choose where the indicator appears in the panel.</property>
+            <property name="title" translatable="yes">Position in panel</property>
             <property name="activatable-widget">position-in-panel</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="position-in-panel">
@@ -65,8 +62,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Menu Always Centered</property>
-            <property name="subtitle" translatable="yes">Center the menu on the indicator regardless of panel position.</property>
+            <property name="title" translatable="yes">Menu always centered</property>
             <property name="activatable-widget">menu-centered</property>
             <child type="suffix">
               <object class="GtkSwitch" id="menu-centered">
@@ -80,13 +76,11 @@
     <child>
       <object class="AdwPreferencesGroup">
         <property name="title" translatable="yes">Appearance</property>
-        <property name="description" translatable="yes">Adjust how values and icons are shown in the panel.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Use Higher Precision</property>
-            <property name="subtitle" translatable="yes">Show one extra digit after the decimal.</property>
+            <property name="title" translatable="yes">Use higher precision</property>
             <property name="activatable-widget">use-higher-precision</property>
             <child type="suffix">
               <object class="GtkSwitch" id="use-higher-precision">
@@ -97,8 +91,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Alphabetize Sensors</property>
-            <property name="subtitle" translatable="yes">Display sensors in alphabetical order.</property>
+            <property name="title" translatable="yes">Alphabetize sensors</property>
             <property name="activatable-widget">alphabetize</property>
             <child type="suffix">
               <object class="GtkSwitch" id="alphabetize">
@@ -109,8 +102,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Hide Zero Values</property>
-            <property name="subtitle" translatable="yes">Hide data from sensors that report invalid or zero values.</property>
+            <property name="title" translatable="yes">Hide zero values</property>
             <property name="activatable-widget">hide-zeros</property>
             <child type="suffix">
               <object class="GtkSwitch" id="hide-zeros">
@@ -121,8 +113,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Use Fixed Widths</property>
-            <property name="subtitle" translatable="yes">Keep sensors in the top bar from jumping around.</property>
+            <property name="title" translatable="yes">Use fixed widths</property>
             <property name="activatable-widget">fixed-widths</property>
             <child type="suffix">
               <object class="GtkSwitch" id="fixed-widths">
@@ -133,8 +124,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Hide Icons</property>
-            <property name="subtitle" translatable="yes">Keep the top bar clean by only showing sensor values.</property>
+            <property name="title" translatable="yes">Hide icons in top bar</property>
             <property name="activatable-widget">hide-icons</property>
             <child type="suffix">
               <object class="GtkSwitch" id="hide-icons">
@@ -145,8 +135,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Icon Style</property>
-            <property name="subtitle" translatable="yes">Choose the style used for sensor icons.</property>
+            <property name="title" translatable="yes">Icon style</property>
             <property name="activatable-widget">icon-style</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="icon-style">
@@ -170,7 +159,6 @@
         <child>
           <object class="AdwActionRow" id="github-row">
             <property name="title" translatable="yes">GitHub</property>
-            <property name="subtitle" translatable="yes">Feature requests or bug reports</property>
             <property name="activatable">True</property>
             <child type="suffix">
               <object class="GtkImage">
@@ -183,7 +171,6 @@
         <child>
           <object class="AdwActionRow" id="donate-row">
             <property name="title" translatable="yes">Donate</property>
-            <property name="subtitle" translatable="yes">Support continued development if you found this useful</property>
             <property name="activatable">True</property>
             <child type="suffix">
               <object class="GtkImage">
@@ -208,8 +195,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Temperature</property>
-            <property name="subtitle" translatable="yes">Include temperature sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor temperature</property>
             <property name="activatable-widget">show-temperature</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-temperature">
@@ -221,7 +207,6 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Unit</property>
-            <property name="subtitle" translatable="yes">Choose whether temperatures are shown in Celsius or Fahrenheit.</property>
             <property name="activatable-widget">unit</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="unit">
@@ -249,8 +234,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Voltage</property>
-            <property name="subtitle" translatable="yes">Include voltage sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor voltage</property>
             <property name="activatable-widget">show-voltage</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-voltage">
@@ -274,8 +258,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Fan</property>
-            <property name="subtitle" translatable="yes">Include fan sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor fan</property>
             <property name="activatable-widget">show-fan</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-fan">
@@ -299,8 +282,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Memory</property>
-            <property name="subtitle" translatable="yes">Include memory sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor memory</property>
             <property name="activatable-widget">show-memory</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-memory">
@@ -312,7 +294,6 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Measurement</property>
-            <property name="subtitle" translatable="yes">Choose binary (1024) or decimal (1000) units.</property>
             <property name="activatable-widget">memory-measurement</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="memory-measurement">
@@ -340,8 +321,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Processor</property>
-            <property name="subtitle" translatable="yes">Include processor sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor processor</property>
             <property name="activatable-widget">show-processor</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-processor">
@@ -352,8 +332,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Include Static Info</property>
-            <property name="subtitle" translatable="yes">Display processor information that does not change.</property>
+            <property name="title" translatable="yes">Include static info</property>
             <property name="activatable-widget">include-static-info</property>
             <child type="suffix">
               <object class="GtkSwitch" id="include-static-info">
@@ -377,8 +356,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show System</property>
-            <property name="subtitle" translatable="yes">Include system sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor system</property>
             <property name="activatable-widget">show-system</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-system">
@@ -389,8 +367,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Monitor Command</property>
-            <property name="subtitle" translatable="yes">Command run when the system monitor button is clicked.</property>
+            <property name="title" translatable="yes">Monitor command</property>
             <property name="activatable-widget">monitor-cmd</property>
             <child type="suffix">
               <object class="GtkEntry" id="monitor-cmd">
@@ -417,8 +394,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Network</property>
-            <property name="subtitle" translatable="yes">Include network sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor network</property>
             <property name="activatable-widget">show-network</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-network">
@@ -429,8 +405,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Include Public IP</property>
-            <property name="subtitle" translatable="yes">Display the public IP address of the internet connection.</property>
+            <property name="title" translatable="yes">Include public IP address</property>
             <property name="activatable-widget">include-public-ip</property>
             <child type="suffix">
               <object class="GtkSwitch" id="include-public-ip">
@@ -441,8 +416,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Public IP Interval</property>
-            <property name="subtitle" translatable="yes">How often to refresh the public IP address, in minutes.</property>
+            <property name="title" translatable="yes">Update in minutes</property>
             <property name="activatable-widget">network-public-ip-interval</property>
             <child type="suffix">
               <object class="GtkSpinButton" id="network-public-ip-interval">
@@ -458,8 +432,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Public IP Provider</property>
-            <property name="subtitle" translatable="yes">Service used to look up the public IP address.</property>
+            <property name="title" translatable="yes">Public IP provider</property>
             <property name="activatable-widget">network-public-ip-provider</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="network-public-ip-provider">
@@ -475,8 +448,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Country Flag</property>
-            <property name="subtitle" translatable="yes">Show a country flag next to the public IP address.</property>
+            <property name="title" translatable="yes">Show country flag</property>
             <property name="activatable-widget">network-public-ip-show-flag</property>
             <child type="suffix">
               <object class="GtkSwitch" id="network-public-ip-show-flag">
@@ -487,8 +459,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Speed Format</property>
-            <property name="subtitle" translatable="yes">Choose whether network speed is shown in bits or bytes.</property>
+            <property name="title" translatable="yes">Format</property>
             <property name="activatable-widget">network-speed-format</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="network-speed-format">
@@ -504,7 +475,6 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Speed Unit</property>
-            <property name="subtitle" translatable="yes">Fix the network speed unit instead of auto-scaling.</property>
             <property name="activatable-widget">network-speed-unit</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="network-speed-unit">
@@ -533,8 +503,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Storage</property>
-            <property name="subtitle" translatable="yes">Include storage sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor storage</property>
             <property name="activatable-widget">show-storage</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-storage">
@@ -546,7 +515,6 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Path</property>
-            <property name="subtitle" translatable="yes">Filesystem path used for storage monitoring.</property>
             <property name="activatable-widget">storage-path</property>
             <child type="suffix">
               <object class="GtkEntry" id="storage-path">
@@ -561,7 +529,6 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Measurement</property>
-            <property name="subtitle" translatable="yes">Choose binary (1024) or decimal (1000) units.</property>
             <property name="activatable-widget">storage-measurement</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="storage-measurement">
@@ -589,8 +556,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show Battery</property>
-            <property name="subtitle" translatable="yes">Include battery sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor battery</property>
             <property name="activatable-widget">show-battery</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-battery">
@@ -602,7 +568,6 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Display Battery</property>
-            <property name="subtitle" translatable="yes">Choose which battery slot Vitals should monitor.</property>
             <property name="activatable-widget">battery-slot</property>
             <child type="suffix">
               <object class="GtkComboBoxText" id="battery-slot">
@@ -636,8 +601,7 @@
         <property name="margin-end">10</property>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Show GPU</property>
-            <property name="subtitle" translatable="yes">Include GPU sensors in the menu.</property>
+            <property name="title" translatable="yes">Monitor GPU (beta)</property>
             <property name="activatable-widget">show-gpu</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-gpu">
@@ -648,8 +612,7 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Include Static GPU Info</property>
-            <property name="subtitle" translatable="yes">Display GPU information that does not change.</property>
+            <property name="title" translatable="yes">Include static GPU info</property>
             <property name="activatable-widget">include-static-gpu-info</property>
             <child type="suffix">
               <object class="GtkSwitch" id="include-static-gpu-info">
