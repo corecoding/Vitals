@@ -35,15 +35,7 @@ const Settings = new GObject.Class({
         this.parent(params);
 
         this._settings = extensionObject.getSettings();
-
-        let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
-        let iconStyle = this._settings.get_int('icon-style');
-        let iconDirs = ['original', 'gnome'];
-        let preferred = iconDirs[iconStyle] || 'original';
-        iconDirs = [preferred].concat(iconDirs.filter(dir => dir !== preferred));
-        for (let key in iconDirs) {
-            iconTheme.add_search_path(this._extensionObject.path + '/icons/' + iconDirs[key]);
-        }
+        this._apply_icon_style();
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
@@ -55,6 +47,41 @@ const Settings = new GObject.Class({
         this._thresholdColorGroups = {};
         this._bind_sensor_page_gates();
         this._bind_settings();
+    },
+
+    _apply_icon_style: function() {
+        let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+        let styles = ['original', 'gnome'];
+        let dir = styles[this._settings.get_int('icon-style')] || 'original';
+        let vitalsPath = `${this._extensionObject.path}/icons/${dir}`;
+        let iconsRoot = `${this._extensionObject.path}/icons/`;
+        let others = (iconTheme.get_search_path() || []).filter(p => !p.startsWith(iconsRoot));
+        iconTheme.set_search_path([vitalsPath].concat(others));
+        return vitalsPath;
+    },
+
+    // ViewSwitcherSidebar binds icon-name, so theme cache keeps serving the old SVGs.
+    // Load the selected style from disk onto the inner AdwSidebar rows instead.
+    refresh_sidebar_icons: function(switcher, stack) {
+        let iconsDir = this._apply_icon_style();
+        let sidebar = switcher.get_first_child();
+        if (!(sidebar instanceof Adw.Sidebar))
+            return;
+
+        let scale = Math.max(1, switcher.get_scale_factor());
+        let pages = stack.get_pages();
+        let items = sidebar.get_items();
+        let count = Math.min(pages.get_n_items(), items.get_n_items());
+
+        for (let i = 0; i < count; i++) {
+            let iconName = pages.get_item(i).get_icon_name();
+            if (!iconName || iconName === 'preferences-system-symbolic')
+                continue;
+
+            let file = Gio.File.new_for_path(`${iconsDir}/${iconName}.svg`);
+            if (file.query_exists(null))
+                items.get_item(i).set_icon_paintable(Gtk.IconPaintable.new_for_file(file, 16, scale));
+        }
     },
 
     ensure_threshold_colors_for_page: function(pageName) {
@@ -427,5 +454,10 @@ export default class VitalsPrefs extends ExtensionPreferences {
             root.set_show_content(true);
         });
         syncVisiblePage();
+
+        settings.refresh_sidebar_icons(sidebar, stack);
+        settings.builder.get_object('icon-style').connect('changed', () => {
+            settings.refresh_sidebar_icons(sidebar, stack);
+        });
     }
 }
