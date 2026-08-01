@@ -443,7 +443,11 @@ export default class VitalsPrefs extends ExtensionPreferences {
             let visible = stack.get_visible_child();
             if (visible) {
                 let stackPage = stack.get_page(visible);
-                contentPage.set_title(stackPage.get_title());
+                let title = stackPage.get_title();
+                // Sensor pages used to open as "Network Preferences", etc.
+                if (name && name !== 'general')
+                    title = title + ' ' + _('Preferences');
+                contentPage.set_title(title);
             }
             if (name)
                 settings.ensure_threshold_colors_for_page(name);
