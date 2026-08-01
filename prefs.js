@@ -6,7 +6,7 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import {sensorCatalog} from './helpers/sensorCatalog.js';
+import {sensorCatalog} from './helpers/catalog.js';
 
 // Threshold color entries are stored as: "threshold r g b"
 function parseColorEntry(colorEntry) {

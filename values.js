@@ -27,7 +27,7 @@
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
-import {sensorCatalog, sensorGroupFromType} from './helpers/sensorCatalog.js';
+import {sensorCatalog, sensorGroupFromType} from './helpers/catalog.js';
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],

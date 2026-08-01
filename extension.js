@@ -17,7 +17,7 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as Values from './values.js';
 import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as MenuItem from './menuItem.js';
-import * as SensorCatalog from './helpers/sensorCatalog.js';
+import * as SensorCatalog from './helpers/catalog.js';
 
 let vitalsMenu;
 
