@@ -220,6 +220,7 @@ export const Values = GObject.registerClass({
                 break;
             case 'load':
                 format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                value = parseFloat(value);
                 break;
             case 'pcie':
                 let split = value.split('x');
