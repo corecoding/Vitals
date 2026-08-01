@@ -3,6 +3,8 @@
   Entries are stored as: "threshold r g b" (r/g/b as 0–1 floats or 0–255).
 */
 
+import {sensorIcons, sensorGroupFromType} from './sensorIcons.js';
+
 export function parseColorEntry(colorEntry, separator = ' ') {
     if (typeof colorEntry !== 'string')
         return null;
@@ -76,27 +78,14 @@ export function getUsageColor(value, colors, separator = ' ') {
 
 // Map sensor type + format to a GSettings colors key, or null when unsupported.
 export function colorsKeyForSensor(type, format) {
-    const baseType = (type || '').replace(/-group$/, '').replace(/#\d+$/, '');
-
+    // All temperatures share the temperature threshold UI, including GPU rows.
     if (format === 'temp')
         return 'temperature-colors';
-    if (format === 'fan')
-        return 'fan-colors';
-    if (format === 'load')
-        return 'system-colors';
 
-    if (format === 'percent') {
-        if (baseType === 'processor')
-            return 'processor-colors';
-        if (baseType === 'memory')
-            return 'memory-colors';
-        if (baseType === 'battery')
-            return 'battery-colors';
-        if (baseType.startsWith('gpu'))
-            return 'gpu-colors';
-        if (baseType === 'fan')
-            return 'fan-colors';
-    }
+    const group = sensorGroupFromType(type);
+    const formats = sensorIcons[group]?.colorFormats;
+    if (formats && formats.includes(format))
+        return `${group}-colors`;
 
     return null;
 }

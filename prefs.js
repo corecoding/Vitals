@@ -9,6 +9,7 @@ import {
     formatColorEntry,
     sanitizeAndSortColorEntries,
 } from './helpers/colors.js';
+import {sensorIcons} from './helpers/sensorIcons.js';
 
 /*
         if (sensor == 'show-storage' && this._settings.get_boolean(sensor)) {
@@ -91,22 +92,14 @@ const Settings = new GObject.Class({
         if (this._thresholdColorsInitialized[pageName])
             return;
 
-        let colorPages = {
-            'temperature': ['temperature-page', 'temperature-colors'],
-            'fan': ['fan-page', 'fan-colors'],
-            'memory': ['memory-page', 'memory-colors'],
-            'processor': ['processor-page', 'processor-colors'],
-            'system': ['system-page', 'system-colors'],
-            'battery': ['battery-page', 'battery-colors'],
-            'gpu': ['gpu-page', 'gpu-colors'],
-        };
-
-        let entry = colorPages[pageName];
-        if (!entry)
+        if (!sensorIcons[pageName]?.colorFormats)
             return;
 
         this._thresholdColorsInitialized[pageName] = true;
-        this._add_threshold_colors_group(entry[0], entry[1], pageName);
+        this._add_threshold_colors_group(
+            `${pageName}-page`,
+            `${pageName}-colors`,
+            pageName);
     },
 
     _action_row_for: function(widget) {
