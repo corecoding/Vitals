@@ -42,9 +42,10 @@ try {
 export const Sensors = GObject.registerClass({
     GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
-    _init(settings, sensorIcons) {
+    _init(settings, sensorIcons, sensorsLabels) {
         this._settings = settings;
         this._sensorIcons = sensorIcons;
+        this._sensorsLabels = sensorsLabels;
 
         this.resetHistory();
 
@@ -1013,15 +1014,16 @@ export const Sensors = GObject.registerClass({
                     continue;
 
                 new FileModule.File(obj['input']).read().then(value => {
-                    let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
+                    let feature = obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0];
+                    let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + feature : '';
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
-                            this._addTempVoltFan(callback, obj, name, label, extra, value);
+                            this._addTempVoltFan(callback, obj, file, feature, name, label, extra, value);
                         }).catch(err => {
                             let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
-                                this._addTempVoltFan(callback, obj, name, label, extra, value);
+                                this._addTempVoltFan(callback, obj, file, feature, name, label, extra, value);
                             }).catch(err => { });
                         });
                     }
@@ -1030,22 +1032,28 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _addTempVoltFan(callback, obj, name, label, extra, value) {
-        // prepend module that provided sensor data
-        if (name != label) label = name + ' ' + label;
+    _addTempVoltFan(callback, obj, file, feature, name, label, extra, value) {
+        // // prepend module that provided sensor data
+        // if (name != label) label = name + ' ' + label;
 
-        //if (label == 'nvme Composite') label = 'NVMe';
-        //if (label == 'nouveau') label = 'Nvidia';
+        // //if (label == 'nvme Composite') label = 'NVMe';
+        // //if (label == 'nouveau') label = 'Nvidia';
 
-        label = label + extra;
+        // label = label + extra;
 
-        // in the future we will read /etc/sensors3.conf
-        if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
-        if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
-        if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
-        if (label == 'Package id 0') label = 'Processor 0';
-        if (label == 'Package id 1') label = 'Processor 1';
-        label = label.replace('Package id', 'CPU');
+        // // in the future we will read /etc/sensors3.conf
+        // if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
+        // if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
+        // if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
+        // if (label == 'Package id 0') label = 'Processor 0';
+        // if (label == 'Package id 1') label = 'Processor 1';
+        // label = label.replace('Package id', 'CPU');
+
+        if (this._sensorsLabels.has(file) && this._sensorsLabels.get(file).has(feature)) {
+            label = this._sensorsLabels.get(file).get(feature);
+            if (label.length == 0)
+                return;
+        }
 
         let types = [ 'temperature', 'voltage', 'fan' ];
         for (let type of types) {
