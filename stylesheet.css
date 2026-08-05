@@ -1,8 +1,10 @@
 .vitals-panel-item{spacing: 0;}
 .vitals-panel-menu{spacing: 11px; padding: 3px; }
 .vitals-panel-icon-temperature { margin: 0 1px 0 0; padding: 0; }
+.vitals-panel-icon-coolant { margin: 0 1px 0 0; padding: 0; }
 .vitals-panel-icon-voltage { margin: 0 0 0 0; padding: 0; }
 .vitals-panel-icon-fan { margin: 0 4px 0 0; padding: 0; }
+.vitals-panel-icon-pump { margin: 0 4px 0 0; padding: 0; }
 .vitals-panel-icon-memory { margin: 0 2px 0 0; padding: 0; }
 .vitals-panel-icon-processor { margin: 0 3px 0 0; padding: 0; }
 .vitals-panel-icon-system { margin: 0 3px 0 0; padding: 0; }
