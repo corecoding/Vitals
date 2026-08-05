@@ -41,10 +41,25 @@
       <summary>Temperature unit</summary>
       <description>The unit ('centigrade' or 'fahrenheit') the extension should display the temperature in</description>
     </key>
+    <key type="i" name="coolant-unit">
+      <default>0</default>
+      <summary>Coolant temperature unit</summary>
+      <description>The unit ('centigrade' or 'fahrenheit') the extension should display the coolant temperature in</description>
+    </key>
     <key type="b" name="show-voltage">
       <default>true</default>
       <summary>Monitor voltage</summary>
       <description>Display voltage of various components</description>
+    </key>
+    <key type="b" name="show-coolant">
+      <default>true</default>
+      <summary>Monitor coolant</summary>
+      <description>Display liquid cooling loop coolant temperature</description>
+    </key>
+    <key type="b" name="show-pump">
+      <default>true</default>
+      <summary>Monitor pump</summary>
+      <description>Display liquid cooling pump rotation per minute</description>
     </key>
     <key type="b" name="show-fan">
       <default>true</default>
@@ -178,6 +193,16 @@
       <default>[]</default>
       <summary>Fan color thresholds</summary>
       <description>Color rules matched against fan RPM. Entries are "threshold r g b".</description>
+    </key>
+    <key name="coolant-colors" type="as">
+      <default>["35 0.9647058844566345 0.8274509906768799 0.1764705926179886", "40 1 0.47058823704719543 0", "45 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>
+      <summary>Coolant color thresholds</summary>
+      <description>Color rules matched against the displayed coolant temperature. Entries are "threshold r g b".</description>
+    </key>
+    <key name="pump-colors" type="as">
+      <default>[]</default>
+      <summary>Pump color thresholds</summary>
+      <description>Color rules matched against pump RPM. Entries are "threshold r g b".</description>
     </key>
     <key name="memory-colors" type="as">
       <default>["65 0.9647058844566345 0.8274509906768799 0.1764705926179886", "80 1 0.47058823704719543 0", "92 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>

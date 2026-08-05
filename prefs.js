@@ -150,8 +150,10 @@ const Settings = new GObject.Class({
 
         this._sensorPageGates = {
             'temperature': { toggle: 'show-temperature', widgets: ['unit'] },
+            'coolant': { toggle: 'show-coolant', widgets: ['coolant-unit'] },
             'voltage': { toggle: 'show-voltage', widgets: [] },
             'fan': { toggle: 'show-fan', widgets: [] },
+            'pump': { toggle: 'show-pump', widgets: [] },
             'memory': { toggle: 'show-memory', widgets: ['memory-measurement'] },
             'processor': { toggle: 'show-processor', widgets: ['include-static-info'] },
             'system': { toggle: 'show-system', widgets: ['monitor-cmd'] },
@@ -237,6 +239,7 @@ const Settings = new GObject.Class({
 
         // process sensor toggles
         let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
+                        'show-coolant', 'show-pump',
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
@@ -264,7 +267,7 @@ const Settings = new GObject.Class({
 
         // process individual drop down sensor preferences
         sensors = [
-            'position-in-panel', 'unit', 'network-speed-format', 'network-speed-unit',
+            'position-in-panel', 'unit', 'coolant-unit', 'network-speed-format', 'network-speed-unit',
             'memory-measurement', 'storage-measurement', 'battery-slot', 'icon-style',
             'network-public-ip-provider'
         ];

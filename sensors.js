@@ -26,8 +26,10 @@
 
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Gio from 'gi://Gio';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
+import { isAggregateGroup } from './helpers/catalog.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 let GTop, hasGTop = true;
@@ -134,8 +136,8 @@ export const Sensors = GObject.registerClass({
 
         for (let sensor in this._sensorIcons) {
             if (this._settings.get_boolean('show-' + sensor)) {
-                if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
-                    // for temp, volt, fan, we have a shared handler
+                if (isAggregateGroup(sensor)) {
+                    // hardware monitor sensors share a handler
                     this._queryTempVoltFan(callback, sensor);
                 } else {
                     // directly call queryFunction below
@@ -150,11 +152,63 @@ export const Sensors = GObject.registerClass({
         for (let label in this._tempVoltFanSensors[type]) {
             let sensor = this._tempVoltFanSensors[type][label];
 
+            if (sensor['aquacomputer']) {
+                this._readAquacomputerSensor(callback, label, sensor, type);
+                continue;
+            }
+
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, label, value, type, sensor['format']);
             }).catch(err => {
                 this._returnValue(callback, label, 'disabled', type, sensor['format']);
             });
+        }
+    }
+
+    // The Aquacomputer Vision publishes a 64 byte HID report rather than hwmon
+    // entries. Byte 0 is the report id and offset 0x37 holds the coolant
+    // temperature as a big endian value in hundredths of a degree.
+    _readAquacomputerSensor(callback, label, sensor, type) {
+        const REPORT_LENGTH = 64;
+        const REPORT_ID = 0x01;
+        const COOLANT_TEMP_OFFSET = 0x37;
+
+        let disabled = () => this._returnValue(callback, label, 'disabled', type, sensor['format']);
+
+        try {
+            Gio.File.new_for_path(sensor['path']).read_async(GLib.PRIORITY_DEFAULT, null, (file, res) => {
+                let stream;
+
+                try {
+                    stream = file.read_finish(res);
+                } catch (e) {
+                    disabled();
+                    return;
+                }
+
+                stream.read_bytes_async(REPORT_LENGTH, GLib.PRIORITY_DEFAULT, null, (input, res2) => {
+                    try {
+                        let data = new Uint8Array(input.read_bytes_finish(res2).get_data());
+
+                        if (data.length < REPORT_LENGTH || data[0] !== REPORT_ID) {
+                            disabled();
+                            return;
+                        }
+
+                        let raw = (data[COOLANT_TEMP_OFFSET] << 8) | data[COOLANT_TEMP_OFFSET + 1];
+
+                        // hundredths of a degree to millidegrees
+                        this._returnValue(callback, label, raw * 10, type, sensor['format']);
+                    } catch (e) {
+                        disabled();
+                    } finally {
+                        // the device is polled on every refresh, so don't leak the fd
+                        input.close_async(GLib.PRIORITY_DEFAULT, null, null);
+                    }
+                });
+            });
+        } catch (e) {
+            disabled();
         }
     }
 
@@ -802,7 +856,8 @@ export const Sensors = GObject.registerClass({
     }
 
     _discoverHardwareMonitors(callback) {
-        this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {} };
+        this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {},
+                                     'coolant': {}, 'pump': {} };
 
         let hwbase = '/sys/class/hwmon/';
 
@@ -815,7 +870,8 @@ export const Sensors = GObject.registerClass({
         if (this._settings.get_boolean('show-voltage'))
             sensor_types['in'] = 'voltage';
 
-        if (this._settings.get_boolean('show-fan'))
+        // the pump reports through a fan input, so discover fans for either group
+        if (this._settings.get_boolean('show-fan') || this._settings.get_boolean('show-pump'))
             sensor_types['fan'] = 'fan';
 
         // a little informal, but this code has zero I/O block
@@ -891,6 +947,79 @@ export const Sensors = GObject.registerClass({
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._initFrameMonitor();
+        this._discoverAquacomputerVision();
+    }
+
+    // The Aquacomputer Vision has no hwmon driver, so find its raw HID node by
+    // walking /sys/class/hidraw and matching the USB vendor and product id.
+    // It is a composite device that also exposes keyboard and consumer control
+    // interfaces, and only the vendor defined one carries telemetry, so match
+    // the report descriptor's usage page too. Reading the wrong interface would
+    // block forever because it never sends a report.
+    _discoverAquacomputerVision() {
+        const VENDOR_ID = '0c70';
+        const PRODUCT_ID = 'f00c';
+        const HIDRAW_CLASS = '/sys/class/hidraw/';
+
+        // Usage Page (Vendor Defined 0xFF00)
+        const VENDOR_USAGE_PAGE = [ 0x06, 0x00, 0xff ];
+
+        let enumerator;
+
+        try {
+            enumerator = Gio.File.new_for_path(HIDRAW_CLASS).enumerate_children(
+                'standard::name', Gio.FileQueryInfoFlags.NONE, null);
+        } catch (e) {
+            // no hidraw devices present, or we can't enumerate them
+            return;
+        }
+
+        try {
+            let info;
+            while ((info = enumerator.next_file(null)) !== null) {
+                let name = info.get_name();
+                let device;
+
+                try {
+                    // resolves to something like ../../devices/.../0003:0C70:F00C.000B
+                    device = GLib.file_read_link(HIDRAW_CLASS + name + '/device');
+                } catch (e) {
+                    continue;
+                }
+
+                let ids = device.substr(device.lastIndexOf('/') + 1)
+                    .match(/^[0-9A-Fa-f]+:([0-9A-Fa-f]{4}):([0-9A-Fa-f]{4})\./);
+
+                if (!ids || ids[1].toLowerCase() != VENDOR_ID || ids[2].toLowerCase() != PRODUCT_ID)
+                    continue;
+
+                let descriptor;
+
+                try {
+                    let [ok, contents] = GLib.file_get_contents(
+                        HIDRAW_CLASS + name + '/device/report_descriptor');
+
+                    if (!ok) continue;
+                    descriptor = contents;
+                } catch (e) {
+                    continue;
+                }
+
+                if (!VENDOR_USAGE_PAGE.every((byte, i) => descriptor[i] === byte))
+                    continue;
+
+                this._addTempVoltFan(null, {
+                          'type': 'coolant',
+                        'format': 'temp',
+                         'input': '/dev/' + name,
+                  'aquacomputer': true
+                }, 'AC Vision', 'Coolant Temp', '', 0);
+
+                break;
+            }
+        } finally {
+            enumerator.close(null);
+        }
     }
 
     _discoverGpuDrm() {
@@ -1045,18 +1174,26 @@ export const Sensors = GObject.registerClass({
         if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
         if (label == 'Package id 0') label = 'Processor 0';
         if (label == 'Package id 1') label = 'Processor 1';
+        if (label == 'nct6799 fan1') label = 'VRM HeatSink Fan';
+        if (label == 'nct6799 fan2') label = 'Radiator Fan(s)';
+        if (label == 'nct6799 fan6') label = 'Chipset/NVMe Fan';
+        if (label == 'nct6799 fan7') label = 'AIO Pump';
+        if (label == 'nct6799 SYSTIN') label = 'Motherboard Temp';
+        if (label == 'nct6799 CPUTIN') label = 'CPU Socket Temp';
         label = label.replace('Package id', 'CPU');
 
-        let types = [ 'temperature', 'voltage', 'fan' ];
-        for (let type of types) {
+        // the pump arrives on a fan input but belongs to its own group
+        let sensorType = (label == 'AIO Pump') ? 'pump' : obj['type'];
+
+        for (let group in this._tempVoltFanSensors) {
             // check if this label already exists
-            if (label in this._tempVoltFanSensors[type]) {
+            if (label in this._tempVoltFanSensors[group]) {
                 for (let i = 2; i <= 9; i++) {
                     // append an incremented number to end
                     let new_label = label + ' ' + i;
 
                     // if new label is available, use it
-                    if (!(new_label in this._tempVoltFanSensors[type])) {
+                    if (!(new_label in this._tempVoltFanSensors[group])) {
                         label = new_label;
                         break;
                     }
@@ -1065,11 +1202,14 @@ export const Sensors = GObject.registerClass({
         }
 
         // update screen on initial build to prevent delay on update
-        this._returnValue(callback, label, value, obj['type'], obj['format']);
+        // raw HID sensors are registered without a value, so skip them here
+        if (callback && !obj['aquacomputer'])
+            this._returnValue(callback, label, value, sensorType, obj['format']);
 
-        this._tempVoltFanSensors[obj['type']][label] = {
-          'format': obj['format'],
-            'path': obj['input']
+        this._tempVoltFanSensors[sensorType][label] = {
+                'format': obj['format'],
+                  'path': obj['input'],
+          'aquacomputer': obj['aquacomputer'] || false
         };
     }
 

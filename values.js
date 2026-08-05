@@ -26,7 +26,7 @@
 
 import GObject from 'gi://GObject';
 
-import {sensorCatalog, sensorGroupFromType} from './helpers/catalog.js';
+import {sensorCatalog, sensorGroupFromType, isAggregateGroup, unitSettingForType} from './helpers/catalog.js';
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
@@ -94,14 +94,14 @@ function getUsageColor(value, colors) {
 }
 
 function colorsKeyForSensor(type, format) {
-    // All temperatures share the temperature threshold UI, including GPU rows.
-    if (format === 'temp')
-        return 'temperature-colors';
-
     const group = sensorGroupFromType(type);
     const formats = sensorCatalog[group]?.colorFormats;
     if (formats && formats.includes(format))
         return `${group}-colors`;
+
+    // remaining temperatures share the temperature threshold UI, including GPU rows
+    if (format === 'temp')
+        return 'temperature-colors';
 
     return null;
 }
@@ -150,7 +150,7 @@ export const Values = GObject.registerClass({
                 ending = '°C';
 
                 // are we converting to fahrenheit?
-                if (this._settings.get_int('unit') == 1) {
+                if (this._settings.get_int(unitSettingForType(type)) == 1) {
                     value = ((9 / 5) * value + 32);
                     ending = '°F';
                 }
@@ -346,7 +346,7 @@ export const Values = GObject.registerClass({
         this._history[historyType][key] = [legible.text, value];
 
         // process average, min and max values
-        if (type == 'temperature' || type == 'voltage' || type == 'fan') {
+        if (isAggregateGroup(type)) {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
             // show value in group even if there is one value present
