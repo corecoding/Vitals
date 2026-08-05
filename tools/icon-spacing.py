@@ -20,6 +20,8 @@ def panel_type(filename):
         return "processor"
     if name == "swap":
         return "memory"
+    if name == "water-droplet":
+        return "coolant"
     if name == "network-download":
         return "network-rx"
     if name == "network-upload":
