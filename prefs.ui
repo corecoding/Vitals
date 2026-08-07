@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <requires lib="libadwaita" version="1.9"/>
+  <requires lib="libadwaita" version="1.0"/>
 
   <object class="GtkAdjustment" id="update-time-adjustment">
     <property name="lower">1</property>
@@ -602,54 +602,5 @@
         </child>
       </object>
     </child>
-  </object>
-
-  <!-- Settings-style left sidebar + content (wired in prefs.js) -->
-  <object class="AdwNavigationSplitView" id="prefs-root">
-    <property name="vexpand">True</property>
-    <property name="hexpand">True</property>
-    <property name="min-sidebar-width">220</property>
-    <property name="max-sidebar-width">320</property>
-    <property name="sidebar-width-fraction">0.28</property>
-    <property name="sidebar">
-      <object class="AdwNavigationPage" id="prefs-sidebar-page">
-        <property name="title" translatable="yes">Vitals</property>
-        <property name="child">
-          <object class="AdwToolbarView">
-            <child type="top">
-              <object class="AdwHeaderBar">
-                <property name="show-end-title-buttons">False</property>
-              </object>
-            </child>
-            <property name="content">
-              <object class="AdwViewSwitcherSidebar" id="prefs-sidebar">
-                <property name="stack">prefs-stack</property>
-                <property name="mode">sidebar</property>
-              </object>
-            </property>
-          </object>
-        </property>
-      </object>
-    </property>
-    <property name="content">
-      <object class="AdwNavigationPage" id="prefs-content-page">
-        <property name="title" translatable="yes">General</property>
-        <property name="child">
-          <object class="AdwToolbarView">
-            <child type="top">
-              <object class="AdwHeaderBar">
-                <property name="show-start-title-buttons">False</property>
-              </object>
-            </child>
-            <property name="content">
-              <object class="AdwViewStack" id="prefs-stack">
-                <property name="vexpand">True</property>
-                <property name="hexpand">True</property>
-              </object>
-            </property>
-          </object>
-        </property>
-      </object>
-    </property>
   </object>
 </interface>

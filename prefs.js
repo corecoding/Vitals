@@ -509,17 +509,80 @@ const Settings = new GObject.Class({
 });
 
 
+function prefsPageNames() {
+    return ['general'].concat(Object.keys(sensorCatalog));
+}
+
+// AdwViewSwitcherSidebar landed in libadwaita 1.9 (GNOME 49+).
+function supportsSidebarPrefs() {
+    return typeof Adw.ViewSwitcherSidebar === 'function';
+}
+
 export default class VitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window._settings = this.getSettings();
+
+        let settings = new Settings(this);
+        if (supportsSidebarPrefs())
+            this._fillSidebarPreferences(window, settings);
+        else
+            this._fillClassicPreferences(window, settings);
+    }
+
+    _fillClassicPreferences(window, settings) {
+        for (let name of prefsPageNames())
+            window.add(settings.builder.get_object(name + '-page'));
+
+        let loadVisible = () => {
+            let visible = window.visible_page;
+            if (visible && visible.name)
+                settings.ensure_threshold_colors_for_page(visible.name);
+        };
+        window.connect('notify::visible-page', loadVisible);
+        loadVisible();
+    }
+
+    _fillSidebarPreferences(window, settings) {
         window.set_search_enabled(false);
         window.set_default_size(720, 620);
 
-        let settings = new Settings(this);
-        let root = settings.builder.get_object('prefs-root');
-        let stack = settings.builder.get_object('prefs-stack');
-        let sidebar = settings.builder.get_object('prefs-sidebar');
-        let contentPage = settings.builder.get_object('prefs-content-page');
+        let stack = new Adw.ViewStack({
+            vexpand: true,
+            hexpand: true,
+        });
+        let sidebar = new Adw.ViewSwitcherSidebar({
+            stack,
+            mode: Adw.SidebarMode.SIDEBAR,
+        });
+
+        let sidebarToolbar = new Adw.ToolbarView();
+        sidebarToolbar.add_top_bar(new Adw.HeaderBar({
+            show_end_title_buttons: false,
+        }));
+        sidebarToolbar.set_content(sidebar);
+
+        let contentToolbar = new Adw.ToolbarView();
+        contentToolbar.add_top_bar(new Adw.HeaderBar({
+            show_start_title_buttons: false,
+        }));
+        contentToolbar.set_content(stack);
+
+        let contentPage = new Adw.NavigationPage({
+            title: _('General'),
+            child: contentToolbar,
+        });
+        let root = new Adw.NavigationSplitView({
+            vexpand: true,
+            hexpand: true,
+            min_sidebar_width: 220,
+            max_sidebar_width: 320,
+            sidebar_width_fraction: 0.28,
+            sidebar: new Adw.NavigationPage({
+                title: _('Vitals'),
+                child: sidebarToolbar,
+            }),
+            content: contentPage,
+        });
 
         // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
         window.get_content().set_child(root);
