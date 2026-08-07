@@ -421,8 +421,9 @@ export const Values = GObject.registerClass({
                 key: '__' + type + '_ses__',
             });
 
-            // calculate speed for this interface
-            let speed = (value - previousValue[1]) / dwell;
+            // calculate speed for this interface - there is nothing to compare
+            // against the very first time an interface is seen
+            let speed = (previousValue)?(value - previousValue[1]) / dwell:0;
             let speedFormatted = this._legible(speed, 'speed', type);
             output.push({
                 label,
