@@ -47,6 +47,9 @@ export const Sensors = GObject.registerClass({
 
         this.resetHistory();
 
+        // interfaces seen by the last network query, to spot the ones that go away
+        this._network_interfaces = [];
+
         this._last_processor = { 'core': {}, 'speed': [] };
 
         this._settingChangedSignals = [];
@@ -311,6 +314,24 @@ export const Sensors = GObject.registerClass({
         let netbase = '/sys/class/net/';
 
         new FileModule.File(netbase).list().then(interfaces => {
+            // 'lo' is always present, so an empty listing means the read failed
+            if (!interfaces.length) return;
+
+            // issue #557 - forget interfaces the kernel no longer has
+            for (let iface of this._network_interfaces) {
+                if (interfaces.includes(iface)) continue;
+
+                for (let direction of directions) {
+                    if (iface == 'lo' && direction == 'rx') continue;
+
+                    let name = iface + ((iface == 'lo')?'':' ' + direction);
+                    let type = 'network' + ((iface=='lo')?'':'-' + direction);
+                    this._returnValue(callback, name, 'destroy', type, 'storage');
+                }
+            }
+
+            this._network_interfaces = interfaces;
+
             for (let iface of interfaces) {
                 for (let direction of directions) {
                     // lo tx and rx are the same
