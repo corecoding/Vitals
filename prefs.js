@@ -35,6 +35,26 @@ function sanitizeAndSortColorEntries(colorsArray) {
         .sort((a, b) => a.threshold - b.threshold);
 }
 
+// AdwViewSwitcherSidebar landed in libadwaita 1.9 (GNOME 49+/50).
+function supportsModernSidebarPrefs() {
+    return typeof Adw.ViewSwitcherSidebar === 'function';
+}
+
+// AdwNavigationSplitView landed in libadwaita 1.4 (GNOME 45+).
+function supportsLegacySidebarPrefs() {
+    return typeof Adw.NavigationSplitView === 'function';
+}
+
+function ensureSidebarShellTypes(modern) {
+    GObject.type_ensure(Adw.HeaderBar.$gtype);
+    GObject.type_ensure(Adw.NavigationPage.$gtype);
+    GObject.type_ensure(Adw.NavigationSplitView.$gtype);
+    GObject.type_ensure(Adw.ToolbarView.$gtype);
+    GObject.type_ensure(Adw.ViewStack.$gtype);
+    if (modern)
+        GObject.type_ensure(Adw.ViewSwitcherSidebar.$gtype);
+}
+
 const Settings = new GObject.Class({
     Name: 'Vitals.Settings',
 
@@ -47,7 +67,15 @@ const Settings = new GObject.Class({
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
-        this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
+        this.builder.add_from_file(this._extensionObject.path + '/prefs-pages.ui');
+
+        if (supportsModernSidebarPrefs()) {
+            ensureSidebarShellTypes(true);
+            this.builder.add_from_file(this._extensionObject.path + '/prefs-sidebar.ui');
+        } else if (supportsLegacySidebarPrefs()) {
+            ensureSidebarShellTypes(false);
+            this.builder.add_from_file(this._extensionObject.path + '/prefs-sidebar-legacy.ui');
+        }
 
         // Threshold color editors are built lazily when each page is first shown,
         // so we do not construct dozens of Gtk.ColorButtons up front.
@@ -92,6 +120,25 @@ const Settings = new GObject.Class({
             let file = Gio.File.new_for_path(`${iconsDir}/${iconName}.svg`);
             if (file.query_exists(null))
                 items.get_item(i).set_icon_paintable(Gtk.IconPaintable.new_for_file(file, 16, scale));
+        }
+    },
+
+    // Legacy ListBox rows use Gtk.Image; refresh paintables from the active icon style.
+    refresh_legacy_sidebar_icons: function(rows) {
+        let iconsDir = this._apply_icon_style();
+        let scale = 1;
+        if (rows.length && rows[0].image)
+            scale = Math.max(1, rows[0].image.get_scale_factor());
+
+        for (let row of rows) {
+            if (!row.iconName || row.iconName === 'preferences-system-symbolic')
+                continue;
+
+            let file = Gio.File.new_for_path(`${iconsDir}/${row.iconName}.svg`);
+            if (file.query_exists(null))
+                row.image.set_from_paintable(Gtk.IconPaintable.new_for_file(file, 16, scale));
+            else
+                row.image.set_from_icon_name(row.iconName);
         }
     },
 
@@ -513,9 +560,15 @@ function prefsPageNames() {
     return ['general'].concat(Object.keys(sensorCatalog));
 }
 
-// AdwViewSwitcherSidebar landed in libadwaita 1.9 (GNOME 49+).
-function supportsSidebarPrefs() {
-    return typeof Adw.ViewSwitcherSidebar === 'function';
+function prefsPageInfos() {
+    let pages = [{ name: 'general' }];
+    for (let name of Object.keys(sensorCatalog)) {
+        let page = { name };
+        if (pages.length === 1)
+            page.section = _('Sensors');
+        pages.push(page);
+    }
+    return pages;
 }
 
 export default class VitalsPrefs extends ExtensionPreferences {
@@ -523,8 +576,10 @@ export default class VitalsPrefs extends ExtensionPreferences {
         window._settings = this.getSettings();
 
         let settings = new Settings(this);
-        if (supportsSidebarPrefs())
-            this._fillSidebarPreferences(window, settings);
+        if (supportsModernSidebarPrefs())
+            this._fillModernSidebarPreferences(window, settings);
+        else if (supportsLegacySidebarPrefs())
+            this._fillLegacySidebarPreferences(window, settings);
         else
             this._fillClassicPreferences(window, settings);
     }
@@ -542,59 +597,8 @@ export default class VitalsPrefs extends ExtensionPreferences {
         loadVisible();
     }
 
-    _fillSidebarPreferences(window, settings) {
-        window.set_search_enabled(false);
-        window.set_default_size(720, 620);
-
-        let stack = new Adw.ViewStack({
-            vexpand: true,
-            hexpand: true,
-        });
-        let sidebar = new Adw.ViewSwitcherSidebar({
-            stack,
-            mode: Adw.SidebarMode.SIDEBAR,
-        });
-
-        let sidebarToolbar = new Adw.ToolbarView();
-        sidebarToolbar.add_top_bar(new Adw.HeaderBar({
-            show_end_title_buttons: false,
-        }));
-        sidebarToolbar.set_content(sidebar);
-
-        let contentToolbar = new Adw.ToolbarView();
-        contentToolbar.add_top_bar(new Adw.HeaderBar({
-            show_start_title_buttons: false,
-        }));
-        contentToolbar.set_content(stack);
-
-        let contentPage = new Adw.NavigationPage({
-            title: _('General'),
-            child: contentToolbar,
-        });
-        let root = new Adw.NavigationSplitView({
-            vexpand: true,
-            hexpand: true,
-            min_sidebar_width: 220,
-            max_sidebar_width: 320,
-            sidebar_width_fraction: 0.28,
-            sidebar: new Adw.NavigationPage({
-                title: _('Vitals'),
-                child: sidebarToolbar,
-            }),
-            content: contentPage,
-        });
-
-        // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
-        window.get_content().set_child(root);
-
-        let pages = [{ name: 'general' }];
-        for (let name of Object.keys(sensorCatalog)) {
-            let page = { name };
-            if (pages.length === 1)
-                page.section = _('Sensors');
-            pages.push(page);
-        }
-
+    _attachStackPages(settings, stack, useSections) {
+        let pages = prefsPageInfos();
         for (let i = 0; i < pages.length; i++) {
             let info = pages[i];
             let page = settings.builder.get_object(info.name + '-page');
@@ -604,23 +608,45 @@ export default class VitalsPrefs extends ExtensionPreferences {
             page.set_title('');
 
             let stackPage = stack.add_titled_with_icon(page, info.name, title, iconName);
-            if (info.section) {
+            if (useSections && info.section) {
                 stackPage.set_starts_section(true);
                 stackPage.set_section_title(info.section);
             }
+            info.title = title;
+            info.iconName = iconName;
         }
+        return pages;
+    }
+
+    _syncContentTitle(stack, contentPage, name) {
+        let visible = stack.get_visible_child();
+        if (!visible)
+            return;
+
+        let stackPage = stack.get_page(visible);
+        let title = stackPage.get_title();
+        // Sensor pages used to open as "Network Preferences", etc.
+        if (name && name !== 'general')
+            title = title + ' ' + _('Preferences');
+        contentPage.set_title(title);
+    }
+
+    _fillModernSidebarPreferences(window, settings) {
+        window.set_search_enabled(false);
+        window.set_default_size(720, 620);
+
+        let root = settings.builder.get_object('prefs-root');
+        let stack = settings.builder.get_object('prefs-stack');
+        let sidebar = settings.builder.get_object('prefs-sidebar');
+        let contentPage = settings.builder.get_object('prefs-content-page');
+
+        // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
+        window.get_content().set_child(root);
+        this._attachStackPages(settings, stack, true);
 
         let syncVisiblePage = () => {
             let name = stack.get_visible_child_name();
-            let visible = stack.get_visible_child();
-            if (visible) {
-                let stackPage = stack.get_page(visible);
-                let title = stackPage.get_title();
-                // Sensor pages used to open as "Network Preferences", etc.
-                if (name && name !== 'general')
-                    title = title + ' ' + _('Preferences');
-                contentPage.set_title(title);
-            }
+            this._syncContentTitle(stack, contentPage, name);
             if (name)
                 settings.ensure_threshold_colors_for_page(name);
         };
@@ -634,6 +660,110 @@ export default class VitalsPrefs extends ExtensionPreferences {
         settings.refresh_sidebar_icons(sidebar, stack);
         settings.builder.get_object('icon-style').connect('changed', () => {
             settings.refresh_sidebar_icons(sidebar, stack);
+        });
+    }
+
+    _fillLegacySidebarPreferences(window, settings) {
+        window.set_search_enabled(false);
+        window.set_default_size(720, 620);
+
+        let root = settings.builder.get_object('prefs-root');
+        let stack = settings.builder.get_object('prefs-stack');
+        let list = settings.builder.get_object('prefs-sidebar');
+        let contentPage = settings.builder.get_object('prefs-content-page');
+
+        window.get_content().set_child(root);
+        let pages = this._attachStackPages(settings, stack, false);
+        let rows = [];
+
+        list.set_header_func((row, before) => {
+            let section = row._sectionTitle;
+            if (!section) {
+                row.set_header(null);
+                return;
+            }
+            if (before && before._sectionTitle === section) {
+                row.set_header(null);
+                return;
+            }
+            let header = new Gtk.Label({
+                label: section,
+                xalign: 0,
+                margin_start: 12,
+                margin_end: 12,
+                margin_top: 12,
+                margin_bottom: 6,
+            });
+            header.add_css_class('heading');
+            row.set_header(header);
+        });
+
+        for (let info of pages) {
+            let image = new Gtk.Image({
+                icon_name: info.iconName || 'image-missing',
+                pixel_size: 16,
+            });
+            let label = new Gtk.Label({
+                label: info.title,
+                xalign: 0,
+                hexpand: true,
+            });
+            let box = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 12,
+                margin_start: 6,
+                margin_end: 6,
+            });
+            box.append(image);
+            box.append(label);
+
+            let row = new Gtk.ListBoxRow({ child: box });
+            row._pageName = info.name;
+            row._sectionTitle = info.section || null;
+            row.iconName = info.iconName;
+            row.image = image;
+            list.append(row);
+            rows.push(row);
+        }
+
+        let selectRowForVisible = () => {
+            let name = stack.get_visible_child_name();
+            for (let row of rows) {
+                if (row._pageName === name) {
+                    list.select_row(row);
+                    break;
+                }
+            }
+        };
+
+        list.connect('row-activated', (_list, row) => {
+            if (!row?._pageName)
+                return;
+            stack.set_visible_child_name(row._pageName);
+            root.set_show_content(true);
+        });
+        // Browse mode selects on click; keep stack in sync.
+        list.connect('row-selected', (_list, row) => {
+            if (!row?._pageName)
+                return;
+            if (stack.get_visible_child_name() !== row._pageName)
+                stack.set_visible_child_name(row._pageName);
+        });
+
+        let syncVisiblePage = () => {
+            let name = stack.get_visible_child_name();
+            selectRowForVisible();
+            this._syncContentTitle(stack, contentPage, name);
+            if (name)
+                settings.ensure_threshold_colors_for_page(name);
+        };
+
+        stack.connect('notify::visible-child', syncVisiblePage);
+        syncVisiblePage();
+
+        settings.refresh_legacy_sidebar_icons(rows);
+        settings.builder.get_object('icon-style').connect('changed', () => {
+            settings.refresh_legacy_sidebar_icons(rows);
         });
     }
 }
