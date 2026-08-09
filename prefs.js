@@ -71,10 +71,10 @@ const Settings = new GObject.Class({
 
         if (supportsModernSidebarPrefs()) {
             ensureSidebarShellTypes(true);
-            this.builder.add_from_file(this._extensionObject.path + '/prefs-sidebar.ui');
+            this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
         } else if (supportsLegacySidebarPrefs()) {
             ensureSidebarShellTypes(false);
-            this.builder.add_from_file(this._extensionObject.path + '/prefs-sidebar-legacy.ui');
+            this.builder.add_from_file(this._extensionObject.path + '/prefs-legacy.ui');
         }
 
         // Threshold color editors are built lazily when each page is first shown,
