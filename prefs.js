@@ -7,34 +7,16 @@ import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {sensorCatalog} from './helpers/catalog.js';
+import {
+    formatColorEntry,
+    labelFromSensorKey,
+    sanitizeAndSortColorEntries,
+    sensorKeyBelongsToColorPage,
+    sensorKeyFromTypeLabel,
+} from './helpers/colors.js';
+import * as SensorsModule from './sensors.js';
 
-// Threshold color entries are stored as: "threshold r g b"
-function parseColorEntry(colorEntry) {
-    if (typeof colorEntry !== 'string')
-        return null;
-
-    const parts = colorEntry.split(' ');
-    if (parts.length !== 4)
-        return null;
-
-    const [threshold, red, green, blue] = parts.map(Number);
-    if (![threshold, red, green, blue].every(Number.isFinite))
-        return null;
-
-    return {threshold, red, green, blue};
-}
-
-function formatColorEntry({threshold, red, green, blue}) {
-    return `${threshold} ${red} ${green} ${blue}`;
-}
-
-function sanitizeAndSortColorEntries(colorsArray) {
-    return colorsArray
-        .map(parseColorEntry)
-        .filter(Boolean)
-        .sort((a, b) => a.threshold - b.threshold);
-}
-
+const SENSOR_DISCOVERY_SETTLE_SECONDS = 2;
 // AdwViewSwitcherSidebar landed in libadwaita 1.9 (GNOME 49+/50).
 function supportsModernSidebarPrefs() {
     return typeof Adw.ViewSwitcherSidebar === 'function';
@@ -84,8 +66,81 @@ const Settings = new GObject.Class({
         // Session-only stash of panel sensors removed when a group is toggled off,
         // so turning the group back on before closing prefs can restore them.
         this._removedHotSensors = {};
+        // pageName -> sorted list of discovered sensor keys (from Sensors.query).
+        this._discoveredSensorsByPage = {};
+        this._appliesDropdowns = [];
+        this._sensors = null;
+        this._sensorDiscoveryTimeoutId = 0;
         this._bind_sensor_page_gates();
         this._bind_settings();
+        this._start_sensor_discovery();
+    },
+
+    destroy: function() {
+        if (this._sensorDiscoveryTimeoutId) {
+            GLib.source_remove(this._sensorDiscoveryTimeoutId);
+            this._sensorDiscoveryTimeoutId = 0;
+        }
+        if (this._sensors) {
+            this._sensors.destroy();
+            this._sensors = null;
+        }
+    },
+
+    _start_sensor_discovery: function() {
+        if (this._sensors)
+            return;
+
+        this._sensors = new SensorsModule.Sensors(this._settings, sensorCatalog);
+        let collect = (label, value, type, format) => {
+            this._collect_discovered_sensor(label, type, format);
+        };
+
+        // First pass starts hwmon discovery; second pass fills processor deltas.
+        this._sensors.query(collect, 1);
+        GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+            if (this._sensors)
+                this._sensors.query(collect, 1);
+            return GLib.SOURCE_REMOVE;
+        });
+        this._sensorDiscoveryTimeoutId = GLib.timeout_add_seconds(
+            GLib.PRIORITY_DEFAULT, SENSOR_DISCOVERY_SETTLE_SECONDS, () => {
+                this._sensorDiscoveryTimeoutId = 0;
+                this._refresh_applies_dropdowns();
+                return GLib.SOURCE_REMOVE;
+            });
+    },
+
+    _collect_discovered_sensor: function(label, type, format) {
+        if (!type || type.endsWith('-group'))
+            return;
+
+        let key = sensorKeyFromTypeLabel(type, label);
+        if (!key || key.startsWith('__'))
+            return;
+
+        for (let pageName of Object.keys(sensorCatalog)) {
+            let formats = sensorCatalog[pageName]?.colorFormats;
+            if (!formats || !formats.includes(format))
+                continue;
+            if (!sensorKeyBelongsToColorPage(pageName, key))
+                continue;
+
+            if (!this._discoveredSensorsByPage[pageName])
+                this._discoveredSensorsByPage[pageName] = [];
+            if (!this._discoveredSensorsByPage[pageName].includes(key))
+                this._discoveredSensorsByPage[pageName].push(key);
+        }
+    },
+
+    _refresh_applies_dropdowns: function() {
+        for (let pageName of Object.keys(this._discoveredSensorsByPage))
+            this._discoveredSensorsByPage[pageName].sort();
+
+        for (let info of this._appliesDropdowns) {
+            this._reload_sensor_dropdown(
+                info.dropdown, info.pageName, info.settingsKey, info.group);
+        }
     },
 
     _apply_icon_style: function() {
@@ -428,7 +483,30 @@ const Settings = new GObject.Class({
         }
     },
 
+    _group_sensor_key_from_entries: function(entries) {
+        if (!entries.length)
+            return null;
+
+        let keys = [];
+        for (let entry of entries) {
+            let key = entry.sensorKey || null;
+            if (!keys.includes(key))
+                keys.push(key);
+        }
+        if (keys.length === 1)
+            return keys[0];
+
+        // Mixed entries (e.g. from an older per-row UI): keep the first specific
+        // sensor so overrides are not silently dropped to "All sensors".
+        for (let key of keys) {
+            if (key)
+                return key;
+        }
+        return null;
+    },
+
     _sync_threshold_colors: function(settingsKey, group, rows) {
+        let sensorKey = group._sensorKey || null;
         let items = rows.map(row => {
             let rgba = row._colorButton.get_rgba();
             return {
@@ -436,12 +514,84 @@ const Settings = new GObject.Class({
                 red: rgba.red,
                 green: rgba.green,
                 blue: rgba.blue,
+                sensorKey,
             };
         });
         items.sort((a, b) => a.threshold - b.threshold);
         this._settings.set_strv(settingsKey, items.map(entry => formatColorEntry(entry)));
         this._reorder_threshold_rows(group, rows);
         this._refresh_band_titles(rows);
+    },
+
+    _color_sensor_options: function(pageName, settingsKey) {
+        let live = [];
+        let liveSet = new Set();
+        for (let key of (this._discoveredSensorsByPage[pageName] || [])) {
+            if (liveSet.has(key))
+                continue;
+            liveSet.add(key);
+            live.push(key);
+        }
+        // Until discovery settles, include pinned sensors so the dropdown is not empty.
+        for (let key of this._settings.get_strv('hot-sensors')) {
+            if (!sensorKeyBelongsToColorPage(pageName, key) || liveSet.has(key))
+                continue;
+            liveSet.add(key);
+            live.push(key);
+        }
+        live.sort();
+
+        let orphans = [];
+        let orphanSet = new Set();
+        for (let entry of sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey))) {
+            if (!entry.sensorKey || liveSet.has(entry.sensorKey) || orphanSet.has(entry.sensorKey))
+                continue;
+            orphanSet.add(entry.sensorKey);
+            orphans.push(entry.sensorKey);
+        }
+        orphans.sort();
+        return {live, orphans};
+    },
+
+    _populate_sensor_dropdown_model: function(dropdown, pageName, settingsKey, selectedKey) {
+        let {live, orphans} = this._color_sensor_options(pageName, settingsKey);
+        let keys = [null];
+        let model = new Gtk.StringList();
+        model.append(_('All sensors'));
+
+        for (let key of live) {
+            keys.push(key);
+            model.append(labelFromSensorKey(key));
+        }
+        for (let key of orphans) {
+            keys.push(key);
+            model.append(_('%s (unavailable)').format(labelFromSensorKey(key)));
+        }
+        if (selectedKey && !keys.includes(selectedKey)) {
+            keys.push(selectedKey);
+            model.append(_('%s (unavailable)').format(labelFromSensorKey(selectedKey)));
+        }
+
+        dropdown.set_model(model);
+        dropdown._sensorKeys = keys;
+        let index = selectedKey ? keys.indexOf(selectedKey) : 0;
+        dropdown.set_selected(index < 0 ? 0 : index);
+    },
+
+    _make_sensor_dropdown: function(pageName, settingsKey, selectedKey) {
+        let dropdown = new Gtk.DropDown({
+            valign: Gtk.Align.CENTER,
+            tooltip_text: _('Which sensor these color breakpoints apply to'),
+        });
+        this._populate_sensor_dropdown_model(dropdown, pageName, settingsKey, selectedKey);
+        return dropdown;
+    },
+
+    _reload_sensor_dropdown: function(dropdown, pageName, settingsKey, group) {
+        let selectedKey = group._sensorKey || null;
+        dropdown._reloading = true;
+        this._populate_sensor_dropdown_model(dropdown, pageName, settingsKey, selectedKey);
+        dropdown._reloading = false;
     },
 
     _make_color_row: function(settingsKey, group, rows, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
@@ -514,12 +664,29 @@ const Settings = new GObject.Class({
         let page = this.builder.get_object(pageId);
         let group = new Adw.PreferencesGroup({
             title: _('Threshold Colors'),
-            description: _('The sensor changes color when its value reaches a breakpoint. Below the lowest breakpoint, the default text color is used.'),
+            description: _('Sensors change color when their value reaches a breakpoint. Below the lowest breakpoint, the default text color is used. Choose one sensor or all sensors for this group; a missing sensor stays selected until you change it.'),
             margin_start: 10,
             margin_end: 10,
         });
 
         let rows = [];
+        let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
+        let sensorKey = this._group_sensor_key_from_entries(sorted);
+        group._sensorKey = sensorKey;
+
+        // Normalize mixed/legacy per-row targets to one group-level target.
+        sorted = sorted.map(entry => Object.assign({}, entry, {sensorKey}));
+        this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
+
+        let sensorDropdown = this._make_sensor_dropdown(pageName, settingsKey, sensorKey);
+        let appliesRow = new Adw.ActionRow({
+            title: _('Applies to'),
+            subtitle: _('Color breakpoints below use this target'),
+            activatable: false,
+        });
+        appliesRow.add_suffix(sensorDropdown);
+        group.add(appliesRow);
+
         let addButton = new Gtk.Button({
             icon_name: 'list-add-symbolic',
             tooltip_text: _('Add breakpoint'),
@@ -533,12 +700,27 @@ const Settings = new GObject.Class({
         addRow.add_suffix(addButton);
         group.add(addRow);
 
-        let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
-        this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
+        this._appliesDropdowns.push({
+            dropdown: sensorDropdown,
+            pageName,
+            settingsKey,
+            group,
+        });
+
+        sensorDropdown.connect('notify::selected', () => {
+            if (sensorDropdown._reloading)
+                return;
+            let selected = sensorDropdown.get_selected();
+            let keys = sensorDropdown._sensorKeys || [];
+            group._sensorKey = (selected < keys.length) ? keys[selected] : null;
+            this._sync_threshold_colors(settingsKey, group, rows);
+        });
 
         for (let key in sorted) {
             let entry = sorted[key];
-            this._make_color_row(settingsKey, group, rows, `${entry.threshold}`, entry.red, entry.green, entry.blue);
+            this._make_color_row(
+                settingsKey, group, rows,
+                `${entry.threshold}`, entry.red, entry.green, entry.blue);
         }
         this._refresh_band_titles(rows);
 
@@ -576,6 +758,12 @@ export default class VitalsPrefs extends ExtensionPreferences {
         window._settings = this.getSettings();
 
         let settings = new Settings(this);
+        window._vitalsSettings = settings;
+        window.connect('close-request', () => {
+            settings.destroy();
+            window._vitalsSettings = null;
+        });
+
         if (supportsModernSidebarPrefs())
             this._fillModernSidebarPreferences(window, settings);
         else if (supportsLegacySidebarPrefs())

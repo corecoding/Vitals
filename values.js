@@ -27,6 +27,7 @@
 import GObject from 'gi://GObject';
 
 import {sensorCatalog, sensorGroupFromType} from './helpers/catalog.js';
+import {getUsageColor} from './helpers/colors.js';
 
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
@@ -35,63 +36,6 @@ const cbFun = (d, c) => {
 
     return [d[0] + aa, bb];
 };
-
-// Threshold color entries are stored as: "threshold r g b"
-function parseColorEntry(colorEntry) {
-    if (typeof colorEntry !== 'string')
-        return null;
-
-    const parts = colorEntry.split(' ');
-    if (parts.length !== 4)
-        return null;
-
-    const [threshold, red, green, blue] = parts.map(Number);
-    if (![threshold, red, green, blue].every(Number.isFinite))
-        return null;
-
-    return {threshold, red, green, blue};
-}
-
-function normalizeColorComponent(component) {
-    if (!Number.isFinite(component))
-        return null;
-
-    const scaled = component > 1 ? component : component * 255;
-    return Math.max(0, Math.min(255, Math.round(scaled)));
-}
-
-function getUsageColor(value, colors) {
-    if (!colors || colors.length === 0 || !Number.isFinite(value))
-        return '';
-
-    const thresholds = colors
-        .map(parseColorEntry)
-        .filter(Boolean)
-        .sort((a, b) => a.threshold - b.threshold)
-        .map(entry => {
-            const red = normalizeColorComponent(entry.red);
-            const green = normalizeColorComponent(entry.green);
-            const blue = normalizeColorComponent(entry.blue);
-            if (red === null || green === null || blue === null)
-                return null;
-
-            return {
-                threshold: entry.threshold,
-                style: `color: rgb(${red}, ${green}, ${blue});`,
-            };
-        })
-        .filter(Boolean);
-
-    if (thresholds.length === 0)
-        return '';
-
-    for (let index = thresholds.length - 1; index >= 0; index--) {
-        if (value >= thresholds[index].threshold)
-            return thresholds[index].style;
-    }
-
-    return '';
-}
 
 function colorsKeyForSensor(type, format) {
     // All temperatures share the temperature threshold UI, including GPU rows.
@@ -121,7 +65,7 @@ export const Values = GObject.registerClass({
         this.resetHistory();
     }
 
-    _legible(value, sensorClass, type) {
+    _legible(value, sensorClass, type, sensorKey = null) {
         let unit = 1000;
         if (value === null)
             return { text: 'N/A', style: '' };
@@ -302,16 +246,16 @@ export const Values = GObject.registerClass({
         let numeric = (typeof value === 'number' && Number.isFinite(value)) ? value : null;
         return {
             text: format.format(value, ending).trim(),
-            style: this._styleFor(numeric, type, sensorClass),
+            style: this._styleFor(numeric, type, sensorClass, sensorKey),
         };
     }
 
-    _styleFor(numeric, type, format) {
+    _styleFor(numeric, type, format, sensorKey = null) {
         let colorsKey = colorsKeyForSensor(type, format);
         if (!colorsKey || numeric === null || !Number.isFinite(numeric))
             return '';
 
-        return getUsageColor(numeric, this._settings.get_strv(colorsKey));
+        return getUsageColor(numeric, this._settings.get_strv(colorsKey), sensorKey);
     }
 
     returnIfDifferent(dwell, label, value, type, format, key) {
@@ -329,7 +273,7 @@ export const Values = GObject.registerClass({
                 return output;
 
         // is the value different from last time?
-        let legible = this._legible(value, format, type);
+        let legible = this._legible(value, format, type, key);
 
         // don't return early when dealing with network traffic
         if (historyType != 'network-rx' && historyType != 'network-tx') {
@@ -351,7 +295,7 @@ export const Values = GObject.registerClass({
 
             // show value in group even if there is one value present
             let sum = vals.reduce((a, b) => a + b);
-            let avg = this._legible(sum / vals.length, format, type);
+            let avg = this._legible(sum / vals.length, format, type, null);
             output.push({
                 label: type,
                 value: avg.text,
@@ -362,34 +306,38 @@ export const Values = GObject.registerClass({
 
             // If only one value is present, don't display avg, min and max
             if (vals.length > 1) {
+                let avgKey = '__' + type + '_avg__';
+                avg = this._legible(sum / vals.length, format, type, avgKey);
                 output.push({
                     label: 'Average',
                     value: avg.text,
                     style: avg.style,
                     type,
-                    key: '__' + type + '_avg__',
+                    key: avgKey,
                 });
 
                 // calculate Minimum value
                 let min = Math.min(...vals);
-                let minFormatted = this._legible(min, format, type);
+                let minKey = '__' + type + '_min__';
+                let minFormatted = this._legible(min, format, type, minKey);
                 output.push({
                     label: 'Minimum',
                     value: minFormatted.text,
                     style: minFormatted.style,
                     type,
-                    key: '__' + type + '_min__',
+                    key: minKey,
                 });
 
                 // calculate Maximum value
                 let max = Math.max(...vals);
-                let maxFormatted = this._legible(max, format, type);
+                let maxKey = '__' + type + '_max__';
+                let maxFormatted = this._legible(max, format, type, maxKey);
                 output.push({
                     label: 'Maximum',
                     value: maxFormatted.text,
                     style: maxFormatted.style,
                     type,
-                    key: '__' + type + '_max__',
+                    key: maxKey,
                 });
             }
         } else if (type == 'network-rx' || type == 'network-tx') {
@@ -398,13 +346,14 @@ export const Values = GObject.registerClass({
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
-            let boot = this._legible(sum, format, type);
+            let bootKey = '__' + type + '_boot__';
+            let boot = this._legible(sum, format, type, bootKey);
             output.push({
                 label: 'Boot ' + direction,
                 value: boot.text,
                 style: boot.style,
                 type,
-                key: '__' + type + '_boot__',
+                key: bootKey,
             });
 
             // keeps track of session start point
@@ -412,18 +361,19 @@ export const Values = GObject.registerClass({
                 this._networkSpeedOffset[key] = sum;
 
             // outputs session upload and download for all interfaces for #234
-            let session = this._legible(sum - this._networkSpeedOffset[key], format, type);
+            let sessionKey = '__' + type + '_ses__';
+            let session = this._legible(sum - this._networkSpeedOffset[key], format, type, sessionKey);
             output.push({
                 label: 'Session ' + direction,
                 value: session.text,
                 style: session.style,
                 type,
-                key: '__' + type + '_ses__',
+                key: sessionKey,
             });
 
             // calculate speed for this interface
             let speed = (value - previousValue[1]) / dwell;
-            let speedFormatted = this._legible(speed, 'speed', type);
+            let speedFormatted = this._legible(speed, 'speed', type, key);
             output.push({
                 label,
                 value: speedFormatted.text,
@@ -446,13 +396,14 @@ export const Values = GObject.registerClass({
                 for (let iface in this._networkSpeeds[direction])
                     sumNum += parseFloat(this._networkSpeeds[direction][iface]);
 
-                let device = this._legible(sumNum, 'speed', 'network-' + direction);
+                let deviceKey = '__network-' + direction + '_max__';
+                let device = this._legible(sumNum, 'speed', 'network-' + direction, deviceKey);
                 output.push({
                     label: 'Device ' + direction,
                     value: device.text,
                     style: device.style,
                     type: 'network-' + direction,
-                    key: '__network-' + direction + '_max__',
+                    key: deviceKey,
                 });
                 // append download speed to group itself
                 if (direction == 'rx') {
