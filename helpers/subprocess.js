@@ -1,11 +1,6 @@
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
-
-// convert Uint8Array into a literal string
-function convertUint8ArrayToString(contents) {
-    const decoder = new TextDecoder('utf-8');
-    return decoder.decode(contents).trim();
-}
+import { convertUint8ArrayToString } from './bytes.js';
 
 export function SubProcess(command) {
     this.sub_process = Gio.Subprocess.new(command, Gio.SubprocessFlags.STDOUT_PIPE);
