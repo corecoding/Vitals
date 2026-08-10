@@ -172,12 +172,12 @@
     <key name="temperature-colors" type="as">
       <default>["60 0.9647058844566345 0.8274509906768799 0.1764705926179886", "75 1 0.47058823704719543 0", "90 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>
       <summary>Temperature color thresholds</summary>
-      <description>Color rules matched against the displayed temperature value. Entries are "threshold r g b" for all sensors, or "threshold r g b sensor:&lt;key&gt;" for one sensor. Unknown sensor keys are ignored.</description>
+      <description>Color rules matched against the displayed temperature value. Entries are "threshold r g b" for all sensors, or "threshold r g b sensor:&lt;key&gt;" for one sensor. Multiple sensors may each have their own breakpoints; unknown sensor keys are ignored.</description>
     </key>
     <key name="fan-colors" type="as">
       <default>[]</default>
       <summary>Fan color thresholds</summary>
-      <description>Color rules matched against fan RPM. Entries are "threshold r g b" or "threshold r g b sensor:&lt;key&gt;". Unknown sensor keys are ignored.</description>
+      <description>Color rules matched against fan RPM. Entries are "threshold r g b" or "threshold r g b sensor:&lt;key&gt;" per sensor. Unknown sensor keys are ignored.</description>
     </key>
     <key name="memory-colors" type="as">
       <default>["65 0.9647058844566345 0.8274509906768799 0.1764705926179886", "80 1 0.47058823704719543 0", "92 0.8784313797950745 0.10588235408067703 0.1411764770746231"]</default>

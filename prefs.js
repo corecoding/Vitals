@@ -63,12 +63,14 @@ const Settings = new GObject.Class({
         // so we do not construct dozens of Gtk.ColorButtons up front.
         this._thresholdColorsInitialized = {};
         this._thresholdColorGroups = {};
+        // pageName -> { settingsKey, pageName, page, palettes, overrideDropdown }
+        this._thresholdColorPages = {};
         // Session-only stash of panel sensors removed when a group is toggled off,
         // so turning the group back on before closing prefs can restore them.
         this._removedHotSensors = {};
         // pageName -> sorted list of discovered sensor keys (from Sensors.query).
         this._discoveredSensorsByPage = {};
-        this._appliesDropdowns = [];
+        this._overrideDropdowns = [];
         this._sensors = null;
         this._sensorDiscoveryTimeoutId = 0;
         this._bind_sensor_page_gates();
@@ -137,10 +139,8 @@ const Settings = new GObject.Class({
         for (let pageName of Object.keys(this._discoveredSensorsByPage))
             this._discoveredSensorsByPage[pageName].sort();
 
-        for (let info of this._appliesDropdowns) {
-            this._reload_sensor_dropdown(
-                info.dropdown, info.pageName, info.settingsKey, info.group);
-        }
+        for (let info of this._overrideDropdowns)
+            this._reload_override_dropdown(info.dropdown, info.pageName, info.settingsKey);
     },
 
     _apply_icon_style: function() {
@@ -238,9 +238,11 @@ const Settings = new GObject.Class({
         let enabled = this.builder.get_object(gate.toggle).get_active();
         this._set_dependent_widgets_sensitive(gate.widgets, enabled);
 
-        let thresholdGroup = this._thresholdColorGroups[pageName];
-        if (thresholdGroup)
-            thresholdGroup.set_sensitive(enabled);
+        let thresholdGroups = this._thresholdColorGroups[pageName];
+        if (thresholdGroups) {
+            for (let group of thresholdGroups)
+                group.set_sensitive(enabled);
+        }
 
         if (gate.afterSync)
             gate.afterSync(enabled);
@@ -473,6 +475,13 @@ const Settings = new GObject.Class({
         if (sorted.every((row, i) => row === rows[i]))
             return;
 
+        // Keep add-breakpoint / header rows in place; only reorder color rows.
+        let anchors = [];
+        for (let child = group.get_first_child(); child; child = child.get_next_sibling()) {
+            if (!rows.includes(child))
+                anchors.push(child);
+        }
+
         for (let i = 0; i < rows.length; i++)
             group.remove(rows[i]);
 
@@ -481,60 +490,72 @@ const Settings = new GObject.Class({
             group.add(sorted[i]);
             rows.push(sorted[i]);
         }
+
+        // Re-append non-color rows (Add Breakpoint) after color rows.
+        for (let anchor of anchors) {
+            group.remove(anchor);
+            group.add(anchor);
+        }
     },
 
-    _group_sensor_key_from_entries: function(entries) {
-        if (!entries.length)
-            return null;
-
-        let keys = [];
+    _entries_by_sensor_key: function(entries) {
+        let byKey = new Map();
+        byKey.set(null, []);
         for (let entry of entries) {
             let key = entry.sensorKey || null;
-            if (!keys.includes(key))
-                keys.push(key);
+            if (!byKey.has(key))
+                byKey.set(key, []);
+            byKey.get(key).push(entry);
         }
-        if (keys.length === 1)
-            return keys[0];
-
-        // Mixed entries (e.g. from an older per-row UI): keep the first specific
-        // sensor so overrides are not silently dropped to "All sensors".
-        for (let key of keys) {
-            if (key)
-                return key;
-        }
-        return null;
+        return byKey;
     },
 
-    _sync_threshold_colors: function(settingsKey, group, rows) {
-        let sensorKey = group._sensorKey || null;
-        let items = rows.map(row => {
-            let rgba = row._colorButton.get_rgba();
-            return {
-                threshold: this._threshold_for_row(row),
-                red: rgba.red,
-                green: rgba.green,
-                blue: rgba.blue,
-                sensorKey,
-            };
+    _sync_all_threshold_colors: function(pageName) {
+        let state = this._thresholdColorPages[pageName];
+        if (!state)
+            return;
+
+        let items = [];
+        for (let palette of state.palettes) {
+            for (let row of palette.rows) {
+                let rgba = row._colorButton.get_rgba();
+                items.push({
+                    threshold: this._threshold_for_row(row),
+                    red: rgba.red,
+                    green: rgba.green,
+                    blue: rgba.blue,
+                    sensorKey: palette.sensorKey || null,
+                });
+            }
+        }
+        items.sort((a, b) => {
+            if (a.threshold !== b.threshold)
+                return a.threshold - b.threshold;
+            let aKey = a.sensorKey || '';
+            let bKey = b.sensorKey || '';
+            return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
         });
-        items.sort((a, b) => a.threshold - b.threshold);
-        this._settings.set_strv(settingsKey, items.map(entry => formatColorEntry(entry)));
-        this._reorder_threshold_rows(group, rows);
-        this._refresh_band_titles(rows);
+        this._settings.set_strv(state.settingsKey, items.map(entry => formatColorEntry(entry)));
+
+        for (let palette of state.palettes) {
+            this._reorder_threshold_rows(palette.group, palette.rows);
+            this._refresh_band_titles(palette.rows);
+        }
+        this._reload_override_dropdown(state.overrideDropdown, pageName, state.settingsKey);
     },
 
-    _color_sensor_options: function(pageName, settingsKey) {
+    _color_sensor_options: function(pageName, settingsKey, excludeKeys = null) {
+        let excluded = new Set(excludeKeys || []);
         let live = [];
         let liveSet = new Set();
         for (let key of (this._discoveredSensorsByPage[pageName] || [])) {
-            if (liveSet.has(key))
+            if (excluded.has(key) || liveSet.has(key))
                 continue;
             liveSet.add(key);
             live.push(key);
         }
-        // Until discovery settles, include pinned sensors so the dropdown is not empty.
         for (let key of this._settings.get_strv('hot-sensors')) {
-            if (!sensorKeyBelongsToColorPage(pageName, key) || liveSet.has(key))
+            if (!sensorKeyBelongsToColorPage(pageName, key) || excluded.has(key) || liveSet.has(key))
                 continue;
             liveSet.add(key);
             live.push(key);
@@ -544,7 +565,8 @@ const Settings = new GObject.Class({
         let orphans = [];
         let orphanSet = new Set();
         for (let entry of sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey))) {
-            if (!entry.sensorKey || liveSet.has(entry.sensorKey) || orphanSet.has(entry.sensorKey))
+            if (!entry.sensorKey || excluded.has(entry.sensorKey) ||
+                liveSet.has(entry.sensorKey) || orphanSet.has(entry.sensorKey))
                 continue;
             orphanSet.add(entry.sensorKey);
             orphans.push(entry.sensorKey);
@@ -553,48 +575,71 @@ const Settings = new GObject.Class({
         return {live, orphans};
     },
 
-    _populate_sensor_dropdown_model: function(dropdown, pageName, settingsKey, selectedKey) {
-        let {live, orphans} = this._color_sensor_options(pageName, settingsKey);
-        let keys = [null];
-        let model = new Gtk.StringList();
-        model.append(_('All sensors'));
+    _override_sensor_keys_in_use: function(pageName) {
+        let state = this._thresholdColorPages[pageName];
+        if (!state)
+            return [];
+        return state.palettes
+            .map(palette => palette.sensorKey)
+            .filter(key => !!key);
+    },
 
-        for (let key of live) {
-            keys.push(key);
-            model.append(labelFromSensorKey(key));
-        }
-        for (let key of orphans) {
-            keys.push(key);
-            model.append(_('%s (unavailable)').format(labelFromSensorKey(key)));
-        }
-        if (selectedKey && !keys.includes(selectedKey)) {
-            keys.push(selectedKey);
-            model.append(_('%s (unavailable)').format(labelFromSensorKey(selectedKey)));
+    _populate_override_dropdown_model: function(dropdown, pageName, settingsKey) {
+        let {live, orphans} = this._color_sensor_options(
+            pageName, settingsKey, this._override_sensor_keys_in_use(pageName));
+        let keys = [];
+        let model = new Gtk.StringList();
+
+        if (live.length === 0 && orphans.length === 0) {
+            keys.push(null);
+            model.append(_('No sensors available'));
+        } else {
+            for (let key of live) {
+                keys.push(key);
+                model.append(labelFromSensorKey(key));
+            }
+            for (let key of orphans) {
+                keys.push(key);
+                model.append(_('%s (unavailable)').format(labelFromSensorKey(key)));
+            }
         }
 
         dropdown.set_model(model);
         dropdown._sensorKeys = keys;
-        let index = selectedKey ? keys.indexOf(selectedKey) : 0;
-        dropdown.set_selected(index < 0 ? 0 : index);
+        dropdown.set_selected(0);
+        dropdown.set_sensitive(keys.length > 0 && keys[0] !== null);
     },
 
-    _make_sensor_dropdown: function(pageName, settingsKey, selectedKey) {
+    _make_override_dropdown: function(pageName, settingsKey) {
         let dropdown = new Gtk.DropDown({
             valign: Gtk.Align.CENTER,
-            tooltip_text: _('Which sensor these color breakpoints apply to'),
+            hexpand: true,
+            tooltip_text: _('Sensor to give its own color breakpoints'),
         });
-        this._populate_sensor_dropdown_model(dropdown, pageName, settingsKey, selectedKey);
+        this._populate_override_dropdown_model(dropdown, pageName, settingsKey);
         return dropdown;
     },
 
-    _reload_sensor_dropdown: function(dropdown, pageName, settingsKey, group) {
-        let selectedKey = group._sensorKey || null;
+    _reload_override_dropdown: function(dropdown, pageName, settingsKey) {
+        if (!dropdown)
+            return;
         dropdown._reloading = true;
-        this._populate_sensor_dropdown_model(dropdown, pageName, settingsKey, selectedKey);
+        this._populate_override_dropdown_model(dropdown, pageName, settingsKey);
         dropdown._reloading = false;
     },
 
-    _make_color_row: function(settingsKey, group, rows, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
+    _palette_title: function(sensorKey, pageName, settingsKey) {
+        if (!sensorKey)
+            return _('Threshold Colors');
+
+        let {live} = this._color_sensor_options(pageName, settingsKey, []);
+        let label = labelFromSensorKey(sensorKey);
+        if (live.includes(sensorKey))
+            return _('Colors: %s').format(label);
+        return _('Colors: %s (unavailable)').format(label);
+    },
+
+    _make_color_row: function(pageName, palette, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
         let initial = Number.parseFloat(text);
         if (!Number.isFinite(initial))
             initial = 0;
@@ -629,17 +674,17 @@ const Settings = new GObject.Class({
         row.add_suffix(entry);
         row.add_suffix(colorButton);
         row.add_suffix(deleteButton);
-        group.add(row);
-        rows.push(row);
-        this._refresh_band_titles(rows);
+        palette.group.add(row);
+        palette.rows.push(row);
+        this._refresh_band_titles(palette.rows);
 
         let commitAndSync = () => {
             this._commit_threshold_entry(row);
-            this._sync_threshold_colors(settingsKey, group, rows);
+            this._sync_all_threshold_colors(pageName);
         };
 
         entry.connect('changed', () => {
-            this._refresh_band_titles(rows);
+            this._refresh_band_titles(palette.rows);
         });
         entry.connect('activate', commitAndSync);
         entry.connect('notify::has-focus', () => {
@@ -647,46 +692,20 @@ const Settings = new GObject.Class({
                 commitAndSync();
         });
         colorButton.connect('color-set', () => {
-            this._sync_threshold_colors(settingsKey, group, rows);
+            this._sync_all_threshold_colors(pageName);
         });
         deleteButton.connect('clicked', () => {
-            let index = rows.indexOf(row);
+            let index = palette.rows.indexOf(row);
             if (index < 0)
                 return;
 
-            group.remove(row);
-            rows.splice(index, 1);
-            this._sync_threshold_colors(settingsKey, group, rows);
+            palette.group.remove(row);
+            palette.rows.splice(index, 1);
+            this._sync_all_threshold_colors(pageName);
         });
     },
 
-    _add_threshold_colors_group: function(pageId, settingsKey, pageName) {
-        let page = this.builder.get_object(pageId);
-        let group = new Adw.PreferencesGroup({
-            title: _('Threshold Colors'),
-            description: _('Sensors change color when their value reaches a breakpoint. Below the lowest breakpoint, the default text color is used. Choose one sensor or all sensors for this group; a missing sensor stays selected until you change it.'),
-            margin_start: 10,
-            margin_end: 10,
-        });
-
-        let rows = [];
-        let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
-        let sensorKey = this._group_sensor_key_from_entries(sorted);
-        group._sensorKey = sensorKey;
-
-        // Normalize mixed/legacy per-row targets to one group-level target.
-        sorted = sorted.map(entry => Object.assign({}, entry, {sensorKey}));
-        this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
-
-        let sensorDropdown = this._make_sensor_dropdown(pageName, settingsKey, sensorKey);
-        let appliesRow = new Adw.ActionRow({
-            title: _('Applies to'),
-            subtitle: _('Color breakpoints below use this target'),
-            activatable: false,
-        });
-        appliesRow.add_suffix(sensorDropdown);
-        group.add(appliesRow);
-
+    _append_add_breakpoint_row: function(pageName, palette) {
         let addButton = new Gtk.Button({
             icon_name: 'list-add-symbolic',
             tooltip_text: _('Add breakpoint'),
@@ -698,42 +717,164 @@ const Settings = new GObject.Class({
             activatable_widget: addButton,
         });
         addRow.add_suffix(addButton);
-        group.add(addRow);
-
-        this._appliesDropdowns.push({
-            dropdown: sensorDropdown,
-            pageName,
-            settingsKey,
-            group,
-        });
-
-        sensorDropdown.connect('notify::selected', () => {
-            if (sensorDropdown._reloading)
-                return;
-            let selected = sensorDropdown.get_selected();
-            let keys = sensorDropdown._sensorKeys || [];
-            group._sensorKey = (selected < keys.length) ? keys[selected] : null;
-            this._sync_threshold_colors(settingsKey, group, rows);
-        });
-
-        for (let key in sorted) {
-            let entry = sorted[key];
-            this._make_color_row(
-                settingsKey, group, rows,
-                `${entry.threshold}`, entry.red, entry.green, entry.blue);
-        }
-        this._refresh_band_titles(rows);
+        palette.group.add(addRow);
+        palette.addRow = addRow;
 
         addButton.connect('clicked', () => {
-            this._make_color_row(settingsKey, group, rows);
-            this._sync_threshold_colors(settingsKey, group, rows);
+            // Insert before the add row.
+            palette.group.remove(addRow);
+            this._make_color_row(pageName, palette);
+            palette.group.add(addRow);
+            this._sync_all_threshold_colors(pageName);
+        });
+    },
+
+    _register_threshold_group: function(pageName, group) {
+        if (!this._thresholdColorGroups[pageName])
+            this._thresholdColorGroups[pageName] = [];
+        this._thresholdColorGroups[pageName].push(group);
+    },
+
+    _add_threshold_palette: function(pageName, sensorKey, entries) {
+        let state = this._thresholdColorPages[pageName];
+        let isDefault = !sensorKey;
+        let group = new Adw.PreferencesGroup({
+            title: this._palette_title(sensorKey, pageName, state.settingsKey),
+            description: isDefault
+                ? _('Default breakpoints for every sensor in this group. Individual sensor overrides below take priority when set.')
+                : _('Overrides the default colors for this sensor only. Missing sensors stay until you remove the override.'),
+            margin_start: 10,
+            margin_end: 10,
         });
 
-        page.add(group);
-        if (pageName) {
-            this._thresholdColorGroups[pageName] = group;
-            this._sync_sensor_page_sensitivity(pageName);
+        let palette = {
+            sensorKey: sensorKey || null,
+            group,
+            rows: [],
+            addRow: null,
+        };
+
+        if (!isDefault) {
+            let removeButton = new Gtk.Button({
+                icon_name: 'user-trash-symbolic',
+                tooltip_text: _('Remove sensor override'),
+                valign: Gtk.Align.CENTER,
+            });
+            group.set_header_suffix(removeButton);
+            removeButton.connect('clicked', () => {
+                this._remove_threshold_palette(pageName, palette);
+            });
         }
+
+        state.page.add(group);
+        // Keep the "add override" controls at the end of the page.
+        if (state.addOverrideGroup) {
+            state.page.remove(state.addOverrideGroup);
+            state.page.add(state.addOverrideGroup);
+        }
+
+        this._register_threshold_group(pageName, group);
+        state.palettes.push(palette);
+
+        for (let entry of entries) {
+            this._make_color_row(
+                pageName, palette,
+                `${entry.threshold}`, entry.red, entry.green, entry.blue);
+        }
+        this._append_add_breakpoint_row(pageName, palette);
+        this._refresh_band_titles(palette.rows);
+        return palette;
+    },
+
+    _remove_threshold_palette: function(pageName, palette) {
+        let state = this._thresholdColorPages[pageName];
+        if (!state || !palette.sensorKey)
+            return;
+
+        let index = state.palettes.indexOf(palette);
+        if (index < 0)
+            return;
+
+        state.page.remove(palette.group);
+        state.palettes.splice(index, 1);
+
+        let groups = this._thresholdColorGroups[pageName] || [];
+        let groupIndex = groups.indexOf(palette.group);
+        if (groupIndex >= 0)
+            groups.splice(groupIndex, 1);
+
+        this._sync_all_threshold_colors(pageName);
+    },
+
+    _add_threshold_colors_group: function(pageId, settingsKey, pageName) {
+        let page = this.builder.get_object(pageId);
+        let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
+        this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
+
+        let byKey = this._entries_by_sensor_key(sorted);
+        let state = {
+            settingsKey,
+            pageName,
+            page,
+            palettes: [],
+            overrideDropdown: null,
+            addOverrideGroup: null,
+        };
+        this._thresholdColorPages[pageName] = state;
+        this._thresholdColorGroups[pageName] = [];
+
+        // Defaults first, then each sensor override.
+        this._add_threshold_palette(pageName, null, byKey.get(null) || []);
+        let overrideKeys = [...byKey.keys()].filter(key => key !== null).sort();
+        for (let key of overrideKeys)
+            this._add_threshold_palette(pageName, key, byKey.get(key) || []);
+
+        let addOverrideGroup = new Adw.PreferencesGroup({
+            title: _('Sensor Overrides'),
+            description: _('Add a separate color scale for one sensor. That sensor uses its override instead of the defaults.'),
+            margin_start: 10,
+            margin_end: 10,
+        });
+        let overrideDropdown = this._make_override_dropdown(pageName, settingsKey);
+        let addOverrideButton = new Gtk.Button({
+            icon_name: 'list-add-symbolic',
+            label: _('Add'),
+            valign: Gtk.Align.CENTER,
+        });
+        let addOverrideRow = new Adw.ActionRow({
+            title: _('Add Sensor Override'),
+            subtitle: _('Pick a sensor, then add breakpoints for it alone'),
+            activatable_widget: addOverrideButton,
+        });
+        addOverrideRow.add_suffix(overrideDropdown);
+        addOverrideRow.add_suffix(addOverrideButton);
+        addOverrideGroup.add(addOverrideRow);
+        page.add(addOverrideGroup);
+
+        state.overrideDropdown = overrideDropdown;
+        state.addOverrideGroup = addOverrideGroup;
+        this._register_threshold_group(pageName, addOverrideGroup);
+        this._overrideDropdowns.push({
+            dropdown: overrideDropdown,
+            pageName,
+            settingsKey,
+        });
+
+        addOverrideButton.connect('clicked', () => {
+            let selected = overrideDropdown.get_selected();
+            let keys = overrideDropdown._sensorKeys || [];
+            let sensorKey = (selected < keys.length) ? keys[selected] : null;
+            if (!sensorKey)
+                return;
+            if (this._override_sensor_keys_in_use(pageName).includes(sensorKey))
+                return;
+
+            this._add_threshold_palette(pageName, sensorKey, []);
+            this._sync_all_threshold_colors(pageName);
+            this._sync_sensor_page_sensitivity(pageName);
+        });
+
+        this._sync_sensor_page_sensitivity(pageName);
     }
 });
 
