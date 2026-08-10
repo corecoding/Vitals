@@ -658,13 +658,13 @@ const Settings = new GObject.Class({
 
     _palette_title: function(sensorKey, pageName, settingsKey) {
         if (!sensorKey)
-            return _('All sensors');
+            return _('All sensors colors');
 
         let {live} = this._color_sensor_options(pageName, settingsKey, []);
         let label = labelFromSensorKey(sensorKey);
         if (live.includes(sensorKey))
-            return label;
-        return _('%s (unavailable)').format(label);
+            return _('%s colors').format(label);
+        return _('%s colors (unavailable)').format(label);
     },
 
     _make_color_row: function(pageName, palette, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
