@@ -667,6 +667,20 @@ const Settings = new GObject.Class({
         return _('%s colors (unavailable)').format(label);
     },
 
+    // New breakpoints sort after the current max so they become the new
+    // "and above" row. Prefer a whole-number step to avoid decimal creep.
+    _next_breakpoint_threshold: function(palette) {
+        if (!palette.rows.length)
+            return 0;
+
+        let values = palette.rows.map(row => row._committedThreshold)
+            .filter(value => Number.isFinite(value));
+        let max = Math.max(...values);
+        if (values.every(value => Number.isInteger(value)))
+            return max + 10;
+        return max + 1;
+    },
+
     _make_color_row: function(pageName, palette, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
         let initial = Number.parseFloat(text);
         if (!Number.isFinite(initial))
@@ -780,7 +794,8 @@ const Settings = new GObject.Class({
             css_classes: ['flat'],
         });
         addButton.connect('clicked', () => {
-            this._make_color_row(pageName, palette);
+            this._make_color_row(
+                pageName, palette, `${this._next_breakpoint_threshold(palette)}`);
             this._sync_all_threshold_colors(pageName);
         });
 
