@@ -469,32 +469,20 @@ const Settings = new GObject.Class({
         }
     },
 
-    _reorder_threshold_rows: function(group, rows) {
+    _reorder_threshold_rows: function(palette) {
+        let rows = palette.rows;
         let sorted = rows.slice().sort(
             (a, b) => a._committedThreshold - b._committedThreshold);
         if (sorted.every((row, i) => row === rows[i]))
             return;
 
-        // Keep add-breakpoint / header rows in place; only reorder color rows.
-        let anchors = [];
-        for (let child = group.get_first_child(); child; child = child.get_next_sibling()) {
-            if (!rows.includes(child))
-                anchors.push(child);
-        }
-
-        for (let i = 0; i < rows.length; i++)
-            group.remove(rows[i]);
+        for (let row of rows)
+            palette.expander.remove(row);
 
         rows.length = 0;
-        for (let i = 0; i < sorted.length; i++) {
-            group.add(sorted[i]);
-            rows.push(sorted[i]);
-        }
-
-        // Re-append non-color rows (Add Breakpoint) after color rows.
-        for (let anchor of anchors) {
-            group.remove(anchor);
-            group.add(anchor);
+        for (let row of sorted) {
+            palette.expander.add_row(row);
+            rows.push(row);
         }
     },
 
@@ -537,7 +525,7 @@ const Settings = new GObject.Class({
         this._settings.set_strv(state.settingsKey, items.map(entry => formatColorEntry(entry)));
 
         for (let palette of state.palettes) {
-            this._reorder_threshold_rows(palette.group, palette.rows);
+            this._reorder_threshold_rows(palette);
             this._refresh_band_titles(palette.rows);
         }
         this._reload_add_colors_dropdown(state.addColorsDropdown, pageName, state.settingsKey);
@@ -646,12 +634,6 @@ const Settings = new GObject.Class({
         return _('%s (unavailable)').format(label);
     },
 
-    _palette_description: function(sensorKey) {
-        if (!sensorKey)
-            return _('Breakpoints for every sensor in this group that does not have its own color scale.');
-        return _('Breakpoints for this sensor only. Missing sensors stay listed until you remove this scale.');
-    },
-
     _make_color_row: function(pageName, palette, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
         let initial = Number.parseFloat(text);
         if (!Number.isFinite(initial))
@@ -675,6 +657,7 @@ const Settings = new GObject.Class({
             icon_name: 'edit-delete-symbolic',
             tooltip_text: _('Remove breakpoint'),
             valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
         });
 
         let row = new Adw.ActionRow({
@@ -687,7 +670,7 @@ const Settings = new GObject.Class({
         row.add_suffix(entry);
         row.add_suffix(colorButton);
         row.add_suffix(deleteButton);
-        palette.group.add(row);
+        palette.expander.add_row(row);
         palette.rows.push(row);
         this._refresh_band_titles(palette.rows);
 
@@ -712,84 +695,73 @@ const Settings = new GObject.Class({
             if (index < 0)
                 return;
 
-            palette.group.remove(row);
+            palette.expander.remove(row);
             palette.rows.splice(index, 1);
             this._sync_all_threshold_colors(pageName);
         });
     },
 
-    _append_add_breakpoint_row: function(pageName, palette) {
+    _append_add_breakpoint_button: function(pageName, palette) {
         let addButton = new Gtk.Button({
             icon_name: 'list-add-symbolic',
             tooltip_text: _('Add breakpoint'),
             valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
         });
-        let addRow = new Adw.ActionRow({
-            title: _('Add Breakpoint'),
-            subtitle: _('Each color covers the range up to the next breakpoint.'),
-            activatable_widget: addButton,
-        });
-        addRow.add_suffix(addButton);
-        palette.group.add(addRow);
-        palette.addRow = addRow;
-
         addButton.connect('clicked', () => {
-            // Insert before the add row.
-            palette.group.remove(addRow);
             this._make_color_row(pageName, palette);
-            palette.group.add(addRow);
             this._sync_all_threshold_colors(pageName);
         });
+        palette.expander.add_suffix(addButton);
+        palette.addButton = addButton;
     },
 
-    _register_threshold_group: function(pageName, group) {
-        if (!this._thresholdColorGroups[pageName])
-            this._thresholdColorGroups[pageName] = [];
-        this._thresholdColorGroups[pageName].push(group);
-    },
-
-    _add_threshold_palette: function(pageName, sensorKey, entries) {
+    _add_threshold_palette: function(pageName, sensorKey, entries, options = null) {
+        let seedDefault = !!(options && options.seedDefault);
         let state = this._thresholdColorPages[pageName];
         let targetKey = sensorKey || null;
-        let group = new Adw.PreferencesGroup({
+        let expander = new Adw.ExpanderRow({
             title: this._palette_title(targetKey, pageName, state.settingsKey),
-            description: this._palette_description(targetKey),
-            margin_start: 10,
-            margin_end: 10,
+            expanded: true,
         });
 
         let palette = {
             sensorKey: targetKey,
-            group,
+            expander,
             rows: [],
-            addRow: null,
+            addButton: null,
         };
 
         let removeButton = new Gtk.Button({
             icon_name: 'user-trash-symbolic',
-            tooltip_text: _('Remove color scale'),
+            tooltip_text: _('Remove scale'),
             valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
         });
-        group.set_header_suffix(removeButton);
         removeButton.connect('clicked', () => {
             this._remove_threshold_palette(pageName, palette);
         });
+        // + then trash in the expander header.
+        this._append_add_breakpoint_button(pageName, palette);
+        expander.add_suffix(removeButton);
 
-        state.page.add(group);
-        if (state.addColorsGroup) {
-            state.page.remove(state.addColorsGroup);
-            state.page.add(state.addColorsGroup);
+        // Keep Add Scale at the bottom when new scales are inserted.
+        state.group.add(expander);
+        if (state.addColorsRow) {
+            state.group.remove(state.addColorsRow);
+            state.group.add(state.addColorsRow);
         }
-
-        this._register_threshold_group(pageName, group);
         state.palettes.push(palette);
 
-        for (let entry of entries) {
+        let rows = entries;
+        if (seedDefault && rows.length === 0)
+            rows = [{threshold: 0, red: 224 / 255, green: 27 / 255, blue: 36 / 255}];
+
+        for (let entry of rows) {
             this._make_color_row(
                 pageName, palette,
                 `${entry.threshold}`, entry.red, entry.green, entry.blue);
         }
-        this._append_add_breakpoint_row(pageName, palette);
         this._refresh_band_titles(palette.rows);
         return palette;
     },
@@ -803,14 +775,8 @@ const Settings = new GObject.Class({
         if (index < 0)
             return;
 
-        state.page.remove(palette.group);
+        state.group.remove(palette.expander);
         state.palettes.splice(index, 1);
-
-        let groups = this._thresholdColorGroups[pageName] || [];
-        let groupIndex = groups.indexOf(palette.group);
-        if (groupIndex >= 0)
-            groups.splice(groupIndex, 1);
-
         this._sync_all_threshold_colors(pageName);
     },
 
@@ -818,18 +784,28 @@ const Settings = new GObject.Class({
         let page = this.builder.get_object(pageId);
         let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
         this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
-
         let byKey = this._entries_by_sensor_key(sorted);
+
+        let group = new Adw.PreferencesGroup({
+            title: _('Threshold Colors'),
+            description: _('Sensor-specific scales override All sensors.'),
+            margin_start: 10,
+            margin_end: 10,
+        });
+
         let state = {
             settingsKey,
             pageName,
             page,
+            group,
             palettes: [],
             addColorsDropdown: null,
-            addColorsGroup: null,
+            addColorsRow: null,
         };
         this._thresholdColorPages[pageName] = state;
-        this._thresholdColorGroups[pageName] = [];
+        this._thresholdColorGroups[pageName] = [group];
+
+        page.add(group);
 
         if (byKey.has(null))
             this._add_threshold_palette(pageName, null, byKey.get(null));
@@ -837,31 +813,24 @@ const Settings = new GObject.Class({
         for (let key of sensorKeys)
             this._add_threshold_palette(pageName, key, byKey.get(key) || []);
 
-        let addColorsGroup = new Adw.PreferencesGroup({
-            title: _('Threshold Colors'),
-            description: _('Add a color scale for all sensors or for one sensor. A sensor with its own scale uses that instead of All sensors.'),
-            margin_start: 10,
-            margin_end: 10,
-        });
         let addColorsDropdown = this._make_add_colors_dropdown(pageName, settingsKey);
         let addColorsButton = new Gtk.Button({
             icon_name: 'list-add-symbolic',
             label: _('Add'),
             valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
         });
         let addColorsRow = new Adw.ActionRow({
-            title: _('Add Color Scale'),
-            subtitle: _('Pick All sensors or one sensor, then add breakpoints'),
+            title: _('Add Scale'),
             activatable_widget: addColorsButton,
         });
         addColorsRow.add_suffix(addColorsDropdown);
         addColorsRow.add_suffix(addColorsButton);
-        addColorsGroup.add(addColorsRow);
-        page.add(addColorsGroup);
+        group.add(addColorsRow);
 
         state.addColorsDropdown = addColorsDropdown;
-        state.addColorsGroup = addColorsGroup;
-        this._register_threshold_group(pageName, addColorsGroup);
+        state.addColorsRow = addColorsRow;
+
         this._addColorsDropdowns.push({
             dropdown: addColorsDropdown,
             pageName,
@@ -879,7 +848,7 @@ const Settings = new GObject.Class({
             if (this._target_already_used(pageName, sensorKey))
                 return;
 
-            this._add_threshold_palette(pageName, sensorKey, []);
+            this._add_threshold_palette(pageName, sensorKey, [], {seedDefault: true});
             this._sync_all_threshold_colors(pageName);
             this._sync_sensor_page_sensitivity(pageName);
         });
