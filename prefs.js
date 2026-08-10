@@ -786,7 +786,7 @@ const Settings = new GObject.Class({
 
         let removeButton = new Gtk.Button({
             icon_name: 'user-trash-symbolic',
-            tooltip_text: _('Remove scale'),
+            tooltip_text: _('Remove color scale'),
             valign: Gtk.Align.CENTER,
             css_classes: ['flat'],
         });
@@ -876,7 +876,7 @@ const Settings = new GObject.Class({
             css_classes: ['flat'],
         });
         let addColorsRow = new Adw.ActionRow({
-            title: _('Add Scale'),
+            title: _('Add Color Scale'),
             activatable_widget: addColorsButton,
         });
         addColorsRow.add_suffix(addColorsDropdown);
