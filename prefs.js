@@ -626,6 +626,11 @@ const Settings = new GObject.Class({
         let {keys} = this._available_add_color_targets(pageName, state.settingsKey);
         let row = state.addColorsRow;
 
+        // Title belongs on this group only when it is the sole Threshold Colors
+        // block (no scales yet); otherwise scales carry their own titles.
+        state.addGroup.set_title(
+            state.palettes.length === 0 ? _('Threshold Colors') : '');
+
         if (keys.length === 0) {
             if (row.get_parent())
                 state.addGroup.remove(row);
@@ -838,12 +843,8 @@ const Settings = new GObject.Class({
         this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
         let byKey = this._entries_by_sensor_key(sorted);
 
-        let headerGroup = new Adw.PreferencesGroup({
-            title: _('Threshold Colors'),
-            margin_start: 10,
-            margin_end: 10,
-        });
         let addGroup = new Adw.PreferencesGroup({
+            title: _('Threshold Colors'),
             margin_start: 10,
             margin_end: 10,
         });
@@ -852,7 +853,6 @@ const Settings = new GObject.Class({
             settingsKey,
             pageName,
             page,
-            headerGroup,
             addGroup,
             palettes: [],
             addColorsDropdown: null,
@@ -860,10 +860,7 @@ const Settings = new GObject.Class({
         };
         this._thresholdColorPages[pageName] = state;
         this._thresholdColorGroups[pageName] = [];
-        this._register_threshold_group(pageName, headerGroup);
         this._register_threshold_group(pageName, addGroup);
-
-        page.add(headerGroup);
 
         if (byKey.has(null))
             this._add_threshold_palette(pageName, null, byKey.get(null));
