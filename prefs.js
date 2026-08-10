@@ -140,7 +140,7 @@ const Settings = new GObject.Class({
             this._discoveredSensorsByPage[pageName].sort();
 
         for (let info of this._addColorsDropdowns)
-            this._reload_add_colors_dropdown(info.dropdown, info.pageName, info.settingsKey);
+            this._sync_add_colors_row(info.pageName);
     },
 
     _apply_icon_style: function() {
@@ -528,7 +528,7 @@ const Settings = new GObject.Class({
             this._reorder_threshold_rows(palette);
             this._refresh_band_titles(palette.rows);
         }
-        this._reload_add_colors_dropdown(state.addColorsDropdown, pageName, state.settingsKey);
+        this._sync_add_colors_row(pageName);
     },
 
     _color_sensor_options: function(pageName, settingsKey, excludeKeys = null) {
@@ -574,35 +574,38 @@ const Settings = new GObject.Class({
         return this._palette_targets_in_use(pageName).some(key => key === target);
     },
 
-    _populate_add_colors_dropdown_model: function(dropdown, pageName, settingsKey) {
+    _available_add_color_targets: function(pageName, settingsKey) {
         let inUse = this._palette_targets_in_use(pageName);
         let excludeSensors = inUse.filter(key => key !== null);
         let {live, orphans} = this._color_sensor_options(pageName, settingsKey, excludeSensors);
         let keys = [];
-        let model = new Gtk.StringList();
+        let labels = [];
 
         if (!inUse.some(key => key === null)) {
             keys.push(null);
-            model.append(_('All sensors'));
+            labels.push(_('All sensors'));
         }
         for (let key of live) {
             keys.push(key);
-            model.append(labelFromSensorKey(key));
+            labels.push(labelFromSensorKey(key));
         }
         for (let key of orphans) {
             keys.push(key);
-            model.append(_('%s (unavailable)').format(labelFromSensorKey(key)));
+            labels.push(_('%s (unavailable)').format(labelFromSensorKey(key)));
         }
+        return {keys, labels};
+    },
 
-        if (keys.length === 0) {
-            keys.push(undefined);
-            model.append(_('No targets available'));
-        }
+    _populate_add_colors_dropdown_model: function(dropdown, pageName, settingsKey) {
+        let {keys, labels} = this._available_add_color_targets(pageName, settingsKey);
+        let model = new Gtk.StringList();
+        for (let label of labels)
+            model.append(label);
 
         dropdown.set_model(model);
         dropdown._sensorKeys = keys;
-        dropdown.set_selected(0);
-        dropdown.set_sensitive(keys.length > 0 && keys[0] !== undefined);
+        if (keys.length > 0)
+            dropdown.set_selected(0);
     },
 
     _make_add_colors_dropdown: function(pageName, settingsKey) {
@@ -613,6 +616,30 @@ const Settings = new GObject.Class({
         });
         this._populate_add_colors_dropdown_model(dropdown, pageName, settingsKey);
         return dropdown;
+    },
+
+    _sync_add_colors_row: function(pageName) {
+        let state = this._thresholdColorPages[pageName];
+        if (!state || !state.addColorsRow || !state.group)
+            return;
+
+        let {keys} = this._available_add_color_targets(pageName, state.settingsKey);
+        let row = state.addColorsRow;
+        let parent = row.get_parent();
+
+        if (keys.length === 0) {
+            if (parent)
+                state.group.remove(row);
+            return;
+        }
+
+        this._reload_add_colors_dropdown(state.addColorsDropdown, pageName, state.settingsKey);
+        if (!parent) {
+            state.group.add(row);
+        } else {
+            state.group.remove(row);
+            state.group.add(row);
+        }
     },
 
     _reload_add_colors_dropdown: function(dropdown, pageName, settingsKey) {
@@ -747,11 +774,8 @@ const Settings = new GObject.Class({
 
         // Keep Add Scale at the bottom when new scales are inserted.
         state.group.add(expander);
-        if (state.addColorsRow) {
-            state.group.remove(state.addColorsRow);
-            state.group.add(state.addColorsRow);
-        }
         state.palettes.push(palette);
+        this._sync_add_colors_row(pageName);
 
         let rows = entries;
         if (seedDefault && rows.length === 0)
@@ -836,6 +860,7 @@ const Settings = new GObject.Class({
             pageName,
             settingsKey,
         });
+        this._sync_add_colors_row(pageName);
 
         addColorsButton.connect('clicked', () => {
             let selected = addColorsDropdown.get_selected();
