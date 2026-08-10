@@ -840,7 +840,6 @@ const Settings = new GObject.Class({
 
         let headerGroup = new Adw.PreferencesGroup({
             title: _('Threshold Colors'),
-            description: _('Sensor-specific scales override All sensors.'),
             margin_start: 10,
             margin_end: 10,
         });
