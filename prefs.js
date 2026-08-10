@@ -725,7 +725,10 @@ const Settings = new GObject.Class({
 
             palette.group.remove(row);
             palette.rows.splice(index, 1);
-            this._sync_all_threshold_colors(pageName);
+            if (palette.rows.length === 0)
+                this._remove_threshold_palette(pageName, palette);
+            else
+                this._sync_all_threshold_colors(pageName);
         });
     },
 
