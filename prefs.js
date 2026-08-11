@@ -151,13 +151,34 @@ const Settings = new GObject.Class({
         let iconsRoot = `${this._extensionObject.path}/icons/`;
         let others = (iconTheme.get_search_path() || []).filter(p => !p.startsWith(iconsRoot));
         iconTheme.set_search_path([vitalsPath].concat(others));
-        return vitalsPath;
+        return iconTheme;
     },
 
-    // ViewSwitcherSidebar binds icon-name, so theme cache keeps serving the old SVGs.
-    // Load the selected style from disk onto the inner AdwSidebar rows instead.
+    // Resolve a Vitals *-symbolic icon so GTK can recolor it with the theme fg
+    // (light/dark). Prefer theme lookup over new_for_file, which draws fills as-is.
+    _lookup_symbolic_icon: function(iconName, size, scale) {
+        let iconTheme = this._apply_icon_style();
+        return iconTheme.lookup_icon(
+            iconName,
+            null,
+            size,
+            scale,
+            Gtk.TextDirection.NONE,
+            Gtk.IconLookupFlags.FORCE_SYMBOLIC);
+    },
+
+    _connect_icon_style_refresh: function(refresh) {
+        this.builder.get_object('icon-style').connect('changed', refresh);
+
+        // Legacy Gtk.Image symbolic paintables can lag style changes; refresh on dark toggle.
+        let styleManager = Adw.StyleManager.get_default();
+        styleManager.connect('notify::dark', refresh);
+        styleManager.connect('notify::color-scheme', refresh);
+    },
+
+    // ViewSwitcherSidebar binds icon-name, so theme cache can keep old SVGs after
+    // icon-style changes. Push a symbolic paintable from the active pack instead.
     refresh_sidebar_icons: function(switcher, stack) {
-        let iconsDir = this._apply_icon_style();
         let sidebar = switcher.get_first_child();
         if (!(sidebar instanceof Adw.Sidebar))
             return;
@@ -172,15 +193,14 @@ const Settings = new GObject.Class({
             if (!iconName || iconName === 'preferences-system-symbolic')
                 continue;
 
-            let file = Gio.File.new_for_path(`${iconsDir}/${iconName}.svg`);
-            if (file.query_exists(null))
-                items.get_item(i).set_icon_paintable(Gtk.IconPaintable.new_for_file(file, 16, scale));
+            items.get_item(i).set_icon_paintable(
+                this._lookup_symbolic_icon(iconName, 16, scale));
         }
     },
 
-    // Legacy ListBox rows use Gtk.Image; refresh paintables from the active icon style.
+    // Legacy ListBox rows use Gtk.Image; load symbolic paintables so dark mode
+    // recolors like Adw.Sidebar on newer libadwaita.
     refresh_legacy_sidebar_icons: function(rows) {
-        let iconsDir = this._apply_icon_style();
         let scale = 1;
         if (rows.length && rows[0].image)
             scale = Math.max(1, rows[0].image.get_scale_factor());
@@ -189,11 +209,8 @@ const Settings = new GObject.Class({
             if (!row.iconName || row.iconName === 'preferences-system-symbolic')
                 continue;
 
-            let file = Gio.File.new_for_path(`${iconsDir}/${row.iconName}.svg`);
-            if (file.query_exists(null))
-                row.image.set_from_paintable(Gtk.IconPaintable.new_for_file(file, 16, scale));
-            else
-                row.image.set_from_icon_name(row.iconName);
+            row.image.set_from_paintable(
+                this._lookup_symbolic_icon(row.iconName, 16, scale));
         }
     },
 
@@ -1038,7 +1055,7 @@ export default class VitalsPrefs extends ExtensionPreferences {
         syncVisiblePage();
 
         settings.refresh_sidebar_icons(sidebar, stack);
-        settings.builder.get_object('icon-style').connect('changed', () => {
+        settings._connect_icon_style_refresh(() => {
             settings.refresh_sidebar_icons(sidebar, stack);
         });
     }
@@ -1142,7 +1159,7 @@ export default class VitalsPrefs extends ExtensionPreferences {
         syncVisiblePage();
 
         settings.refresh_legacy_sidebar_icons(rows);
-        settings.builder.get_object('icon-style').connect('changed', () => {
+        settings._connect_icon_style_refresh(() => {
             settings.refresh_legacy_sidebar_icons(rows);
         });
     }
