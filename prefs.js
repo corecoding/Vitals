@@ -198,19 +198,18 @@ const Settings = new GObject.Class({
         }
     },
 
-    // Legacy ListBox rows use Gtk.Image; load symbolic paintables so dark mode
-    // recolors like Adw.Sidebar on newer libadwaita.
+    // Legacy ListBox rows: use icon-name (not paintables). On older GTK,
+    // set_from_paintable often leaves #bebebe unmapped — fine on dark, gray on light.
+    // icon-name recolors with the theme fg; refresh after icon-style / dark changes.
     refresh_legacy_sidebar_icons: function(rows) {
-        let scale = 1;
-        if (rows.length && rows[0].image)
-            scale = Math.max(1, rows[0].image.get_scale_factor());
+        this._apply_icon_style();
 
         for (let row of rows) {
             if (!row.iconName || row.iconName === 'preferences-system-symbolic')
                 continue;
 
-            row.image.set_from_paintable(
-                this._lookup_symbolic_icon(row.iconName, 16, scale));
+            row.image.clear();
+            row.image.set_from_icon_name(row.iconName);
         }
     },
 
@@ -1110,6 +1109,8 @@ export default class VitalsPrefs extends ExtensionPreferences {
                 spacing: 12,
                 margin_start: 6,
                 margin_end: 6,
+                margin_top: 4,
+                margin_bottom: 4,
             });
             box.append(image);
             box.append(label);
