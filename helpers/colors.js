@@ -1,5 +1,12 @@
 /* Threshold color entry helpers shared by prefs and values. */
 
+// Default seed for a new single-breakpoint scale (Adwaita destructive red).
+export const DEFAULT_THRESHOLD_RGBA = {
+    red: 224 / 255,
+    green: 27 / 255,
+    blue: 36 / 255,
+};
+
 // Entries: "threshold r g b" or "threshold r g b sensor:<key>"
 // Trailing sensor tokens may contain spaces (legacy key quirk).
 export function parseColorEntry(colorEntry) {
@@ -37,17 +44,19 @@ export function formatColorEntry({threshold, red, green, blue, sensorKey = null}
     return entry;
 }
 
+export function compareColorEntries(a, b) {
+    if (a.threshold !== b.threshold)
+        return a.threshold - b.threshold;
+    let aKey = a.sensorKey || '';
+    let bKey = b.sensorKey || '';
+    return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
+}
+
 export function sanitizeAndSortColorEntries(colorsArray) {
     return (colorsArray || [])
         .map(parseColorEntry)
         .filter(Boolean)
-        .sort((a, b) => {
-            if (a.threshold !== b.threshold)
-                return a.threshold - b.threshold;
-            let aKey = a.sensorKey || '';
-            let bKey = b.sensorKey || '';
-            return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
-        });
+        .sort(compareColorEntries);
 }
 
 function normalizeColorComponent(component) {
@@ -114,17 +123,25 @@ export function sensorKeyFromTypeLabel(type, label) {
     return '_' + typeKey + '_' + String(label).replace(' ', '_').toLowerCase() + '_';
 }
 
-export function labelFromSensorKey(key) {
+// Hot-sensor / color keys: _<type>_<label parts>_
+export function parseSensorKey(key) {
     if (typeof key !== 'string' || !key.startsWith('_') || key.length < 3)
-        return key || '';
+        return null;
 
     let inner = key.endsWith('_') ? key.slice(1, -1) : key.slice(1);
     let parts = inner.split('_');
-    if (parts.length === 0)
-        return key;
+    return {
+        typePart: parts[0] || '',
+        label: parts.slice(1).join(' ').trim(),
+    };
+}
 
-    let typePart = parts[0];
-    let label = parts.slice(1).join(' ').trim();
+export function labelFromSensorKey(key) {
+    let parsed = parseSensorKey(key);
+    if (!parsed)
+        return key || '';
+
+    let {typePart, label} = parsed;
     if (typePart.startsWith('gpu') && label)
         return `${label} (${typePart})`;
     return label || typePart;
@@ -135,8 +152,11 @@ export function sensorKeyBelongsToColorPage(pageName, key) {
     if (typeof key !== 'string' || !key.startsWith('_') || key.startsWith('__'))
         return false;
 
-    let inner = key.endsWith('_') ? key.slice(1, -1) : key.slice(1);
-    let typePart = inner.split('_')[0] || '';
+    let parsed = parseSensorKey(key);
+    if (!parsed)
+        return false;
+
+    let {typePart} = parsed;
 
     if (pageName === 'temperature') {
         if (typePart === 'temperature')

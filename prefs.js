@@ -6,8 +6,10 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import {sensorCatalog} from './helpers/catalog.js';
+import {sensorCatalog, colorPageForSensor} from './helpers/catalog.js';
 import {
+    compareColorEntries,
+    DEFAULT_THRESHOLD_RGBA,
     formatColorEntry,
     labelFromSensorKey,
     sanitizeAndSortColorEntries,
@@ -17,6 +19,21 @@ import {
 import * as SensorsModule from './sensors.js';
 
 const SENSOR_DISCOVERY_SETTLE_SECONDS = 2;
+
+function flatButton({icon_name, label, tooltip_text}) {
+    let props = {
+        valign: Gtk.Align.CENTER,
+        css_classes: ['flat'],
+    };
+    if (icon_name)
+        props.icon_name = icon_name;
+    if (label)
+        props.label = label;
+    if (tooltip_text)
+        props.tooltip_text = tooltip_text;
+    return new Gtk.Button(props);
+}
+
 // AdwViewSwitcherSidebar landed in libadwaita 1.9 (GNOME 49+/50).
 function supportsModernSidebarPrefs() {
     return typeof Adw.ViewSwitcherSidebar === 'function';
@@ -61,16 +78,13 @@ const Settings = new GObject.Class({
 
         // Threshold color editors are built lazily when each page is first shown,
         // so we do not construct dozens of Gtk.ColorButtons up front.
-        this._thresholdColorsInitialized = {};
-        this._thresholdColorGroups = {};
-        // pageName -> { settingsKey, pageName, page, palettes, addColorsDropdown }
+        // pageName -> { settingsKey, page, addGroup, palettes, addColorsDropdown, ... }
         this._thresholdColorPages = {};
         // Session-only stash of panel sensors removed when a group is toggled off,
         // so turning the group back on before closing prefs can restore them.
         this._removedHotSensors = {};
         // pageName -> sorted list of discovered sensor keys (from Sensors.query).
         this._discoveredSensorsByPage = {};
-        this._addColorsDropdowns = [];
         this._sensors = null;
         this._sensorDiscoveryTimeoutId = 0;
         this._bind_sensor_page_gates();
@@ -108,7 +122,7 @@ const Settings = new GObject.Class({
         this._sensorDiscoveryTimeoutId = GLib.timeout_add_seconds(
             GLib.PRIORITY_DEFAULT, SENSOR_DISCOVERY_SETTLE_SECONDS, () => {
                 this._sensorDiscoveryTimeoutId = 0;
-                this._refresh_applies_dropdowns();
+                this._refresh_add_colors_dropdowns();
                 return GLib.SOURCE_REMOVE;
             });
     },
@@ -121,26 +135,22 @@ const Settings = new GObject.Class({
         if (!key || key.startsWith('__'))
             return;
 
-        for (let pageName of Object.keys(sensorCatalog)) {
-            let formats = sensorCatalog[pageName]?.colorFormats;
-            if (!formats || !formats.includes(format))
-                continue;
-            if (!sensorKeyBelongsToColorPage(pageName, key))
-                continue;
+        let pageName = colorPageForSensor(type, format);
+        if (!pageName)
+            return;
 
-            if (!this._discoveredSensorsByPage[pageName])
-                this._discoveredSensorsByPage[pageName] = [];
-            if (!this._discoveredSensorsByPage[pageName].includes(key))
-                this._discoveredSensorsByPage[pageName].push(key);
-        }
+        if (!this._discoveredSensorsByPage[pageName])
+            this._discoveredSensorsByPage[pageName] = [];
+        if (!this._discoveredSensorsByPage[pageName].includes(key))
+            this._discoveredSensorsByPage[pageName].push(key);
     },
 
-    _refresh_applies_dropdowns: function() {
+    _refresh_add_colors_dropdowns: function() {
         for (let pageName of Object.keys(this._discoveredSensorsByPage))
             this._discoveredSensorsByPage[pageName].sort();
 
-        for (let info of this._addColorsDropdowns)
-            this._sync_add_colors_row(info.pageName);
+        for (let pageName of Object.keys(this._thresholdColorPages))
+            this._sync_add_colors_row(pageName);
     },
 
     _apply_icon_style: function() {
@@ -214,13 +224,9 @@ const Settings = new GObject.Class({
     },
 
     ensure_threshold_colors_for_page: function(pageName) {
-        if (this._thresholdColorsInitialized[pageName])
+        if (this._thresholdColorPages[pageName] || !sensorCatalog[pageName]?.colorFormats)
             return;
 
-        if (!sensorCatalog[pageName]?.colorFormats)
-            return;
-
-        this._thresholdColorsInitialized[pageName] = true;
         this._add_threshold_colors_group(
             `${pageName}-page`,
             `${pageName}-colors`,
@@ -254,9 +260,9 @@ const Settings = new GObject.Class({
         let enabled = this.builder.get_object(gate.toggle).get_active();
         this._set_dependent_widgets_sensitive(gate.widgets, enabled);
 
-        let thresholdGroups = this._thresholdColorGroups[pageName];
-        if (thresholdGroups) {
-            for (let group of thresholdGroups)
+        let state = this._thresholdColorPages[pageName];
+        if (state) {
+            for (let group of [state.addGroup, ...state.palettes.map(p => p.group)])
                 group.set_sensitive(enabled);
         }
 
@@ -502,17 +508,6 @@ const Settings = new GObject.Class({
         }
     },
 
-    _entries_by_sensor_key: function(entries) {
-        let byKey = new Map();
-        for (let entry of entries) {
-            let key = entry.sensorKey || null;
-            if (!byKey.has(key))
-                byKey.set(key, []);
-            byKey.get(key).push(entry);
-        }
-        return byKey;
-    },
-
     _sync_all_threshold_colors: function(pageName) {
         let state = this._thresholdColorPages[pageName];
         if (!state)
@@ -531,13 +526,7 @@ const Settings = new GObject.Class({
                 });
             }
         }
-        items.sort((a, b) => {
-            if (a.threshold !== b.threshold)
-                return a.threshold - b.threshold;
-            let aKey = a.sensorKey || '';
-            let bKey = b.sensorKey || '';
-            return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
-        });
+        items.sort(compareColorEntries);
         this._settings.set_strv(state.settingsKey, items.map(entry => formatColorEntry(entry)));
 
         for (let palette of state.palettes) {
@@ -585,9 +574,10 @@ const Settings = new GObject.Class({
         return state.palettes.map(palette => palette.sensorKey || null);
     },
 
-    _target_already_used: function(pageName, sensorKey) {
-        let target = sensorKey || null;
-        return this._palette_targets_in_use(pageName).some(key => key === target);
+    _sensor_key_is_live: function(pageName, sensorKey) {
+        if ((this._discoveredSensorsByPage[pageName] || []).includes(sensorKey))
+            return true;
+        return this._settings.get_strv('hot-sensors').includes(sensorKey);
     },
 
     _available_add_color_targets: function(pageName, settingsKey) {
@@ -624,16 +614,6 @@ const Settings = new GObject.Class({
             dropdown.set_selected(0);
     },
 
-    _make_add_colors_dropdown: function(pageName, settingsKey) {
-        let dropdown = new Gtk.DropDown({
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-            tooltip_text: _('Apply a color scale to all sensors or one sensor'),
-        });
-        this._populate_add_colors_dropdown_model(dropdown, pageName, settingsKey);
-        return dropdown;
-    },
-
     _sync_add_colors_row: function(pageName) {
         let state = this._thresholdColorPages[pageName];
         if (!state || !state.addColorsRow || !state.addGroup)
@@ -655,30 +635,24 @@ const Settings = new GObject.Class({
             return;
         }
 
-        this._reload_add_colors_dropdown(state.addColorsDropdown, pageName, state.settingsKey);
+        this._populate_add_colors_dropdown_model(
+            state.addColorsDropdown, pageName, state.settingsKey);
         if (!row.get_parent())
             state.addGroup.add(row);
-        if (!state.addGroup.get_parent())
+        if (!state.addGroup.get_parent()) {
             state.page.add(state.addGroup);
-        else
-            this._keep_add_group_last(state);
+        } else {
+            state.page.remove(state.addGroup);
+            state.page.add(state.addGroup);
+        }
     },
 
-    _reload_add_colors_dropdown: function(dropdown, pageName, settingsKey) {
-        if (!dropdown)
-            return;
-        dropdown._reloading = true;
-        this._populate_add_colors_dropdown_model(dropdown, pageName, settingsKey);
-        dropdown._reloading = false;
-    },
-
-    _palette_title: function(sensorKey, pageName, settingsKey) {
+    _palette_title: function(sensorKey, pageName) {
         if (!sensorKey)
             return _('All sensors colors');
 
-        let {live} = this._color_sensor_options(pageName, settingsKey, []);
         let label = labelFromSensorKey(sensorKey);
-        if (live.includes(sensorKey))
+        if (this._sensor_key_is_live(pageName, sensorKey))
             return _('%s colors').format(label);
         return _('%s colors (unavailable)').format(label);
     },
@@ -697,7 +671,11 @@ const Settings = new GObject.Class({
         return max + 1;
     },
 
-    _make_color_row: function(pageName, palette, text = '0.0', red = 224 / 255, green = 27 / 255, blue = 36 / 255) {
+    _make_color_row: function(pageName, palette, text = '0.0',
+        red = DEFAULT_THRESHOLD_RGBA.red,
+        green = DEFAULT_THRESHOLD_RGBA.green,
+        blue = DEFAULT_THRESHOLD_RGBA.blue,
+        refreshTitles = true) {
         let initial = Number.parseFloat(text);
         if (!Number.isFinite(initial))
             initial = 0;
@@ -716,11 +694,9 @@ const Settings = new GObject.Class({
             tooltip_text: _('Band color'),
         });
 
-        let deleteButton = new Gtk.Button({
+        let deleteButton = flatButton({
             icon_name: 'edit-delete-symbolic',
             tooltip_text: _('Remove breakpoint'),
-            valign: Gtk.Align.CENTER,
-            css_classes: ['flat'],
         });
 
         let row = new Adw.ActionRow({
@@ -735,7 +711,8 @@ const Settings = new GObject.Class({
         row.add_suffix(deleteButton);
         palette.group.add(row);
         palette.rows.push(row);
-        this._refresh_band_titles(palette.rows);
+        if (refreshTitles)
+            this._refresh_band_titles(palette.rows);
 
         let commitAndSync = () => {
             this._commit_threshold_entry(row);
@@ -767,32 +744,12 @@ const Settings = new GObject.Class({
         });
     },
 
-    _keep_add_group_last: function(state) {
-        if (!state.page || !state.addGroup || !state.addGroup.get_parent())
-            return;
-        state.page.remove(state.addGroup);
-        state.page.add(state.addGroup);
-    },
-
-    _register_threshold_group: function(pageName, group) {
-        if (!this._thresholdColorGroups[pageName])
-            this._thresholdColorGroups[pageName] = [];
-        this._thresholdColorGroups[pageName].push(group);
-    },
-
-    _unregister_threshold_group: function(pageName, group) {
-        let groups = this._thresholdColorGroups[pageName] || [];
-        let index = groups.indexOf(group);
-        if (index >= 0)
-            groups.splice(index, 1);
-    },
-
     _add_threshold_palette: function(pageName, sensorKey, entries, options = null) {
         let seedDefault = !!(options && options.seedDefault);
         let state = this._thresholdColorPages[pageName];
         let targetKey = sensorKey || null;
         let group = new Adw.PreferencesGroup({
-            title: this._palette_title(targetKey, pageName, state.settingsKey),
+            title: this._palette_title(targetKey, pageName),
             margin_start: 10,
             margin_end: 10,
         });
@@ -803,11 +760,9 @@ const Settings = new GObject.Class({
             rows: [],
         };
 
-        let addButton = new Gtk.Button({
+        let addButton = flatButton({
             icon_name: 'list-add-symbolic',
             tooltip_text: _('Add breakpoint'),
-            valign: Gtk.Align.CENTER,
-            css_classes: ['flat'],
         });
         addButton.connect('clicked', () => {
             this._make_color_row(
@@ -815,11 +770,9 @@ const Settings = new GObject.Class({
             this._sync_all_threshold_colors(pageName);
         });
 
-        let removeButton = new Gtk.Button({
+        let removeButton = flatButton({
             icon_name: 'user-trash-symbolic',
             tooltip_text: _('Remove color scale'),
-            valign: Gtk.Align.CENTER,
-            css_classes: ['flat'],
         });
         removeButton.connect('clicked', () => {
             this._remove_threshold_palette(pageName, palette);
@@ -835,19 +788,22 @@ const Settings = new GObject.Class({
         group.set_header_suffix(actions);
 
         state.page.add(group);
-        this._keep_add_group_last(state);
-        this._register_threshold_group(pageName, group);
+        if (state.addGroup.get_parent()) {
+            state.page.remove(state.addGroup);
+            state.page.add(state.addGroup);
+        }
         state.palettes.push(palette);
         this._sync_add_colors_row(pageName);
 
         let rows = entries;
         if (seedDefault && rows.length === 0)
-            rows = [{threshold: 0, red: 224 / 255, green: 27 / 255, blue: 36 / 255}];
+            rows = [{threshold: 0, ...DEFAULT_THRESHOLD_RGBA}];
 
         for (let entry of rows) {
             this._make_color_row(
                 pageName, palette,
-                `${entry.threshold}`, entry.red, entry.green, entry.blue);
+                `${entry.threshold}`, entry.red, entry.green, entry.blue,
+                false);
         }
         this._refresh_band_titles(palette.rows);
         return palette;
@@ -863,7 +819,6 @@ const Settings = new GObject.Class({
             return;
 
         state.page.remove(palette.group);
-        this._unregister_threshold_group(pageName, palette.group);
         state.palettes.splice(index, 1);
         this._sync_all_threshold_colors(pageName);
     },
@@ -872,7 +827,14 @@ const Settings = new GObject.Class({
         let page = this.builder.get_object(pageId);
         let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
         this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
-        let byKey = this._entries_by_sensor_key(sorted);
+
+        let byKey = new Map();
+        for (let entry of sorted) {
+            let key = entry.sensorKey || null;
+            if (!byKey.has(key))
+                byKey.set(key, []);
+            byKey.get(key).push(entry);
+        }
 
         let addGroup = new Adw.PreferencesGroup({
             title: _('Threshold Colors'),
@@ -882,7 +844,6 @@ const Settings = new GObject.Class({
 
         let state = {
             settingsKey,
-            pageName,
             page,
             addGroup,
             palettes: [],
@@ -890,8 +851,6 @@ const Settings = new GObject.Class({
             addColorsRow: null,
         };
         this._thresholdColorPages[pageName] = state;
-        this._thresholdColorGroups[pageName] = [];
-        this._register_threshold_group(pageName, addGroup);
 
         if (byKey.has(null))
             this._add_threshold_palette(pageName, null, byKey.get(null));
@@ -899,12 +858,16 @@ const Settings = new GObject.Class({
         for (let key of sensorKeys)
             this._add_threshold_palette(pageName, key, byKey.get(key) || []);
 
-        let addColorsDropdown = this._make_add_colors_dropdown(pageName, settingsKey);
-        let addColorsButton = new Gtk.Button({
+        let addColorsDropdown = new Gtk.DropDown({
+            valign: Gtk.Align.CENTER,
+            hexpand: true,
+            tooltip_text: _('Apply a color scale to all sensors or one sensor'),
+        });
+        this._populate_add_colors_dropdown_model(addColorsDropdown, pageName, settingsKey);
+
+        let addColorsButton = flatButton({
             icon_name: 'list-add-symbolic',
             label: _('Add'),
-            valign: Gtk.Align.CENTER,
-            css_classes: ['flat'],
         });
         let addColorsRow = new Adw.ActionRow({
             title: _('Add Color Scale'),
@@ -917,12 +880,6 @@ const Settings = new GObject.Class({
 
         state.addColorsDropdown = addColorsDropdown;
         state.addColorsRow = addColorsRow;
-
-        this._addColorsDropdowns.push({
-            dropdown: addColorsDropdown,
-            pageName,
-            settingsKey,
-        });
         this._sync_add_colors_row(pageName);
 
         addColorsButton.connect('clicked', () => {
@@ -933,7 +890,8 @@ const Settings = new GObject.Class({
             let sensorKey = keys[selected];
             if (sensorKey === undefined)
                 return;
-            if (this._target_already_used(pageName, sensorKey))
+            let target = sensorKey || null;
+            if (state.palettes.some(palette => (palette.sensorKey || null) === target))
                 return;
 
             this._add_threshold_palette(pageName, sensorKey, [], {seedDefault: true});
@@ -945,10 +903,6 @@ const Settings = new GObject.Class({
     }
 });
 
-
-function prefsPageNames() {
-    return ['general'].concat(Object.keys(sensorCatalog));
-}
 
 function prefsPageInfos() {
     let pages = [{ name: 'general' }];
@@ -981,8 +935,8 @@ export default class VitalsPrefs extends ExtensionPreferences {
     }
 
     _fillClassicPreferences(window, settings) {
-        for (let name of prefsPageNames())
-            window.add(settings.builder.get_object(name + '-page'));
+        for (let info of prefsPageInfos())
+            window.add(settings.builder.get_object(info.name + '-page'));
 
         let loadVisible = () => {
             let visible = window.visible_page;
@@ -1014,6 +968,20 @@ export default class VitalsPrefs extends ExtensionPreferences {
         return pages;
     }
 
+    _prepareSidebarShell(window, settings, useSections) {
+        window.set_search_enabled(false);
+        window.set_default_size(720, 620);
+
+        let root = settings.builder.get_object('prefs-root');
+        let stack = settings.builder.get_object('prefs-stack');
+        let contentPage = settings.builder.get_object('prefs-content-page');
+
+        // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
+        window.get_content().set_child(root);
+        let pages = this._attachStackPages(settings, stack, useSections);
+        return {root, stack, contentPage, pages};
+    }
+
     _syncContentTitle(stack, contentPage, name) {
         let visible = stack.get_visible_child();
         if (!visible)
@@ -1028,17 +996,8 @@ export default class VitalsPrefs extends ExtensionPreferences {
     }
 
     _fillModernSidebarPreferences(window, settings) {
-        window.set_search_enabled(false);
-        window.set_default_size(720, 620);
-
-        let root = settings.builder.get_object('prefs-root');
-        let stack = settings.builder.get_object('prefs-stack');
+        let {root, stack, contentPage} = this._prepareSidebarShell(window, settings, true);
         let sidebar = settings.builder.get_object('prefs-sidebar');
-        let contentPage = settings.builder.get_object('prefs-content-page');
-
-        // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
-        window.get_content().set_child(root);
-        this._attachStackPages(settings, stack, true);
 
         let syncVisiblePage = () => {
             let name = stack.get_visible_child_name();
@@ -1060,16 +1019,8 @@ export default class VitalsPrefs extends ExtensionPreferences {
     }
 
     _fillLegacySidebarPreferences(window, settings) {
-        window.set_search_enabled(false);
-        window.set_default_size(720, 620);
-
-        let root = settings.builder.get_object('prefs-root');
-        let stack = settings.builder.get_object('prefs-stack');
+        let {root, stack, contentPage, pages} = this._prepareSidebarShell(window, settings, false);
         let list = settings.builder.get_object('prefs-sidebar');
-        let contentPage = settings.builder.get_object('prefs-content-page');
-
-        window.get_content().set_child(root);
-        let pages = this._attachStackPages(settings, stack, false);
         let rows = [];
 
         list.set_header_func((row, before) => {

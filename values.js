@@ -26,7 +26,7 @@
 
 import GObject from 'gi://GObject';
 
-import {sensorCatalog, sensorGroupFromType} from './helpers/catalog.js';
+import {sensorCatalog, colorsKeyForSensor} from './helpers/catalog.js';
 import {getUsageColor} from './helpers/colors.js';
 
 const cbFun = (d, c) => {
@@ -36,19 +36,6 @@ const cbFun = (d, c) => {
 
     return [d[0] + aa, bb];
 };
-
-function colorsKeyForSensor(type, format) {
-    // All temperatures share the temperature threshold UI, including GPU rows.
-    if (format === 'temp')
-        return 'temperature-colors';
-
-    const group = sensorGroupFromType(type);
-    const formats = sensorCatalog[group]?.colorFormats;
-    if (formats && formats.includes(format))
-        return `${group}-colors`;
-
-    return null;
-}
 
 export const Values = GObject.registerClass({
        GTypeName: 'Values',
