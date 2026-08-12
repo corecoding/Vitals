@@ -26,11 +26,12 @@
     spacing: 6px;
 }
 .vitals-history-chart-tab {
-    padding: 8px 10px;
+    padding: 8px 12px;
     border-radius: 14px;
     background-color: rgba(128, 128, 128, 0.12);
     border-width: 1px;
     border-color: transparent;
+    font-weight: bold;
 }
 .vitals-history-chart-tab:hover {
     background-color: rgba(128, 128, 128, 0.2);
@@ -38,18 +39,6 @@
 .vitals-history-chart-tab:checked {
     background-color: rgba(110, 140, 230, 0.28);
     border-color: rgba(110, 140, 230, 0.45);
-}
-.vitals-history-chart-tab-inner {
-    spacing: 2px;
-}
-.vitals-history-chart-tab-title {
-    font-size: 0.78em;
-    opacity: 0.75;
-}
-.vitals-history-chart-tab-value {
-    font-size: 1.05em;
-    font-weight: bold;
-    font-feature-settings: "tnum";
 }
 .vitals-history-chart-status {
     font-size: 0.85em;
@@ -61,53 +50,41 @@
     border-radius: 14px;
     background-color: rgba(128, 128, 128, 0.1);
 }
-.vitals-history-graph-stage {
-    /* intentionally unclipped so scrub tooltip may extend past the chart */
-    min-width: 280px;
-}
 .vitals-history-graph {
     background-color: rgba(20, 24, 32, 0.18);
     border-radius: 12px;
     min-width: 280px;
 }
-.vitals-history-tooltip {
-    spacing: 4px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background-color: rgba(28, 30, 36, 0.92);
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.08);
-}
-.vitals-history-tooltip-time {
-    font-size: 0.78em;
-    opacity: 0.7;
-    color: #f2f2f2;
-}
-.vitals-history-tooltip-value {
-    font-size: 1.05em;
-    font-weight: bold;
-    color: #ffffff;
-    font-feature-settings: "tnum";
+
+/* Scrub replaces sensor groups with process rows */
+.vitals-history-scrub-header {
+    padding-top: 6px;
     padding-bottom: 4px;
 }
-.vitals-history-tooltip-procs {
-    spacing: 3px;
-    padding-top: 2px;
+.vitals-history-scrub-header-box {
+    spacing: 2px;
 }
-.vitals-history-tooltip-proc-row {
-    spacing: 8px;
+.vitals-history-scrub-time {
+    font-size: 0.78em;
+    opacity: 0.7;
 }
-.vitals-history-tooltip-proc-name {
-    font-size: 0.8em;
-    color: #e8e8e8;
-}
-.vitals-history-tooltip-proc-value {
-    font-size: 0.8em;
-    color: #c8d0ff;
+.vitals-history-scrub-value {
+    font-size: 1.05em;
+    font-weight: bold;
     font-feature-settings: "tnum";
 }
-.vitals-history-tooltip-empty {
-    font-size: 0.78em;
-    color: #c0c0c0;
+.vitals-history-scrub-section {
+    padding-top: 8px;
+    font-weight: bold;
+}
+.vitals-history-scrub-empty {
+    opacity: 0.65;
+    font-size: 0.85em;
+}
+.vitals-history-scrub-proc-name {
+    font-feature-settings: "tnum";
+}
+.vitals-history-scrub-proc-value {
+    font-feature-settings: "tnum";
     opacity: 0.85;
 }

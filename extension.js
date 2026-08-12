@@ -51,6 +51,13 @@ var VitalsMenuButton = GObject.registerClass({
         this._processSampler = new ProcessSampler.ProcessSampler(this._settings);
         this._historyChartItem = null;
         this._historyChartSeparator = null;
+        this._scrubMenuActive = false;
+        this._scrubMenuItems = [];
+        this._scrubHeaderTime = null;
+        this._scrubHeaderValue = null;
+        this._scrubProcRows = [];
+        this._groupVisibilityBeforeScrub = null;
+        this._menuLockWidth = 0;
         this._timeSeriesLoaded = false;
         this._menuLayout = new St.BoxLayout({
             vertical: false,
@@ -141,12 +148,20 @@ var VitalsMenuButton = GObject.registerClass({
         this._historyChartItem = new HistoryChart.HistoryChartMenuItem(this._values);
         this._historyChartItem.connectObject('scrub', (_item, unixSeconds) => {
             if (unixSeconds < 0) {
+                this._setScrubMenuActive(false);
                 const latest = this._processSampler.getLatest();
                 this._historyChartItem.setProcessSample(latest);
                 return;
             }
             const sample = this._processSampler.getNearest(unixSeconds);
             this._historyChartItem.setProcessSample(sample);
+            this._setScrubMenuActive(true);
+        }, this);
+        this._historyChartItem.connectObject('scrub-view-changed', () => {
+            if (this._historyChartItem.isScrubbing())
+                this._refreshScrubProcessMenu();
+            else
+                this._setScrubMenuActive(false);
         }, this);
 
         this._historyChartSeparator = new PopupMenu.PopupSeparatorMenuItem();
@@ -155,6 +170,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _removeHistoryChart() {
+        this._setScrubMenuActive(false);
         if (this._historyChartItem) {
             this._historyChartItem.disconnectObject(this);
             this._historyChartItem.destroy();
@@ -164,6 +180,187 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyChartSeparator.destroy();
             this._historyChartSeparator = null;
         }
+    }
+
+    _setScrubMenuActive(active) {
+        if (!!this._scrubMenuActive === !!active)
+            return;
+
+        this._scrubMenuActive = !!active;
+        if (active) {
+            this._groupVisibilityBeforeScrub = {};
+            for (const key in this._groups) {
+                const group = this._groups[key];
+                this._groupVisibilityBeforeScrub[key] = group.actor.visible;
+                if (group.menu && group.menu.isOpen)
+                    group.setSubmenuShown(false);
+                group.actor.hide();
+            }
+            this._ensureScrubMenuItems();
+            this._refreshScrubProcessMenu();
+        } else {
+            this._clearScrubMenuItems();
+            if (this._groupVisibilityBeforeScrub) {
+                for (const key in this._groups) {
+                    if (this._groupVisibilityBeforeScrub[key])
+                        this._groups[key].actor.show();
+                }
+                this._groupVisibilityBeforeScrub = null;
+            }
+            this._lockMenuWidth();
+        }
+    }
+
+    _scrubMenuInsertIndex() {
+        // After history chart + its separator when present
+        if (this._historyChartItem && this._historyChartSeparator)
+            return 2;
+        return 0;
+    }
+
+    _ensureScrubMenuItems() {
+        if (this._scrubMenuItems.length)
+            return;
+
+        let position = this._scrubMenuInsertIndex();
+
+        const header = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            can_focus: false,
+            style_class: 'vitals-history-scrub-header',
+        });
+        header.setOrnament(PopupMenu.Ornament.HIDDEN);
+        const headerBox = new St.BoxLayout({
+            vertical: true,
+            x_expand: true,
+            style_class: 'vitals-history-scrub-header-box',
+        });
+        this._scrubHeaderTime = new St.Label({
+            text: '',
+            style_class: 'vitals-history-scrub-time',
+        });
+        this._scrubHeaderValue = new St.Label({
+            text: '',
+            style_class: 'vitals-history-scrub-value',
+        });
+        headerBox.add_child(this._scrubHeaderTime);
+        headerBox.add_child(this._scrubHeaderValue);
+        header.add_child(headerBox);
+        this.menu.addMenuItem(header, position++);
+        this._scrubMenuItems.push(header);
+
+        this._scrubProcRows = [];
+        for (let i = 0; i < 12; i++) {
+            const item = new PopupMenu.PopupBaseMenuItem({
+                reactive: false,
+                can_focus: false,
+                style_class: 'vitals-history-scrub-proc',
+            });
+            item.setOrnament(PopupMenu.Ornament.HIDDEN);
+            const name = new St.Label({
+                text: '',
+                x_expand: true,
+                style_class: 'vitals-history-scrub-proc-name',
+            });
+            const value = new St.Label({
+                text: '',
+                style_class: 'vitals-history-scrub-proc-value',
+            });
+            item.add_child(name);
+            item.add_child(value);
+            item._nameLabel = name;
+            item._valueLabel = value;
+            this.menu.addMenuItem(item, position++);
+            this._scrubMenuItems.push(item);
+            this._scrubProcRows.push(item);
+            item.actor.hide();
+        }
+    }
+
+    _clearScrubMenuItems() {
+        for (const item of this._scrubMenuItems) {
+            item.destroy();
+        }
+        this._scrubMenuItems = [];
+        this._scrubProcRows = [];
+        this._scrubHeaderTime = null;
+        this._scrubHeaderValue = null;
+    }
+
+    _refreshScrubProcessMenu() {
+        if (!this._scrubMenuActive || !this._historyChartItem)
+            return;
+
+        const view = this._historyChartItem.getScrubView();
+        if (!view) {
+            this._setScrubMenuActive(false);
+            return;
+        }
+
+        this._ensureScrubMenuItems();
+        this._scrubHeaderTime.text = view.timeText;
+        if (this._scrubHeaderValue)
+            this._scrubHeaderValue.text = view.valueText || '';
+
+        const items = view.items || [];
+        for (let i = 0; i < this._scrubProcRows.length; i++) {
+            const item = this._scrubProcRows[i];
+            const row = items[i];
+            if (!row) {
+                item.actor.hide();
+                continue;
+            }
+            item._nameLabel.text = row.name;
+            item._valueLabel.text = row.value || '';
+            item.remove_style_class_name('vitals-history-scrub-section');
+            item.remove_style_class_name('vitals-history-scrub-empty');
+            item.remove_style_class_name('vitals-history-scrub-proc');
+            const style = row.kind === 'section'
+                ? 'vitals-history-scrub-section'
+                : row.kind === 'empty'
+                    ? 'vitals-history-scrub-empty'
+                    : 'vitals-history-scrub-proc';
+            item.add_style_class_name(style);
+            item.actor.show();
+        }
+        this._lockMenuWidth();
+    }
+
+    _lockMenuWidth() {
+        const box = this.menu && this.menu.box;
+        if (!box)
+            return;
+
+        let needed = Math.ceil(box.get_width());
+        try {
+            const pref = box.get_preferred_width(-1);
+            needed = Math.max(needed, Math.ceil(pref[0]), Math.ceil(pref[1]));
+        } catch (e) {
+            // keep allocated width
+        }
+        for (const item of this._scrubProcRows) {
+            if (!item.visible && !item.actor?.visible)
+                continue;
+            try {
+                const nw = item._nameLabel.get_clutter_text().width;
+                const vw = item._valueLabel.get_clutter_text().width;
+                needed = Math.max(needed, nw + vw + 40);
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        if (needed > this._menuLockWidth)
+            this._menuLockWidth = needed;
+        if (this._menuLockWidth > 0)
+            box.set_width(this._menuLockWidth);
+    }
+
+    _unlockMenuWidth() {
+        this._menuLockWidth = 0;
+        const box = this.menu && this.menu.box;
+        if (box)
+            box.set_width(-1);
     }
 
     _refreshHistoryChart() {
@@ -262,6 +459,10 @@ var VitalsMenuButton = GObject.registerClass({
                 // refresh sensors now
                 this._querySensors();
                 this._refreshHistoryChart();
+                this._lockMenuWidth();
+            } else {
+                this._setScrubMenuActive(false);
+                this._unlockMenuWidth();
             }
         }, this);
     }

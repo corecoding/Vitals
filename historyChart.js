@@ -35,9 +35,8 @@ import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js'
 const GRAPH_WIDTH_MIN = 280;
 const GRAPH_HEIGHT = 120;
 const PLOT_PAD_Y = 8;
-const TOOLTIP_WIDTH = 190;
-const TOOLTIP_GAP = 12;
 const LINE_WIDTH = 2.5;
+const SCRUB_PROC_LIMIT = 10;
 
 const METRICS = [
     { id: 'cpu', label: 'CPU', key: '_processor_usage_', series: 'cpu' },
@@ -47,7 +46,6 @@ const METRICS = [
 ];
 
 function colorForNorm(norm) {
-    // Soft blue → warm coral as usage rises (same palette as the old bars)
     const t = Math.max(0, Math.min(1, norm));
     return {
         r: (90 + t * 150) / 255,
@@ -61,6 +59,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
     GTypeName: 'VitalsHistoryChartMenuItem',
     Signals: {
         'scrub': { param_types: [GObject.TYPE_DOUBLE] },
+        'scrub-view-changed': {},
     },
 }, class HistoryChartMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -75,11 +74,13 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._metric = 'cpu';
         this._essential = null;
         this._samples = [];
+        this._plotPoints = [];
+        this._tMin = 0;
+        this._tMax = 1;
         this._scrubIndex = -1;
         this._hovering = false;
         this._seriesDirty = false;
         this._tabButtons = {};
-        this._tabValueLabels = {};
         this._lastProcessSample = null;
         this._lastPlayX = 0;
         this._graphWidth = GRAPH_WIDTH_MIN;
@@ -103,32 +104,16 @@ export const HistoryChartMenuItem = GObject.registerClass({
         for (const metric of METRICS) {
             const btn = new St.Button({
                 style_class: 'vitals-history-chart-tab',
+                label: _(metric.label),
                 toggle_mode: true,
                 can_focus: false,
                 x_expand: true,
             });
-            const tabInner = new St.BoxLayout({
-                vertical: true,
-                style_class: 'vitals-history-chart-tab-inner',
-                x_expand: true,
-            });
-            const title = new St.Label({
-                text: _(metric.label),
-                style_class: 'vitals-history-chart-tab-title',
-            });
-            const value = new St.Label({
-                text: '—',
-                style_class: 'vitals-history-chart-tab-value',
-            });
-            tabInner.add_child(title);
-            tabInner.add_child(value);
-            btn.set_child(tabInner);
             btn.connect('clicked', () => {
                 this._setMetric(metric.id);
             });
             this._tabs.add_child(btn);
             this._tabButtons[metric.id] = btn;
-            this._tabValueLabels[metric.id] = value;
         }
         this._tabButtons.cpu.checked = true;
 
@@ -144,61 +129,27 @@ export const HistoryChartMenuItem = GObject.registerClass({
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.START,
         });
-        this._graphCard.clip_to_allocation = false;
-        // FixedLayout so tooltip set_position is exact; graph size is locked from allocation
-        this._graphStage = new St.Widget({
-            height: GRAPH_HEIGHT,
-            style_class: 'vitals-history-graph-stage',
-            reactive: false,
-            x_expand: true,
-            layout_manager: new Clutter.FixedLayout(),
-        });
-        this._graphStage.clip_to_allocation = false;
 
         this._graph = new St.DrawingArea({
+            height: GRAPH_HEIGHT,
             style_class: 'vitals-history-graph',
             reactive: true,
             track_hover: true,
+            x_expand: true,
         });
         this._graph.clip_to_allocation = true;
         this._graph.connect('repaint', this._onRepaint.bind(this));
-        this._graphStage.connect('notify::allocation', () => {
+        this._graph.connect('notify::allocation', () => {
             this._onGraphAllocationChanged();
         });
-        this._plotPoints = [];
-        this._graph.set_position(0, 0);
-        this._graphStage.add_child(this._graph);
-
-        this._tooltip = new St.BoxLayout({
-            vertical: true,
-            style_class: 'vitals-history-tooltip',
-            visible: false,
-            width: TOOLTIP_WIDTH,
-            reactive: false,
-        });
-        this._tooltipTime = new St.Label({
-            text: '',
-            style_class: 'vitals-history-tooltip-time',
-        });
-        this._tooltipValue = new St.Label({
-            text: '',
-            style_class: 'vitals-history-tooltip-value',
-        });
-        this._tooltipProcs = new St.BoxLayout({
-            vertical: true,
-            style_class: 'vitals-history-tooltip-procs',
-        });
-        this._tooltip.add_child(this._tooltipTime);
-        this._tooltip.add_child(this._tooltipValue);
-        this._tooltip.add_child(this._tooltipProcs);
-        // Sibling of the clipped graph so it is not cropped by the chart border
-        this._graphStage.add_child(this._tooltip);
-
-        this._graphCard.set_child(this._graphStage);
+        this._graphCard.set_child(this._graph);
         this._box.add_child(this._graphCard);
 
         this._graph.connect('enter-event', () => {
             this._hovering = true;
+            const w = Math.floor(this._graph.get_width());
+            if (w > 1)
+                this._graphWidth = w;
             return Clutter.EVENT_PROPAGATE;
         });
         this._graph.connect('motion-event', (_actor, event) => {
@@ -221,28 +172,24 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _clearScrub() {
-        this._tooltip.visible = false;
-        this._tooltip.set_position(0, 0);
         const wasScrubbing = this._scrubIndex >= 0;
         this._scrubIndex = -1;
         this._lastPlayX = -1;
         if (wasScrubbing) {
             this.emit('scrub', -1);
+            this.emit('scrub-view-changed');
             this._graph.queue_repaint();
         }
     }
 
     _onGraphAllocationChanged() {
-        const w = Math.floor(this._graphStage.get_width());
-        if (w < 2)
+        if (this._hovering)
             return;
-        this._graph.set_size(w, GRAPH_HEIGHT);
-        if (w === this._graphWidth)
+        const w = Math.floor(this._graph.get_width());
+        if (w < 2 || w === this._graphWidth)
             return;
         this._graphWidth = w;
         this._rebuildLine();
-        if (this._scrubIndex >= 0 && this._samples[this._scrubIndex])
-            this._updateTooltip(this._samples[this._scrubIndex], this._lastPlayX);
     }
 
     _plotWidth() {
@@ -266,44 +213,62 @@ export const HistoryChartMenuItem = GObject.registerClass({
         return this._scrubIndex >= 0;
     }
 
+    getScrubView() {
+        if (this._scrubIndex < 0)
+            return null;
+        const sample = this._samples[this._scrubIndex];
+        if (!sample)
+            return null;
+
+        const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
+        const items = [];
+        if (this._metric === 'gpu') {
+            items.push({ kind: 'empty', name: _('No per-process data for this metric'), value: '' });
+        } else {
+            const list = this._processListFor(this._metric, this._lastProcessSample);
+            if (!this._lastProcessSample) {
+                items.push({ kind: 'empty', name: _('No process data yet'), value: '' });
+            } else if (!list.length) {
+                items.push({ kind: 'empty', name: _('No activity'), value: '' });
+            } else {
+                for (const proc of list.slice(0, SCRUB_PROC_LIMIT)) {
+                    items.push({
+                        kind: 'proc',
+                        name: proc.count > 1 ? `${proc.name} ×${proc.count}` : proc.name,
+                        value: this._formatProcValueFor(this._metric, proc),
+                    });
+                }
+            }
+        }
+
+        return {
+            timeText: this._values.formatClock(sample.t),
+            valueText: `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, sample.v)}`,
+            items,
+        };
+    }
+
+    _notifyScrubView() {
+        this.emit('scrub-view-changed');
+    }
+
     _setMetric(id) {
         this._metric = id;
         for (const metric of METRICS)
             this._tabButtons[metric.id].checked = (metric.id === id);
-        // Always redraw for the selected metric, even while hover-frozen
-        this._refreshTabValues();
         this._applySeriesSamples();
-        if (this._scrubIndex >= 0 && this._samples[this._scrubIndex])
-            this._updateTooltip(this._samples[this._scrubIndex]);
+        if (this._scrubIndex >= 0)
+            this.emit('scrub', this._samples[this._scrubIndex]?.t || -1);
     }
 
-    _latestValueText(metric) {
-        const series = this._essential && this._essential[metric.series];
-        if (!series || !series.length)
-            return '—';
-        let last = null;
-        for (let i = series.length - 1; i >= 0; i--) {
-            if (series[i].v !== null) {
-                last = series[i];
-                break;
-            }
-        }
-        if (!last)
-            return '—';
-        return this._values.formatSeriesValue(metric.key, last.v);
-    }
-
-    _refreshTabValues() {
-        for (const metric of METRICS) {
-            const label = this._tabValueLabels[metric.id];
-            if (label)
-                label.text = this._latestValueText(metric);
-        }
+    _seriesFor(metric) {
+        return (this._essential && this._essential[metric.series])
+            ? this._essential[metric.series]
+            : [];
     }
 
     setSeriesData(essential) {
         this._essential = essential || null;
-        this._refreshTabValues();
 
         // Keep collecting underneath, but freeze the drawn line while hovering
         if (this._hovering) {
@@ -317,7 +282,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
     _applySeriesSamples() {
         this._seriesDirty = false;
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
-        this._samples = (this._essential && this._essential[meta.series]) ? this._essential[meta.series] : [];
+        this._samples = this._seriesFor(meta);
         this._rebuildLine();
 
         if (this._samples.length < 2) {
@@ -330,31 +295,28 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
     setProcessSample(sample) {
         this._lastProcessSample = sample || null;
-        if (this._scrubIndex >= 0 && this._samples[this._scrubIndex])
-            this._updateTooltip(this._samples[this._scrubIndex]);
+        if (this._scrubIndex >= 0)
+            this._notifyScrubView();
     }
 
-    _processRows(sample) {
-        if (this._metric === 'gpu')
-            return { unavailable: true, list: [] };
+    _processListFor(metricId, sample) {
         if (!sample)
-            return { unavailable: false, list: null };
-        if (this._metric === 'memory')
-            return { unavailable: false, list: sample.topMemory || [] };
-        if (this._metric === 'network')
-            return { unavailable: false, list: sample.topNetwork || [] };
-        return { unavailable: false, list: sample.topCpu || sample.top || [] };
+            return [];
+        if (metricId === 'memory')
+            return sample.topMemory || [];
+        if (metricId === 'network')
+            return sample.topNetwork || [];
+        return sample.topCpu || sample.top || [];
     }
 
-    _formatProcValue(proc) {
-        if (this._metric === 'memory') {
+    _formatProcValueFor(metricId, proc) {
+        if (metricId === 'memory') {
             const mib = (proc.rss || 0) / (1024 * 1024);
             const pct = Math.max(0, Math.round((proc.mem || 0) * 1000) / 10);
             return `${mib >= 10 ? Math.round(mib) : mib.toFixed(1)} MiB · ${pct}%`;
         }
-        if (this._metric === 'network') {
+        if (metricId === 'network')
             return this._formatBytesPerSec(proc.net || ((proc.rx || 0) + (proc.tx || 0)));
-        }
         const pct = Math.max(0, Math.round((proc.cpu || 0) * 1000) / 10);
         return `${pct}%`;
     }
@@ -368,54 +330,6 @@ export const HistoryChartMenuItem = GObject.registerClass({
         return `${(n / (1024 * 1024)).toFixed(n >= 10 * 1024 * 1024 ? 0 : 1)} MB/s`;
     }
 
-    _renderTooltipProcs(sample) {
-        const container = this._tooltipProcs;
-        const children = container.get_children();
-        for (const child of children)
-            child.destroy();
-
-        const { unavailable, list } = this._processRows(sample);
-        if (unavailable) {
-            container.add_child(new St.Label({
-                text: _('No per-process data for this metric'),
-                style_class: 'vitals-history-tooltip-empty',
-            }));
-            return;
-        }
-        if (!list) {
-            container.add_child(new St.Label({
-                text: _('No process data yet'),
-                style_class: 'vitals-history-tooltip-empty',
-            }));
-            return;
-        }
-        if (list.length === 0) {
-            container.add_child(new St.Label({
-                text: _('No activity in this sample'),
-                style_class: 'vitals-history-tooltip-empty',
-            }));
-            return;
-        }
-
-        for (const proc of list.slice(0, 5)) {
-            const row = new St.BoxLayout({
-                vertical: false,
-                x_expand: true,
-                style_class: 'vitals-history-tooltip-proc-row',
-            });
-            row.add_child(new St.Label({
-                text: proc.count > 1 ? `${proc.name} ×${proc.count}` : proc.name,
-                x_expand: true,
-                style_class: 'vitals-history-tooltip-proc-name',
-            }));
-            row.add_child(new St.Label({
-                text: this._formatProcValue(proc),
-                style_class: 'vitals-history-tooltip-proc-value',
-            }));
-            container.add_child(row);
-        }
-    }
-
     _onMotion(event) {
         if (this._samples.length < 2)
             return;
@@ -427,70 +341,31 @@ export const HistoryChartMenuItem = GObject.registerClass({
             return;
         }
 
-        const denom = Math.max(1, this._samples.length - 1);
-        const rel = localX / Math.max(1, graphW);
-        const index = Math.max(0, Math.min(this._samples.length - 1,
-            Math.round(rel * denom)));
+        const span = Math.max(1e-9, this._tMax - this._tMin);
+        const t = this._tMin + (localX / Math.max(1, graphW)) * span;
+        let index = 0;
+        let bestD = Infinity;
+        for (let i = 0; i < this._samples.length; i++) {
+            const d = Math.abs(this._samples[i].t - t);
+            if (d < bestD) {
+                bestD = d;
+                index = i;
+            }
+        }
         const sample = this._samples[index];
         if (!sample || sample.v === null) {
             this._clearScrub();
             return;
         }
 
-        // Playhead follows the cursor in chart space; tooltip uses nearest sample
         const playX = Math.round(localX);
+        const indexChanged = this._scrubIndex !== index;
         this._scrubIndex = index;
         this._lastPlayX = playX;
         this._graph.queue_repaint();
-        // Extension updates process sample synchronously via scrub
-        this.emit('scrub', sample.t);
-        this._updateTooltip(sample, playX);
-    }
-
-    _updateTooltip(sample, playX = null) {
-        if (!sample) {
-            this._tooltip.visible = false;
-            this._tooltip.set_position(0, 0);
+        if (!indexChanged)
             return;
-        }
-
-        const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
-        this._tooltipTime.text = this._values.formatClock(sample.t);
-        this._tooltipValue.text = `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, sample.v)}`;
-        this._renderTooltipProcs(this._lastProcessSample);
-
-        this._tooltip.visible = true;
-        this._tooltip.queue_relayout();
-        let tipH = this._tooltip.height;
-        if (!tipH || tipH < 8)
-            tipH = 96;
-        let tipW = this._tooltip.width;
-        if (!tipW || tipW < 8)
-            tipW = TOOLTIP_WIDTH;
-
-        const graphWidth = Math.max(GRAPH_WIDTH_MIN, this._graphWidth);
-        const anchorX = playX !== null ? playX : this._lastPlayX;
-
-        // Keep the popup beside the playhead: right half → left of line, left half → right of line
-        const placeLeft = anchorX >= graphWidth / 2;
-        let tipX = placeLeft
-            ? anchorX - tipW - TOOLTIP_GAP
-            : anchorX + TOOLTIP_GAP;
-
-        // Stay inside the chart when possible without covering the scrub line
-        if (placeLeft && tipX < 2) {
-            const rightX = anchorX + TOOLTIP_GAP;
-            tipX = (rightX + tipW <= graphWidth - 2) ? rightX : 2;
-        } else if (!placeLeft && tipX + tipW > graphWidth - 2) {
-            const leftX = anchorX - tipW - TOOLTIP_GAP;
-            tipX = (leftX >= 2) ? leftX : Math.max(2, graphWidth - tipW - 2);
-        }
-
-        let tipY = 8;
-        if (tipY + tipH > GRAPH_HEIGHT - 4)
-            tipY = Math.max(4, GRAPH_HEIGHT - tipH - 4);
-
-        this._tooltip.set_position(Math.round(tipX), Math.round(tipY));
+        this.emit('scrub', sample.t);
     }
 
     _valueRange(data) {
@@ -525,38 +400,77 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._graph.queue_repaint();
     }
 
-    _computePlotPoints() {
-        const data = this._samples;
-        this._plotPoints = [];
+    _timeBounds(data) {
+        let tMin = Infinity;
+        let tMax = -Infinity;
+        for (let i = 0; i < data.length; i++) {
+            const t = data[i].t;
+            if (t < tMin) tMin = t;
+            if (t > tMax) tMax = t;
+        }
+        if (tMin === Infinity) {
+            tMin = 0;
+            tMax = 1;
+        } else if (tMax <= tMin) {
+            tMax = tMin + 1;
+        }
+        this._tMin = tMin;
+        this._tMax = tMax;
+        return { tMin, tSpan: Math.max(1e-9, tMax - tMin) };
+    }
 
+    _computePlotPoints() {
+        this._plotPoints = [];
+        const data = this._samples;
         if (!data || data.length === 0)
             return;
 
+        const { tMin, tSpan } = this._timeBounds(data);
         const graphW = this._plotWidth();
         const graphH = GRAPH_HEIGHT - PLOT_PAD_Y * 1.5;
+        const xScale = Math.max(0, graphW - 1);
         const { vMin, vRange } = this._valueRange(data);
-        const n = data.length;
-        const denom = Math.max(1, n - 1);
 
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < data.length; i++) {
             const sample = data[i];
-            if (!sample || sample.v === null)
+            const x = ((sample.t - tMin) / tSpan) * xScale;
+            if (!sample || sample.v === null) {
+                this._plotPoints.push({ x, gap: true });
                 continue;
+            }
             const norm = Math.min(1, Math.max(0, (sample.v - vMin) / vRange));
             this._plotPoints.push({
-                // Edge-to-edge across the chart surface
-                x: (i / denom) * Math.max(0, graphW - 1),
+                x,
                 y: PLOT_PAD_Y / 2 + (1 - norm) * graphH,
                 norm,
+                gap: false,
             });
         }
+    }
+
+    _plotSegments(pts) {
+        const segments = [];
+        let current = [];
+        for (let i = 0; i < pts.length; i++) {
+            const pt = pts[i];
+            if (!pt || pt.gap) {
+                if (current.length)
+                    segments.push(current);
+                current = [];
+                continue;
+            }
+            current.push(pt);
+        }
+        if (current.length)
+            segments.push(current);
+        return segments;
     }
 
     _onRepaint(area) {
         const cr = area.get_context();
         try {
             const [surfW] = area.get_surface_size();
-            if (surfW > 1 && surfW !== this._graphWidth) {
+            if (surfW > 1 && surfW !== this._graphWidth && !this._hovering) {
                 this._graphWidth = Math.floor(surfW);
                 this._computePlotPoints();
             }
@@ -565,43 +479,46 @@ export const HistoryChartMenuItem = GObject.registerClass({
             cr.paint();
             cr.setOperator(Cairo.Operator.OVER);
 
-            const pts = this._plotPoints;
-            if (!pts || pts.length < 2)
-                return;
-
-            // Soft fill under the path
-            cr.moveTo(pts[0].x, GRAPH_HEIGHT - PLOT_PAD_Y / 2);
-            cr.lineTo(pts[0].x, pts[0].y);
-            for (let i = 1; i < pts.length; i++)
-                cr.lineTo(pts[i].x, pts[i].y);
-            cr.lineTo(pts[pts.length - 1].x, GRAPH_HEIGHT - PLOT_PAD_Y / 2);
-            cr.closePath();
-            const fill = colorForNorm(pts[pts.length - 1].norm);
-            cr.setSourceRGBA(fill.r, fill.g, fill.b, 0.12);
-            cr.fill();
-
-            // Multi-color stroke: each segment tinted by intensity
+            const segments = this._plotSegments(this._plotPoints);
             cr.setLineWidth(LINE_WIDTH);
             cr.setLineCap(Cairo.LineCap.ROUND);
             cr.setLineJoin(Cairo.LineJoin.ROUND);
-            for (let i = 1; i < pts.length; i++) {
-                const a = pts[i - 1];
-                const b = pts[i];
-                const c = colorForNorm((a.norm + b.norm) / 2);
-                cr.setSourceRGBA(c.r, c.g, c.b, c.a);
-                cr.moveTo(a.x, a.y);
-                cr.lineTo(b.x, b.y);
-                cr.stroke();
+
+            const baselineY = GRAPH_HEIGHT - PLOT_PAD_Y / 2;
+            let last = null;
+            for (const seg of segments) {
+                if (seg.length < 2)
+                    continue;
+
+                cr.moveTo(seg[0].x, baselineY);
+                cr.lineTo(seg[0].x, seg[0].y);
+                for (let i = 1; i < seg.length; i++)
+                    cr.lineTo(seg[i].x, seg[i].y);
+                cr.lineTo(seg[seg.length - 1].x, baselineY);
+                cr.closePath();
+                const fill = colorForNorm(seg[seg.length - 1].norm);
+                cr.setSourceRGBA(fill.r, fill.g, fill.b, 0.12);
+                cr.fill();
+
+                for (let i = 1; i < seg.length; i++) {
+                    const a = seg[i - 1];
+                    const b = seg[i];
+                    const c = colorForNorm((a.norm + b.norm) / 2);
+                    cr.setSourceRGBA(c.r, c.g, c.b, c.a);
+                    cr.moveTo(a.x, a.y);
+                    cr.lineTo(b.x, b.y);
+                    cr.stroke();
+                }
+                last = seg[seg.length - 1];
             }
 
-            // Endpoint dot
-            const last = pts[pts.length - 1];
-            const lc = colorForNorm(last.norm);
-            cr.setSourceRGBA(lc.r, lc.g, lc.b, 1);
-            cr.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
-            cr.fill();
+            if (last) {
+                const lc = colorForNorm(last.norm);
+                cr.setSourceRGBA(lc.r, lc.g, lc.b, 1);
+                cr.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
+                cr.fill();
+            }
 
-            // Scrub playhead in the same coordinate space as the series
             if (this._scrubIndex >= 0 && this._lastPlayX >= 0) {
                 const x = this._lastPlayX + 0.5;
                 cr.setSourceRGBA(1, 1, 1, 0.95);
