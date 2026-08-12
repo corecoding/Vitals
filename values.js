@@ -73,6 +73,15 @@ export const Values = GObject.registerClass({
 
     setRecordHistoryChart(enabled) {
         this._recordHistoryChart = !!enabled;
+        if (!this._recordHistoryChart)
+            return;
+        // Drop any non-chart series left over from older builds / cache
+        for (const key of Object.keys(this._timeSeries)) {
+            if (!isEssentialSeriesKey(key)) {
+                delete this._timeSeries[key];
+                delete this._timeSeriesFormat[key];
+            }
+        }
     }
 
     get historyCachePath() {
@@ -87,6 +96,8 @@ export const Values = GObject.registerClass({
 
     _pushTimePoint(key, value, format) {
         if (!this._recordHistoryChart) return;
+        // Chart tabs only: CPU, Memory, Network device rates, GPU usage
+        if (!isEssentialSeriesKey(key)) return;
         if (!this._graphableFormats.includes(format)) return;
         const num = typeof value === 'number' ? value : parseFloat(value);
         if (num !== num) return;
@@ -114,31 +125,6 @@ export const Values = GObject.registerClass({
         buf.push({ t: now, v: num });
         const maxAge = this._getHistoryDurationSeconds();
         while (buf.length > 0 && buf[0].t < now - maxAge) buf.shift();
-        const maxPoints = 200;
-        if (buf.length > maxPoints * 1.5)
-            this._timeSeries[key] = this._downsample(buf, maxPoints);
-    }
-
-    _downsample(buf, targetLen) {
-        const result = [];
-        const bucketSize = buf.length / targetLen;
-        for (let b = 0; b < targetLen; b++) {
-            const iStart = Math.floor(b * bucketSize);
-            const iEnd = Math.floor((b + 1) * bucketSize);
-            let maxVal = -Infinity, count = 0;
-            for (let i = iStart; i < iEnd; i++) {
-                if (buf[i].v !== null) {
-                    if (buf[i].v > maxVal) maxVal = buf[i].v;
-                    count++;
-                }
-            }
-            const midT = (buf[iStart].t + buf[Math.min(iEnd - 1, buf.length - 1)].t) / 2;
-            if (count > 0)
-                result.push({ t: midT, v: maxVal });
-            else
-                result.push({ t: midT, v: null });
-        }
-        return result;
     }
 
     clearTimeSeries(cachePath) {
@@ -190,6 +176,11 @@ export const Values = GObject.registerClass({
             const maxAge = this._getHistoryDurationSeconds();
             const cutoff = now - maxAge;
             for (const key in this._timeSeries) {
+                if (!isEssentialSeriesKey(key)) {
+                    delete this._timeSeries[key];
+                    delete this._timeSeriesFormat[key];
+                    continue;
+                }
                 const buf = this._timeSeries[key];
                 if (!Array.isArray(buf)) {
                     delete this._timeSeries[key];
@@ -476,8 +467,7 @@ export const Values = GObject.registerClass({
             // add label as it was sent from sensors class; type stays e.g. network-us for display/icons
             output.push({ label, value: legible.text, style: legible.style, type, key });
 
-            if (this._recordHistoryChart && !isEssentialSeriesKey(key))
-                this._pushTimePoint(key, value, format);
+            // History chart only needs the essential series — skip other sensors
         }
 
         // save previous values to update screen on changes only
@@ -578,7 +568,6 @@ export const Values = GObject.registerClass({
                 type,
                 key,
             });
-            this._pushTimePoint(key, speed, 'speed');
 
             // store speed for Device report
             if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
@@ -603,6 +592,7 @@ export const Values = GObject.registerClass({
                     type: 'network-' + dir,
                     key: deviceKey,
                 });
+                // Device rx/tx totals are the network series used by the history chart
                 this._pushTimePoint(deviceKey, sumNum, 'speed');
                 // append download speed to group itself
                 if (dir == 'rx') {
