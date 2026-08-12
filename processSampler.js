@@ -106,39 +106,52 @@ export const ProcessSampler = GObject.registerClass({
             : Math.max(1, this._settings.get_int('update-time'));
 
         if (hadPrev) {
-            const cpuScored = [];
-            const memScored = [];
+            const cpuByName = new Map();
+            const memByName = new Map();
 
             for (const [id, entry] of next) {
                 const prev = this._prev.get(id);
                 if (prev) {
                     const deltaTicks = entry.cpuTime - prev.cpuTime;
                     if (deltaTicks > 0) {
-                        const cpu = (deltaTicks / CLK_TCK) / dwell / this._ncpus;
-                        cpuScored.push({
-                            pid: entry.pid,
-                            starttime: entry.starttime,
+                        // Process-level utime+stime (not per-core); normalize to share of all CPUs
+                        const cpu = Math.max(0, (deltaTicks / CLK_TCK) / dwell / this._ncpus);
+                        const row = cpuByName.get(entry.name) || {
                             name: entry.name,
-                            cpu: Math.max(0, cpu),
-                            rss: entry.rssBytes,
-                        });
+                            cpu: 0,
+                            count: 0,
+                        };
+                        row.cpu += cpu;
+                        row.count += 1;
+                        cpuByName.set(entry.name, row);
                     }
                 }
 
                 if (entry.rssBytes > 0) {
-                    memScored.push({
-                        pid: entry.pid,
-                        starttime: entry.starttime,
+                    const row = memByName.get(entry.name) || {
                         name: entry.name,
-                        rss: entry.rssBytes,
-                        mem: this._memTotalBytes > 0
-                            ? entry.rssBytes / this._memTotalBytes
-                            : 0,
-                    });
+                        rss: 0,
+                        count: 0,
+                    };
+                    row.rss += entry.rssBytes;
+                    row.count += 1;
+                    memByName.set(entry.name, row);
                 }
             }
 
+            const cpuScored = Array.from(cpuByName.values()).map(row => ({
+                name: row.name,
+                cpu: row.cpu,
+                count: row.count,
+            }));
             cpuScored.sort((a, b) => b.cpu - a.cpu);
+
+            const memScored = Array.from(memByName.values()).map(row => ({
+                name: row.name,
+                rss: row.rss,
+                mem: this._memTotalBytes > 0 ? row.rss / this._memTotalBytes : 0,
+                count: row.count,
+            }));
             memScored.sort((a, b) => b.rss - a.rss);
 
             this._samples.push({
@@ -243,7 +256,7 @@ export const ProcessSampler = GObject.registerClass({
         const now = Date.now() / 1000;
         if (this._netPrev && this._netPrevAt > 0) {
             const dwell = Math.max(0.5, now - this._netPrevAt);
-            const scored = [];
+            const byName = new Map();
 
             for (const [pid, cur] of totals) {
                 const prev = this._netPrev.get(pid);
@@ -251,18 +264,26 @@ export const ProcessSampler = GObject.registerClass({
                     continue;
                 const dSent = Math.max(0, cur.sent - prev.sent);
                 const dRecv = Math.max(0, cur.recv - prev.recv);
-                const rate = (dSent + dRecv) / dwell;
+                const tx = dSent / dwell;
+                const rx = dRecv / dwell;
+                const rate = tx + rx;
                 if (rate <= 0)
                     continue;
-                scored.push({
-                    pid,
+                const row = byName.get(cur.name) || {
                     name: cur.name,
-                    tx: dSent / dwell,
-                    rx: dRecv / dwell,
-                    net: rate,
-                });
+                    tx: 0,
+                    rx: 0,
+                    net: 0,
+                    count: 0,
+                };
+                row.tx += tx;
+                row.rx += rx;
+                row.net += rate;
+                row.count += 1;
+                byName.set(cur.name, row);
             }
 
+            const scored = Array.from(byName.values());
             scored.sort((a, b) => b.net - a.net);
             this._latestTopNetwork = scored.slice(0, TOP_N);
 

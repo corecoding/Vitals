@@ -329,7 +329,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
                 style_class: 'vitals-history-tooltip-proc-row',
             });
             row.add_child(new St.Label({
-                text: proc.name,
+                text: proc.count > 1 ? `${proc.name} ×${proc.count}` : proc.name,
                 x_expand: true,
                 style_class: 'vitals-history-tooltip-proc-name',
             }));
