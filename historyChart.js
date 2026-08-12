@@ -169,20 +169,6 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._plotPoints = [];
         this._graphStage.add_child(this._graph);
 
-        // Sibling overlay so the scrub line sits above the Cairo surface
-        this._playhead = new St.Bin({
-            width: 2,
-            height: GRAPH_HEIGHT,
-            style_class: 'vitals-history-playhead',
-            visible: false,
-            reactive: false,
-            x_expand: false,
-            y_expand: false,
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.FILL,
-        });
-        this._graphStage.add_child(this._playhead);
-
         this._tooltip = new St.BoxLayout({
             vertical: true,
             style_class: 'vitals-history-tooltip',
@@ -239,15 +225,16 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _clearScrub() {
-        this._playhead.visible = false;
-        this._playhead.translation_x = 0;
         this._tooltip.visible = false;
         this._tooltip.translation_x = 0;
         this._tooltip.translation_y = 0;
-        if (this._scrubIndex < 0)
-            return;
+        const wasScrubbing = this._scrubIndex >= 0;
         this._scrubIndex = -1;
-        this.emit('scrub', -1);
+        this._lastPlayX = -1;
+        if (wasScrubbing) {
+            this.emit('scrub', -1);
+            this._graph.queue_repaint();
+        }
     }
 
     _onGraphAllocationChanged() {
@@ -265,19 +252,13 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _localXFromEvent(event) {
-        const [stageX, stageY] = event.get_coords();
-        // Handles fractional scaling; get_transformed_position() alone can be wrong
-        const transformed = this._graph.transform_stage_point(stageX, stageY);
-        if (!transformed)
-            return null;
-        const ok = transformed[0];
-        const localX = transformed[1];
-        if (ok === false)
-            return null;
-        // Older/newer GI may return [x, y] or [ok, x, y]
-        if (typeof ok === 'boolean')
-            return localX;
-        return ok;
+        const [stageX] = event.get_coords();
+        // Map stage pixels into actor allocation space (correct under fractional scaling)
+        const [ax] = this._graph.get_transformed_position();
+        const [aw] = this._graph.get_transformed_size();
+        const width = Math.max(1, this._graph.get_width());
+        const scaleX = Math.max(1e-6, aw / width);
+        return (stageX - ax) / scaleX;
     }
 
     activate(_event) {
@@ -441,13 +422,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         if (this._samples.length < 2)
             return;
 
-        let localX = this._localXFromEvent(event);
-        if (localX === null) {
-            const [x] = event.get_coords();
-            const [gx] = this._graph.get_transformed_position();
-            localX = x - gx;
-        }
-
+        const localX = this._localXFromEvent(event);
         const graphW = this._plotWidth();
         if (localX < 0 || localX > graphW) {
             this._clearScrub();
@@ -464,12 +439,11 @@ export const HistoryChartMenuItem = GObject.registerClass({
             return;
         }
 
-        // Keep the playhead under the cursor; tooltip uses the nearest sample
+        // Playhead follows the cursor in chart space; tooltip uses nearest sample
         const playX = Math.round(localX);
         this._scrubIndex = index;
         this._lastPlayX = playX;
-        this._playhead.visible = true;
-        this._playhead.translation_x = playX - 1;
+        this._graph.queue_repaint();
         // Extension updates process sample synchronously via scrub
         this.emit('scrub', sample.t);
         this._updateTooltip(sample, playX);
@@ -618,6 +592,16 @@ export const HistoryChartMenuItem = GObject.registerClass({
             cr.setSourceRGBA(lc.r, lc.g, lc.b, 1);
             cr.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
             cr.fill();
+
+            // Scrub playhead in the same coordinate space as the series
+            if (this._scrubIndex >= 0 && this._lastPlayX >= 0) {
+                const x = this._lastPlayX + 0.5;
+                cr.setSourceRGBA(1, 1, 1, 0.95);
+                cr.setLineWidth(2);
+                cr.moveTo(x, 0);
+                cr.lineTo(x, GRAPH_HEIGHT);
+                cr.stroke();
+            }
         } finally {
             cr.$dispose();
         }
