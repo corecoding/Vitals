@@ -147,21 +147,30 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._historyChartItem = new HistoryChart.HistoryChartMenuItem(this._values);
         this._historyChartItem.connectObject('scrub', (_item, unixSeconds) => {
-            if (unixSeconds < 0) {
+            // Keep sensor groups hidden for the whole chart hover, including downtime gaps
+            if (!this._historyChartItem.isHovering()) {
                 this._setScrubMenuActive(false);
                 const latest = this._processSampler.getLatest();
                 this._historyChartItem.setProcessSample(latest);
                 return;
             }
+            this._setScrubMenuActive(true);
+            if (unixSeconds < 0) {
+                this._historyChartItem.setProcessSample(null);
+                this._refreshScrubProcessMenu();
+                return;
+            }
             const sample = this._processSampler.getNearest(unixSeconds);
             this._historyChartItem.setProcessSample(sample);
-            this._setScrubMenuActive(true);
+            this._refreshScrubProcessMenu();
         }, this);
         this._historyChartItem.connectObject('scrub-view-changed', () => {
-            if (this._historyChartItem.isScrubbing())
+            if (this._historyChartItem.isHovering()) {
+                this._setScrubMenuActive(true);
                 this._refreshScrubProcessMenu();
-            else
+            } else {
                 this._setScrubMenuActive(false);
+            }
         }, this);
 
         this._historyChartSeparator = new PopupMenu.PopupSeparatorMenuItem();
@@ -293,14 +302,23 @@ var VitalsMenuButton = GObject.registerClass({
 
         const view = this._historyChartItem.getScrubView();
         if (!view) {
-            this._setScrubMenuActive(false);
+            if (!this._historyChartItem.isHovering())
+                this._setScrubMenuActive(false);
             return;
         }
 
         this._ensureScrubMenuItems();
-        this._scrubHeaderTime.text = view.timeText;
+        this._scrubHeaderTime.text = view.timeText || '';
         if (this._scrubHeaderValue)
             this._scrubHeaderValue.text = view.valueText || '';
+        const hasHeader = !!(view.timeText || view.valueText);
+        const header = this._scrubMenuItems[0];
+        if (header && header.actor) {
+            if (hasHeader)
+                header.actor.show();
+            else
+                header.actor.hide();
+        }
 
         const items = view.items || [];
         for (let i = 0; i < this._scrubProcRows.length; i++) {

@@ -150,6 +150,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
             const w = Math.floor(this._graph.get_width());
             if (w > 1)
                 this._graphWidth = w;
+            // Hide sensor groups immediately; bottom stays empty until a valid slice
+            this._setGapScrub(true);
             return Clutter.EVENT_PROPAGATE;
         });
         this._graph.connect('motion-event', (_actor, event) => {
@@ -171,15 +173,26 @@ export const HistoryChartMenuItem = GObject.registerClass({
         return this._hovering;
     }
 
-    _clearScrub() {
-        const wasScrubbing = this._scrubIndex >= 0;
+    _setGapScrub(force = false) {
+        const alreadyGap = this._scrubIndex < 0 && this._lastPlayX < 0;
+        if (alreadyGap && !force)
+            return;
         this._scrubIndex = -1;
         this._lastPlayX = -1;
-        if (wasScrubbing) {
-            this.emit('scrub', -1);
-            this.emit('scrub-view-changed');
+        this.emit('scrub', -1);
+        this.emit('scrub-view-changed');
+        if (!alreadyGap)
             this._graph.queue_repaint();
-        }
+    }
+
+    _clearScrub() {
+        const wasScrubbing = this._scrubIndex >= 0 || this._lastPlayX >= 0;
+        this._scrubIndex = -1;
+        this._lastPlayX = -1;
+        this.emit('scrub', -1);
+        this.emit('scrub-view-changed');
+        if (wasScrubbing)
+            this._graph.queue_repaint();
     }
 
     _onGraphAllocationChanged() {
@@ -214,11 +227,15 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     getScrubView() {
+        // While hovering the chart, always return a view so sensor groups stay hidden
+        // even over downtime gaps (empty bottom until a valid slice).
+        if (!this._hovering)
+            return null;
         if (this._scrubIndex < 0)
-            return null;
+            return { timeText: '', valueText: '', items: [] };
         const sample = this._samples[this._scrubIndex];
-        if (!sample)
-            return null;
+        if (!sample || sample.v === null)
+            return { timeText: '', valueText: '', items: [] };
 
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
         const items = [];
@@ -331,13 +348,15 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _onMotion(event) {
-        if (this._samples.length < 2)
+        if (this._samples.length < 2) {
+            this._setGapScrub();
             return;
+        }
 
         const localX = this._localXFromEvent(event);
         const graphW = this._plotWidth();
         if (localX < 0 || localX > graphW) {
-            this._clearScrub();
+            this._setGapScrub();
             return;
         }
 
@@ -354,7 +373,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         }
         const sample = this._samples[index];
         if (!sample || sample.v === null) {
-            this._clearScrub();
+            this._setGapScrub();
             return;
         }
 
