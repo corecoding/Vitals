@@ -154,6 +154,9 @@ export const HistoryChartMenuItem = GObject.registerClass({
             const w = Math.floor(this._graph.get_width());
             if (w > 1)
                 this._graphWidth = w;
+            // Returning to the chart: drop process-focus overlay so scrubbing works on the system series
+            if (this._processFocusName)
+                this.clearProcessFocus();
             // Keep a pinned slice; otherwise clear until a valid point is hovered
             if (!this._pinned)
                 this._setGapScrub(true);
@@ -161,6 +164,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         });
         this._graph.connect('motion-event', (_actor, event) => {
             this._hovering = true;
+            // Pin only keeps the list when leaving — never freezes the playhead
             this._onMotion(event);
             return Clutter.EVENT_PROPAGATE;
         });
@@ -289,18 +293,24 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
         if (this._scrubIndex < 0 || !this._samples[this._scrubIndex] ||
             this._samples[this._scrubIndex].v === null) {
+            // Clicking empty/gap while pinned releases the pin
             if (this._pinned)
                 this._setPinned(false);
             return Clutter.EVENT_STOP;
         }
 
-        // Click toggles pin on a valid slice
-        this._setPinned(!this._pinned);
+        // Click pins (and stays pinned). Unpin via the header control — not by
+        // toggling, so hover can keep moving the playhead without re-locking.
+        if (!this._pinned)
+            this._setPinned(true);
+        else if (this._samples[this._scrubIndex])
+            this._pinnedTime = this._samples[this._scrubIndex].t;
         return Clutter.EVENT_STOP;
     }
 
     _setGapScrub(force = false) {
-        // While pinned, keep the last valid slice instead of clearing on gaps/edges
+        // While pinned, ignore edge/gap clears so leaving the plot doesn't wipe the list.
+        // Motion onto a valid point still updates via _onMotion.
         if (this._pinned && !force)
             return;
         const alreadyGap = this._scrubIndex < 0 && this._lastPlayX < 0;
@@ -394,7 +404,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
         let timeText = this._values.formatClock(sample.t);
         if (this._pinned)
-            timeText = `${timeText}  ·  ${_('pinned — click chart to unpin')}`;
+            timeText = `${timeText}  ·  ${_('pinned')}`;
 
         let valueText;
         if (this._processFocusName) {

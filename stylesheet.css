@@ -64,6 +64,19 @@
 .vitals-history-scrub-header-box {
     spacing: 2px;
 }
+.vitals-history-scrub-header-top {
+    spacing: 10px;
+}
+.vitals-history-scrub-unpin {
+    padding: 4px 10px;
+    border-radius: 10px;
+    background-color: rgba(128, 128, 128, 0.18);
+    font-size: 0.8em;
+    font-weight: bold;
+}
+.vitals-history-scrub-unpin:hover {
+    background-color: rgba(128, 128, 128, 0.28);
+}
 .vitals-history-scrub-time {
     font-size: 0.78em;
     opacity: 0.7;
