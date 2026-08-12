@@ -349,20 +349,20 @@ var VitalsMenuButton = GObject.registerClass({
         if (!box)
             return;
 
-        let needed = Math.ceil(box.get_width());
-        try {
-            const pref = box.get_preferred_width(-1);
-            needed = Math.max(needed, Math.ceil(pref[0]), Math.ceil(pref[1]));
-        } catch (e) {
-            // keep allocated width
-        }
+        // Seed once from the current allocation. Never re-read box/preferred width on
+        // later calls — the x_expand chart reports its allocation and that ratchets
+        // the lock wider on every scrub refresh (empty padding on the right).
+        let needed = this._menuLockWidth;
+        if (needed <= 0)
+            needed = Math.ceil(box.get_width());
+
         for (const item of this._scrubProcRows) {
             if (!item.visible && !item.actor?.visible)
                 continue;
             try {
                 const nw = item._nameLabel.get_clutter_text().width;
                 const vw = item._valueLabel.get_clutter_text().width;
-                needed = Math.max(needed, nw + vw + 40);
+                needed = Math.max(needed, nw + vw + 48);
             } catch (e) {
                 // ignore
             }
