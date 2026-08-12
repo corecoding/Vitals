@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <requires lib="libadwaita" version="1.9"/>
+  <requires lib="libadwaita" version="1.4"/>
 
-  <!-- Settings-style left sidebar + content (pages attached in prefs.js) -->
+  <!-- Pre-1.9 Settings-style shell: ListBox + .navigation-sidebar (pages attached in prefs.js) -->
   <object class="AdwNavigationSplitView" id="prefs-root">
     <property name="vexpand">True</property>
     <property name="hexpand">True</property>
@@ -21,9 +21,19 @@
               </object>
             </child>
             <property name="content">
-              <object class="AdwViewSwitcherSidebar" id="prefs-sidebar">
-                <property name="stack">prefs-stack</property>
-                <property name="mode">sidebar</property>
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkListBox" id="prefs-sidebar">
+                    <property name="selection-mode">browse</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </property>
           </object>

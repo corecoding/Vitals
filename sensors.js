@@ -28,7 +28,18 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
+// Shell and prefs hosts expose gettext on different module paths.
+let _;
+try {
+    ({gettext: _} = await import('resource:///org/gnome/shell/extensions/extension.js'));
+} catch (err) {
+    try {
+        ({gettext: _} = await import('resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js'));
+    } catch (err2) {
+        _ = (s) => s;
+    }
+}
 
 let GTop, hasGTop = true;
 try {
@@ -545,6 +556,10 @@ export const Sensors = GObject.registerClass({
     }
 
     _initFrameMonitor() {
+        // Prefs has no gnome-shell `global`; skip refresh-rate sampling there.
+        if (typeof global === 'undefined' || !global.stage)
+            return;
+
         if (this._frameMonitorSignalId) return;
         this._frameMonitorLastTime = 0;
         this._frameMonitorFrameCount = 0;
@@ -556,6 +571,12 @@ export const Sensors = GObject.registerClass({
     }
 
     _destroyFrameMonitor() {
+        if (typeof global === 'undefined' || !global.stage) {
+            this._frameMonitorSignalId = 0;
+            this._frameMonitorLastTime = 0;
+            this._frameMonitorCurrentHz = 0;
+            return;
+        }
         if (this._frameMonitorSignalId) {
             global.stage.disconnect(this._frameMonitorSignalId);
             this._frameMonitorSignalId = 0;

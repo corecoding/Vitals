@@ -276,3 +276,22 @@ export function colorSettingsKeys() {
         .filter(group => sensorCatalog[group].colorFormats)
         .map(group => `${group}-colors`);
 }
+
+// GSettings key for threshold colors for a live sensor (shared by values + prefs).
+export function colorsKeyForSensor(type, format) {
+    // All temperatures share the temperature threshold UI, including GPU rows.
+    if (format === 'temp')
+        return 'temperature-colors';
+
+    const group = sensorGroupFromType(type);
+    const formats = sensorCatalog[group]?.colorFormats;
+    if (formats && formats.includes(format))
+        return `${group}-colors`;
+
+    return null;
+}
+
+export function colorPageForSensor(type, format) {
+    let key = colorsKeyForSensor(type, format);
+    return key ? key.slice(0, -'-colors'.length) : null;
+}
