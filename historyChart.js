@@ -196,9 +196,10 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _onGraphAllocationChanged() {
-        // Keep plot geometry matched to allocation even while hovering so a one-time
-        // menu grow (long process names) does not leave empty padding on the right.
-        // Series samples stay frozen via _seriesDirty; this only rescales X.
+        // Ignore allocation churn while hovering — menu width is frozen for the
+        // hover session so the plot must not resync/rebuild under the cursor.
+        if (this._hovering)
+            return;
         const w = Math.floor(this._graph.get_width());
         if (w < 2 || w === this._graphWidth)
             return;
@@ -352,13 +353,6 @@ export const HistoryChartMenuItem = GObject.registerClass({
         if (this._samples.length < 2) {
             this._setGapScrub();
             return;
-        }
-
-        // Hit-test against the live allocation, not a stale frozen plot width
-        const allocW = Math.max(1, this._graph.get_width());
-        if (allocW > 1 && allocW !== this._graphWidth) {
-            this._graphWidth = Math.floor(allocW);
-            this._computePlotPoints();
         }
 
         const localX = this._localXFromEvent(event);

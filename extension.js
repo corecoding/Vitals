@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Pango from 'gi://Pango';
 import St from 'gi://St'
 
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -271,10 +272,12 @@ var VitalsMenuButton = GObject.registerClass({
                 x_expand: true,
                 style_class: 'vitals-history-scrub-proc-name',
             });
+            name.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             const value = new St.Label({
                 text: '',
                 style_class: 'vitals-history-scrub-proc-value',
             });
+            value.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             item.add_child(name);
             item.add_child(value);
             item._nameLabel = name;
@@ -341,33 +344,20 @@ var VitalsMenuButton = GObject.registerClass({
             item.add_style_class_name(style);
             item.actor.show();
         }
-        this._lockMenuWidth();
+        // Never resize while the pointer is on the chart — label width feedback
+        // was ratcheting the menu +1px on every scrub motion.
     }
 
     _lockMenuWidth() {
+        // Chart hover must not change menu geometry (avoids grow/padding feedback loops)
+        if (this._historyChartItem && this._historyChartItem.isHovering())
+            return;
+
         const box = this.menu && this.menu.box;
         if (!box)
             return;
 
-        // Seed once from the current allocation. Never re-read box/preferred width on
-        // later calls — the x_expand chart reports its allocation and that ratchets
-        // the lock wider on every scrub refresh (empty padding on the right).
-        let needed = this._menuLockWidth;
-        if (needed <= 0)
-            needed = Math.ceil(box.get_width());
-
-        for (const item of this._scrubProcRows) {
-            if (!item.visible && !item.actor?.visible)
-                continue;
-            try {
-                const nw = item._nameLabel.get_clutter_text().width;
-                const vw = item._valueLabel.get_clutter_text().width;
-                needed = Math.max(needed, nw + vw + 48);
-            } catch (e) {
-                // ignore
-            }
-        }
-
+        const needed = Math.ceil(box.get_width());
         if (needed > this._menuLockWidth)
             this._menuLockWidth = needed;
         if (this._menuLockWidth > 0)
