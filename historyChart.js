@@ -35,7 +35,7 @@ const GRAPH_WIDTH = 360;
 const GRAPH_HEIGHT = 120;
 const PADDING = 8;
 const MIN_BAR_WIDTH = 2;
-const TOOLTIP_WIDTH = 168;
+const TOOLTIP_WIDTH = 190;
 
 const METRICS = [
     { id: 'cpu', label: 'CPU', key: '_processor_usage_', series: 'cpu' },
@@ -185,25 +185,6 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._graphCard.set_child(this._graph);
         this._box.add_child(this._graphCard);
 
-        this._processCard = new St.BoxLayout({
-            vertical: true,
-            style_class: 'vitals-history-process-card',
-            x_expand: true,
-        });
-        this._processHeader = new St.Label({
-            text: '',
-            style_class: 'vitals-history-process-header',
-        });
-        this._processCard.add_child(this._processHeader);
-        this._processList = new St.BoxLayout({
-            vertical: true,
-            style_class: 'vitals-history-process-list',
-            x_expand: true,
-        });
-        this._processCard.add_child(this._processList);
-        this._box.add_child(this._processCard);
-        this._updateProcessHeader();
-
         this._graph.connect('motion-event', (_actor, event) => {
             this._onMotion(event);
             return Clutter.EVENT_PROPAGATE;
@@ -228,29 +209,9 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._metric = id;
         for (const metric of METRICS)
             this._tabButtons[metric.id].checked = (metric.id === id);
-        this._updateProcessHeader();
         this.setSeriesData(this._essential);
-        this.setProcessSample(this._lastProcessSample);
         if (this._scrubIndex >= 0 && this._samples[this._scrubIndex])
             this._updateTooltip(this._samples[this._scrubIndex]);
-    }
-
-    _updateProcessHeader() {
-        switch (this._metric) {
-            case 'memory':
-                this._processHeader.text = _('Memory');
-                break;
-            case 'network':
-                this._processHeader.text = _('Network');
-                break;
-            case 'gpu':
-                this._processHeader.text = _('GPU');
-                break;
-            case 'cpu':
-            default:
-                this._processHeader.text = _('CPU');
-                break;
-        }
     }
 
     _latestValueText(metric) {
@@ -294,8 +255,6 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
     setProcessSample(sample) {
         this._lastProcessSample = sample || null;
-        this._renderProcessList(this._processList, sample, 8, false);
-
         if (this._scrubIndex >= 0 && this._samples[this._scrubIndex])
             this._updateTooltip(this._samples[this._scrubIndex]);
     }
@@ -321,7 +280,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
         return `${pct}%`;
     }
 
-    _renderProcessList(container, sample, limit, compact) {
+    _renderTooltipProcs(sample) {
+        const container = this._tooltipProcs;
         const children = container.get_children();
         for (const child of children)
             child.destroy();
@@ -329,56 +289,41 @@ export const HistoryChartMenuItem = GObject.registerClass({
         const { unavailable, list } = this._processRows(sample);
         if (unavailable) {
             container.add_child(new St.Label({
-                text: _('Per-process breakdown coming later'),
-                style_class: 'vitals-history-process-empty',
+                text: _('No per-process data for this metric'),
+                style_class: 'vitals-history-tooltip-empty',
             }));
             return;
         }
         if (!list) {
             container.add_child(new St.Label({
                 text: _('No process data yet'),
-                style_class: 'vitals-history-process-empty',
+                style_class: 'vitals-history-tooltip-empty',
             }));
             return;
         }
         if (list.length === 0) {
             container.add_child(new St.Label({
                 text: _('No activity in this sample'),
-                style_class: 'vitals-history-process-empty',
+                style_class: 'vitals-history-tooltip-empty',
             }));
             return;
         }
 
-        for (const proc of list.slice(0, limit)) {
+        for (const proc of list.slice(0, 5)) {
             const row = new St.BoxLayout({
                 vertical: false,
                 x_expand: true,
-                style_class: compact
-                    ? 'vitals-history-tooltip-proc-row'
-                    : 'vitals-history-process-row',
+                style_class: 'vitals-history-tooltip-proc-row',
             });
-            const swatch = new St.Bin({
-                style_class: 'vitals-history-process-swatch',
-                width: compact ? 6 : 8,
-                height: compact ? 6 : 8,
-            });
-            const name = new St.Label({
+            row.add_child(new St.Label({
                 text: proc.name,
                 x_expand: true,
-                style_class: compact
-                    ? 'vitals-history-tooltip-proc-name'
-                    : 'vitals-history-process-name',
-            });
-            const value = new St.Label({
+                style_class: 'vitals-history-tooltip-proc-name',
+            }));
+            row.add_child(new St.Label({
                 text: this._formatProcValue(proc),
-                style_class: compact
-                    ? 'vitals-history-tooltip-proc-value'
-                    : 'vitals-history-process-value',
-            });
-            if (!compact)
-                row.add_child(swatch);
-            row.add_child(name);
-            row.add_child(value);
+                style_class: 'vitals-history-tooltip-proc-value',
+            }));
             container.add_child(row);
         }
     }
@@ -415,7 +360,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
         this._tooltipTime.text = this._values.formatClock(sample.t);
         this._tooltipValue.text = `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, sample.v)}`;
-        this._renderProcessList(this._tooltipProcs, this._lastProcessSample, 3, true);
+        this._renderTooltipProcs(this._lastProcessSample);
 
         this._tooltip.visible = true;
         const tipW = TOOLTIP_WIDTH;

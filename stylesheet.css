@@ -109,41 +109,8 @@
     color: #c8d0ff;
     font-feature-settings: "tnum";
 }
-.vitals-history-process-card {
-    spacing: 8px;
-    padding: 10px 12px;
-    border-radius: 14px;
-    background-color: rgba(128, 128, 128, 0.1);
-}
-.vitals-history-process-header {
-    font-size: 0.95em;
-    font-weight: bold;
-    opacity: 0.9;
-}
-.vitals-history-process-list {
-    spacing: 4px;
-    min-height: 5.5em;
-}
-.vitals-history-process-row {
-    spacing: 10px;
-    padding: 5px 4px;
-    border-radius: 8px;
-}
-.vitals-history-process-swatch {
-    background-color: rgba(110, 140, 230, 0.85);
-    border-radius: 3px;
-    y-align: center;
-}
-.vitals-history-process-name {
-    font-size: 0.92em;
-}
-.vitals-history-process-value {
-    font-feature-settings: "tnum";
+.vitals-history-tooltip-empty {
+    font-size: 0.78em;
+    color: #c0c0c0;
     opacity: 0.85;
-    font-size: 0.9em;
-}
-.vitals-history-process-empty {
-    font-size: 0.85em;
-    opacity: 0.65;
-    padding: 4px 0;
 }
