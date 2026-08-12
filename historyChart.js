@@ -36,6 +36,7 @@ const GRAPH_WIDTH_MIN = 280;
 const GRAPH_HEIGHT = 120;
 const PLOT_PAD_Y = 8;
 const TOOLTIP_WIDTH = 190;
+const TOOLTIP_GAP = 12;
 const LINE_WIDTH = 2.5;
 
 const METRICS = [
@@ -144,13 +145,13 @@ export const HistoryChartMenuItem = GObject.registerClass({
             y_align: Clutter.ActorAlign.START,
         });
         this._graphCard.clip_to_allocation = false;
-        // BinLayout + translations keep overlays from changing preferred size (no hover shift)
+        // FixedLayout so tooltip set_position is exact; graph size is locked from allocation
         this._graphStage = new St.Widget({
             height: GRAPH_HEIGHT,
             style_class: 'vitals-history-graph-stage',
             reactive: false,
             x_expand: true,
-            layout_manager: new Clutter.BinLayout(),
+            layout_manager: new Clutter.FixedLayout(),
         });
         this._graphStage.clip_to_allocation = false;
 
@@ -158,15 +159,14 @@ export const HistoryChartMenuItem = GObject.registerClass({
             style_class: 'vitals-history-graph',
             reactive: true,
             track_hover: true,
-            x_expand: true,
-            y_expand: true,
         });
         this._graph.clip_to_allocation = true;
         this._graph.connect('repaint', this._onRepaint.bind(this));
-        this._graph.connect('notify::allocation', () => {
+        this._graphStage.connect('notify::allocation', () => {
             this._onGraphAllocationChanged();
         });
         this._plotPoints = [];
+        this._graph.set_position(0, 0);
         this._graphStage.add_child(this._graph);
 
         this._tooltip = new St.BoxLayout({
@@ -175,10 +175,6 @@ export const HistoryChartMenuItem = GObject.registerClass({
             visible: false,
             width: TOOLTIP_WIDTH,
             reactive: false,
-            x_expand: false,
-            y_expand: false,
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.START,
         });
         this._tooltipTime = new St.Label({
             text: '',
@@ -226,8 +222,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
     _clearScrub() {
         this._tooltip.visible = false;
-        this._tooltip.translation_x = 0;
-        this._tooltip.translation_y = 0;
+        this._tooltip.set_position(0, 0);
         const wasScrubbing = this._scrubIndex >= 0;
         this._scrubIndex = -1;
         this._lastPlayX = -1;
@@ -238,8 +233,11 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _onGraphAllocationChanged() {
-        const w = Math.floor(this._graph.get_width());
-        if (w < 2 || w === this._graphWidth)
+        const w = Math.floor(this._graphStage.get_width());
+        if (w < 2)
+            return;
+        this._graph.set_size(w, GRAPH_HEIGHT);
+        if (w === this._graphWidth)
             return;
         this._graphWidth = w;
         this._rebuildLine();
@@ -452,8 +450,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
     _updateTooltip(sample, playX = null) {
         if (!sample) {
             this._tooltip.visible = false;
-            this._tooltip.translation_x = 0;
-            this._tooltip.translation_y = 0;
+            this._tooltip.set_position(0, 0);
             return;
         }
 
@@ -463,26 +460,37 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._renderTooltipProcs(this._lastProcessSample);
 
         this._tooltip.visible = true;
-        // Ensure allocation is current before measuring/positioning
         this._tooltip.queue_relayout();
         let tipH = this._tooltip.height;
         if (!tipH || tipH < 8)
             tipH = 96;
+        let tipW = this._tooltip.width;
+        if (!tipW || tipW < 8)
+            tipW = TOOLTIP_WIDTH;
 
-        const tipW = TOOLTIP_WIDTH;
         const graphWidth = Math.max(GRAPH_WIDTH_MIN, this._graphWidth);
         const anchorX = playX !== null ? playX : this._lastPlayX;
-        let tipX = anchorX + 10;
-        if (tipX + tipW > graphWidth - 4)
-            tipX = Math.max(4, anchorX - tipW - 10);
 
-        // Prefer above the pointer band; allow overflow below the chart (stage is unclipped)
+        // Keep the popup beside the playhead: right half → left of line, left half → right of line
+        const placeLeft = anchorX >= graphWidth / 2;
+        let tipX = placeLeft
+            ? anchorX - tipW - TOOLTIP_GAP
+            : anchorX + TOOLTIP_GAP;
+
+        // Stay inside the chart when possible without covering the scrub line
+        if (placeLeft && tipX < 2) {
+            const rightX = anchorX + TOOLTIP_GAP;
+            tipX = (rightX + tipW <= graphWidth - 2) ? rightX : 2;
+        } else if (!placeLeft && tipX + tipW > graphWidth - 2) {
+            const leftX = anchorX - tipW - TOOLTIP_GAP;
+            tipX = (leftX >= 2) ? leftX : Math.max(2, graphWidth - tipW - 2);
+        }
+
         let tipY = 8;
         if (tipY + tipH > GRAPH_HEIGHT - 4)
             tipY = Math.max(4, GRAPH_HEIGHT - tipH - 4);
 
-        this._tooltip.translation_x = Math.round(tipX);
-        this._tooltip.translation_y = Math.round(tipY);
+        this._tooltip.set_position(Math.round(tipX), Math.round(tipY));
     }
 
     _valueRange(data) {
