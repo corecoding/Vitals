@@ -25,8 +25,10 @@
 */
 
 import GObject from 'gi://GObject';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
-import {sensorCatalog, colorsKeyForSensor} from './helpers/catalog.js';
+import {colorsKeyForSensor} from './helpers/catalog.js';
 import {getUsageColor} from './helpers/colors.js';
 
 const cbFun = (d, c) => {
@@ -36,6 +38,19 @@ const cbFun = (d, c) => {
 
     return [d[0] + aa, bb];
 };
+
+const ESSENTIAL_SERIES_KEYS = new Set([
+    '_processor_usage_',
+    '_memory_usage_',
+    '__network-rx_max__',
+    '__network-tx_max__',
+]);
+
+function isEssentialSeriesKey(key) {
+    if (ESSENTIAL_SERIES_KEYS.has(key))
+        return true;
+    return /^_gpu#\d+_usage_$/.test(key);
+}
 
 export const Values = GObject.registerClass({
        GTypeName: 'Values',
@@ -49,7 +64,190 @@ export const Values = GObject.registerClass({
         this._networkSpeeds = {};
 
         this._history = {};
+        this._timeSeries = {};
+        this._timeSeriesFormat = {};
+        this._graphableFormats = ['temp', 'in', 'fan', 'percent', 'hertz', 'memory', 'speed', 'storage', 'watt', 'watt-gpu', 'milliamp', 'milliamp-hour', 'load'];
         this.resetHistory();
+        this._recordHistoryChart = this._settings.get_boolean('show-history-chart');
+    }
+
+    setRecordHistoryChart(enabled) {
+        this._recordHistoryChart = !!enabled;
+    }
+
+    get historyCachePath() {
+        return GLib.build_filenamev([GLib.get_user_cache_dir(), 'vitals', 'history.json']);
+    }
+
+    _getHistoryDurationSeconds() {
+        if (this._settings && this._settings.get_int)
+            return Math.max(60, this._settings.get_int('history-duration'));
+        return 3600;
+    }
+
+    _pushTimePoint(key, value, format) {
+        if (!this._recordHistoryChart) return;
+        if (!this._graphableFormats.includes(format)) return;
+        const num = typeof value === 'number' ? value : parseFloat(value);
+        if (num !== num) return;
+        this._timeSeriesFormat[key] = format;
+        const now = Date.now() / 1000;
+        if (!(key in this._timeSeries)) this._timeSeries[key] = [];
+        const buf = this._timeSeries[key];
+        const interval = Math.max(1, this._settings.get_int('update-time'));
+        const minInterval = interval - 0.5;
+        if (buf.length > 0 && buf[buf.length - 1].v !== null && (now - buf[buf.length - 1].t) < minInterval) {
+            buf[buf.length - 1].v = num;
+            return;
+        }
+        if (buf.length > 0) {
+            const lastT = buf[buf.length - 1].t;
+            const gap = now - lastT;
+            if (gap > interval * 3) {
+                let fillT = lastT + interval;
+                while (fillT < now - interval * 0.5) {
+                    buf.push({ t: fillT, v: null });
+                    fillT += interval;
+                }
+            }
+        }
+        buf.push({ t: now, v: num });
+        const maxAge = this._getHistoryDurationSeconds();
+        while (buf.length > 0 && buf[0].t < now - maxAge) buf.shift();
+        const maxPoints = 200;
+        if (buf.length > maxPoints * 1.5)
+            this._timeSeries[key] = this._downsample(buf, maxPoints);
+    }
+
+    _downsample(buf, targetLen) {
+        const result = [];
+        const bucketSize = buf.length / targetLen;
+        for (let b = 0; b < targetLen; b++) {
+            const iStart = Math.floor(b * bucketSize);
+            const iEnd = Math.floor((b + 1) * bucketSize);
+            let maxVal = -Infinity, count = 0;
+            for (let i = iStart; i < iEnd; i++) {
+                if (buf[i].v !== null) {
+                    if (buf[i].v > maxVal) maxVal = buf[i].v;
+                    count++;
+                }
+            }
+            const midT = (buf[iStart].t + buf[Math.min(iEnd - 1, buf.length - 1)].t) / 2;
+            if (count > 0)
+                result.push({ t: midT, v: maxVal });
+            else
+                result.push({ t: midT, v: null });
+        }
+        return result;
+    }
+
+    clearTimeSeries(cachePath) {
+        this._timeSeries = {};
+        this._timeSeriesFormat = {};
+        const path = cachePath || this.historyCachePath;
+        try {
+            const file = Gio.File.new_for_path(path);
+            if (file.query_exists(null))
+                file.delete(null);
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    saveTimeSeries(path) {
+        try {
+            const dest = path || this.historyCachePath;
+            const obj = {
+                version: 1,
+                timeSeries: this._timeSeries,
+                timeSeriesFormat: this._timeSeriesFormat
+            };
+            const json = JSON.stringify(obj);
+            const dir = GLib.path_get_dirname(dest);
+            GLib.mkdir_with_parents(dir, 0o755);
+            GLib.file_set_contents(dest, json);
+        } catch (e) {
+            // ignore write failures
+        }
+    }
+
+    loadTimeSeries(path) {
+        try {
+            const dest = path || this.historyCachePath;
+            const file = Gio.File.new_for_path(dest);
+            if (!file.query_exists(null)) return;
+            const [ok, contents] = GLib.file_get_contents(dest);
+            if (!ok) return;
+            const decoder = new TextDecoder('utf-8');
+            const json = decoder.decode(contents);
+            const obj = JSON.parse(json);
+            if (!obj || obj.version !== 1) return;
+            if (obj.timeSeries && typeof obj.timeSeries === 'object')
+                this._timeSeries = obj.timeSeries;
+            if (obj.timeSeriesFormat && typeof obj.timeSeriesFormat === 'object')
+                this._timeSeriesFormat = obj.timeSeriesFormat;
+            const now = Date.now() / 1000;
+            const maxAge = this._getHistoryDurationSeconds();
+            const cutoff = now - maxAge;
+            for (const key in this._timeSeries) {
+                const buf = this._timeSeries[key];
+                if (!Array.isArray(buf)) {
+                    delete this._timeSeries[key];
+                    continue;
+                }
+                while (buf.length > 0 && buf[0].t < cutoff)
+                    buf.shift();
+                while (buf.length > 0 && buf[0].v === null)
+                    buf.shift();
+                if (buf.length === 0) {
+                    delete this._timeSeries[key];
+                    delete this._timeSeriesFormat[key];
+                }
+            }
+        } catch (e) {
+            // ignore corrupt or missing file
+        }
+    }
+
+    getTimeSeries(key) {
+        if (!(key in this._timeSeries)) return [];
+        return this._timeSeries[key].slice();
+    }
+
+    getEssentialSeries() {
+        return {
+            cpu: this.getTimeSeries('_processor_usage_'),
+            memory: this.getTimeSeries('_memory_usage_'),
+            networkRx: this.getTimeSeries('__network-rx_max__'),
+            networkTx: this.getTimeSeries('__network-tx_max__'),
+            gpu: this.getTimeSeries('_gpu#1_usage_'),
+        };
+    }
+
+    formatSeriesValue(key, rawValue) {
+        if (rawValue === null || rawValue === undefined)
+            return '—';
+        const format = key in this._timeSeriesFormat ? this._timeSeriesFormat[key] : 'percent';
+        return this._legible(rawValue, format, null, key).text;
+    }
+
+    formatDuration(seconds) {
+        seconds = Math.round(Math.abs(seconds));
+        if (seconds < 60) return seconds + 's';
+        const m = Math.floor(seconds / 60);
+        if (m < 60) return m + 'm';
+        const h = Math.floor(m / 60);
+        const rm = m % 60;
+        if (rm === 0) return h + 'h';
+        return h + 'h ' + rm + 'm';
+    }
+
+    formatClock(unixSeconds) {
+        const date = new Date(unixSeconds * 1000);
+        const hh = String(date.getHours()).padStart(2, '0');
+        const mm = String(date.getMinutes()).padStart(2, '0');
+        const ss = String(date.getSeconds()).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
     }
 
     _legible(value, sensorClass, type, sensorKey = null) {
@@ -254,6 +452,13 @@ export const Values = GObject.registerClass({
         // make sure the keys exist
         if (!(historyType in this._history)) this._history[historyType] = {};
 
+        // Record essential series every poll even when the displayed value is unchanged
+        if (this._recordHistoryChart && isEssentialSeriesKey(key) &&
+            historyType != 'network-rx' && historyType != 'network-tx' &&
+            typeof value === 'number') {
+            this._pushTimePoint(key, value, format);
+        }
+
         // no sense in continuing when the raw value has not changed
         if (historyType != 'network-rx' && historyType != 'network-tx' &&
             key in this._history[historyType] && this._history[historyType][key][1] == value)
@@ -270,6 +475,9 @@ export const Values = GObject.registerClass({
 
             // add label as it was sent from sensors class; type stays e.g. network-us for display/icons
             output.push({ label, value: legible.text, style: legible.style, type, key });
+
+            if (this._recordHistoryChart && !isEssentialSeriesKey(key))
+                this._pushTimePoint(key, value, format);
         }
 
         // save previous values to update screen on changes only
@@ -359,7 +567,9 @@ export const Values = GObject.registerClass({
             });
 
             // calculate speed for this interface
-            let speed = (value - previousValue[1]) / dwell;
+            let speed = 0;
+            if (previousValue)
+                speed = (value - previousValue[1]) / dwell;
             let speedFormatted = this._legible(speed, 'speed', type, key);
             output.push({
                 label,
@@ -368,6 +578,7 @@ export const Values = GObject.registerClass({
                 type,
                 key,
             });
+            this._pushTimePoint(key, speed, 'speed');
 
             // store speed for Device report
             if (!(direction in this._networkSpeeds)) this._networkSpeeds[direction] = {};
@@ -378,22 +589,23 @@ export const Values = GObject.registerClass({
                 this._networkSpeeds[direction][label] = speed;
 
             // calculate total upload and download device speed
-            for (let direction in this._networkSpeeds) {
+            for (let dir in this._networkSpeeds) {
                 let sumNum = 0;
-                for (let iface in this._networkSpeeds[direction])
-                    sumNum += parseFloat(this._networkSpeeds[direction][iface]);
+                for (let iface in this._networkSpeeds[dir])
+                    sumNum += parseFloat(this._networkSpeeds[dir][iface]);
 
-                let deviceKey = '__network-' + direction + '_max__';
-                let device = this._legible(sumNum, 'speed', 'network-' + direction, deviceKey);
+                let deviceKey = '__network-' + dir + '_max__';
+                let device = this._legible(sumNum, 'speed', 'network-' + dir, deviceKey);
                 output.push({
-                    label: 'Device ' + direction,
+                    label: 'Device ' + dir,
                     value: device.text,
                     style: device.style,
-                    type: 'network-' + direction,
+                    type: 'network-' + dir,
                     key: deviceKey,
                 });
+                this._pushTimePoint(deviceKey, sumNum, 'speed');
                 // append download speed to group itself
-                if (direction == 'rx') {
+                if (dir == 'rx') {
                     output.push({
                         label: type,
                         value: device.text,

@@ -204,5 +204,15 @@
       <summary>GPU usage color thresholds</summary>
       <description>Color rules matched against GPU utilization percentages. Entries are "threshold r g b" or "threshold r g b sensor:&lt;key&gt;". Unknown sensor keys are ignored.</description>
     </key>
+    <key type="b" name="show-history-chart">
+      <default>false</default>
+      <summary>Show history chart in menu</summary>
+      <description>When enabled, show an interactive history chart at the top of the dropdown menu</description>
+    </key>
+    <key type="i" name="history-duration">
+      <default>3600</default>
+      <summary>History duration (seconds)</summary>
+      <description>How many seconds of sensor history to keep for the menu chart</description>
+    </key>
   </schema>
 </schemalist>

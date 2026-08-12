@@ -13,3 +13,60 @@
 .vitals-button-action:hover, .vitals-button-action:focus { border-color: #777; }
 .vitals-button-action > StIcon { icon-size: 16px; }
 .vitals-button-box { padding: 0px; spacing: 22px; }
+
+.vitals-history-chart-item {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+.vitals-history-chart-box {
+    spacing: 6px;
+    padding: 4px 8px 8px 8px;
+    width: 340px;
+}
+.vitals-history-chart-tabs {
+    spacing: 6px;
+}
+.vitals-history-chart-tab {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+.vitals-history-chart-status {
+    font-size: 0.85em;
+    opacity: 0.75;
+}
+.vitals-history-chart-detail {
+    font-size: 0.9em;
+    min-height: 1.2em;
+}
+.vitals-history-graph {
+    background-color: rgba(128, 128, 128, 0.15);
+    border-radius: 6px;
+}
+.vitals-history-graph-bar {
+    background-color: rgba(255, 255, 255, 0.55);
+    border-radius: 1px;
+}
+.vitals-history-playhead {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+.vitals-history-process-header {
+    font-size: 0.85em;
+    opacity: 0.8;
+    padding-top: 2px;
+}
+.vitals-history-process-list {
+    spacing: 2px;
+    min-height: 4em;
+}
+.vitals-history-process-row {
+    spacing: 12px;
+}
+.vitals-history-process-cpu {
+    font-feature-settings: "tnum";
+    opacity: 0.85;
+}
+.vitals-history-process-empty {
+    font-size: 0.85em;
+    opacity: 0.65;
+}

@@ -15,6 +15,8 @@ import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/ex
 
 import * as Values from './values.js';
 import * as MenuItem from './menuItem.js';
+import * as HistoryChart from './historyChart.js';
+import * as ProcessSampler from './processSampler.js';
 import * as SensorCatalog from './helpers/catalog.js';
 
 let vitalsMenu;
@@ -46,6 +48,10 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
+        this._processSampler = new ProcessSampler.ProcessSampler(this._settings);
+        this._historyChartItem = null;
+        this._historyChartSeparator = null;
+        this._timeSeriesLoaded = false;
         this._menuLayout = new St.BoxLayout({
             vertical: false,
             clip_to_allocation: true,
@@ -63,6 +69,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._connectSettingsSignals();
 
         this._initializeMenu();
+        this._syncHistoryChartFeature();
 
         // start off with fresh sensors
         this._querySensors();
@@ -93,6 +100,81 @@ var VitalsMenuButton = GObject.registerClass({
 
         for (let sensor in this._sensorIcons)
             this._settings.connectObject('changed::show-' + sensor, this._showHideSensorsChanged.bind(this), this);
+
+        this._settings.connectObject(
+            'changed::show-history-chart', this._syncHistoryChartFeature.bind(this),
+            'changed::history-duration', () => {
+                if (this._settings.get_boolean('show-history-chart'))
+                    this._refreshHistoryChart();
+            },
+            this);
+    }
+
+    _historyChartEnabled() {
+        return this._settings.get_boolean('show-history-chart');
+    }
+
+    _syncHistoryChartFeature() {
+        const enabled = this._historyChartEnabled();
+        this._values.setRecordHistoryChart(enabled);
+        this._processSampler.setEnabled(enabled);
+
+        if (enabled) {
+            if (!this._timeSeriesLoaded) {
+                this._values.loadTimeSeries();
+                this._timeSeriesLoaded = true;
+            }
+            this._ensureHistoryChart();
+            this._refreshHistoryChart();
+        } else {
+            this._removeHistoryChart();
+            this._values.clearTimeSeries();
+            this._processSampler.clear();
+            this._timeSeriesLoaded = false;
+        }
+    }
+
+    _ensureHistoryChart() {
+        if (this._historyChartItem)
+            return;
+
+        this._historyChartItem = new HistoryChart.HistoryChartMenuItem(this._values);
+        this._historyChartItem.connectObject('scrub', (_item, unixSeconds) => {
+            if (unixSeconds < 0) {
+                const latest = this._processSampler.getLatest();
+                this._historyChartItem.setProcessSample(latest);
+                return;
+            }
+            const sample = this._processSampler.getNearest(unixSeconds);
+            this._historyChartItem.setProcessSample(sample);
+        }, this);
+
+        this._historyChartSeparator = new PopupMenu.PopupSeparatorMenuItem();
+        this.menu.addMenuItem(this._historyChartItem, 0);
+        this.menu.addMenuItem(this._historyChartSeparator, 1);
+    }
+
+    _removeHistoryChart() {
+        if (this._historyChartItem) {
+            this._historyChartItem.disconnectObject(this);
+            this._historyChartItem.destroy();
+            this._historyChartItem = null;
+        }
+        if (this._historyChartSeparator) {
+            this._historyChartSeparator.destroy();
+            this._historyChartSeparator = null;
+        }
+    }
+
+    _refreshHistoryChart() {
+        if (!this._historyChartItem || !this._historyChartEnabled())
+            return;
+        this._historyChartItem.setSeriesData(this._values.getEssentialSeries());
+        // Don't clobber an active scrub with "latest" — the scrub handler owns that list
+        if (!this._historyChartItem.isScrubbing()) {
+            const latest = this._processSampler.getLatest();
+            this._historyChartItem.setProcessSample(latest);
+        }
     }
 
     _thresholdColorsChanged() {
@@ -178,6 +260,7 @@ var VitalsMenuButton = GObject.registerClass({
 
                 // refresh sensors now
                 this._querySensors();
+                this._refreshHistoryChart();
             }
         }, this);
     }
@@ -631,10 +714,18 @@ var VitalsMenuButton = GObject.registerClass({
         if(this._newGpuDetected) this._newGpuDetectedCount++;
         else this._newGpuDetectedCount = 0;
         this._newGpuDetected = false;
+
+        if (this._historyChartEnabled()) {
+            this._processSampler.sample();
+            this._refreshHistoryChart();
+        }
     }
 
     destroy() {
         this._destroyTimer();
+        if (this._historyChartEnabled())
+            this._values.saveTimeSeries();
+        this._removeHistoryChart();
         this._sensors.destroy();
 
         this._settings.disconnectObject(this);

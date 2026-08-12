@@ -368,7 +368,7 @@ const Settings = new GObject.Class({
                         'alphabetize', 'hide-zeros', 'include-public-ip',
                         'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
                         'hide-icons', 'menu-centered', 'include-static-info',
-                        'show-gpu', 'include-static-gpu-info' ];
+                        'show-gpu', 'include-static-gpu-info', 'show-history-chart' ];
 
         for (let key in sensors) {
             let sensor = sensors[key];
@@ -377,7 +377,7 @@ const Settings = new GObject.Class({
             widget.set_active(this._settings.get_boolean(sensor));
             widget.connect('state-set', (_, val) => {
                 // update hot-sensors before flipping show-* so the extension redraw sees it
-                if (sensor.startsWith('show-')) {
+                if (sensor.startsWith('show-') && sensor !== 'show-history-chart') {
                     let group = sensor.substring(5);
                     if (!val)
                         this._remove_hot_sensors_for_group(group);
