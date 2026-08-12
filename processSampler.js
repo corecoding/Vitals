@@ -45,6 +45,12 @@ export const ProcessSampler = GObject.registerClass({
         this._pageSize = 4096;
         this._memTotalBytes = 0;
         this._enabled = false;
+
+        this._ssPath = GLib.find_program_in_path('ss');
+        this._netBusy = false;
+        this._netPrev = null;
+        this._netPrevAt = 0;
+        this._latestTopNetwork = [];
     }
 
     setEnabled(enabled) {
@@ -53,6 +59,9 @@ export const ProcessSampler = GObject.registerClass({
             this._samples = [];
             this._prev.clear();
             this._lastSampleAt = 0;
+            this._netPrev = null;
+            this._netPrevAt = 0;
+            this._latestTopNetwork = [];
         }
     }
 
@@ -60,6 +69,9 @@ export const ProcessSampler = GObject.registerClass({
         this._samples = [];
         this._prev.clear();
         this._lastSampleAt = 0;
+        this._netPrev = null;
+        this._netPrevAt = 0;
+        this._latestTopNetwork = [];
     }
 
     _maxAge() {
@@ -78,6 +90,7 @@ export const ProcessSampler = GObject.registerClass({
         }
 
         this._refreshMemTotal();
+        this._sampleNetworkAsync();
 
         const now = Date.now() / 1000;
         const next = new Map();
@@ -132,6 +145,7 @@ export const ProcessSampler = GObject.registerClass({
                 t: now,
                 topCpu: cpuScored.slice(0, TOP_N),
                 topMemory: memScored.slice(0, TOP_N),
+                topNetwork: this._latestTopNetwork.slice(0, TOP_N),
                 // legacy alias used by older call sites
                 top: cpuScored.slice(0, TOP_N),
             });
@@ -165,6 +179,100 @@ export const ProcessSampler = GObject.registerClass({
         if (!this._samples.length)
             return null;
         return this._samples[this._samples.length - 1];
+    }
+
+    _sampleNetworkAsync() {
+        if (!this._ssPath || this._netBusy)
+            return;
+
+        this._netBusy = true;
+        let proc;
+        try {
+            // TCP sockets with process owners + byte counters (iproute2)
+            proc = Gio.Subprocess.new(
+                [this._ssPath, '-H', '-tnopi'],
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
+        } catch (e) {
+            this._netBusy = false;
+            return;
+        }
+
+        proc.communicate_utf8_async(null, null, (sub, res) => {
+            try {
+                const [, stdout] = sub.communicate_utf8_finish(res);
+                this._ingestSsOutput(stdout || '');
+            } catch (e) {
+                // ss missing counters / permission — leave previous network tops
+            } finally {
+                this._netBusy = false;
+            }
+        });
+    }
+
+    _ingestSsOutput(text) {
+        const totals = new Map(); // pid -> { name, sent, recv }
+        let curPid = null;
+
+        for (const line of text.split('\n')) {
+            const userMatch = line.match(/users:\(\("([^"]+)",pid=(\d+)/);
+            if (userMatch) {
+                curPid = userMatch[2];
+                if (!totals.has(curPid)) {
+                    totals.set(curPid, {
+                        name: userMatch[1],
+                        sent: 0,
+                        recv: 0,
+                    });
+                } else {
+                    totals.get(curPid).name = userMatch[1];
+                }
+            }
+
+            if (!curPid || !totals.has(curPid))
+                continue;
+
+            const sentMatch = line.match(/bytes_sent:(\d+)/);
+            const recvMatch = line.match(/bytes_received:(\d+)/);
+            const row = totals.get(curPid);
+            if (sentMatch)
+                row.sent += parseInt(sentMatch[1], 10);
+            if (recvMatch)
+                row.recv += parseInt(recvMatch[1], 10);
+        }
+
+        const now = Date.now() / 1000;
+        if (this._netPrev && this._netPrevAt > 0) {
+            const dwell = Math.max(0.5, now - this._netPrevAt);
+            const scored = [];
+
+            for (const [pid, cur] of totals) {
+                const prev = this._netPrev.get(pid);
+                if (!prev)
+                    continue;
+                const dSent = Math.max(0, cur.sent - prev.sent);
+                const dRecv = Math.max(0, cur.recv - prev.recv);
+                const rate = (dSent + dRecv) / dwell;
+                if (rate <= 0)
+                    continue;
+                scored.push({
+                    pid,
+                    name: cur.name,
+                    tx: dSent / dwell,
+                    rx: dRecv / dwell,
+                    net: rate,
+                });
+            }
+
+            scored.sort((a, b) => b.net - a.net);
+            this._latestTopNetwork = scored.slice(0, TOP_N);
+
+            // Refresh the newest history sample so scrubbing sees current tops sooner
+            if (this._samples.length > 0)
+                this._samples[this._samples.length - 1].topNetwork = this._latestTopNetwork;
+        }
+
+        this._netPrev = totals;
+        this._netPrevAt = now;
     }
 
     _refreshMemTotal() {

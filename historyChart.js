@@ -260,14 +260,15 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _processRows(sample) {
-        if (this._metric === 'network' || this._metric === 'gpu')
+        if (this._metric === 'gpu')
             return { unavailable: true, list: [] };
         if (!sample)
             return { unavailable: false, list: null };
-        const list = this._metric === 'memory'
-            ? (sample.topMemory || [])
-            : (sample.topCpu || sample.top || []);
-        return { unavailable: false, list };
+        if (this._metric === 'memory')
+            return { unavailable: false, list: sample.topMemory || [] };
+        if (this._metric === 'network')
+            return { unavailable: false, list: sample.topNetwork || [] };
+        return { unavailable: false, list: sample.topCpu || sample.top || [] };
     }
 
     _formatProcValue(proc) {
@@ -276,8 +277,20 @@ export const HistoryChartMenuItem = GObject.registerClass({
             const pct = Math.max(0, Math.round((proc.mem || 0) * 1000) / 10);
             return `${mib >= 10 ? Math.round(mib) : mib.toFixed(1)} MiB · ${pct}%`;
         }
+        if (this._metric === 'network') {
+            return this._formatBytesPerSec(proc.net || ((proc.rx || 0) + (proc.tx || 0)));
+        }
         const pct = Math.max(0, Math.round((proc.cpu || 0) * 1000) / 10);
         return `${pct}%`;
+    }
+
+    _formatBytesPerSec(bytesPerSec) {
+        const n = Math.max(0, bytesPerSec || 0);
+        if (n < 1024)
+            return `${Math.round(n)} B/s`;
+        if (n < 1024 * 1024)
+            return `${(n / 1024).toFixed(n >= 10 * 1024 ? 0 : 1)} KB/s`;
+        return `${(n / (1024 * 1024)).toFixed(n >= 10 * 1024 * 1024 ? 0 : 1)} MB/s`;
     }
 
     _renderTooltipProcs(sample) {
