@@ -16,11 +16,11 @@
 
 /* History chart — AppControl-inspired card layout */
 .vitals-history-chart-item {
-    padding: 10px 6px 12px 6px;
+    padding: 10px 0 12px 0;
 }
 .vitals-history-chart-box {
     spacing: 10px;
-    padding: 2px 6px 4px 6px;
+    padding: 2px 8px 4px 8px;
 }
 .vitals-history-chart-tabs {
     spacing: 6px;

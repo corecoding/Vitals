@@ -34,7 +34,7 @@ import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js'
 
 const GRAPH_WIDTH_MIN = 280;
 const GRAPH_HEIGHT = 120;
-const PADDING = 8;
+const PLOT_PAD_Y = 8;
 const TOOLTIP_WIDTH = 190;
 const LINE_WIDTH = 2.5;
 
@@ -80,7 +80,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._tabButtons = {};
         this._tabValueLabels = {};
         this._lastProcessSample = null;
-        this._lastPlayX = PADDING;
+        this._lastPlayX = 0;
         this._graphWidth = GRAPH_WIDTH_MIN;
 
         this.setOrnament(PopupMenu.Ornament.HIDDEN);
@@ -251,7 +251,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _onGraphAllocationChanged() {
-        const w = Math.floor(this._graph.width);
+        const w = Math.floor(this._graph.get_width());
         if (w < 2 || w === this._graphWidth)
             return;
         this._graphWidth = w;
@@ -261,7 +261,23 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _plotWidth() {
-        return Math.max(GRAPH_WIDTH_MIN, this._graphWidth) - 2 * PADDING;
+        return Math.max(1, this._graphWidth);
+    }
+
+    _localXFromEvent(event) {
+        const [stageX, stageY] = event.get_coords();
+        // Handles fractional scaling; get_transformed_position() alone can be wrong
+        const transformed = this._graph.transform_stage_point(stageX, stageY);
+        if (!transformed)
+            return null;
+        const ok = transformed[0];
+        const localX = transformed[1];
+        if (ok === false)
+            return null;
+        // Older/newer GI may return [x, y] or [ok, x, y]
+        if (typeof ok === 'boolean')
+            return localX;
+        return ok;
     }
 
     activate(_event) {
@@ -425,21 +441,21 @@ export const HistoryChartMenuItem = GObject.registerClass({
         if (this._samples.length < 2)
             return;
 
-        const [x] = event.get_coords();
-        const [gx] = this._graph.get_transformed_position();
-        const localX = x - gx;
-        const graphW = this._plotWidth();
-        const plotLeft = PADDING;
-        const plotRight = PADDING + graphW;
+        let localX = this._localXFromEvent(event);
+        if (localX === null) {
+            const [x] = event.get_coords();
+            const [gx] = this._graph.get_transformed_position();
+            localX = x - gx;
+        }
 
-        // Ignore the empty pad outside the drawn line
-        if (localX < plotLeft || localX > plotRight) {
+        const graphW = this._plotWidth();
+        if (localX < 0 || localX > graphW) {
             this._clearScrub();
             return;
         }
 
         const denom = Math.max(1, this._samples.length - 1);
-        const rel = (localX - plotLeft) / Math.max(1, graphW);
+        const rel = localX / Math.max(1, graphW);
         const index = Math.max(0, Math.min(this._samples.length - 1,
             Math.round(rel * denom)));
         const sample = this._samples[index];
@@ -448,12 +464,11 @@ export const HistoryChartMenuItem = GObject.registerClass({
             return;
         }
 
-        // Snap playhead to the sample's x on the line (not free-float in the pad)
-        const playX = Math.round(plotLeft + (index / denom) * graphW);
+        // Keep the playhead under the cursor; tooltip uses the nearest sample
+        const playX = Math.round(localX);
         this._scrubIndex = index;
         this._lastPlayX = playX;
         this._playhead.visible = true;
-        // Center the 2px line on the sample (translation keeps layout stable)
         this._playhead.translation_x = playX - 1;
         // Extension updates process sample synchronously via scrub
         this.emit('scrub', sample.t);
@@ -524,16 +539,19 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _rebuildLine() {
+        this._computePlotPoints();
+        this._graph.queue_repaint();
+    }
+
+    _computePlotPoints() {
         const data = this._samples;
         this._plotPoints = [];
 
-        if (!data || data.length === 0) {
-            this._graph.queue_repaint();
+        if (!data || data.length === 0)
             return;
-        }
 
         const graphW = this._plotWidth();
-        const graphH = GRAPH_HEIGHT - PADDING * 1.5;
+        const graphH = GRAPH_HEIGHT - PLOT_PAD_Y * 1.5;
         const { vMin, vRange } = this._valueRange(data);
         const n = data.length;
         const denom = Math.max(1, n - 1);
@@ -544,18 +562,23 @@ export const HistoryChartMenuItem = GObject.registerClass({
                 continue;
             const norm = Math.min(1, Math.max(0, (sample.v - vMin) / vRange));
             this._plotPoints.push({
-                x: PADDING + (i / denom) * graphW,
-                y: PADDING / 2 + (1 - norm) * graphH,
+                // Edge-to-edge across the chart surface
+                x: (i / denom) * Math.max(0, graphW - 1),
+                y: PLOT_PAD_Y / 2 + (1 - norm) * graphH,
                 norm,
             });
         }
-
-        this._graph.queue_repaint();
     }
 
     _onRepaint(area) {
         const cr = area.get_context();
         try {
+            const [surfW] = area.get_surface_size();
+            if (surfW > 1 && surfW !== this._graphWidth) {
+                this._graphWidth = Math.floor(surfW);
+                this._computePlotPoints();
+            }
+
             cr.setOperator(Cairo.Operator.CLEAR);
             cr.paint();
             cr.setOperator(Cairo.Operator.OVER);
@@ -565,11 +588,11 @@ export const HistoryChartMenuItem = GObject.registerClass({
                 return;
 
             // Soft fill under the path
-            cr.moveTo(pts[0].x, GRAPH_HEIGHT - PADDING / 2);
+            cr.moveTo(pts[0].x, GRAPH_HEIGHT - PLOT_PAD_Y / 2);
             cr.lineTo(pts[0].x, pts[0].y);
             for (let i = 1; i < pts.length; i++)
                 cr.lineTo(pts[i].x, pts[i].y);
-            cr.lineTo(pts[pts.length - 1].x, GRAPH_HEIGHT - PADDING / 2);
+            cr.lineTo(pts[pts.length - 1].x, GRAPH_HEIGHT - PLOT_PAD_Y / 2);
             cr.closePath();
             const fill = colorForNorm(pts[pts.length - 1].norm);
             cr.setSourceRGBA(fill.r, fill.g, fill.b, 0.12);
