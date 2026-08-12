@@ -75,6 +75,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._essential = null;
         this._samples = [];
         this._scrubIndex = -1;
+        this._hovering = false;
+        this._seriesDirty = false;
         this._tabButtons = {};
         this._tabValueLabels = {};
         this._lastProcessSample = null;
@@ -148,7 +150,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         });
         this._graphStage.clip_to_allocation = false;
 
-        this._graph = new St.Widget({
+        this._graph = new St.DrawingArea({
             width: GRAPH_WIDTH,
             height: GRAPH_HEIGHT,
             style_class: 'vitals-history-graph',
@@ -156,21 +158,19 @@ export const HistoryChartMenuItem = GObject.registerClass({
             track_hover: true,
         });
         this._graph.clip_to_allocation = true;
-
-        this._canvas = new Clutter.Canvas();
-        this._canvas.set_size(GRAPH_WIDTH, GRAPH_HEIGHT);
-        this._canvas.connect('draw', this._onDraw.bind(this));
-        this._graph.set_content(this._canvas);
+        this._graph.connect('repaint', this._onRepaint.bind(this));
         this._plotPoints = [];
+        this._graphStage.add_child(this._graph);
 
+        // Sibling overlay so the scrub line sits above the Cairo surface
         this._playhead = new St.Bin({
             width: 2,
             height: GRAPH_HEIGHT,
             style_class: 'vitals-history-playhead',
             visible: false,
+            reactive: false,
         });
-        this._graph.add_child(this._playhead);
-        this._graphStage.add_child(this._graph);
+        this._graphStage.add_child(this._playhead);
 
         this._tooltip = new St.BoxLayout({
             vertical: true,
@@ -199,14 +199,27 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._graphCard.set_child(this._graphStage);
         this._box.add_child(this._graphCard);
 
+        this._graph.connect('enter-event', () => {
+            this._hovering = true;
+            return Clutter.EVENT_PROPAGATE;
+        });
         this._graph.connect('motion-event', (_actor, event) => {
+            this._hovering = true;
             this._onMotion(event);
             return Clutter.EVENT_PROPAGATE;
         });
         this._graph.connect('leave-event', () => {
+            this._hovering = false;
             this._clearScrub();
+            // Catch up with samples collected while the pointer was over the chart
+            if (this._seriesDirty)
+                this._applySeriesSamples();
             return Clutter.EVENT_PROPAGATE;
         });
+    }
+
+    isHovering() {
+        return this._hovering;
     }
 
     _clearScrub() {
@@ -229,7 +242,9 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._metric = id;
         for (const metric of METRICS)
             this._tabButtons[metric.id].checked = (metric.id === id);
-        this.setSeriesData(this._essential);
+        // Always redraw for the selected metric, even while hover-frozen
+        this._refreshTabValues();
+        this._applySeriesSamples();
         if (this._scrubIndex >= 0 && this._samples[this._scrubIndex])
             this._updateTooltip(this._samples[this._scrubIndex]);
     }
@@ -260,10 +275,22 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
     setSeriesData(essential) {
         this._essential = essential || null;
+        this._refreshTabValues();
+
+        // Keep collecting underneath, but freeze the drawn line while hovering
+        if (this._hovering) {
+            this._seriesDirty = true;
+            return;
+        }
+
+        this._applySeriesSamples();
+    }
+
+    _applySeriesSamples() {
+        this._seriesDirty = false;
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
         this._samples = (this._essential && this._essential[meta.series]) ? this._essential[meta.series] : [];
         this._rebuildLine();
-        this._refreshTabValues();
 
         if (this._samples.length < 2) {
             this._status.text = _('Collecting history…');
@@ -393,7 +420,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._scrubIndex = index;
         this._lastPlayX = playX;
         this._playhead.visible = true;
-        this._playhead.set_position(playX, 0);
+        // Center the 2px line on the sample
+        this._playhead.set_position(playX - 1, 0);
         // Extension updates process sample synchronously via scrub
         this.emit('scrub', sample.t);
         this._updateTooltip(sample, playX);
@@ -463,7 +491,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._plotPoints = [];
 
         if (!data || data.length === 0) {
-            this._canvas.invalidate();
+            this._graph.queue_repaint();
             return;
         }
 
@@ -485,50 +513,53 @@ export const HistoryChartMenuItem = GObject.registerClass({
             });
         }
 
-        this._canvas.invalidate();
+        this._graph.queue_repaint();
     }
 
-    _onDraw(_canvas, cr, _width, _height) {
-        cr.setOperator(Cairo.Operator.CLEAR);
-        cr.paint();
-        cr.setOperator(Cairo.Operator.OVER);
+    _onRepaint(area) {
+        const cr = area.get_context();
+        try {
+            cr.setOperator(Cairo.Operator.CLEAR);
+            cr.paint();
+            cr.setOperator(Cairo.Operator.OVER);
 
-        const pts = this._plotPoints;
-        if (!pts || pts.length < 2)
-            return true;
+            const pts = this._plotPoints;
+            if (!pts || pts.length < 2)
+                return;
 
-        // Soft fill under the path
-        cr.moveTo(pts[0].x, GRAPH_HEIGHT - PADDING / 2);
-        cr.lineTo(pts[0].x, pts[0].y);
-        for (let i = 1; i < pts.length; i++)
-            cr.lineTo(pts[i].x, pts[i].y);
-        cr.lineTo(pts[pts.length - 1].x, GRAPH_HEIGHT - PADDING / 2);
-        cr.closePath();
-        const fill = colorForNorm(pts[pts.length - 1].norm);
-        cr.setSourceRGBA(fill.r, fill.g, fill.b, 0.12);
-        cr.fill();
+            // Soft fill under the path
+            cr.moveTo(pts[0].x, GRAPH_HEIGHT - PADDING / 2);
+            cr.lineTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < pts.length; i++)
+                cr.lineTo(pts[i].x, pts[i].y);
+            cr.lineTo(pts[pts.length - 1].x, GRAPH_HEIGHT - PADDING / 2);
+            cr.closePath();
+            const fill = colorForNorm(pts[pts.length - 1].norm);
+            cr.setSourceRGBA(fill.r, fill.g, fill.b, 0.12);
+            cr.fill();
 
-        // Multi-color stroke: each segment tinted by intensity
-        cr.setLineWidth(LINE_WIDTH);
-        cr.setLineCap(Cairo.LineCap.ROUND);
-        cr.setLineJoin(Cairo.LineJoin.ROUND);
-        for (let i = 1; i < pts.length; i++) {
-            const a = pts[i - 1];
-            const b = pts[i];
-            const c = colorForNorm((a.norm + b.norm) / 2);
-            cr.setSourceRGBA(c.r, c.g, c.b, c.a);
-            cr.moveTo(a.x, a.y);
-            cr.lineTo(b.x, b.y);
-            cr.stroke();
+            // Multi-color stroke: each segment tinted by intensity
+            cr.setLineWidth(LINE_WIDTH);
+            cr.setLineCap(Cairo.LineCap.ROUND);
+            cr.setLineJoin(Cairo.LineJoin.ROUND);
+            for (let i = 1; i < pts.length; i++) {
+                const a = pts[i - 1];
+                const b = pts[i];
+                const c = colorForNorm((a.norm + b.norm) / 2);
+                cr.setSourceRGBA(c.r, c.g, c.b, c.a);
+                cr.moveTo(a.x, a.y);
+                cr.lineTo(b.x, b.y);
+                cr.stroke();
+            }
+
+            // Endpoint dot
+            const last = pts[pts.length - 1];
+            const lc = colorForNorm(last.norm);
+            cr.setSourceRGBA(lc.r, lc.g, lc.b, 1);
+            cr.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
+            cr.fill();
+        } finally {
+            cr.$dispose();
         }
-
-        // Endpoint dot
-        const last = pts[pts.length - 1];
-        const lc = colorForNorm(last.norm);
-        cr.setSourceRGBA(lc.r, lc.g, lc.b, 1);
-        cr.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
-        cr.fill();
-
-        return true;
     }
 });

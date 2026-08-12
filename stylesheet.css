@@ -70,8 +70,9 @@
     border-radius: 12px;
 }
 .vitals-history-playhead {
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: rgba(255, 255, 255, 0.95);
     border-radius: 1px;
+    width: 2px;
 }
 .vitals-history-tooltip {
     spacing: 4px;

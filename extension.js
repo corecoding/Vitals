@@ -169,6 +169,7 @@ var VitalsMenuButton = GObject.registerClass({
     _refreshHistoryChart() {
         if (!this._historyChartItem || !this._historyChartEnabled())
             return;
+        // Chart freezes its drawn series while hovered; data still flows via setSeriesData
         this._historyChartItem.setSeriesData(this._values.getEssentialSeries());
         // Don't clobber an active scrub with "latest" — the scrub handler owns that list
         if (!this._historyChartItem.isScrubbing()) {
