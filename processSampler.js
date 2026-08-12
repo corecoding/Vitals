@@ -201,6 +201,41 @@ export const ProcessSampler = GObject.registerClass({
         return this._samples[this._samples.length - 1];
     }
 
+    /**
+     * Build a time series for one process name from archived top-N snapshots.
+     * Points are null when that process was outside the top list at that time.
+     */
+    getProcessSeries(processName, metricId) {
+        if (!processName || !this._samples.length)
+            return [];
+
+        let listKey = 'topCpu';
+        let valueKey = 'cpu';
+        if (metricId === 'memory') {
+            listKey = 'topMemory';
+            valueKey = 'mem';
+        } else if (metricId === 'network') {
+            listKey = 'topNetwork';
+            valueKey = 'net';
+        }
+
+        return this._samples.map(sample => {
+            const list = sample[listKey] || [];
+            let value = null;
+            for (let i = 0; i < list.length; i++) {
+                if (list[i].name === processName) {
+                    const raw = list[i][valueKey];
+                    if (metricId === 'network')
+                        value = raw ?? ((list[i].rx || 0) + (list[i].tx || 0));
+                    else
+                        value = raw ?? null;
+                    break;
+                }
+            }
+            return { t: sample.t, v: value };
+        });
+    }
+
     _sampleNetworkAsync() {
         if (!this._ssPath || this._netBusy)
             return;

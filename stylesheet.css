@@ -88,3 +88,7 @@
     font-feature-settings: "tnum";
     opacity: 0.85;
 }
+.vitals-history-scrub-proc:hover,
+.vitals-history-scrub-proc-focused {
+    background-color: rgba(128, 128, 128, 0.18);
+}

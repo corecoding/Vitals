@@ -60,6 +60,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
     Signals: {
         'scrub': { param_types: [GObject.TYPE_DOUBLE] },
         'scrub-view-changed': {},
+        'pin-changed': { param_types: [GObject.TYPE_BOOLEAN] },
     },
 }, class HistoryChartMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -79,11 +80,14 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._tMax = 1;
         this._scrubIndex = -1;
         this._hovering = false;
+        this._pinned = false;
+        this._processFocusName = null;
         this._seriesDirty = false;
         this._tabButtons = {};
         this._lastProcessSample = null;
         this._lastPlayX = 0;
         this._graphWidth = GRAPH_WIDTH_MIN;
+        this._pinnedTime = -1;
 
         this.setOrnament(PopupMenu.Ornament.HIDDEN);
 
@@ -150,8 +154,9 @@ export const HistoryChartMenuItem = GObject.registerClass({
             const w = Math.floor(this._graph.get_width());
             if (w > 1)
                 this._graphWidth = w;
-            // Hide sensor groups immediately; bottom stays empty until a valid slice
-            this._setGapScrub(true);
+            // Keep a pinned slice; otherwise clear until a valid point is hovered
+            if (!this._pinned)
+                this._setGapScrub(true);
             return Clutter.EVENT_PROPAGATE;
         });
         this._graph.connect('motion-event', (_actor, event) => {
@@ -159,10 +164,19 @@ export const HistoryChartMenuItem = GObject.registerClass({
             this._onMotion(event);
             return Clutter.EVENT_PROPAGATE;
         });
+        this._graph.connect('button-press-event', (_actor, event) => {
+            return this._onButtonPress(event);
+        });
         this._graph.connect('leave-event', () => {
             this._hovering = false;
+            if (this._pinned) {
+                // Keep process list; catch up series unless a process focus is showing
+                if (this._seriesDirty && !this._processFocusName)
+                    this._applySeriesSamples();
+                this.emit('scrub-view-changed');
+                return Clutter.EVENT_PROPAGATE;
+            }
             this._clearScrub();
-            // Catch up with samples collected while the pointer was over the chart
             if (this._seriesDirty)
                 this._applySeriesSamples();
             return Clutter.EVENT_PROPAGATE;
@@ -173,7 +187,122 @@ export const HistoryChartMenuItem = GObject.registerClass({
         return this._hovering;
     }
 
+    isPinned() {
+        return this._pinned;
+    }
+
+    isScrubSessionActive() {
+        return this._hovering || this._pinned;
+    }
+
+    getMetric() {
+        return this._metric;
+    }
+
+    unpin() {
+        if (!this._pinned)
+            return;
+        this._setPinned(false);
+        if (!this._hovering)
+            this._clearScrub();
+        else
+            this.emit('scrub-view-changed');
+    }
+
+    _setPinned(pinned) {
+        pinned = !!pinned;
+        if (this._pinned === pinned)
+            return;
+        this._pinned = pinned;
+        if (pinned && this._scrubIndex >= 0 && this._samples[this._scrubIndex])
+            this._pinnedTime = this._samples[this._scrubIndex].t;
+        if (!pinned) {
+            this._pinnedTime = -1;
+            this.clearProcessFocus();
+        }
+        this.emit('pin-changed', this._pinned);
+        this.emit('scrub-view-changed');
+        this._graph.queue_repaint();
+    }
+
+    setProcessFocusSeries(processName, series) {
+        this._processFocusName = processName || null;
+        if (!this._processFocusName) {
+            this._applySeriesSamples();
+            return;
+        }
+        const keepT = this._scrubIndex >= 0 && this._samples[this._scrubIndex]
+            ? this._samples[this._scrubIndex].t
+            : this._pinnedTime;
+        this._samples = Array.isArray(series) ? series : [];
+        this._rebuildLine();
+        if (keepT >= 0)
+            this._scrubToTime(keepT, false);
+        this.emit('scrub-view-changed');
+    }
+
+    clearProcessFocus() {
+        if (!this._processFocusName)
+            return;
+        this._processFocusName = null;
+        const keepT = this._pinnedTime >= 0
+            ? this._pinnedTime
+            : (this._scrubIndex >= 0 && this._samples[this._scrubIndex] ? this._samples[this._scrubIndex].t : -1);
+        this._applySeriesSamples();
+        if (keepT >= 0)
+            this._scrubToTime(keepT, true);
+        this.emit('scrub-view-changed');
+    }
+
+    _scrubToTime(unixSeconds, emitScrub) {
+        if (!this._samples.length) {
+            this._scrubIndex = -1;
+            return;
+        }
+        let index = 0;
+        let bestD = Infinity;
+        for (let i = 0; i < this._samples.length; i++) {
+            const d = Math.abs(this._samples[i].t - unixSeconds);
+            if (d < bestD) {
+                bestD = d;
+                index = i;
+            }
+        }
+        this._scrubIndex = index;
+        const sample = this._samples[index];
+        if (sample && this._tMax > this._tMin) {
+            const span = this._tMax - this._tMin;
+            this._lastPlayX = Math.round(((sample.t - this._tMin) / span) * this._plotWidth());
+        }
+        this._graph.queue_repaint();
+        if (emitScrub && sample)
+            this.emit('scrub', sample.t);
+    }
+
+    _onButtonPress(event) {
+        const button = event.get_button();
+        if (button !== Clutter.BUTTON_PRIMARY)
+            return Clutter.EVENT_PROPAGATE;
+
+        this._hovering = true;
+        this._onMotion(event);
+
+        if (this._scrubIndex < 0 || !this._samples[this._scrubIndex] ||
+            this._samples[this._scrubIndex].v === null) {
+            if (this._pinned)
+                this._setPinned(false);
+            return Clutter.EVENT_STOP;
+        }
+
+        // Click toggles pin on a valid slice
+        this._setPinned(!this._pinned);
+        return Clutter.EVENT_STOP;
+    }
+
     _setGapScrub(force = false) {
+        // While pinned, keep the last valid slice instead of clearing on gaps/edges
+        if (this._pinned && !force)
+            return;
         const alreadyGap = this._scrubIndex < 0 && this._lastPlayX < 0;
         if (alreadyGap && !force)
             return;
@@ -186,6 +315,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     _clearScrub() {
+        if (this._pinned)
+            return;
         const wasScrubbing = this._scrubIndex >= 0 || this._lastPlayX >= 0;
         this._scrubIndex = -1;
         this._lastPlayX = -1;
@@ -229,15 +360,14 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     getScrubView() {
-        // While hovering the chart, always return a view so sensor groups stay hidden
-        // even over downtime gaps (empty bottom until a valid slice).
-        if (!this._hovering)
+        // Keep the process list while hovering or while a slice is pinned
+        if (!this.isScrubSessionActive())
             return null;
         if (this._scrubIndex < 0)
-            return { timeText: '', valueText: '', items: [] };
+            return { timeText: '', valueText: '', items: [], pinned: this._pinned };
         const sample = this._samples[this._scrubIndex];
         if (!sample || sample.v === null)
-            return { timeText: '', valueText: '', items: [] };
+            return { timeText: '', valueText: '', items: [], pinned: this._pinned };
 
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
         const items = [];
@@ -253,17 +383,31 @@ export const HistoryChartMenuItem = GObject.registerClass({
                 for (const proc of list.slice(0, SCRUB_PROC_LIMIT)) {
                     items.push({
                         kind: 'proc',
+                        procName: proc.name,
                         name: proc.count > 1 ? `${proc.name} ×${proc.count}` : proc.name,
                         value: this._formatProcValueFor(this._metric, proc),
+                        focused: this._processFocusName === proc.name,
                     });
                 }
             }
         }
 
+        let timeText = this._values.formatClock(sample.t);
+        if (this._pinned)
+            timeText = `${timeText}  ·  ${_('pinned — click chart to unpin')}`;
+
+        let valueText;
+        if (this._processFocusName) {
+            valueText = `${this._processFocusName}  ${this._values.formatSeriesValue(meta.key, sample.v)}`;
+        } else {
+            valueText = `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, sample.v)}`;
+        }
+
         return {
-            timeText: this._values.formatClock(sample.t),
-            valueText: `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, sample.v)}`,
+            timeText,
+            valueText,
             items,
+            pinned: this._pinned,
         };
     }
 
@@ -275,6 +419,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._metric = id;
         for (const metric of METRICS)
             this._tabButtons[metric.id].checked = (metric.id === id);
+        this.clearProcessFocus();
         this._applySeriesSamples();
         if (this._scrubIndex >= 0)
             this.emit('scrub', this._samples[this._scrubIndex]?.t || -1);
@@ -289,8 +434,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
     setSeriesData(essential) {
         this._essential = essential || null;
 
-        // Keep collecting underneath, but freeze the drawn line while hovering
-        if (this._hovering) {
+        // Freeze the drawn line while hovering or while showing a process focus series
+        if (this._hovering || this._processFocusName) {
             this._seriesDirty = true;
             return;
         }
@@ -300,6 +445,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
     _applySeriesSamples() {
         this._seriesDirty = false;
+        if (this._processFocusName)
+            return;
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
         this._samples = this._seriesFor(meta);
         this._rebuildLine();
@@ -383,6 +530,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
         const indexChanged = this._scrubIndex !== index;
         this._scrubIndex = index;
         this._lastPlayX = playX;
+        if (this._pinned)
+            this._pinnedTime = sample.t;
         this._graph.queue_repaint();
         if (!indexChanged)
             return;
@@ -544,8 +693,13 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
             if (this._scrubIndex >= 0 && this._lastPlayX >= 0) {
                 const x = this._lastPlayX + 0.5;
-                cr.setSourceRGBA(1, 1, 1, 0.95);
-                cr.setLineWidth(2);
+                if (this._pinned) {
+                    cr.setSourceRGBA(1, 0.85, 0.35, 0.95);
+                    cr.setLineWidth(3);
+                } else {
+                    cr.setSourceRGBA(1, 1, 1, 0.95);
+                    cr.setLineWidth(2);
+                }
                 cr.moveTo(x, 0);
                 cr.lineTo(x, GRAPH_HEIGHT);
                 cr.stroke();

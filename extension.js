@@ -57,6 +57,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._scrubHeaderTime = null;
         this._scrubHeaderValue = null;
         this._scrubProcRows = [];
+        this._scrubProcLeaveId = 0;
+        this._focusedScrubProc = null;
         this._groupVisibilityBeforeScrub = null;
         this._menuLockWidth = 0;
         this._timeSeriesLoaded = false;
@@ -148,8 +150,8 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._historyChartItem = new HistoryChart.HistoryChartMenuItem(this._values);
         this._historyChartItem.connectObject('scrub', (_item, unixSeconds) => {
-            // Keep sensor groups hidden for the whole chart hover, including downtime gaps
-            if (!this._historyChartItem.isHovering()) {
+            // Keep sensor groups hidden while hovering or while a slice is pinned
+            if (!this._historyChartItem.isScrubSessionActive()) {
                 this._setScrubMenuActive(false);
                 const latest = this._processSampler.getLatest();
                 this._historyChartItem.setProcessSample(latest, false);
@@ -166,12 +168,15 @@ var VitalsMenuButton = GObject.registerClass({
             this._refreshScrubProcessMenu();
         }, this);
         this._historyChartItem.connectObject('scrub-view-changed', () => {
-            if (this._historyChartItem.isHovering()) {
+            if (this._historyChartItem.isScrubSessionActive()) {
                 this._setScrubMenuActive(true);
                 this._refreshScrubProcessMenu();
             } else {
                 this._setScrubMenuActive(false);
             }
+        }, this);
+        this._historyChartItem.connectObject('pin-changed', () => {
+            this._refreshScrubProcessMenu();
         }, this);
 
         this._historyChartSeparator = new PopupMenu.PopupSeparatorMenuItem();
@@ -182,6 +187,7 @@ var VitalsMenuButton = GObject.registerClass({
     _removeHistoryChart() {
         this._setScrubMenuActive(false);
         if (this._historyChartItem) {
+            this._historyChartItem.unpin();
             this._historyChartItem.disconnectObject(this);
             this._historyChartItem.destroy();
             this._historyChartItem = null;
@@ -262,7 +268,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._scrubProcRows = [];
         for (let i = 0; i < 12; i++) {
             const item = new PopupMenu.PopupBaseMenuItem({
-                reactive: false,
+                reactive: true,
                 can_focus: false,
                 style_class: 'vitals-history-scrub-proc',
             });
@@ -282,6 +288,19 @@ var VitalsMenuButton = GObject.registerClass({
             item.add_child(value);
             item._nameLabel = name;
             item._valueLabel = value;
+            item._procName = null;
+            item.connectObject('enter-event', () => {
+                this._onScrubProcEnter(item);
+                return Clutter.EVENT_PROPAGATE;
+            }, this);
+            item.connectObject('leave-event', () => {
+                this._onScrubProcLeave(item);
+                return Clutter.EVENT_PROPAGATE;
+            }, this);
+            // Keep the menu open — these rows are for hover focus, not navigation
+            item.connectObject('button-release-event', () => {
+                return Clutter.EVENT_STOP;
+            }, this);
             this.menu.addMenuItem(item, position++);
             this._scrubMenuItems.push(item);
             this._scrubProcRows.push(item);
@@ -289,8 +308,55 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
+    _onScrubProcEnter(item) {
+        if (!this._historyChartItem || !this._historyChartItem.isPinned())
+            return;
+        const procName = item._procName;
+        if (!procName)
+            return;
+        if (this._scrubProcLeaveId) {
+            GLib.source_remove(this._scrubProcLeaveId);
+            this._scrubProcLeaveId = 0;
+        }
+        const metric = this._historyChartItem.getMetric();
+        if (metric === 'gpu')
+            return;
+        const series = this._processSampler.getProcessSeries(procName, metric);
+        this._historyChartItem.setProcessFocusSeries(procName, series);
+        for (const row of this._scrubProcRows)
+            row.remove_style_class_name('vitals-history-scrub-proc-focused');
+        item.add_style_class_name('vitals-history-scrub-proc-focused');
+        this._focusedScrubProc = item;
+    }
+
+    _onScrubProcLeave(item) {
+        if (this._focusedScrubProc === item)
+            this._focusedScrubProc = null;
+        item.remove_style_class_name('vitals-history-scrub-proc-focused');
+        if (!this._historyChartItem)
+            return;
+        // Defer clear so moving between rows doesn't flash back to the system series
+        if (this._scrubProcLeaveId) {
+            GLib.source_remove(this._scrubProcLeaveId);
+            this._scrubProcLeaveId = 0;
+        }
+        this._scrubProcLeaveId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 40, () => {
+            this._scrubProcLeaveId = 0;
+            if (!this._historyChartItem)
+                return GLib.SOURCE_REMOVE;
+            if (!this._focusedScrubProc)
+                this._historyChartItem.clearProcessFocus();
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
     _clearScrubMenuItems() {
+        if (this._scrubProcLeaveId) {
+            GLib.source_remove(this._scrubProcLeaveId);
+            this._scrubProcLeaveId = 0;
+        }
         for (const item of this._scrubMenuItems) {
+            item.disconnectObject(this);
             item.destroy();
         }
         this._scrubMenuItems = [];
@@ -305,7 +371,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         const view = this._historyChartItem.getScrubView();
         if (!view) {
-            if (!this._historyChartItem.isHovering())
+            if (!this._historyChartItem.isScrubSessionActive())
                 this._setScrubMenuActive(false);
             return;
         }
@@ -324,26 +390,35 @@ var VitalsMenuButton = GObject.registerClass({
         if (this._scrubHeaderValue)
             this._scrubHeaderValue.clutter_text.set_text(view.valueText || '');
 
+        const pinned = !!view.pinned;
         const items = view.items || [];
         for (let i = 0; i < this._scrubProcRows.length; i++) {
             const item = this._scrubProcRows[i];
             const row = items[i];
             if (!row) {
+                item._procName = null;
+                item.remove_style_class_name('vitals-history-scrub-proc-focused');
                 item.hide();
                 continue;
             }
+            item._procName = row.kind === 'proc' ? (row.procName || null) : null;
             // Set via ClutterText so ellipsized labels reliably invalidate on scrub
             item._nameLabel.clutter_text.set_text(row.name);
             item._valueLabel.clutter_text.set_text(row.value || '');
             item.remove_style_class_name('vitals-history-scrub-section');
             item.remove_style_class_name('vitals-history-scrub-empty');
             item.remove_style_class_name('vitals-history-scrub-proc');
+            item.remove_style_class_name('vitals-history-scrub-proc-focused');
             const style = row.kind === 'section'
                 ? 'vitals-history-scrub-section'
                 : row.kind === 'empty'
                     ? 'vitals-history-scrub-empty'
                     : 'vitals-history-scrub-proc';
             item.add_style_class_name(style);
+            if (row.focused)
+                item.add_style_class_name('vitals-history-scrub-proc-focused');
+            // Only hoverable when a slice is pinned (otherwise leaving the chart clears the list)
+            item.reactive = pinned && row.kind === 'proc';
             item.show();
         }
         // Never resize while the pointer is on the chart — label width feedback
@@ -351,8 +426,8 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _lockMenuWidth() {
-        // Chart hover must not change menu geometry (avoids grow/padding feedback loops)
-        if (this._historyChartItem && this._historyChartItem.isHovering())
+        // Chart hover/pin must not change menu geometry (avoids grow/padding feedback loops)
+        if (this._historyChartItem && this._historyChartItem.isScrubSessionActive())
             return;
 
         const box = this.menu && this.menu.box;
@@ -378,8 +453,8 @@ var VitalsMenuButton = GObject.registerClass({
             return;
         // Chart freezes its drawn series while hovered; data still flows via setSeriesData
         this._historyChartItem.setSeriesData(this._values.getEssentialSeries());
-        // While hovering the chart, scrub owns the process list — don't clobber it
-        if (!this._historyChartItem.isHovering()) {
+        // While hovering/pinned, scrub owns the process list — don't clobber it
+        if (!this._historyChartItem.isScrubSessionActive()) {
             const latest = this._processSampler.getLatest();
             this._historyChartItem.setProcessSample(latest, false);
         }
@@ -471,6 +546,8 @@ var VitalsMenuButton = GObject.registerClass({
                 this._refreshHistoryChart();
                 this._lockMenuWidth();
             } else {
+                if (this._historyChartItem)
+                    this._historyChartItem.unpin();
                 this._setScrubMenuActive(false);
                 this._unlockMenuWidth();
             }
