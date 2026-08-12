@@ -177,16 +177,20 @@ export const ProcessSampler = GObject.registerClass({
         if (!this._samples.length)
             return null;
 
-        let best = this._samples[0];
-        let bestDelta = Math.abs(best.t - unixSeconds);
-        for (let i = 1; i < this._samples.length; i++) {
-            const delta = Math.abs(this._samples[i].t - unixSeconds);
-            if (delta < bestDelta) {
-                best = this._samples[i];
-                bestDelta = delta;
+        // Prefer the latest process snapshot at or before the chart point so scrubbing
+        // forward/back walks the archive instead of sticking on one absolute-nearest hit.
+        let bestBefore = null;
+        for (let i = 0; i < this._samples.length; i++) {
+            const sample = this._samples[i];
+            if (sample.t <= unixSeconds + 0.05) {
+                if (!bestBefore || sample.t > bestBefore.t)
+                    bestBefore = sample;
             }
         }
-        return best;
+        if (bestBefore)
+            return bestBefore;
+
+        return this._samples[0];
     }
 
     getLatest() {

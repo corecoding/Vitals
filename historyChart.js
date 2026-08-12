@@ -312,9 +312,9 @@ export const HistoryChartMenuItem = GObject.registerClass({
         }
     }
 
-    setProcessSample(sample) {
+    setProcessSample(sample, notify = true) {
         this._lastProcessSample = sample || null;
-        if (this._scrubIndex >= 0)
+        if (notify && this._scrubIndex >= 0)
             this._notifyScrubView();
     }
 
@@ -386,7 +386,9 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._graph.queue_repaint();
         if (!indexChanged)
             return;
+        // Drive process lookup + force a view refresh for header/rows
         this.emit('scrub', sample.t);
+        this.emit('scrub-view-changed');
     }
 
     _valueRange(data) {

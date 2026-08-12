@@ -152,17 +152,17 @@ var VitalsMenuButton = GObject.registerClass({
             if (!this._historyChartItem.isHovering()) {
                 this._setScrubMenuActive(false);
                 const latest = this._processSampler.getLatest();
-                this._historyChartItem.setProcessSample(latest);
+                this._historyChartItem.setProcessSample(latest, false);
                 return;
             }
             this._setScrubMenuActive(true);
             if (unixSeconds < 0) {
-                this._historyChartItem.setProcessSample(null);
+                this._historyChartItem.setProcessSample(null, false);
                 this._refreshScrubProcessMenu();
                 return;
             }
             const sample = this._processSampler.getNearest(unixSeconds);
-            this._historyChartItem.setProcessSample(sample);
+            this._historyChartItem.setProcessSample(sample, false);
             this._refreshScrubProcessMenu();
         }, this);
         this._historyChartItem.connectObject('scrub-view-changed', () => {
@@ -285,7 +285,7 @@ var VitalsMenuButton = GObject.registerClass({
             this.menu.addMenuItem(item, position++);
             this._scrubMenuItems.push(item);
             this._scrubProcRows.push(item);
-            item.actor.hide();
+            item.hide();
         }
     }
 
@@ -311,28 +311,30 @@ var VitalsMenuButton = GObject.registerClass({
         }
 
         this._ensureScrubMenuItems();
-        this._scrubHeaderTime.text = view.timeText || '';
-        if (this._scrubHeaderValue)
-            this._scrubHeaderValue.text = view.valueText || '';
         const hasHeader = !!(view.timeText || view.valueText);
         const header = this._scrubMenuItems[0];
-        if (header && header.actor) {
+        if (header) {
             if (hasHeader)
-                header.actor.show();
+                header.show();
             else
-                header.actor.hide();
+                header.hide();
         }
+        if (this._scrubHeaderTime)
+            this._scrubHeaderTime.clutter_text.set_text(view.timeText || '');
+        if (this._scrubHeaderValue)
+            this._scrubHeaderValue.clutter_text.set_text(view.valueText || '');
 
         const items = view.items || [];
         for (let i = 0; i < this._scrubProcRows.length; i++) {
             const item = this._scrubProcRows[i];
             const row = items[i];
             if (!row) {
-                item.actor.hide();
+                item.hide();
                 continue;
             }
-            item._nameLabel.text = row.name;
-            item._valueLabel.text = row.value || '';
+            // Set via ClutterText so ellipsized labels reliably invalidate on scrub
+            item._nameLabel.clutter_text.set_text(row.name);
+            item._valueLabel.clutter_text.set_text(row.value || '');
             item.remove_style_class_name('vitals-history-scrub-section');
             item.remove_style_class_name('vitals-history-scrub-empty');
             item.remove_style_class_name('vitals-history-scrub-proc');
@@ -342,7 +344,7 @@ var VitalsMenuButton = GObject.registerClass({
                     ? 'vitals-history-scrub-empty'
                     : 'vitals-history-scrub-proc';
             item.add_style_class_name(style);
-            item.actor.show();
+            item.show();
         }
         // Never resize while the pointer is on the chart — label width feedback
         // was ratcheting the menu +1px on every scrub motion.
@@ -376,10 +378,10 @@ var VitalsMenuButton = GObject.registerClass({
             return;
         // Chart freezes its drawn series while hovered; data still flows via setSeriesData
         this._historyChartItem.setSeriesData(this._values.getEssentialSeries());
-        // Don't clobber an active scrub with "latest" — the scrub handler owns that list
-        if (!this._historyChartItem.isScrubbing()) {
+        // While hovering the chart, scrub owns the process list — don't clobber it
+        if (!this._historyChartItem.isHovering()) {
             const latest = this._processSampler.getLatest();
-            this._historyChartItem.setProcessSample(latest);
+            this._historyChartItem.setProcessSample(latest, false);
         }
     }
 
