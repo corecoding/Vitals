@@ -136,6 +136,16 @@ export const HistoryChartMenuItem = GObject.registerClass({
             style_class: 'vitals-history-graph-card',
             x_expand: true,
         });
+        this._graphCard.clip_to_allocation = false;
+        // Unclipped stage so the scrub tooltip can extend past the chart edge
+        this._graphStage = new St.Widget({
+            width: GRAPH_WIDTH,
+            height: GRAPH_HEIGHT,
+            style_class: 'vitals-history-graph-stage',
+            reactive: false,
+        });
+        this._graphStage.clip_to_allocation = false;
+
         this._graph = new St.Widget({
             width: GRAPH_WIDTH,
             height: GRAPH_HEIGHT,
@@ -143,6 +153,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
             reactive: true,
             track_hover: true,
         });
+        // Clip bars/playhead only — not the tooltip
         this._graph.clip_to_allocation = true;
         this._barContainer = new St.Widget({
             x_expand: true,
@@ -158,6 +169,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
             visible: false,
         });
         this._graph.add_child(this._playhead);
+        this._graphStage.add_child(this._graph);
 
         this._tooltip = new St.BoxLayout({
             vertical: true,
@@ -180,9 +192,10 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._tooltip.add_child(this._tooltipTime);
         this._tooltip.add_child(this._tooltipValue);
         this._tooltip.add_child(this._tooltipProcs);
-        this._graph.add_child(this._tooltip);
+        // Sibling of the clipped graph so it is not cropped by the chart border
+        this._graphStage.add_child(this._tooltip);
 
-        this._graphCard.set_child(this._graph);
+        this._graphCard.set_child(this._graphStage);
         this._box.add_child(this._graphCard);
 
         this._graph.connect('motion-event', (_actor, event) => {
@@ -376,12 +389,24 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._renderTooltipProcs(this._lastProcessSample);
 
         this._tooltip.visible = true;
+        // Ensure allocation is current before measuring/positioning
+        this._tooltip.queue_relayout();
+        let tipH = this._tooltip.height;
+        if (!tipH || tipH < 8)
+            tipH = 96;
+
         const tipW = TOOLTIP_WIDTH;
         const anchorX = playX !== null ? playX : this._lastPlayX;
         let tipX = anchorX + 10;
         if (tipX + tipW > GRAPH_WIDTH - 4)
             tipX = Math.max(4, anchorX - tipW - 10);
-        this._tooltip.set_position(Math.round(tipX), 10);
+
+        // Prefer above the pointer band; allow overflow below the chart (stage is unclipped)
+        let tipY = 8;
+        if (tipY + tipH > GRAPH_HEIGHT - 4)
+            tipY = Math.max(4, GRAPH_HEIGHT - tipH - 4);
+
+        this._tooltip.set_position(Math.round(tipX), Math.round(tipY));
     }
 
     _rebuildBars() {

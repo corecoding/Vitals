@@ -62,6 +62,9 @@
     border-radius: 14px;
     background-color: rgba(128, 128, 128, 0.1);
 }
+.vitals-history-graph-stage {
+    /* intentionally unclipped so scrub tooltip may extend past the chart */
+}
 .vitals-history-graph {
     background-color: rgba(20, 24, 32, 0.18);
     border-radius: 12px;
