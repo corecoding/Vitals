@@ -111,20 +111,21 @@ export const ProcessSampler = GObject.registerClass({
 
             for (const [id, entry] of next) {
                 const prev = this._prev.get(id);
-                if (prev) {
-                    const deltaTicks = entry.cpuTime - prev.cpuTime;
-                    if (deltaTicks > 0) {
-                        // Process-level utime+stime (not per-core); normalize to share of all CPUs
-                        const cpu = Math.max(0, (deltaTicks / CLK_TCK) / dwell / this._ncpus);
-                        const row = cpuByName.get(entry.name) || {
-                            name: entry.name,
-                            cpu: 0,
-                            count: 0,
-                        };
-                        row.cpu += cpu;
-                        row.count += 1;
-                        cpuByName.set(entry.name, row);
-                    }
+                // New processes have no prior sample; their cpuTime so far all fell in this dwell
+                const deltaTicks = prev
+                    ? (entry.cpuTime - prev.cpuTime)
+                    : entry.cpuTime;
+                if (deltaTicks > 0) {
+                    // Process-level utime+stime (not per-core); normalize to share of all CPUs
+                    const cpu = Math.max(0, (deltaTicks / CLK_TCK) / dwell / this._ncpus);
+                    const row = cpuByName.get(entry.name) || {
+                        name: entry.name,
+                        cpu: 0,
+                        count: 0,
+                    };
+                    row.cpu += cpu;
+                    row.count += 1;
+                    cpuByName.set(entry.name, row);
                 }
 
                 if (entry.rssBytes > 0) {
