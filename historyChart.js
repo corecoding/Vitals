@@ -204,12 +204,18 @@ export const HistoryChartMenuItem = GObject.registerClass({
             return Clutter.EVENT_PROPAGATE;
         });
         this._graph.connect('leave-event', () => {
-            this._playhead.visible = false;
-            this._tooltip.visible = false;
-            this._scrubIndex = -1;
-            this.emit('scrub', -1);
+            this._clearScrub();
             return Clutter.EVENT_PROPAGATE;
         });
+    }
+
+    _clearScrub() {
+        this._playhead.visible = false;
+        this._tooltip.visible = false;
+        if (this._scrubIndex < 0)
+            return;
+        this._scrubIndex = -1;
+        this.emit('scrub', -1);
     }
 
     activate(_event) {
@@ -361,20 +367,35 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
         const [x] = event.get_coords();
         const [gx] = this._graph.get_transformed_position();
-        const localX = Math.max(0, Math.min(GRAPH_WIDTH, x - gx));
+        const localX = x - gx;
         const graphW = GRAPH_WIDTH - 2 * PADDING;
-        const rel = (localX - PADDING) / Math.max(1, graphW);
-        const index = Math.max(0, Math.min(this._samples.length - 1,
-            Math.round(rel * (this._samples.length - 1))));
+        const plotLeft = PADDING;
+        const plotRight = PADDING + graphW;
 
-        this._scrubIndex = index;
+        // Ignore the empty pad outside the drawn line
+        if (localX < plotLeft || localX > plotRight) {
+            this._clearScrub();
+            return;
+        }
+
+        const denom = Math.max(1, this._samples.length - 1);
+        const rel = (localX - plotLeft) / Math.max(1, graphW);
+        const index = Math.max(0, Math.min(this._samples.length - 1,
+            Math.round(rel * denom)));
         const sample = this._samples[index];
-        const playX = Math.round(PADDING + rel * graphW);
+        if (!sample || sample.v === null) {
+            this._clearScrub();
+            return;
+        }
+
+        // Snap playhead to the sample's x on the line (not free-float in the pad)
+        const playX = Math.round(plotLeft + (index / denom) * graphW);
+        this._scrubIndex = index;
         this._lastPlayX = playX;
         this._playhead.visible = true;
         this._playhead.set_position(playX, 0);
         // Extension updates process sample synchronously via scrub
-        this.emit('scrub', sample ? sample.t : -1);
+        this.emit('scrub', sample.t);
         this._updateTooltip(sample, playX);
     }
 
