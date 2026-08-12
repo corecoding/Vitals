@@ -128,4 +128,4 @@ Sensor data is obtained from the system using hwmon and GTop. Core Coding and th
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=corecoding/Vitals&type=Date)](https://star-history.com/#corecoding/Vitals&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=corecoding/Vitals&type=Date)](https://star-history.dera.page/#corecoding/Vitals&Date)
