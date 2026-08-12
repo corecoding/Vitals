@@ -27,6 +27,7 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+import Cairo from 'gi://cairo';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -34,8 +35,8 @@ import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js'
 const GRAPH_WIDTH = 360;
 const GRAPH_HEIGHT = 120;
 const PADDING = 8;
-const MIN_BAR_WIDTH = 2;
 const TOOLTIP_WIDTH = 190;
+const LINE_WIDTH = 2.5;
 
 const METRICS = [
     { id: 'cpu', label: 'CPU', key: '_processor_usage_', series: 'cpu' },
@@ -44,14 +45,15 @@ const METRICS = [
     { id: 'gpu', label: 'GPU', key: '_gpu#1_usage_', series: 'gpu' },
 ];
 
-function barColorForNorm(norm) {
-    // Soft blue → warm coral as usage rises (AppControl-like intensity cue)
+function colorForNorm(norm) {
+    // Soft blue → warm coral as usage rises (same palette as the old bars)
     const t = Math.max(0, Math.min(1, norm));
-    const r = Math.round(90 + t * 150);
-    const g = Math.round(140 - t * 70);
-    const b = Math.round(220 - t * 120);
-    const a = 0.55 + t * 0.35;
-    return `rgba(${r}, ${g}, ${b}, ${a})`;
+    return {
+        r: (90 + t * 150) / 255,
+        g: (140 - t * 70) / 255,
+        b: (220 - t * 120) / 255,
+        a: 0.75 + t * 0.25,
+    };
 }
 
 export const HistoryChartMenuItem = GObject.registerClass({
@@ -153,14 +155,13 @@ export const HistoryChartMenuItem = GObject.registerClass({
             reactive: true,
             track_hover: true,
         });
-        // Clip bars/playhead only — not the tooltip
         this._graph.clip_to_allocation = true;
-        this._barContainer = new St.Widget({
-            x_expand: true,
-            y_expand: true,
-        });
-        this._barContainer.clip_to_allocation = true;
-        this._graph.add_child(this._barContainer);
+
+        this._canvas = new Clutter.Canvas();
+        this._canvas.set_size(GRAPH_WIDTH, GRAPH_HEIGHT);
+        this._canvas.connect('draw', this._onDraw.bind(this));
+        this._graph.set_content(this._canvas);
+        this._plotPoints = [];
 
         this._playhead = new St.Bin({
             width: 2,
@@ -255,7 +256,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._essential = essential || null;
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
         this._samples = (this._essential && this._essential[meta.series]) ? this._essential[meta.series] : [];
-        this._rebuildBars();
+        this._rebuildLine();
         this._refreshTabValues();
 
         if (this._samples.length < 2) {
@@ -409,32 +410,11 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._tooltip.set_position(Math.round(tipX), Math.round(tipY));
     }
 
-    _rebuildBars() {
-        const data = this._samples;
-        let children;
-        try {
-            children = this._barContainer.get_children();
-        } catch (e) {
-            return;
-        }
-
-        if (data.length === 0) {
-            for (let i = 0; i < children.length; i++)
-                children[i].hide();
-            return;
-        }
-
-        const graphW = GRAPH_WIDTH - 2 * PADDING;
-        const graphH = GRAPH_HEIGHT - PADDING * 1.5;
-        const maxBars = Math.floor(graphW / MIN_BAR_WIDTH);
-        const numBars = Math.min(data.length, maxBars);
-        const dataOffset = Math.max(0, data.length - numBars);
-        const barWidth = graphW / numBars;
-
+    _valueRange(data) {
         let vMin = 0;
         let vMax = 1;
         let hasPercent = true;
-        for (let i = dataOffset; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             if (data[i].v === null) continue;
             if (data[i].v > 1.5)
                 hasPercent = false;
@@ -442,7 +422,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         if (!hasPercent) {
             vMin = Infinity;
             vMax = -Infinity;
-            for (let i = dataOffset; i < data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 if (data[i].v === null) continue;
                 if (data[i].v < vMin) vMin = data[i].v;
                 if (data[i].v > vMax) vMax = data[i].v;
@@ -454,41 +434,80 @@ export const HistoryChartMenuItem = GObject.registerClass({
                 vMax = vMin + 1;
             }
         }
+        return { vMin, vMax, vRange: Math.max(1e-9, vMax - vMin) };
+    }
 
-        const vRange = Math.max(1e-9, vMax - vMin);
-        let barIdx = 0;
-        for (let b = 0; b < numBars; b++) {
-            const sample = data[dataOffset + b];
+    _rebuildLine() {
+        const data = this._samples;
+        this._plotPoints = [];
+
+        if (!data || data.length === 0) {
+            this._canvas.invalidate();
+            return;
+        }
+
+        const graphW = GRAPH_WIDTH - 2 * PADDING;
+        const graphH = GRAPH_HEIGHT - PADDING * 1.5;
+        const { vMin, vRange } = this._valueRange(data);
+        const n = data.length;
+        const denom = Math.max(1, n - 1);
+
+        for (let i = 0; i < n; i++) {
+            const sample = data[i];
             if (!sample || sample.v === null)
                 continue;
             const norm = Math.min(1, Math.max(0, (sample.v - vMin) / vRange));
-            const barH = Math.max(2, Math.round(norm * graphH));
-            const x = Math.round(b * barWidth);
-            const gap = barWidth > 3 ? 1 : 0;
-            const w = Math.max(1, Math.round((b + 1) * barWidth) - x - gap);
-            const color = barColorForNorm(norm);
-
-            let bar;
-            if (barIdx < children.length) {
-                bar = children[barIdx];
-                bar.set_size(w, barH);
-                bar.set_position(x + PADDING, Math.round(graphH - barH) + PADDING / 2);
-                bar.set_style(`background-color: ${color};`);
-                bar.show();
-            } else {
-                bar = new St.Bin({
-                    width: w,
-                    height: barH,
-                    style_class: 'vitals-history-graph-bar',
-                    style: `background-color: ${color};`,
-                });
-                bar.set_position(x + PADDING, Math.round(graphH - barH) + PADDING / 2);
-                this._barContainer.add_child(bar);
-            }
-            barIdx++;
+            this._plotPoints.push({
+                x: PADDING + (i / denom) * graphW,
+                y: PADDING / 2 + (1 - norm) * graphH,
+                norm,
+            });
         }
 
-        for (let i = barIdx; i < children.length; i++)
-            children[i].hide();
+        this._canvas.invalidate();
+    }
+
+    _onDraw(_canvas, cr, _width, _height) {
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.paint();
+        cr.setOperator(Cairo.Operator.OVER);
+
+        const pts = this._plotPoints;
+        if (!pts || pts.length < 2)
+            return true;
+
+        // Soft fill under the path
+        cr.moveTo(pts[0].x, GRAPH_HEIGHT - PADDING / 2);
+        cr.lineTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++)
+            cr.lineTo(pts[i].x, pts[i].y);
+        cr.lineTo(pts[pts.length - 1].x, GRAPH_HEIGHT - PADDING / 2);
+        cr.closePath();
+        const fill = colorForNorm(pts[pts.length - 1].norm);
+        cr.setSourceRGBA(fill.r, fill.g, fill.b, 0.12);
+        cr.fill();
+
+        // Multi-color stroke: each segment tinted by intensity
+        cr.setLineWidth(LINE_WIDTH);
+        cr.setLineCap(Cairo.LineCap.ROUND);
+        cr.setLineJoin(Cairo.LineJoin.ROUND);
+        for (let i = 1; i < pts.length; i++) {
+            const a = pts[i - 1];
+            const b = pts[i];
+            const c = colorForNorm((a.norm + b.norm) / 2);
+            cr.setSourceRGBA(c.r, c.g, c.b, c.a);
+            cr.moveTo(a.x, a.y);
+            cr.lineTo(b.x, b.y);
+            cr.stroke();
+        }
+
+        // Endpoint dot
+        const last = pts[pts.length - 1];
+        const lc = colorForNorm(last.norm);
+        cr.setSourceRGBA(lc.r, lc.g, lc.b, 1);
+        cr.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
+        cr.fill();
+
+        return true;
     }
 });

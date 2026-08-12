@@ -69,9 +69,6 @@
     background-color: rgba(20, 24, 32, 0.18);
     border-radius: 12px;
 }
-.vitals-history-graph-bar {
-    border-radius: 2px 2px 0 0;
-}
 .vitals-history-playhead {
     background-color: rgba(255, 255, 255, 0.92);
     border-radius: 1px;
