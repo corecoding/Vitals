@@ -56,7 +56,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._scrubMenuItems = [];
         this._scrubHeaderTime = null;
         this._scrubHeaderValue = null;
-        this._scrubUnpinButton = null;
         this._scrubProcRows = [];
         this._scrubProcLeaveId = 0;
         this._focusedScrubProc = null;
@@ -260,30 +259,8 @@ var VitalsMenuButton = GObject.registerClass({
             text: '',
             style_class: 'vitals-history-scrub-value',
         });
-        const headerTop = new St.BoxLayout({
-            vertical: false,
-            x_expand: true,
-            style_class: 'vitals-history-scrub-header-top',
-        });
-        const headerTextBox = new St.BoxLayout({
-            vertical: true,
-            x_expand: true,
-        });
-        headerTextBox.add_child(this._scrubHeaderTime);
-        headerTextBox.add_child(this._scrubHeaderValue);
-        headerTop.add_child(headerTextBox);
-        this._scrubUnpinButton = new St.Button({
-            style_class: 'vitals-history-scrub-unpin',
-            label: _('Unpin'),
-            can_focus: false,
-            visible: false,
-        });
-        this._scrubUnpinButton.connectObject('clicked', () => {
-            if (this._historyChartItem)
-                this._historyChartItem.unpin();
-        }, this);
-        headerTop.add_child(this._scrubUnpinButton);
-        headerBox.add_child(headerTop);
+        headerBox.add_child(this._scrubHeaderTime);
+        headerBox.add_child(this._scrubHeaderValue);
         header.add_child(headerBox);
         this.menu.addMenuItem(header, position++);
         this._scrubMenuItems.push(header);
@@ -386,7 +363,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._scrubProcRows = [];
         this._scrubHeaderTime = null;
         this._scrubHeaderValue = null;
-        this._scrubUnpinButton = null;
     }
 
     _refreshScrubProcessMenu() {
@@ -413,8 +389,6 @@ var VitalsMenuButton = GObject.registerClass({
             this._scrubHeaderTime.clutter_text.set_text(view.timeText || '');
         if (this._scrubHeaderValue)
             this._scrubHeaderValue.clutter_text.set_text(view.valueText || '');
-        if (this._scrubUnpinButton)
-            this._scrubUnpinButton.visible = !!view.pinned;
 
         const pinned = !!view.pinned;
         const items = view.items || [];
