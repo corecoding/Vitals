@@ -32,7 +32,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const GRAPH_WIDTH = 360;
+const GRAPH_WIDTH_MIN = 280;
 const GRAPH_HEIGHT = 120;
 const PADDING = 8;
 const TOOLTIP_WIDTH = 190;
@@ -81,6 +81,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._tabValueLabels = {};
         this._lastProcessSample = null;
         this._lastPlayX = PADDING;
+        this._graphWidth = GRAPH_WIDTH_MIN;
 
         this.setOrnament(PopupMenu.Ornament.HIDDEN);
 
@@ -139,26 +140,32 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._graphCard = new St.Bin({
             style_class: 'vitals-history-graph-card',
             x_expand: true,
+            x_align: Clutter.ActorAlign.FILL,
+            y_align: Clutter.ActorAlign.START,
         });
         this._graphCard.clip_to_allocation = false;
-        // Unclipped stage so the scrub tooltip can extend past the chart edge
+        // BinLayout + translations keep overlays from changing preferred size (no hover shift)
         this._graphStage = new St.Widget({
-            width: GRAPH_WIDTH,
             height: GRAPH_HEIGHT,
             style_class: 'vitals-history-graph-stage',
             reactive: false,
+            x_expand: true,
+            layout_manager: new Clutter.BinLayout(),
         });
         this._graphStage.clip_to_allocation = false;
 
         this._graph = new St.DrawingArea({
-            width: GRAPH_WIDTH,
-            height: GRAPH_HEIGHT,
             style_class: 'vitals-history-graph',
             reactive: true,
             track_hover: true,
+            x_expand: true,
+            y_expand: true,
         });
         this._graph.clip_to_allocation = true;
         this._graph.connect('repaint', this._onRepaint.bind(this));
+        this._graph.connect('notify::allocation', () => {
+            this._onGraphAllocationChanged();
+        });
         this._plotPoints = [];
         this._graphStage.add_child(this._graph);
 
@@ -169,6 +176,10 @@ export const HistoryChartMenuItem = GObject.registerClass({
             style_class: 'vitals-history-playhead',
             visible: false,
             reactive: false,
+            x_expand: false,
+            y_expand: false,
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.FILL,
         });
         this._graphStage.add_child(this._playhead);
 
@@ -177,6 +188,11 @@ export const HistoryChartMenuItem = GObject.registerClass({
             style_class: 'vitals-history-tooltip',
             visible: false,
             width: TOOLTIP_WIDTH,
+            reactive: false,
+            x_expand: false,
+            y_expand: false,
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.START,
         });
         this._tooltipTime = new St.Label({
             text: '',
@@ -224,11 +240,28 @@ export const HistoryChartMenuItem = GObject.registerClass({
 
     _clearScrub() {
         this._playhead.visible = false;
+        this._playhead.translation_x = 0;
         this._tooltip.visible = false;
+        this._tooltip.translation_x = 0;
+        this._tooltip.translation_y = 0;
         if (this._scrubIndex < 0)
             return;
         this._scrubIndex = -1;
         this.emit('scrub', -1);
+    }
+
+    _onGraphAllocationChanged() {
+        const w = Math.floor(this._graph.width);
+        if (w < 2 || w === this._graphWidth)
+            return;
+        this._graphWidth = w;
+        this._rebuildLine();
+        if (this._scrubIndex >= 0 && this._samples[this._scrubIndex])
+            this._updateTooltip(this._samples[this._scrubIndex], this._lastPlayX);
+    }
+
+    _plotWidth() {
+        return Math.max(GRAPH_WIDTH_MIN, this._graphWidth) - 2 * PADDING;
     }
 
     activate(_event) {
@@ -395,7 +428,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
         const [x] = event.get_coords();
         const [gx] = this._graph.get_transformed_position();
         const localX = x - gx;
-        const graphW = GRAPH_WIDTH - 2 * PADDING;
+        const graphW = this._plotWidth();
         const plotLeft = PADDING;
         const plotRight = PADDING + graphW;
 
@@ -420,8 +453,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._scrubIndex = index;
         this._lastPlayX = playX;
         this._playhead.visible = true;
-        // Center the 2px line on the sample
-        this._playhead.set_position(playX - 1, 0);
+        // Center the 2px line on the sample (translation keeps layout stable)
+        this._playhead.translation_x = playX - 1;
         // Extension updates process sample synchronously via scrub
         this.emit('scrub', sample.t);
         this._updateTooltip(sample, playX);
@@ -430,6 +463,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
     _updateTooltip(sample, playX = null) {
         if (!sample) {
             this._tooltip.visible = false;
+            this._tooltip.translation_x = 0;
+            this._tooltip.translation_y = 0;
             return;
         }
 
@@ -446,9 +481,10 @@ export const HistoryChartMenuItem = GObject.registerClass({
             tipH = 96;
 
         const tipW = TOOLTIP_WIDTH;
+        const graphWidth = Math.max(GRAPH_WIDTH_MIN, this._graphWidth);
         const anchorX = playX !== null ? playX : this._lastPlayX;
         let tipX = anchorX + 10;
-        if (tipX + tipW > GRAPH_WIDTH - 4)
+        if (tipX + tipW > graphWidth - 4)
             tipX = Math.max(4, anchorX - tipW - 10);
 
         // Prefer above the pointer band; allow overflow below the chart (stage is unclipped)
@@ -456,7 +492,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
         if (tipY + tipH > GRAPH_HEIGHT - 4)
             tipY = Math.max(4, GRAPH_HEIGHT - tipH - 4);
 
-        this._tooltip.set_position(Math.round(tipX), Math.round(tipY));
+        this._tooltip.translation_x = Math.round(tipX);
+        this._tooltip.translation_y = Math.round(tipY);
     }
 
     _valueRange(data) {
@@ -495,7 +532,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
             return;
         }
 
-        const graphW = GRAPH_WIDTH - 2 * PADDING;
+        const graphW = this._plotWidth();
         const graphH = GRAPH_HEIGHT - PADDING * 1.5;
         const { vMin, vRange } = this._valueRange(data);
         const n = data.length;

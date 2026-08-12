@@ -21,7 +21,6 @@
 .vitals-history-chart-box {
     spacing: 10px;
     padding: 2px 6px 4px 6px;
-    width: 380px;
 }
 .vitals-history-chart-tabs {
     spacing: 6px;
@@ -64,10 +63,12 @@
 }
 .vitals-history-graph-stage {
     /* intentionally unclipped so scrub tooltip may extend past the chart */
+    min-width: 280px;
 }
 .vitals-history-graph {
     background-color: rgba(20, 24, 32, 0.18);
     border-radius: 12px;
+    min-width: 280px;
 }
 .vitals-history-playhead {
     background-color: rgba(255, 255, 255, 0.95);
