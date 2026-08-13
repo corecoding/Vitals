@@ -140,10 +140,10 @@ var VitalsMenuButton = GObject.registerClass({
             }
             this._ensureModeTabs();
             this._ensureHistoryChart();
-            this._setMenuMode(this._getSavedMenuMode(), false);
+            this._setMenuMode(this._getSavedMenuMode(), false, true);
             this._refreshHistoryChart();
         } else {
-            this._setMenuMode('live', false);
+            this._setMenuMode('live', false, true);
             this._removeHistoryChart();
             this._removeModeTabs();
             this._values.clearTimeSeries();
@@ -178,36 +178,20 @@ var VitalsMenuButton = GObject.registerClass({
         this._modeLiveButton = new St.Button({
             style_class: 'vitals-menu-mode-tab',
             label: _('Live'),
-            toggle_mode: true,
+            // Manage checked ourselves so re-clicks do not toggle off / flicker
+            toggle_mode: false,
             can_focus: false,
             x_expand: true,
         });
         this._modeHistoryButton = new St.Button({
             style_class: 'vitals-menu-mode-tab',
             label: _('History'),
-            toggle_mode: true,
+            toggle_mode: false,
             can_focus: false,
             x_expand: true,
         });
-        this._modeLiveButton.connect('clicked', () => {
-            if (this._menuMode === 'live') {
-                // toggle_mode would uncheck the active tab — keep it selected
-                this._modeLiveButton.checked = true;
-                if (this._modeHistoryButton)
-                    this._modeHistoryButton.checked = false;
-                return;
-            }
-            this._setMenuMode('live');
-        });
-        this._modeHistoryButton.connect('clicked', () => {
-            if (this._menuMode === 'history') {
-                this._modeHistoryButton.checked = true;
-                if (this._modeLiveButton)
-                    this._modeLiveButton.checked = false;
-                return;
-            }
-            this._setMenuMode('history');
-        });
+        this._modeLiveButton.connect('clicked', () => this._setMenuMode('live'));
+        this._modeHistoryButton.connect('clicked', () => this._setMenuMode('history'));
         box.add_child(this._modeLiveButton);
         box.add_child(this._modeHistoryButton);
         this._modeTabsItem.add_child(box);
@@ -237,8 +221,17 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
-    _setMenuMode(mode, persist = true) {
+    _setMenuMode(mode, persist = true, force = false) {
         const next = mode === 'history' ? 'history' : 'live';
+        if (!force && next === this._menuMode) {
+            // Already on this tab — keep radio styling, skip rebuild/flicker
+            if (this._modeLiveButton)
+                this._modeLiveButton.checked = next === 'live';
+            if (this._modeHistoryButton)
+                this._modeHistoryButton.checked = next === 'history';
+            return;
+        }
+
         this._menuMode = next;
         if (this._modeLiveButton)
             this._modeLiveButton.checked = next === 'live';
@@ -733,7 +726,7 @@ var VitalsMenuButton = GObject.registerClass({
                 this._querySensors();
                 if (this._historyChartEnabled()) {
                     // Keep the last Live/History choice (in-memory + settings)
-                    this._setMenuMode(this._menuMode, false);
+                    this._setMenuMode(this._menuMode, false, true);
                     this._refreshHistoryChart();
                     if (this._menuMode === 'history')
                         this._resizeMenuForHistory();
