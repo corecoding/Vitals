@@ -1,0 +1,614 @@
+/*
+  Path-centric sensor source registry.
+
+  Static catalog entries are registered at Sensors init. Discovery (hwmon, net
+  ifaces, …) appends more sources in the same shape. Poll selects sources by
+  needed keys / fullGroups, reads each path once, and extracts fields.
+*/
+
+import * as FileModule from './file.js';
+import {sensorKeyFromTypeLabel} from './colors.js';
+
+export function fieldKey(type, label) {
+    return sensorKeyFromTypeLabel(type, label);
+}
+
+/**
+ * @typedef {object} SensorField
+ * @property {string} label
+ * @property {string} type
+ * @property {string} [format]
+ * @property {string} [key] - defaults from type+label
+ */
+
+/**
+ * @typedef {object} SensorSource
+ * @property {string} id
+ * @property {string} group - catalog group (memory, temperature, …)
+ * @property {string} [path]
+ * @property {function} [getPath] - (ctx) => path
+ * @property {string} [parse] - raw | regex | split | uevent | custom
+ * @property {string|RegExp} [delimiter] - for File.read
+ * @property {boolean} [stripHeader]
+ * @property {SensorField[]} fields
+ * @property {function} [extract] - (contents, ctx, wantedKeys) => emit rows
+ * @property {boolean} [discovered]
+ */
+
+export function createSensorRegistry() {
+    /** @type {Map<string, SensorSource>} */
+    const sources = new Map();
+    const discoveredIds = new Set();
+
+    function normalizeSource(source) {
+        const fields = (source.fields || []).map(field => {
+            const type = field.type;
+            const label = field.label;
+            return {
+                ...field,
+                key: field.key || fieldKey(type, label),
+            };
+        });
+        return {...source, fields};
+    }
+
+    function registerSource(source, options = {}) {
+        const normalized = normalizeSource(source);
+        sources.set(normalized.id, normalized);
+        if (options.discovered)
+            discoveredIds.add(normalized.id);
+        return normalized;
+    }
+
+    function unregisterSource(id) {
+        sources.delete(id);
+        discoveredIds.delete(id);
+    }
+
+    function clearDiscovered() {
+        for (let id of discoveredIds)
+            sources.delete(id);
+        discoveredIds.clear();
+    }
+
+    function allSources() {
+        return [...sources.values()];
+    }
+
+    function sourcesForGroup(group) {
+        return allSources().filter(source => source.group === group);
+    }
+
+    /**
+     * Which field keys from this source are needed for this poll.
+     * null => emit all fields (menu open / full group).
+     */
+    function wantedKeysForSource(source, filter) {
+        if (!filter)
+            return null;
+        if (filter.fullGroups && filter.fullGroups.has(source.group) && !source.skipFullGroup)
+            return null;
+
+        const wanted = new Set();
+        for (let field of source.fields) {
+            if (filter.keys.has(field.key))
+                wanted.add(field.key);
+        }
+        return wanted.size ? wanted : null;
+    }
+
+    function sourceIsSelected(source, filter, showGroup) {
+        if (showGroup && !showGroup(source.group))
+            return false;
+
+        if (!filter)
+            return true;
+
+        // Group must be in the selective set (or fullGroups implies group)
+        if (!filter.groups.has(source.group) &&
+            !(filter.fullGroups && filter.fullGroups.has(source.group)))
+            return false;
+
+        if (filter.fullGroups && filter.fullGroups.has(source.group)) {
+            if (source.skipFullGroup) {
+                for (let field of source.fields) {
+                    if (filter.keys.has(field.key))
+                        return true;
+                }
+                return false;
+            }
+            return true;
+        }
+
+        for (let field of source.fields) {
+            if (filter.keys.has(field.key))
+                return true;
+        }
+        return false;
+    }
+
+    function selectSources(filter, showGroup) {
+        return allSources().filter(source =>
+            sourceIsSelected(source, filter, showGroup));
+    }
+
+    function shouldEmitField(field, wantedKeys) {
+        if (!wantedKeys)
+            return true;
+        return wantedKeys.has(field.key);
+    }
+
+    function defaultExtract(source, contents, _ctx, wantedKeys) {
+        const rows = [];
+
+        if (source.parse === 'raw') {
+            const field = source.fields[0];
+            if (field && shouldEmitField(field, wantedKeys)) {
+                rows.push({
+                    label: field.label,
+                    value: contents,
+                    type: field.type,
+                    format: field.format || '',
+                });
+            }
+            return rows;
+        }
+
+        if (source.parse === 'regex') {
+            const text = typeof contents === 'string' ? contents : String(contents);
+            for (let field of source.fields) {
+                if (!shouldEmitField(field, wantedKeys))
+                    continue;
+                if (!field.match)
+                    continue;
+                let m = text.match(field.match);
+                if (!m)
+                    continue;
+                let value = field.capture != null ? m[field.capture] : m[1];
+                if (field.number)
+                    value = parseFloat(value);
+                if (field.scale)
+                    value = value * field.scale;
+                rows.push({
+                    label: field.label,
+                    value,
+                    type: field.type,
+                    format: field.format || '',
+                });
+            }
+            return rows;
+        }
+
+        if (source.parse === 'split') {
+            const parts = Array.isArray(contents) ? contents : String(contents).split(source.splitOn || ' ');
+            for (let field of source.fields) {
+                if (!shouldEmitField(field, wantedKeys))
+                    continue;
+                let value = parts[field.index];
+                if (field.number)
+                    value = parseFloat(value);
+                rows.push({
+                    label: field.label,
+                    value,
+                    type: field.type,
+                    format: field.format || '',
+                });
+            }
+            return rows;
+        }
+
+        if (source.parse === 'uevent') {
+            const lines = Array.isArray(contents) ? contents : String(contents).split('\n');
+            const map = {};
+            for (let line of lines) {
+                let split = line.split('=');
+                if (split.length < 2)
+                    continue;
+                map[split[0].replace('POWER_SUPPLY_', '')] = split.slice(1).join('=');
+            }
+            for (let field of source.fields) {
+                if (!shouldEmitField(field, wantedKeys))
+                    continue;
+                if (!(field.ueventKey in map))
+                    continue;
+                let value = map[field.ueventKey];
+                if (field.number)
+                    value = parseFloat(value);
+                if (field.scale)
+                    value = value * field.scale;
+                rows.push({
+                    label: field.label,
+                    value,
+                    type: field.type,
+                    format: field.format || '',
+                });
+            }
+            // Attach map for custom post-processors via source.afterExtract
+            return {rows, map};
+        }
+
+        return rows;
+    }
+
+    function poll(returnValue, callback, filter, ctx) {
+        const showGroup = ctx.showGroup || (() => true);
+        const selected = selectSources(filter, showGroup);
+
+        for (let source of selected) {
+            const path = source.getPath ? source.getPath(ctx) : source.path;
+            if (!path)
+                continue;
+
+            const wantedKeys = wantedKeysForSource(source, filter);
+            const delimiter = source.delimiter != null ? source.delimiter : '';
+            const stripHeader = !!source.stripHeader;
+
+            new FileModule.File(path).read(delimiter, stripHeader).then(contents => {
+                let rows;
+                if (typeof source.extract === 'function') {
+                    rows = source.extract(contents, ctx, wantedKeys) || [];
+                } else {
+                    const extracted = defaultExtract(source, contents, ctx, wantedKeys);
+                    if (extracted && extracted.rows) {
+                        rows = extracted.rows;
+                        if (typeof source.afterExtract === 'function')
+                            rows = rows.concat(source.afterExtract(extracted.map, ctx, wantedKeys) || []);
+                    } else {
+                        rows = extracted || [];
+                    }
+                }
+
+                for (let row of rows) {
+                    if (!row)
+                        continue;
+                    returnValue(callback, row.label, row.value, row.type, row.format || '');
+                }
+            }).catch(err => {
+                if (source.parse === 'raw' && source.fields[0]) {
+                    const field = source.fields[0];
+                    if (shouldEmitField(field, wantedKeys))
+                        returnValue(callback, field.label, 'disabled', field.type, field.format || '');
+                }
+            });
+        }
+    }
+
+    return {
+        registerSource,
+        unregisterSource,
+        clearDiscovered,
+        allSources,
+        sourcesForGroup,
+        selectSources,
+        poll,
+    };
+}
+
+/** Hard-coded sources common across machines. Discovery appends more later. */
+export function getStaticSources() {
+    return [
+        {
+            id: 'proc-meminfo',
+            path: '/proc/meminfo',
+            group: 'memory',
+            extract(text, _ctx, wantedKeys) {
+                const emitAll = !wantedKeys;
+                const want = key => emitAll || wantedKeys.has(key);
+
+                let values = '', total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
+                if (values = text.match(/MemTotal:(\s+)(\d+) kB/)) total = values[2];
+                if (values = text.match(/MemAvailable:(\s+)(\d+) kB/)) avail = values[2];
+                if (values = text.match(/SwapTotal:(\s+)(\d+) kB/)) swapTotal = values[2];
+                if (values = text.match(/SwapFree:(\s+)(\d+) kB/)) swapFree = values[2];
+                if (values = text.match(/Cached:(\s+)(\d+) kB/)) cached = values[2];
+                if (values = text.match(/MemFree:(\s+)(\d+) kB/)) memFree = values[2];
+
+                let used = total - avail;
+                let utilized = used / total;
+                let swapUsed = swapTotal - swapFree;
+                let swapUtilized = swapUsed / swapTotal;
+
+                const rows = [];
+                const push = (label, value, type, format) => {
+                    const key = fieldKey(type, label);
+                    if (want(key))
+                        rows.push({label, value, type, format});
+                };
+
+                push('Usage', utilized, 'memory', 'percent');
+                push('memory', utilized, 'memory-group', 'percent');
+                push('Physical', total, 'memory', 'memory');
+                push('Available', avail, 'memory', 'memory');
+                push('Allocated', used, 'memory', 'memory');
+                push('Cached', cached, 'memory', 'memory');
+                push('Free', memFree, 'memory', 'memory');
+                push('Swap Total', swapTotal, 'memory', 'memory');
+                push('Swap Free', swapFree, 'memory', 'memory');
+                push('Swap Used', swapUsed, 'memory', 'memory');
+                push('Swap Usage', swapUtilized, 'memory', 'percent');
+                return rows;
+            },
+            fields: [
+                {label: 'Usage', type: 'memory', format: 'percent'},
+                {label: 'memory', type: 'memory-group', format: 'percent'},
+                {label: 'Physical', type: 'memory', format: 'memory'},
+                {label: 'Available', type: 'memory', format: 'memory'},
+                {label: 'Allocated', type: 'memory', format: 'memory'},
+                {label: 'Cached', type: 'memory', format: 'memory'},
+                {label: 'Free', type: 'memory', format: 'memory'},
+                {label: 'Swap Total', type: 'memory', format: 'memory'},
+                {label: 'Swap Free', type: 'memory', format: 'memory'},
+                {label: 'Swap Used', type: 'memory', format: 'memory'},
+                {label: 'Swap Usage', type: 'memory', format: 'percent'},
+            ],
+        },
+        {
+            id: 'proc-file-nr',
+            path: '/proc/sys/fs/file-nr',
+            group: 'system',
+            delimiter: '\t',
+            parse: 'split',
+            splitOn: '\t',
+            fields: [
+                {label: 'Open Files', type: 'system', format: 'string', index: 0},
+            ],
+        },
+        {
+            id: 'proc-loadavg',
+            path: '/proc/loadavg',
+            group: 'system',
+            delimiter: ' ',
+            extract(parts, _ctx, wantedKeys) {
+                const emitAll = !wantedKeys;
+                const want = key => emitAll || wantedKeys.has(key);
+                const proc = String(parts[3] || '').split('/');
+                const rows = [];
+                const push = (label, value, type, format) => {
+                    if (want(fieldKey(type, label)))
+                        rows.push({label, value, type, format});
+                };
+                push('Load 1m', parseFloat(parts[0]), 'system', 'load');
+                push('system', parseFloat(parts[0]), 'system-group', 'load');
+                push('Load 5m', parseFloat(parts[1]), 'system', 'load');
+                push('Load 15m', parseFloat(parts[2]), 'system', 'load');
+                push('Threads Active', proc[0], 'system', 'string');
+                push('Threads Total', proc[1], 'system', 'string');
+                return rows;
+            },
+            fields: [
+                {label: 'Load 1m', type: 'system', format: 'load'},
+                {label: 'system', type: 'system-group', format: 'load'},
+                {label: 'Load 5m', type: 'system', format: 'load'},
+                {label: 'Load 15m', type: 'system', format: 'load'},
+                {label: 'Threads Active', type: 'system', format: 'string'},
+                {label: 'Threads Total', type: 'system', format: 'string'},
+            ],
+        },
+        {
+            id: 'proc-uptime',
+            path: '/proc/uptime',
+            group: 'system',
+            delimiter: ' ',
+            extract(parts, ctx, wantedKeys) {
+                const emitAll = !wantedKeys;
+                const want = key => emitAll || wantedKeys.has(key);
+                const rows = [];
+                if (want(fieldKey('system', 'Uptime')))
+                    rows.push({label: 'Uptime', value: parts[0], type: 'system', format: 'uptime'});
+
+                // Process Time is typed as processor but sourced from uptime
+                const processKey = fieldKey('processor', 'Process Time');
+                if (want(processKey) || (emitAll && ctx.processorCores > 0)) {
+                    let cores = ctx.processorCores || 0;
+                    if (cores > 0 && (emitAll || want(processKey)))
+                        rows.push({
+                            label: 'Process Time',
+                            value: parts[0] - parts[1] / cores,
+                            type: 'processor',
+                            format: 'uptime',
+                        });
+                }
+                return rows;
+            },
+            fields: [
+                {label: 'Uptime', type: 'system', format: 'uptime'},
+                {label: 'Process Time', type: 'processor', format: 'uptime'},
+            ],
+        },
+        {
+            id: 'proc-zfs-arcstats',
+            path: '/proc/spl/kstat/zfs/arcstats',
+            group: 'storage',
+            extract(text, _ctx, wantedKeys) {
+                const emitAll = !wantedKeys;
+                const want = key => emitAll || wantedKeys.has(key);
+                let values = '', target = 0, maximum = 0, current = 0;
+                if (values = text.match(/c(\s+)(\d+)(\s+)(\d+)/)) target = values[4];
+                if (values = text.match(/c_max(\s+)(\d+)(\s+)(\d+)/)) maximum = values[4];
+                if (values = text.match(/size(\s+)(\d+)(\s+)(\d+)/)) current = values[4];
+                const rows = [];
+                const push = (label, value) => {
+                    if (want(fieldKey('storage', label)))
+                        rows.push({label, value, type: 'storage', format: 'storage'});
+                };
+                push('ARC Target', target);
+                push('ARC Maximum', maximum);
+                push('ARC Current', current);
+                return rows;
+            },
+            fields: [
+                {label: 'ARC Target', type: 'storage', format: 'storage'},
+                {label: 'ARC Maximum', type: 'storage', format: 'storage'},
+                {label: 'ARC Current', type: 'storage', format: 'storage'},
+            ],
+        },
+        {
+            id: 'proc-net-wireless',
+            path: '/proc/net/wireless',
+            group: 'network',
+            // Device max aggregate should not force a wireless read
+            skipFullGroup: true,
+            delimiter: '\n',
+            stripHeader: true,
+            extract(lines, _ctx, wantedKeys) {
+                const emitAll = !wantedKeys;
+                const want = key => emitAll || wantedKeys.has(key);
+                // wireless has two headers - first stripped by File.read
+                if (Array.isArray(lines))
+                    lines = lines.slice();
+                else
+                    lines = String(lines).split('\n');
+                lines.shift();
+
+                let quality_pct = null, signal = null;
+                for (let line of lines) {
+                    if (!line || !String(line).trim())
+                        continue;
+                    let netArray = String(line).trim().split(/\s+/);
+                    quality_pct = netArray[2].substr(0, netArray[2].length - 1) / 70;
+                    signal = netArray[3].substr(0, netArray[3].length - 1);
+                }
+                if (quality_pct == null)
+                    return [];
+
+                const rows = [];
+                if (want(fieldKey('network', 'WiFi Link Quality')))
+                    rows.push({label: 'WiFi Link Quality', value: quality_pct, type: 'network', format: 'percent'});
+                if (want(fieldKey('network', 'WiFi Signal Level')))
+                    rows.push({label: 'WiFi Signal Level', value: signal, type: 'network', format: 'string'});
+                return rows;
+            },
+            fields: [
+                {label: 'WiFi Link Quality', type: 'network', format: 'percent'},
+                {label: 'WiFi Signal Level', type: 'network', format: 'string'},
+            ],
+        },
+    ];
+}
+
+export const BATTERY_PATHS = {
+    0: 'BAT0',
+    1: 'BAT1',
+    2: 'BAT2',
+    3: 'BATT',
+    4: 'CMB0',
+    5: 'CMB1',
+    6: 'CMB2',
+    7: 'macsmc-battery',
+};
+
+export function createBatterySource(getSlot, batteryState) {
+    return {
+        id: 'sys-battery-uevent',
+        group: 'battery',
+        getPath(ctx) {
+            let slot = getSlot(ctx);
+            return '/sys/class/power_supply/' + BATTERY_PATHS[slot] + '/uevent';
+        },
+        delimiter: '\n',
+        extract(lines, ctx, wantedKeys) {
+            const emitAll = !wantedKeys;
+            const want = key => emitAll || wantedKeys.has(key);
+            const output = {};
+            for (let line of lines) {
+                let split = String(line).split('=');
+                output[split[0].replace('POWER_SUPPLY_', '')] = split[1];
+            }
+
+            const rows = [];
+            const push = (label, value, format) => {
+                if (want(fieldKey('battery', label)))
+                    rows.push({label, value, type: 'battery', format});
+            };
+            const pushGroup = (label, value, type, format) => {
+                if (want(fieldKey(type, label)))
+                    rows.push({label, value, type, format});
+            };
+
+            if ('STATUS' in output)
+                push('State', output['STATUS'], '');
+            if ('CYCLE_COUNT' in output)
+                push('Cycles', output['CYCLE_COUNT'], '');
+            if ('VOLTAGE_NOW' in output)
+                push('Voltage', output['VOLTAGE_NOW'] / 1000, 'in');
+            if ('CAPACITY_LEVEL' in output)
+                push('Level', output['CAPACITY_LEVEL'], '');
+            if ('CAPACITY' in output)
+                push('Percentage', output['CAPACITY'] / 100, 'percent');
+
+            if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output)))
+                output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
+
+            if ('POWER_NOW' in output) {
+                const powerValue = (
+                    parseFloat(output['POWER_NOW']) * (output['STATUS'] === 'Discharging' ? -1 : 1)
+                );
+                push('Power Rate', powerValue, 'watt');
+                pushGroup('battery', powerValue, 'battery-group', 'watt');
+            }
+
+            if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output)))
+                output['ENERGY_FULL'] = (output['CHARGE_FULL'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+
+            if ('ENERGY_FULL' in output)
+                push('Energy (full)', output['ENERGY_FULL'], 'watt-hour');
+
+            if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output)))
+                output['ENERGY_FULL_DESIGN'] = (output['CHARGE_FULL_DESIGN'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
+
+            if ('ENERGY_FULL_DESIGN' in output) {
+                push('Energy (design)', output['ENERGY_FULL_DESIGN'], 'watt-hour');
+                if ('ENERGY_FULL' in output)
+                    push('Capacity', (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), 'percent');
+            }
+
+            if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output)))
+                output['ENERGY_NOW'] = (output['VOLTAGE_MIN_DESIGN'] * output['CHARGE_NOW']) / 1000000;
+
+            if ('ENERGY_NOW' in output)
+                push('Energy (now)', output['ENERGY_NOW'], 'watt-hour');
+
+            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output &&
+                output['POWER_NOW'] !== 0 && 'STATUS' in output &&
+                (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
+
+                let timeLeft = 0;
+                if (output['STATUS'] == 'Charging')
+                    timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
+                else
+                    timeLeft = (output['ENERGY_NOW'] / Math.abs(output['POWER_NOW']));
+
+                if (timeLeft !== Infinity) {
+                    if (batteryState.chargeStatus != output['STATUS']) {
+                        batteryState.timeLeftHistory = [];
+                        batteryState.chargeStatus = output['STATUS'];
+                    }
+                    batteryState.timeLeftHistory.push(parseInt(timeLeft * 3600));
+                    if (batteryState.timeLeftHistory.length > 10)
+                        batteryState.timeLeftHistory.shift();
+                    let sum = batteryState.timeLeftHistory.reduce((a, b) => a + b);
+                    let avg = sum / batteryState.timeLeftHistory.length;
+                    push('Time left', parseInt(avg), 'runtime');
+                }
+            } else if ('STATUS' in output) {
+                push('Time left', output['STATUS'], '');
+            }
+
+            return rows;
+        },
+        fields: [
+            {label: 'State', type: 'battery', format: ''},
+            {label: 'Cycles', type: 'battery', format: ''},
+            {label: 'Voltage', type: 'battery', format: 'in'},
+            {label: 'Level', type: 'battery', format: ''},
+            {label: 'Percentage', type: 'battery', format: 'percent'},
+            {label: 'Power Rate', type: 'battery', format: 'watt'},
+            {label: 'battery', type: 'battery-group', format: 'watt'},
+            {label: 'Energy (full)', type: 'battery', format: 'watt-hour'},
+            {label: 'Energy (design)', type: 'battery', format: 'watt-hour'},
+            {label: 'Capacity', type: 'battery', format: 'percent'},
+            {label: 'Energy (now)', type: 'battery', format: 'watt-hour'},
+            {label: 'Time left', type: 'battery', format: 'runtime'},
+        ],
+    };
+}
