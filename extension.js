@@ -273,7 +273,57 @@ var VitalsMenuButton = GObject.registerClass({
         this._ensureScrubMenuItems();
         this._refreshHistoryChart();
         this._refreshScrubProcessMenu();
-        this._lockMenuWidth();
+        // Live mode may have locked a narrow width — expand to fit the chart
+        this._resizeMenuForHistory();
+    }
+
+    _resizeMenuForHistory() {
+        const box = this.menu && this.menu.box;
+        if (!box)
+            return;
+
+        // Clear the Live-era fixed width so preferred size can grow
+        box.set_width(-1);
+        this._menuLockWidth = 0;
+
+        const apply = () => {
+            if (this._menuMode !== 'history')
+                return;
+            const menuBox = this.menu && this.menu.box;
+            if (!menuBox)
+                return;
+
+            // Chart CSS min-width is 280px; include padding/chrome
+            let needed = 320;
+            try {
+                const pref = menuBox.get_preferred_width(-1);
+                needed = Math.max(needed, Math.ceil(pref[0]), Math.ceil(pref[1]));
+            } catch (e) {
+                // keep floor
+            }
+            if (this._historyChartItem) {
+                try {
+                    const cpref = this._historyChartItem.get_preferred_width(-1);
+                    needed = Math.max(needed, Math.ceil(cpref[1]) + 32);
+                } catch (e) {
+                    // keep floor
+                }
+            }
+
+            this._menuLockWidth = needed;
+            menuBox.set_width(needed);
+        };
+
+        // Apply after the newly visible chart has a chance to allocate
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            apply();
+            // Second pass once process rows + chart have laid out
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                apply();
+                return GLib.SOURCE_REMOVE;
+            });
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     _ensureHistoryChart() {
