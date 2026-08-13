@@ -33,7 +33,8 @@
 .vitals-menu-mode-tab:hover {
     background-color: rgba(128, 128, 128, 0.2);
 }
-.vitals-menu-mode-tab:checked {
+.vitals-menu-mode-tab:checked,
+.vitals-menu-mode-tab.selected {
     background-color: rgba(110, 140, 230, 0.28);
     border-color: rgba(110, 140, 230, 0.45);
 }
@@ -104,6 +105,11 @@
 .vitals-history-scrub-empty {
     opacity: 0.65;
     font-size: 0.85em;
+}
+.vitals-history-scrub-section,
+.vitals-history-scrub-empty,
+.vitals-history-scrub-proc {
+    min-height: 28px;
 }
 .vitals-history-scrub-proc-name {
     font-feature-settings: "tnum";

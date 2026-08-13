@@ -51,8 +51,8 @@ var VitalsMenuButton = GObject.registerClass({
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._processSampler = new ProcessSampler.ProcessSampler(this._settings);
         this._historyChartItem = null;
-        this._historyChartSeparator = null;
         this._modeTabsItem = null;
+        this._modeTabsSeparator = null;
         this._modeLiveButton = null;
         this._modeHistoryButton = null;
         this._menuMode = this._getSavedMenuMode(); // 'live' | 'history'
@@ -196,19 +196,45 @@ var VitalsMenuButton = GObject.registerClass({
         box.add_child(this._modeHistoryButton);
         this._modeTabsItem.add_child(box);
         this.menu.addMenuItem(this._modeTabsItem, 0);
-        const saved = this._getSavedMenuMode();
-        this._modeLiveButton.checked = saved === 'live';
-        this._modeHistoryButton.checked = saved === 'history';
+
+        // Always-visible rule under Live/History (must not be tied to chart visibility)
+        this._modeTabsSeparator = new PopupMenu.PopupSeparatorMenuItem();
+        this.menu.addMenuItem(this._modeTabsSeparator, 1);
+
+        this._updateModeTabStyles(this._menuMode);
     }
 
     _removeModeTabs() {
+        if (this._modeTabsSeparator) {
+            this._modeTabsSeparator.destroy();
+            this._modeTabsSeparator = null;
+        }
         if (this._modeTabsItem) {
             this._modeTabsItem.destroy();
             this._modeTabsItem = null;
             this._modeLiveButton = null;
             this._modeHistoryButton = null;
         }
+        // Keep last preferred mode in settings; only reset UI state
         this._menuMode = 'live';
+    }
+
+    _updateModeTabStyles(mode) {
+        const live = mode === 'live';
+        if (this._modeLiveButton) {
+            this._modeLiveButton.checked = live;
+            if (live)
+                this._modeLiveButton.add_style_class_name('selected');
+            else
+                this._modeLiveButton.remove_style_class_name('selected');
+        }
+        if (this._modeHistoryButton) {
+            this._modeHistoryButton.checked = !live;
+            if (!live)
+                this._modeHistoryButton.add_style_class_name('selected');
+            else
+                this._modeHistoryButton.remove_style_class_name('selected');
+        }
     }
 
     _persistMenuMode() {
@@ -224,19 +250,12 @@ var VitalsMenuButton = GObject.registerClass({
     _setMenuMode(mode, persist = true, force = false) {
         const next = mode === 'history' ? 'history' : 'live';
         if (!force && next === this._menuMode) {
-            // Already on this tab — keep radio styling, skip rebuild/flicker
-            if (this._modeLiveButton)
-                this._modeLiveButton.checked = next === 'live';
-            if (this._modeHistoryButton)
-                this._modeHistoryButton.checked = next === 'history';
+            this._updateModeTabStyles(next);
             return;
         }
 
         this._menuMode = next;
-        if (this._modeLiveButton)
-            this._modeLiveButton.checked = next === 'live';
-        if (this._modeHistoryButton)
-            this._modeHistoryButton.checked = next === 'history';
+        this._updateModeTabStyles(next);
 
         if (persist)
             this._persistMenuMode();
@@ -253,8 +272,7 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyChartItem.unpin();
             this._historyChartItem.visible = false;
         }
-        if (this._historyChartSeparator)
-            this._historyChartSeparator.visible = false;
+        // Keep _modeTabsSeparator visible — that is the rule under Live/History
 
         this._clearScrubMenuItems();
         this._scrubMenuActive = false;
@@ -300,8 +318,6 @@ var VitalsMenuButton = GObject.registerClass({
 
         if (this._historyChartItem)
             this._historyChartItem.visible = true;
-        if (this._historyChartSeparator)
-            this._historyChartSeparator.visible = true;
 
         this._scrubMenuActive = true;
         this._ensureScrubMenuItems();
@@ -386,13 +402,10 @@ var VitalsMenuButton = GObject.registerClass({
                 this._refreshScrubProcessMenu();
         }, this);
 
-        // After Live/History mode tabs when present
-        const chartIndex = this._modeTabsItem ? 1 : 0;
-        this._historyChartSeparator = new PopupMenu.PopupSeparatorMenuItem();
+        // After Live/History mode tabs + their separator when present
+        const chartIndex = this._modeTabsItem ? 2 : 0;
         this.menu.addMenuItem(this._historyChartItem, chartIndex);
-        this.menu.addMenuItem(this._historyChartSeparator, chartIndex + 1);
         this._historyChartItem.visible = false;
-        this._historyChartSeparator.visible = false;
     }
 
     _removeHistoryChart() {
@@ -401,10 +414,6 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyChartItem.disconnectObject(this);
             this._historyChartItem.destroy();
             this._historyChartItem = null;
-        }
-        if (this._historyChartSeparator) {
-            this._historyChartSeparator.destroy();
-            this._historyChartSeparator = null;
         }
         this._clearScrubMenuItems();
         this._scrubMenuActive = false;
@@ -418,12 +427,14 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _scrubMenuInsertIndex() {
-        // After mode tabs (optional) + history chart + separator
+        // After mode tabs + tabs separator + history chart
         let index = 0;
         if (this._modeTabsItem)
             index++;
-        if (this._historyChartItem && this._historyChartSeparator)
-            index += 2;
+        if (this._modeTabsSeparator)
+            index++;
+        if (this._historyChartItem)
+            index++;
         return index;
     }
 
@@ -458,8 +469,9 @@ var VitalsMenuButton = GObject.registerClass({
         this.menu.addMenuItem(header, position++);
         this._scrubMenuItems.push(header);
 
+        // Always reserve 10 process rows so History menu height stays stable
         this._scrubProcRows = [];
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 10; i++) {
             const item = new PopupMenu.PopupBaseMenuItem({
                 reactive: true,
                 can_focus: false,
@@ -467,13 +479,13 @@ var VitalsMenuButton = GObject.registerClass({
             });
             item.setOrnament(PopupMenu.Ornament.HIDDEN);
             const name = new St.Label({
-                text: '',
+                text: ' ',
                 x_expand: true,
                 style_class: 'vitals-history-scrub-proc-name',
             });
             name.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             const value = new St.Label({
-                text: '',
+                text: ' ',
                 style_class: 'vitals-history-scrub-proc-value',
             });
             value.clutter_text.ellipsize = Pango.EllipsizeMode.END;
@@ -497,7 +509,7 @@ var VitalsMenuButton = GObject.registerClass({
             this.menu.addMenuItem(item, position++);
             this._scrubMenuItems.push(item);
             this._scrubProcRows.push(item);
-            item.hide();
+            item.show();
         }
     }
 
@@ -567,18 +579,13 @@ var VitalsMenuButton = GObject.registerClass({
             return;
 
         this._ensureScrubMenuItems();
-        const hasHeader = !!(view.timeText || view.valueText);
         const header = this._scrubMenuItems[0];
-        if (header) {
-            if (hasHeader)
-                header.show();
-            else
-                header.hide();
-        }
+        if (header)
+            header.show();
         if (this._scrubHeaderTime)
-            this._scrubHeaderTime.clutter_text.set_text(view.timeText || '');
+            this._scrubHeaderTime.clutter_text.set_text(view.timeText || ' ');
         if (this._scrubHeaderValue)
-            this._scrubHeaderValue.clutter_text.set_text(view.valueText || '');
+            this._scrubHeaderValue.clutter_text.set_text(view.valueText || ' ');
 
         const pinned = !!view.pinned;
         const items = view.items || [];
@@ -587,13 +594,19 @@ var VitalsMenuButton = GObject.registerClass({
             const row = items[i];
             if (!row) {
                 item._procName = null;
+                item._nameLabel.clutter_text.set_text(' ');
+                item._valueLabel.clutter_text.set_text(' ');
+                item.remove_style_class_name('vitals-history-scrub-section');
+                item.remove_style_class_name('vitals-history-scrub-empty');
                 item.remove_style_class_name('vitals-history-scrub-proc-focused');
-                item.hide();
+                item.add_style_class_name('vitals-history-scrub-proc');
+                item.reactive = false;
+                item.show();
                 continue;
             }
             item._procName = row.kind === 'proc' ? (row.procName || null) : null;
-            item._nameLabel.clutter_text.set_text(row.name);
-            item._valueLabel.clutter_text.set_text(row.value || '');
+            item._nameLabel.clutter_text.set_text(row.name || ' ');
+            item._valueLabel.clutter_text.set_text(row.value || ' ');
             item.remove_style_class_name('vitals-history-scrub-section');
             item.remove_style_class_name('vitals-history-scrub-empty');
             item.remove_style_class_name('vitals-history-scrub-proc');
@@ -725,8 +738,12 @@ var VitalsMenuButton = GObject.registerClass({
                 // refresh sensors now
                 this._querySensors();
                 if (this._historyChartEnabled()) {
-                    // Keep the last Live/History choice (in-memory + settings)
-                    this._setMenuMode(this._menuMode, false, true);
+                    // Prefer in-memory mode (updated on click); settings are the cold-start source
+                    const mode = this._menuMode === 'history' || this._menuMode === 'live'
+                        ? this._menuMode
+                        : this._getSavedMenuMode();
+                    this._setMenuMode(mode, false, true);
+                    this._persistMenuMode();
                     this._refreshHistoryChart();
                     if (this._menuMode === 'history')
                         this._resizeMenuForHistory();
