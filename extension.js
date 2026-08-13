@@ -140,15 +140,24 @@ var VitalsMenuButton = GObject.registerClass({
             }
             this._ensureModeTabs();
             this._ensureHistoryChart();
-            this._setMenuMode(this._menuMode === 'history' ? 'history' : 'live');
+            this._setMenuMode(this._getSavedMenuMode(), false);
             this._refreshHistoryChart();
         } else {
-            this._setMenuMode('live');
+            this._setMenuMode('live', false);
             this._removeHistoryChart();
             this._removeModeTabs();
             this._values.clearTimeSeries();
             this._processSampler.clear();
             this._timeSeriesLoaded = false;
+        }
+    }
+
+    _getSavedMenuMode() {
+        try {
+            const mode = this._settings.get_string('menu-mode');
+            return mode === 'history' ? 'history' : 'live';
+        } catch (e) {
+            return 'live';
         }
     }
 
@@ -186,7 +195,9 @@ var VitalsMenuButton = GObject.registerClass({
         box.add_child(this._modeHistoryButton);
         this._modeTabsItem.add_child(box);
         this.menu.addMenuItem(this._modeTabsItem, 0);
-        this._modeLiveButton.checked = true;
+        const saved = this._getSavedMenuMode();
+        this._modeLiveButton.checked = saved === 'live';
+        this._modeHistoryButton.checked = saved === 'history';
     }
 
     _removeModeTabs() {
@@ -199,13 +210,21 @@ var VitalsMenuButton = GObject.registerClass({
         this._menuMode = 'live';
     }
 
-    _setMenuMode(mode) {
+    _setMenuMode(mode, persist = true) {
         const next = mode === 'history' ? 'history' : 'live';
         this._menuMode = next;
         if (this._modeLiveButton)
             this._modeLiveButton.checked = next === 'live';
         if (this._modeHistoryButton)
             this._modeHistoryButton.checked = next === 'history';
+
+        if (persist && this._historyChartEnabled()) {
+            try {
+                this._settings.set_string('menu-mode', next);
+            } catch (e) {
+                // schema may be stale until recompiled
+            }
+        }
 
         if (next === 'history' && this._historyChartEnabled()) {
             this._showHistoryMode();
@@ -699,13 +718,13 @@ var VitalsMenuButton = GObject.registerClass({
 
                 // refresh sensors now
                 this._querySensors();
+                if (this._historyChartEnabled())
+                    this._setMenuMode(this._getSavedMenuMode(), false);
                 this._refreshHistoryChart();
                 this._lockMenuWidth();
             } else {
                 if (this._historyChartItem)
                     this._historyChartItem.unpin();
-                if (this._menuMode === 'history')
-                    this._setMenuMode('live');
                 this._unlockMenuWidth();
             }
         }, this);

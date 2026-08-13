@@ -214,5 +214,10 @@
       <summary>History duration (seconds)</summary>
       <description>How many seconds of sensor history to keep for the menu chart</description>
     </key>
+    <key type="s" name="menu-mode">
+      <default>"live"</default>
+      <summary>Last selected menu mode</summary>
+      <description>Which menu tab was last selected when the history chart is enabled ("live" or "history")</description>
+    </key>
   </schema>
 </schemalist>
