@@ -28,6 +28,11 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
+import {
+    createSensorRegistry,
+    getStaticSources,
+    createBatterySource,
+} from './helpers/sensorSources.js';
 
 // Shell and prefs hosts expose gettext on different module paths.
 let _;
@@ -78,6 +83,22 @@ export const Sensors = GObject.registerClass({
         this._frameMonitorFrameCount = 0;
         this._frameMonitorAccTime = 0;
         this._frameMonitorCurrentHz = 0;
+        this._queryFilter = null;
+
+        // Path-centric registry: static catalog + discovery appends (hwmon, net, …)
+        this._registry = createSensorRegistry();
+        this._hwmonLabels = {temperature: {}, voltage: {}, fan: {}};
+        this._batteryState = {timeLeftHistory: [], chargeStatus: ''};
+        for (let source of getStaticSources())
+            this._registry.registerSource(source);
+        this._registry.registerSource(createBatterySource(
+            () => this._settings.get_int('battery-slot'),
+            this._batteryState));
+
+        // Groups fully handled by the registry poll (custom leftovers call _query*)
+        this._registryGroups = new Set([
+            'temperature', 'voltage', 'fan', 'memory', 'system', 'battery',
+        ]);
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -135,68 +156,82 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, dwell) {
+    query(callback, dwell, filter = null) {
+        // null filter = full query (menu open). Otherwise { keys, groups, fullGroups }.
+        this._queryFilter = filter;
+
+        if (filter) {
+            console.log(`Vitals: query start selective keys=${filter.keys.size} groups=[${[...filter.groups]}]`);
+        } else {
+            console.log('Vitals: query start full');
+        }
+
         if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
+            // Discovery must always emit so dropdown rows exist when the menu opens
+            this._queryFilter = null;
+            console.log('Vitals: discovering hardware monitors');
             this._discoverHardwareMonitors(callback);
+            this._queryFilter = filter;
         }
 
+        const showGroup = group => {
+            let option = group.startsWith('gpu') ? 'gpu' : group;
+            return this._settings.get_boolean('show-' + option);
+        };
+
+        // Net ifaces are registered once during discovery; poll only reads selected paths
+        this._registry.poll(
+            this._returnValue.bind(this),
+            callback,
+            filter,
+            {
+                showGroup,
+                settings: this._settings,
+                processorCores: Math.max(0, Object.keys(this._last_processor['core']).length - 1),
+            });
+
+        // Custom (non-registry) groups: processor, network extras, storage disk/GTop, gpu
         for (let sensor in this._sensorIcons) {
-            if (this._settings.get_boolean('show-' + sensor)) {
-                if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
-                    // for temp, volt, fan, we have a shared handler
-                    this._queryTempVoltFan(callback, sensor);
-                } else {
-                    // directly call queryFunction below
-                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                    this[method](callback, dwell);
+            if (this._registryGroups.has(sensor))
+                continue;
+            if (!this._settings.get_boolean('show-' + sensor))
+                continue;
+            if (filter && !filter.groups.has(sensor))
+                continue;
+
+            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan')
+                continue;
+
+            let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+            this[method](callback, dwell);
+        }
+    }
+
+    _discoverNetworkIfaces() {
+        let netbase = '/sys/class/net/';
+        new FileModule.File(netbase).list().then(interfaces => {
+            const directions = ['tx', 'rx'];
+            for (let iface of interfaces) {
+                for (let direction of directions) {
+                    if (iface == 'lo' && direction == 'rx')
+                        continue;
+
+                    let name = iface + ((iface == 'lo') ? '' : ' ' + direction);
+                    let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
+                    let path = netbase + iface + '/statistics/' + direction + '_bytes';
+
+                    this._registry.registerSource({
+                        id: 'net-iface:' + path,
+                        path,
+                        group: 'network',
+                        parse: 'raw',
+                        fields: [{label: name, type, format: 'storage'}],
+                    }, {discovered: true});
                 }
             }
-        }
-    }
-
-    _queryTempVoltFan(callback, type) {
-        for (let label in this._tempVoltFanSensors[type]) {
-            let sensor = this._tempVoltFanSensors[type][label];
-
-            new FileModule.File(sensor['path']).read().then(value => {
-                this._returnValue(callback, label, value, type, sensor['format']);
-            }).catch(err => {
-                this._returnValue(callback, label, 'disabled', type, sensor['format']);
-            });
-        }
-    }
-
-    _queryMemory(callback) {
-        // check memory info
-        new FileModule.File('/proc/meminfo').read().then(lines => {
-            let values = '', total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
-
-            if (values = lines.match(/MemTotal:(\s+)(\d+) kB/)) total = values[2];
-            if (values = lines.match(/MemAvailable:(\s+)(\d+) kB/)) avail = values[2];
-            if (values = lines.match(/SwapTotal:(\s+)(\d+) kB/)) swapTotal = values[2];
-            if (values = lines.match(/SwapFree:(\s+)(\d+) kB/)) swapFree = values[2];
-            if (values = lines.match(/Cached:(\s+)(\d+) kB/)) cached = values[2];
-            if (values = lines.match(/MemFree:(\s+)(\d+) kB/)) memFree = values[2];
-
-            let used = total - avail
-            let utilized = used / total;
-            let swapUsed = swapTotal - swapFree
-            let swapUtilized = swapUsed / swapTotal;
-
-            this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
-            this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
-            this._returnValue(callback, 'Physical', total, 'memory', 'memory');
-            this._returnValue(callback, 'Available', avail, 'memory', 'memory');
-            this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
-            this._returnValue(callback, 'Cached', cached, 'memory', 'memory');
-            this._returnValue(callback, 'Free', memFree, 'memory', 'memory');
-            this._returnValue(callback, 'Swap Total', swapTotal, 'memory', 'memory');
-            this._returnValue(callback, 'Swap Free', swapFree, 'memory', 'memory');
-            this._returnValue(callback, 'Swap Used', swapUsed, 'memory', 'memory');
-            this._returnValue(callback, 'Swap Usage', swapUtilized, 'memory', 'percent');
         }).catch(err => { });
     }
 
@@ -288,122 +323,66 @@ export const Sensors = GObject.registerClass({
         }
     }
 
-    _querySystem(callback) {
-        // check load average
-        new FileModule.File('/proc/sys/fs/file-nr').read("\t").then(loadArray => {
-            this._returnValue(callback, 'Open Files', loadArray[0], 'system', 'string');
-        }).catch(err => { });
-
-        // check load average
-        new FileModule.File('/proc/loadavg').read(' ').then(loadArray => {
-            let proc = loadArray[3].split('/');
-
-            this._returnValue(callback, 'Load 1m', parseFloat(loadArray[0]), 'system', 'load');
-            this._returnValue(callback, 'system', parseFloat(loadArray[0]), 'system-group', 'load');
-            this._returnValue(callback, 'Load 5m', parseFloat(loadArray[1]), 'system', 'load');
-            this._returnValue(callback, 'Load 15m', parseFloat(loadArray[2]), 'system', 'load');
-            this._returnValue(callback, 'Threads Active', proc[0], 'system', 'string');
-            this._returnValue(callback, 'Threads Total', proc[1], 'system', 'string');
-        }).catch(err => { });
-
-        // check uptime
-        new FileModule.File('/proc/uptime').read(' ').then(upArray => {
-            this._returnValue(callback, 'Uptime', upArray[0], 'system', 'uptime');
-
-            let cores = Object.keys(this._last_processor['core']).length - 1;
-            if (cores > 0)
-                this._returnValue(callback, 'Process Time', upArray[0] - upArray[1] / cores, 'processor', 'uptime');
-        }).catch(err => { });
-    }
+    // Memory / system / battery / big-3 are polled via the registry only.
+    // Network (public IP) and storage (diskstats/GTop) still use _query*.
 
     _queryNetwork(callback, dwell) {
-        // check network speed
-        let directions = ['tx', 'rx'];
-        let netbase = '/sys/class/net/';
+        // Iface bytes + wireless come from the registry; only public IP remains here.
+        const filter = this._queryFilter;
 
-        new FileModule.File(netbase).list().then(interfaces => {
-            for (let iface of interfaces) {
-                for (let direction of directions) {
-                    // lo tx and rx are the same
-                    if (iface == 'lo' && direction == 'rx') continue;
-
-                    new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
-                        // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
-                        // by not using network-rx or network-tx
-                        let name = iface + ((iface == 'lo')?'':' ' + direction);
-
-                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
-                        this._returnValue(callback, name, value, type, 'storage');
-                    }).catch(err => { });
-                }
-            }
-        }).catch(err => { });
-
-        // some may not want public ip checking
         if (this._settings.get_boolean('include-public-ip')) {
-            // check the public ip every hour or when waking from sleep
-            if (this._next_public_ip_check <= 0) {
-                let intervalMinutes = this._settings.get_int('network-public-ip-interval');
-                this._next_public_ip_check = intervalMinutes * 60;
+            const publicIpKey = '_network_public_ip_';
+            const wantsPublicIp = !filter || filter.keys.has(publicIpKey);
 
-                this._refreshIPAddress(callback);
+            if (wantsPublicIp) {
+                if (this._next_public_ip_check <= 0) {
+                    let intervalMinutes = this._settings.get_int('network-public-ip-interval');
+                    this._next_public_ip_check = intervalMinutes * 60;
+
+                    this._refreshIPAddress(callback);
+                }
+
+                this._next_public_ip_check -= dwell;
             }
-
-            this._next_public_ip_check -= dwell;
         }
-
-        // wireless interface statistics
-        new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
-            // wireless has two headers - first is stripped in helper function
-            lines.shift();
-
-            // if multiple wireless device, we use the last one
-            for (let line of lines) {
-                let netArray = line.trim().split(/\s+/);
-                let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
-                let signal = netArray[3].substr(0, netArray[3].length-1);
-
-                this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
-                this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
-            }
-        }).catch(err => { });
     }
 
     _queryStorage(callback, dwell) {
-        // display zfs arc status, if available
-        new FileModule.File('/proc/spl/kstat/zfs/arcstats').read().then(lines => {
-            let values = '', target = 0, maximum = 0, current = 0;
+        // ZFS ARC is in the registry; diskstats + GTop stay custom.
+        const filter = this._queryFilter;
+        const emitAll = !filter;
+        const want = key => emitAll || filter.keys.has(key);
 
-            if (values = lines.match(/c(\s+)(\d+)(\s+)(\d+)/)) target = values[4];
-            if (values = lines.match(/c_max(\s+)(\d+)(\s+)(\d+)/)) maximum = values[4];
-            if (values = lines.match(/size(\s+)(\d+)(\s+)(\d+)/)) current = values[4];
-
-            // ZFS statistics
-            this._returnValue(callback, 'ARC Target', target, 'storage', 'storage');
-            this._returnValue(callback, 'ARC Maximum', maximum, 'storage', 'storage');
-            this._returnValue(callback, 'ARC Current', current, 'storage', 'storage');
-        }).catch(err => { });
+        const wantsDisk =
+            want('_storage_read_total_') || want('_storage_write_total_') ||
+            want('_storage_read_rate_') || want('_storage_write_rate_');
+        const wantsFs =
+            want('_storage_total_') || want('_storage_used_') || want('_storage_reserved_') ||
+            want('_storage_free_') || want('_storage_used_%_') || want('_storage_free_%_') ||
+            want('_storage_storage_');
 
         // check disk performance stats
-        new FileModule.File('/proc/diskstats').read("\n").then(lines => {
-            for (let line of lines) {
-                let loadArray = line.trim().split(/\s+/);
-                if ('/dev/' + loadArray[2] == this._storageDevice) {
-                    var read = (loadArray[5] * 512);
-                    var write = (loadArray[9] * 512);
-                    this._returnValue(callback, 'Read total', read, 'storage', 'storage');
-                    this._returnValue(callback, 'Write total', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
-                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
-                    this._lastRead = read;
-                    this._lastWrite = write;
-                    break;
+        if (wantsDisk) {
+            new FileModule.File('/proc/diskstats').read("\n").then(lines => {
+                for (let line of lines) {
+                    let loadArray = line.trim().split(/\s+/);
+                    if ('/dev/' + loadArray[2] == this._storageDevice) {
+                        var read = (loadArray[5] * 512);
+                        var write = (loadArray[9] * 512);
+                        this._returnValue(callback, 'Read total', read, 'storage', 'storage');
+                        this._returnValue(callback, 'Write total', write, 'storage', 'storage');
+                        this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
+                        this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
+                        this._lastRead = read;
+                        this._lastWrite = write;
+                        break;
+                    }
                 }
-            }
-        }).catch(err => { });
+            }).catch(err => { });
+        }
 
         // skip rest of stats if gtop not available
-        if (!hasGTop) return;
+        if (!hasGTop || !wantsFs) return;
 
         GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
 
@@ -428,132 +407,7 @@ export const Sensors = GObject.registerClass({
         this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     }
 
-    _queryBattery(callback) {
-        let battery_slot = this._settings.get_int('battery-slot');
-
-        // create a mapping of indices to battery paths (from prefs.ui)
-        const BATTERY_PATHS = {
-            0: 'BAT0',
-            1: 'BAT1',
-            2: 'BAT2',
-            3: 'BATT',
-            4: 'CMB0',
-            5: 'CMB1',
-            6: 'CMB2',
-            7: 'macsmc-battery'
-        };
-
-        // uevent has all necessary fields, no need to read individual files
-        let battery_path = '/sys/class/power_supply/' + BATTERY_PATHS[battery_slot] + '/uevent';
-        new FileModule.File(battery_path).read("\n").then(lines => {
-            let output = {};
-            for (let line of lines) {
-                let split = line.split('=');
-                output[split[0].replace('POWER_SUPPLY_', '')] = split[1];
-            }
-
-            if ('STATUS' in output) {
-                this._returnValue(callback, 'State', output['STATUS'], 'battery', '');
-            }
-
-            if ('CYCLE_COUNT' in output) {
-                this._returnValue(callback, 'Cycles', output['CYCLE_COUNT'], 'battery', '');
-            }
-
-            if ('VOLTAGE_NOW' in output) {
-                this._returnValue(callback, 'Voltage', output['VOLTAGE_NOW'] / 1000, 'battery', 'in');
-            }
-
-            if ('CAPACITY_LEVEL' in output) {
-                this._returnValue(callback, 'Level', output['CAPACITY_LEVEL'], 'battery', '');
-            }
-
-            if ('CAPACITY' in output) {
-                this._returnValue(callback, 'Percentage', output['CAPACITY'] / 100, 'battery', 'percent');
-            }
-
-            if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output))) {
-                output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
-            }
-
-            if ('POWER_NOW' in output) {
-                const powerValue = (
-                    parseFloat(output['POWER_NOW']) * (output['STATUS'] === 'Discharging' ? -1 : 1)
-                );
-                this._returnValue(callback, 'Power Rate', powerValue, 'battery', 'watt');
-                this._returnValue(callback, 'battery', powerValue, 'battery-group', 'watt');
-            }
-
-            if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output))) {
-                output['ENERGY_FULL'] = (output['CHARGE_FULL'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
-            }
-
-            if ('ENERGY_FULL' in output) {
-                this._returnValue(callback, 'Energy (full)', output['ENERGY_FULL'], 'battery', 'watt-hour');
-            }
-
-            if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output))) {
-                output['ENERGY_FULL_DESIGN'] = (output['CHARGE_FULL_DESIGN'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
-            }
-
-            if ('ENERGY_FULL_DESIGN' in output) {
-                this._returnValue(callback, 'Energy (design)', output['ENERGY_FULL_DESIGN'], 'battery', 'watt-hour');
-
-                if ('ENERGY_FULL' in output) {
-                    this._returnValue(callback, 'Capacity', (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), 'battery', 'percent');
-                }
-            }
-
-            if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output))) {
-                output['ENERGY_NOW'] = (output['VOLTAGE_MIN_DESIGN'] * output['CHARGE_NOW']) / 1000000;
-            }
-
-            if ('ENERGY_NOW' in output) {
-                this._returnValue(callback, 'Energy (now)', output['ENERGY_NOW'], 'battery', 'watt-hour');
-            }
-
-            if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output &&
-                output['POWER_NOW'] !== 0 && 'STATUS' in output &&
-                (output['STATUS'] == 'Charging' || output['STATUS'] == 'Discharging')) {
-
-                let timeLeft = 0;
-
-                // two different formulas depending on if we are charging or discharging
-                if (output['STATUS'] == 'Charging') {
-                    timeLeft = ((output['ENERGY_FULL'] - output['ENERGY_NOW']) / output['POWER_NOW']);
-                } else {
-                    timeLeft = (output['ENERGY_NOW'] / Math.abs(output['POWER_NOW']));
-                }
-
-                // don't process Infinity values
-                if (timeLeft !== Infinity) {
-                    if (this._battery_charge_status != output['STATUS']) {
-                        // clears history due to state change
-                        this._battery_time_left_history = [];
-
-                        // clear time left history when laptop goes in and out of charging
-                        this._battery_charge_status = output['STATUS'];
-                    }
-
-                    // add latest time left estimate to our history
-                    this._battery_time_left_history.push(parseInt(timeLeft * 3600));
-
-                    // keep track of last 15 time left estimates by erasing the first
-                    if (this._battery_time_left_history.length > 10)
-                        this._battery_time_left_history.shift();
-
-                    // sum up and create average of our time left history
-                    let sum = this._battery_time_left_history.reduce((a, b) => a + b);
-                    let avg = sum / this._battery_time_left_history.length;
-
-                    // use time left history to update screen
-                    this._returnValue(callback, 'Time left', parseInt(avg), 'battery', 'runtime');
-                }
-            } else {
-                this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');
-            }
-        }).catch(err => { });
-    }
+    // Battery uevent is polled via the sensor source registry.
 
     _initFrameMonitor() {
         // Prefs has no gnome-shell `global`; skip refresh-rate sampling there.
@@ -823,7 +677,11 @@ export const Sensors = GObject.registerClass({
     }
 
     _discoverHardwareMonitors(callback) {
-        this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {} };
+        this._registry.clearDiscovered();
+        this._hwmonLabels = { 'temperature': {}, 'voltage': {}, 'fan': {} };
+
+        // One-time net iface discovery (poll only reads the registered byte files)
+        this._discoverNetworkIfaces();
 
         let hwbase = '/sys/class/hwmon/';
 
@@ -1055,9 +913,6 @@ export const Sensors = GObject.registerClass({
         // prepend module that provided sensor data
         if (name != label) label = name + ' ' + label;
 
-        //if (label == 'nvme Composite') label = 'NVMe';
-        //if (label == 'nouveau') label = 'Nvidia';
-
         label = label + extra;
 
         // in the future we will read /etc/sensors3.conf
@@ -1068,30 +923,31 @@ export const Sensors = GObject.registerClass({
         if (label == 'Package id 1') label = 'Processor 1';
         label = label.replace('Package id', 'CPU');
 
-        let types = [ 'temperature', 'voltage', 'fan' ];
-        for (let type of types) {
-            // check if this label already exists
-            if (label in this._tempVoltFanSensors[type]) {
-                for (let i = 2; i <= 9; i++) {
-                    // append an incremented number to end
-                    let new_label = label + ' ' + i;
-
-                    // if new label is available, use it
-                    if (!(new_label in this._tempVoltFanSensors[type])) {
-                        label = new_label;
-                        break;
-                    }
+        let type = obj['type'];
+        // check if this label already exists
+        if (label in this._hwmonLabels[type]) {
+            for (let i = 2; i <= 9; i++) {
+                let new_label = label + ' ' + i;
+                if (!(new_label in this._hwmonLabels[type])) {
+                    label = new_label;
+                    break;
                 }
             }
         }
 
-        // update screen on initial build to prevent delay on update
-        this._returnValue(callback, label, value, obj['type'], obj['format']);
+        this._hwmonLabels[type][label] = true;
 
-        this._tempVoltFanSensors[obj['type']][label] = {
-          'format': obj['format'],
-            'path': obj['input']
-        };
+        // update screen on initial build to prevent delay on update
+        this._returnValue(callback, label, value, type, obj['format']);
+
+        // Append into the shared registry (same shape as static /proc sources)
+        this._registry.registerSource({
+            id: 'hwmon:' + obj['input'],
+            path: obj['input'],
+            group: type,
+            parse: 'raw',
+            fields: [{label, type, format: obj['format']}],
+        }, {discovered: true});
     }
 
     resetHistory() {
@@ -1099,8 +955,16 @@ export const Sensors = GObject.registerClass({
         this._hardware_detected = false;
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
-        this._battery_time_left_history = [];
-        this._battery_charge_status = '';
+        this._batteryState = {timeLeftHistory: [], chargeStatus: ''};
+        // Re-bind battery source state after reset
+        if (this._registry) {
+            this._registry.clearDiscovered();
+            this._registry.unregisterSource('sys-battery-uevent');
+            this._registry.registerSource(createBatterySource(
+                () => this._settings.get_int('battery-slot'),
+                this._batteryState));
+        }
+        this._hwmonLabels = {temperature: {}, voltage: {}, fan: {}};
         this._nvidia_labels = [];
         this._bad_split_count = 0;
         this._frameMonitorLastTime = 0;

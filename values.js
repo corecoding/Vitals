@@ -245,8 +245,11 @@ export const Values = GObject.registerClass({
         return getUsageColor(numeric, this._settings.get_strv(colorsKey), sensorKey);
     }
 
-    returnIfDifferent(dwell, label, value, type, format, key) {
+    returnIfDifferent(dwell, label, value, type, format, key, options = null) {
         let output = [];
+        // When false, skip type-wide aggregates so partial (menu-closed) polls
+        // cannot mix stale sensors into avg/min/max or device network totals.
+        let includeAggregates = !options || options.includeAggregates !== false;
 
         // Use one history bucket for network-<cc> types (geo IP), except for rx/tx.
         let historyType = (/^network-(?!rx$|tx$)[a-z]{2}(?:-group)?$/.test(type)) ? 'network' : type;
@@ -277,7 +280,7 @@ export const Values = GObject.registerClass({
         this._history[historyType][key] = [legible.text, value];
 
         // process average, min and max values
-        if (type == 'temperature' || type == 'voltage' || type == 'fan') {
+        if (includeAggregates && (type == 'temperature' || type == 'voltage' || type == 'fan')) {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
             // show value in group even if there is one value present
@@ -330,6 +333,20 @@ export const Values = GObject.registerClass({
         } else if (type == 'network-rx' || type == 'network-tx') {
             let direction = type.split('-')[1];
 
+            // calculate speed for this interface (always — may be a hot panel sensor)
+            let speed = (value - previousValue[1]) / dwell;
+            let speedFormatted = this._legible(speed, 'speed', type, key);
+            output.push({
+                label,
+                value: speedFormatted.text,
+                style: speedFormatted.style,
+                type,
+                key,
+            });
+
+            if (!includeAggregates)
+                return output;
+
             // appends total upload and download for all interfaces for #216
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
             let sum = vals.reduce((partialSum, a) => partialSum + a, 0);
@@ -356,17 +373,6 @@ export const Values = GObject.registerClass({
                 style: session.style,
                 type,
                 key: sessionKey,
-            });
-
-            // calculate speed for this interface
-            let speed = (value - previousValue[1]) / dwell;
-            let speedFormatted = this._legible(speed, 'speed', type, key);
-            output.push({
-                label,
-                value: speedFormatted.text,
-                style: speedFormatted.style,
-                type,
-                key,
             });
 
             // store speed for Device report

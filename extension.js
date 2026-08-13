@@ -16,6 +16,7 @@ import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/ex
 import * as Values from './values.js';
 import * as MenuItem from './menuItem.js';
 import * as SensorCatalog from './helpers/catalog.js';
+import {parseSensorKey} from './helpers/colors.js';
 
 let vitalsMenu;
 
@@ -43,6 +44,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._newGpuDetected = false;
         this._newGpuDetectedCount = 0;
         this._last_query = new Date().getTime();
+        this._menuOpen = false;
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
@@ -170,16 +172,85 @@ var VitalsMenuButton = GObject.registerClass({
         // add buttons
         this.menu.addMenuItem(item);
 
-        // query sensors on menu open
+        // query sensors on menu open; closed polls only hot-sensors
         this.menu.connectObject('open-state-changed', (menu, isMenuOpen) => {
+            this._menuOpen = isMenuOpen;
             if (isMenuOpen) {
                 // make sure timer fires at next full interval
                 this._initializeTimer();
 
-                // refresh sensors now
+                // refresh sensors now (full query while menu is open)
                 this._querySensors();
             }
         }, this);
+    }
+
+    /**
+     * When the menu is closed, only poll panel hot-sensors.
+     * Returns null for a full query, or { keys, groups, fullGroups }.
+     */
+    _getSensorQueryFilter() {
+        if (this._menuOpen)
+            return null;
+
+        const keys = new Set();
+        for (let key of this._settings.get_strv('hot-sensors')) {
+            if (key == '_default_icon_')
+                continue;
+            // fixes issue #225 which started when _max_ was moved to the end
+            if (key == '__max_network-download__')
+                key = '__network-rx_max__';
+            if (key == '__max_network-upload__')
+                key = '__network-tx_max__';
+            keys.add(key);
+        }
+
+        const groups = new Set();
+        const fullGroups = new Set();
+
+        for (let key of keys) {
+            let agg = key.match(/^__(temperature|voltage|fan)_(avg|min|max)__$/);
+            if (agg) {
+                fullGroups.add(agg[1]);
+                groups.add(agg[1]);
+                continue;
+            }
+
+            agg = key.match(/^__network-(rx|tx)_(max|boot|ses)__$/);
+            if (agg) {
+                fullGroups.add('network');
+                groups.add('network');
+                continue;
+            }
+
+            let parsed = parseSensorKey(key);
+            if (!parsed || !parsed.typePart)
+                continue;
+
+            let group = parsed.typePart;
+            if (group.startsWith('gpu'))
+                group = 'gpu';
+            else if (group.startsWith('network'))
+                group = 'network';
+
+            groups.add(group);
+
+            // Process Time is reported from /proc/uptime (registry) under the processor type
+            if (parsed.typePart === 'processor' && parsed.label === 'process time')
+                groups.add('system');
+        }
+
+        return {keys, groups, fullGroups};
+    }
+
+    _includeAggregatesForType(filter, type) {
+        if (!filter)
+            return true;
+        if (type == 'temperature' || type == 'voltage' || type == 'fan')
+            return filter.fullGroups.has(type);
+        if (type == 'network-rx' || type == 'network-tx')
+            return filter.fullGroups.has('network');
+        return true;
     }
 
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
@@ -570,6 +641,8 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
+        let filter = this._getSensorQueryFilter();
+
         this._sensors.query((label, value, type, format) => {
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
@@ -606,7 +679,9 @@ var VitalsMenuButton = GObject.registerClass({
                 }
             }
 
-            let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
+            let items = this._values.returnIfDifferent(dwell, label, value, type, format, key, {
+                includeAggregates: this._includeAggregatesForType(filter, type),
+            });
             for (let item of items) {
                 if (item.type.startsWith('network-') && item.type.length == 10 && item.type != 'network-rx' && item.type != 'network-tx') {
                     // Geo / flags: stable key (no country in key); type stays network-<cc> for icon-us etc.
@@ -625,7 +700,7 @@ var VitalsMenuButton = GObject.registerClass({
 
                 this._updateDisplay(_(item.label), item.value, item.type, item.key, item.style);
             }
-        }, dwell);
+        }, dwell, filter);
 
         //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
         if(this._newGpuDetected) this._newGpuDetectedCount++;
