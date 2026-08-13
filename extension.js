@@ -52,6 +52,10 @@ var VitalsMenuButton = GObject.registerClass({
         this._processSampler = new ProcessSampler.ProcessSampler(this._settings);
         this._historyChartItem = null;
         this._historyChartSeparator = null;
+        this._modeTabsItem = null;
+        this._modeLiveButton = null;
+        this._modeHistoryButton = null;
+        this._menuMode = 'live'; // 'live' | 'history'
         this._scrubMenuActive = false;
         this._scrubMenuItems = [];
         this._scrubHeaderTime = null;
@@ -59,7 +63,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._scrubProcRows = [];
         this._scrubProcLeaveId = 0;
         this._focusedScrubProc = null;
-        this._groupVisibilityBeforeScrub = null;
+        this._groupVisibilityBeforeHistory = null;
         this._menuLockWidth = 0;
         this._timeSeriesLoaded = false;
         this._menuLayout = new St.BoxLayout({
@@ -134,14 +138,142 @@ var VitalsMenuButton = GObject.registerClass({
                 this._values.loadTimeSeries();
                 this._timeSeriesLoaded = true;
             }
+            this._ensureModeTabs();
             this._ensureHistoryChart();
+            this._setMenuMode(this._menuMode === 'history' ? 'history' : 'live');
             this._refreshHistoryChart();
         } else {
+            this._setMenuMode('live');
             this._removeHistoryChart();
+            this._removeModeTabs();
             this._values.clearTimeSeries();
             this._processSampler.clear();
             this._timeSeriesLoaded = false;
         }
+    }
+
+    _ensureModeTabs() {
+        if (this._modeTabsItem)
+            return;
+
+        this._modeTabsItem = new PopupMenu.PopupBaseMenuItem({
+            reactive: false,
+            can_focus: false,
+            style_class: 'vitals-menu-mode-tabs-item',
+        });
+        this._modeTabsItem.setOrnament(PopupMenu.Ornament.HIDDEN);
+        const box = new St.BoxLayout({
+            style_class: 'vitals-menu-mode-tabs',
+            x_expand: true,
+        });
+        this._modeLiveButton = new St.Button({
+            style_class: 'vitals-menu-mode-tab',
+            label: _('Live'),
+            toggle_mode: true,
+            can_focus: false,
+            x_expand: true,
+        });
+        this._modeHistoryButton = new St.Button({
+            style_class: 'vitals-menu-mode-tab',
+            label: _('History'),
+            toggle_mode: true,
+            can_focus: false,
+            x_expand: true,
+        });
+        this._modeLiveButton.connect('clicked', () => this._setMenuMode('live'));
+        this._modeHistoryButton.connect('clicked', () => this._setMenuMode('history'));
+        box.add_child(this._modeLiveButton);
+        box.add_child(this._modeHistoryButton);
+        this._modeTabsItem.add_child(box);
+        this.menu.addMenuItem(this._modeTabsItem, 0);
+        this._modeLiveButton.checked = true;
+    }
+
+    _removeModeTabs() {
+        if (this._modeTabsItem) {
+            this._modeTabsItem.destroy();
+            this._modeTabsItem = null;
+            this._modeLiveButton = null;
+            this._modeHistoryButton = null;
+        }
+        this._menuMode = 'live';
+    }
+
+    _setMenuMode(mode) {
+        const next = mode === 'history' ? 'history' : 'live';
+        this._menuMode = next;
+        if (this._modeLiveButton)
+            this._modeLiveButton.checked = next === 'live';
+        if (this._modeHistoryButton)
+            this._modeHistoryButton.checked = next === 'history';
+
+        if (next === 'history' && this._historyChartEnabled()) {
+            this._showHistoryMode();
+        } else {
+            this._showLiveMode();
+        }
+    }
+
+    _showLiveMode() {
+        if (this._historyChartItem) {
+            this._historyChartItem.unpin();
+            this._historyChartItem.visible = false;
+        }
+        if (this._historyChartSeparator)
+            this._historyChartSeparator.visible = false;
+
+        this._clearScrubMenuItems();
+        this._scrubMenuActive = false;
+
+        if (this._groupVisibilityBeforeHistory) {
+            for (const key in this._groups) {
+                if (this._groupVisibilityBeforeHistory[key])
+                    this._groups[key].actor.show();
+            }
+            this._groupVisibilityBeforeHistory = null;
+        } else {
+            // Restore from settings when we never captured history-mode visibility
+            for (const key in this._groups) {
+                const option = key.startsWith('gpu#') ? 'gpu' : key;
+                if (this._settings.get_boolean('show-' + option))
+                    this._groups[key].actor.show();
+            }
+        }
+        this._lockMenuWidth();
+    }
+
+    _showHistoryMode() {
+        if (!this._historyChartItem)
+            this._ensureHistoryChart();
+
+        if (!this._groupVisibilityBeforeHistory) {
+            this._groupVisibilityBeforeHistory = {};
+            for (const key in this._groups) {
+                const group = this._groups[key];
+                this._groupVisibilityBeforeHistory[key] = group.actor.visible;
+                if (group.menu && group.menu.isOpen)
+                    group.setSubmenuShown(false);
+                group.actor.hide();
+            }
+        } else {
+            for (const key in this._groups) {
+                const group = this._groups[key];
+                if (group.menu && group.menu.isOpen)
+                    group.setSubmenuShown(false);
+                group.actor.hide();
+            }
+        }
+
+        if (this._historyChartItem)
+            this._historyChartItem.visible = true;
+        if (this._historyChartSeparator)
+            this._historyChartSeparator.visible = true;
+
+        this._scrubMenuActive = true;
+        this._ensureScrubMenuItems();
+        this._refreshHistoryChart();
+        this._refreshScrubProcessMenu();
+        this._lockMenuWidth();
     }
 
     _ensureHistoryChart() {
@@ -150,16 +282,11 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._historyChartItem = new HistoryChart.HistoryChartMenuItem(this._values);
         this._historyChartItem.connectObject('scrub', (_item, unixSeconds) => {
-            // Keep sensor groups hidden while hovering or while a slice is pinned
-            if (!this._historyChartItem.isScrubSessionActive()) {
-                this._setScrubMenuActive(false);
+            if (this._menuMode !== 'history')
+                return;
+            if (unixSeconds < 0) {
                 const latest = this._processSampler.getLatest();
                 this._historyChartItem.setProcessSample(latest, false);
-                return;
-            }
-            this._setScrubMenuActive(true);
-            if (unixSeconds < 0) {
-                this._historyChartItem.setProcessSample(null, false);
                 this._refreshScrubProcessMenu();
                 return;
             }
@@ -168,24 +295,24 @@ var VitalsMenuButton = GObject.registerClass({
             this._refreshScrubProcessMenu();
         }, this);
         this._historyChartItem.connectObject('scrub-view-changed', () => {
-            if (this._historyChartItem.isScrubSessionActive()) {
-                this._setScrubMenuActive(true);
+            if (this._menuMode === 'history')
                 this._refreshScrubProcessMenu();
-            } else {
-                this._setScrubMenuActive(false);
-            }
         }, this);
         this._historyChartItem.connectObject('pin-changed', () => {
-            this._refreshScrubProcessMenu();
+            if (this._menuMode === 'history')
+                this._refreshScrubProcessMenu();
         }, this);
 
+        // After Live/History mode tabs when present
+        const chartIndex = this._modeTabsItem ? 1 : 0;
         this._historyChartSeparator = new PopupMenu.PopupSeparatorMenuItem();
-        this.menu.addMenuItem(this._historyChartItem, 0);
-        this.menu.addMenuItem(this._historyChartSeparator, 1);
+        this.menu.addMenuItem(this._historyChartItem, chartIndex);
+        this.menu.addMenuItem(this._historyChartSeparator, chartIndex + 1);
+        this._historyChartItem.visible = false;
+        this._historyChartSeparator.visible = false;
     }
 
     _removeHistoryChart() {
-        this._setScrubMenuActive(false);
         if (this._historyChartItem) {
             this._historyChartItem.unpin();
             this._historyChartItem.disconnectObject(this);
@@ -196,42 +323,25 @@ var VitalsMenuButton = GObject.registerClass({
             this._historyChartSeparator.destroy();
             this._historyChartSeparator = null;
         }
-    }
-
-    _setScrubMenuActive(active) {
-        if (!!this._scrubMenuActive === !!active)
-            return;
-
-        this._scrubMenuActive = !!active;
-        if (active) {
-            this._groupVisibilityBeforeScrub = {};
+        this._clearScrubMenuItems();
+        this._scrubMenuActive = false;
+        if (this._groupVisibilityBeforeHistory) {
             for (const key in this._groups) {
-                const group = this._groups[key];
-                this._groupVisibilityBeforeScrub[key] = group.actor.visible;
-                if (group.menu && group.menu.isOpen)
-                    group.setSubmenuShown(false);
-                group.actor.hide();
+                if (this._groupVisibilityBeforeHistory[key])
+                    this._groups[key].actor.show();
             }
-            this._ensureScrubMenuItems();
-            this._refreshScrubProcessMenu();
-        } else {
-            this._clearScrubMenuItems();
-            if (this._groupVisibilityBeforeScrub) {
-                for (const key in this._groups) {
-                    if (this._groupVisibilityBeforeScrub[key])
-                        this._groups[key].actor.show();
-                }
-                this._groupVisibilityBeforeScrub = null;
-            }
-            this._lockMenuWidth();
+            this._groupVisibilityBeforeHistory = null;
         }
     }
 
     _scrubMenuInsertIndex() {
-        // After history chart + its separator when present
+        // After mode tabs (optional) + history chart + separator
+        let index = 0;
+        if (this._modeTabsItem)
+            index++;
         if (this._historyChartItem && this._historyChartSeparator)
-            return 2;
-        return 0;
+            index += 2;
+        return index;
     }
 
     _ensureScrubMenuItems() {
@@ -366,15 +476,12 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _refreshScrubProcessMenu() {
-        if (!this._scrubMenuActive || !this._historyChartItem)
+        if (this._menuMode !== 'history' || !this._historyChartItem)
             return;
 
         const view = this._historyChartItem.getScrubView();
-        if (!view) {
-            if (!this._historyChartItem.isScrubSessionActive())
-                this._setScrubMenuActive(false);
+        if (!view)
             return;
-        }
 
         this._ensureScrubMenuItems();
         const hasHeader = !!(view.timeText || view.valueText);
@@ -402,7 +509,6 @@ var VitalsMenuButton = GObject.registerClass({
                 continue;
             }
             item._procName = row.kind === 'proc' ? (row.procName || null) : null;
-            // Set via ClutterText so ellipsized labels reliably invalidate on scrub
             item._nameLabel.clutter_text.set_text(row.name);
             item._valueLabel.clutter_text.set_text(row.value || '');
             item.remove_style_class_name('vitals-history-scrub-section');
@@ -417,17 +523,15 @@ var VitalsMenuButton = GObject.registerClass({
             item.add_style_class_name(style);
             if (row.focused)
                 item.add_style_class_name('vitals-history-scrub-proc-focused');
-            // Only hoverable when a slice is pinned (otherwise leaving the chart clears the list)
+            // Process-history focus only while a slice is frozen
             item.reactive = pinned && row.kind === 'proc';
             item.show();
         }
-        // Never resize while the pointer is on the chart — label width feedback
-        // was ratcheting the menu +1px on every scrub motion.
     }
 
     _lockMenuWidth() {
-        // Chart hover/pin must not change menu geometry (avoids grow/padding feedback loops)
-        if (this._historyChartItem && this._historyChartItem.isScrubSessionActive())
+        // Don't resize while interacting with the chart
+        if (this._historyChartItem && this._historyChartItem.isHovering())
             return;
 
         const box = this.menu && this.menu.box;
@@ -451,12 +555,14 @@ var VitalsMenuButton = GObject.registerClass({
     _refreshHistoryChart() {
         if (!this._historyChartItem || !this._historyChartEnabled())
             return;
-        // Chart freezes its drawn series while hovered; data still flows via setSeriesData
         this._historyChartItem.setSeriesData(this._values.getEssentialSeries());
-        // While hovering/pinned, scrub owns the process list — don't clobber it
-        if (!this._historyChartItem.isScrubSessionActive()) {
+        // Auto-refresh process list to latest unless hovering or frozen on a slice
+        if (this._menuMode === 'history' &&
+            !this._historyChartItem.isHovering() &&
+            !this._historyChartItem.isPinned()) {
             const latest = this._processSampler.getLatest();
             this._historyChartItem.setProcessSample(latest, false);
+            this._refreshScrubProcessMenu();
         }
     }
 
@@ -548,7 +654,8 @@ var VitalsMenuButton = GObject.registerClass({
             } else {
                 if (this._historyChartItem)
                     this._historyChartItem.unpin();
-                this._setScrubMenuActive(false);
+                if (this._menuMode === 'history')
+                    this._setMenuMode('live');
                 this._unlockMenuWidth();
             }
         }, this);

@@ -175,13 +175,19 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._graph.connect('leave-event', () => {
             this._hovering = false;
             if (this._pinned) {
-                // Keep process list; catch up series unless a process focus is showing
                 if (this._seriesDirty && !this._processFocusName)
                     this._applySeriesSamples();
                 this.emit('scrub-view-changed');
                 return Clutter.EVENT_PROPAGATE;
             }
-            this._clearScrub();
+            // Back to auto-refresh latest process list; clear playhead
+            const hadPlayhead = this._scrubIndex >= 0 || this._lastPlayX >= 0;
+            this._scrubIndex = -1;
+            this._lastPlayX = -1;
+            this.emit('scrub', -1);
+            this.emit('scrub-view-changed');
+            if (hadPlayhead)
+                this._graph.queue_repaint();
             if (this._seriesDirty)
                 this._applySeriesSamples();
             return Clutter.EVENT_PROPAGATE;
@@ -368,16 +374,23 @@ export const HistoryChartMenuItem = GObject.registerClass({
     }
 
     getScrubView() {
-        // Keep the process list while hovering or while a slice is pinned
-        if (!this.isScrubSessionActive())
-            return null;
-        if (this._scrubIndex < 0)
-            return { timeText: '', valueText: '', items: [], pinned: this._pinned };
-        const sample = this._samples[this._scrubIndex];
-        if (!sample || sample.v === null)
-            return { timeText: '', valueText: '', items: [], pinned: this._pinned };
-
         const meta = METRICS.find(m => m.id === this._metric) || METRICS[0];
+        const scrubbing = this._scrubIndex >= 0 &&
+            this._samples[this._scrubIndex] &&
+            this._samples[this._scrubIndex].v !== null;
+        const scrubSample = scrubbing ? this._samples[this._scrubIndex] : null;
+
+        // Header value: scrubbed point, else latest non-null chart sample
+        let chartSample = scrubSample;
+        if (!chartSample) {
+            for (let i = this._samples.length - 1; i >= 0; i--) {
+                if (this._samples[i] && this._samples[i].v !== null) {
+                    chartSample = this._samples[i];
+                    break;
+                }
+            }
+        }
+
         const items = [];
         if (this._metric === 'gpu') {
             items.push({ kind: 'empty', name: _('No per-process data for this metric'), value: '' });
@@ -400,15 +413,23 @@ export const HistoryChartMenuItem = GObject.registerClass({
             }
         }
 
-        let timeText = this._values.formatClock(sample.t);
-        if (this._pinned)
-            timeText = `${timeText}  ·  ${_('pinned — click chart to unpin')}`;
+        let timeText;
+        if (scrubbing) {
+            timeText = this._values.formatClock(scrubSample.t);
+            if (this._pinned)
+                timeText = `${timeText}  ·  ${_('pinned — click chart to unpin')}`;
+        } else {
+            timeText = chartSample
+                ? `${_('Latest')}  ·  ${this._values.formatClock(chartSample.t)}`
+                : _('Latest');
+        }
 
         let valueText;
+        const raw = chartSample ? chartSample.v : null;
         if (this._processFocusName) {
-            valueText = `${this._processFocusName}  ${this._values.formatSeriesValue(meta.key, sample.v)}`;
+            valueText = `${this._processFocusName}  ${this._values.formatSeriesValue(meta.key, raw)}`;
         } else {
-            valueText = `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, sample.v)}`;
+            valueText = `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, raw)}`;
         }
 
         return {
@@ -416,6 +437,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
             valueText,
             items,
             pinned: this._pinned,
+            scrubbing,
         };
     }
 
@@ -431,6 +453,8 @@ export const HistoryChartMenuItem = GObject.registerClass({
         this._applySeriesSamples();
         if (this._scrubIndex >= 0)
             this.emit('scrub', this._samples[this._scrubIndex]?.t || -1);
+        else
+            this.emit('scrub-view-changed');
     }
 
     _seriesFor(metric) {

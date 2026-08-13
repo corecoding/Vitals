@@ -14,6 +14,30 @@
 .vitals-button-action > StIcon { icon-size: 16px; }
 .vitals-button-box { padding: 0px; spacing: 22px; }
 
+/* Live / History mode tabs */
+.vitals-menu-mode-tabs-item {
+    padding: 8px 0 4px 0;
+}
+.vitals-menu-mode-tabs {
+    spacing: 6px;
+    padding: 0 8px;
+}
+.vitals-menu-mode-tab {
+    padding: 8px 12px;
+    border-radius: 14px;
+    background-color: rgba(128, 128, 128, 0.12);
+    border-width: 1px;
+    border-color: transparent;
+    font-weight: bold;
+}
+.vitals-menu-mode-tab:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+.vitals-menu-mode-tab:checked {
+    background-color: rgba(110, 140, 230, 0.28);
+    border-color: rgba(110, 140, 230, 0.45);
+}
+
 /* History chart — AppControl-inspired card layout */
 .vitals-history-chart-item {
     padding: 10px 0 12px 0;
