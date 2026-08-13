@@ -55,7 +55,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._modeTabsItem = null;
         this._modeLiveButton = null;
         this._modeHistoryButton = null;
-        this._menuMode = 'live'; // 'live' | 'history'
+        this._menuMode = this._getSavedMenuMode(); // 'live' | 'history'
         this._scrubMenuActive = false;
         this._scrubMenuItems = [];
         this._scrubHeaderTime = null;
@@ -189,8 +189,25 @@ var VitalsMenuButton = GObject.registerClass({
             can_focus: false,
             x_expand: true,
         });
-        this._modeLiveButton.connect('clicked', () => this._setMenuMode('live'));
-        this._modeHistoryButton.connect('clicked', () => this._setMenuMode('history'));
+        this._modeLiveButton.connect('clicked', () => {
+            if (this._menuMode === 'live') {
+                // toggle_mode would uncheck the active tab — keep it selected
+                this._modeLiveButton.checked = true;
+                if (this._modeHistoryButton)
+                    this._modeHistoryButton.checked = false;
+                return;
+            }
+            this._setMenuMode('live');
+        });
+        this._modeHistoryButton.connect('clicked', () => {
+            if (this._menuMode === 'history') {
+                this._modeHistoryButton.checked = true;
+                if (this._modeLiveButton)
+                    this._modeLiveButton.checked = false;
+                return;
+            }
+            this._setMenuMode('history');
+        });
         box.add_child(this._modeLiveButton);
         box.add_child(this._modeHistoryButton);
         this._modeTabsItem.add_child(box);
@@ -210,6 +227,16 @@ var VitalsMenuButton = GObject.registerClass({
         this._menuMode = 'live';
     }
 
+    _persistMenuMode() {
+        if (!this._historyChartEnabled())
+            return;
+        try {
+            this._settings.set_string('menu-mode', this._menuMode);
+        } catch (e) {
+            // schema may be stale until recompiled / extension reloaded
+        }
+    }
+
     _setMenuMode(mode, persist = true) {
         const next = mode === 'history' ? 'history' : 'live';
         this._menuMode = next;
@@ -218,13 +245,8 @@ var VitalsMenuButton = GObject.registerClass({
         if (this._modeHistoryButton)
             this._modeHistoryButton.checked = next === 'history';
 
-        if (persist && this._historyChartEnabled()) {
-            try {
-                this._settings.set_string('menu-mode', next);
-            } catch (e) {
-                // schema may be stale until recompiled
-            }
-        }
+        if (persist)
+            this._persistMenuMode();
 
         if (next === 'history' && this._historyChartEnabled()) {
             this._showHistoryMode();
@@ -709,11 +731,20 @@ var VitalsMenuButton = GObject.registerClass({
 
                 // refresh sensors now
                 this._querySensors();
-                if (this._historyChartEnabled())
-                    this._setMenuMode(this._getSavedMenuMode(), false);
-                this._refreshHistoryChart();
-                this._lockMenuWidth();
+                if (this._historyChartEnabled()) {
+                    // Keep the last Live/History choice (in-memory + settings)
+                    this._setMenuMode(this._menuMode, false);
+                    this._refreshHistoryChart();
+                    if (this._menuMode === 'history')
+                        this._resizeMenuForHistory();
+                    else
+                        this._lockMenuWidth();
+                } else {
+                    this._lockMenuWidth();
+                }
             } else {
+                if (this._historyChartEnabled())
+                    this._persistMenuMode();
                 if (this._historyChartItem)
                     this._historyChartItem.unpin();
                 this._unlockMenuWidth();
