@@ -354,8 +354,7 @@ var VitalsMenuButton = GObject.registerClass({
             if (this._menuMode !== 'history')
                 return;
             if (unixSeconds < 0) {
-                const latest = this._processSampler.getLatest();
-                this._historyChartItem.setProcessSample(latest, false);
+                this._historyChartItem.setProcessSample(null, false);
                 this._refreshScrubProcessMenu();
                 return;
             }
@@ -625,14 +624,6 @@ var VitalsMenuButton = GObject.registerClass({
         if (!this._historyChartItem || !this._historyChartEnabled())
             return;
         this._historyChartItem.setSeriesData(this._values.getEssentialSeries());
-        // Auto-refresh process list to latest unless hovering or frozen on a slice
-        if (this._menuMode === 'history' &&
-            !this._historyChartItem.isHovering() &&
-            !this._historyChartItem.isPinned()) {
-            const latest = this._processSampler.getLatest();
-            this._historyChartItem.setProcessSample(latest, false);
-            this._refreshScrubProcessMenu();
-        }
     }
 
     _thresholdColorsChanged() {

@@ -180,7 +180,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
                 this.emit('scrub-view-changed');
                 return Clutter.EVENT_PROPAGATE;
             }
-            // Back to auto-refresh latest process list; clear playhead
+            // Clear playhead; process list goes empty until hover/click again
             const hadPlayhead = this._scrubIndex >= 0 || this._lastPlayX >= 0;
             this._scrubIndex = -1;
             this._lastPlayX = -1;
@@ -380,15 +380,19 @@ export const HistoryChartMenuItem = GObject.registerClass({
             this._samples[this._scrubIndex].v !== null;
         const scrubSample = scrubbing ? this._samples[this._scrubIndex] : null;
 
-        // Header value: scrubbed point, else latest non-null chart sample
-        let chartSample = scrubSample;
-        if (!chartSample) {
-            for (let i = this._samples.length - 1; i >= 0; i--) {
-                if (this._samples[i] && this._samples[i].v !== null) {
-                    chartSample = this._samples[i];
-                    break;
-                }
-            }
+        // Empty until hovering a point or freezing one with a click
+        if (!scrubbing) {
+            return {
+                timeText: '',
+                valueText: '',
+                items: [{
+                    kind: 'empty',
+                    name: _('Hover or click the chart to inspect processes'),
+                    value: '',
+                }],
+                pinned: false,
+                scrubbing: false,
+            };
         }
 
         const items = [];
@@ -413,23 +417,15 @@ export const HistoryChartMenuItem = GObject.registerClass({
             }
         }
 
-        let timeText;
-        if (scrubbing) {
-            timeText = this._values.formatClock(scrubSample.t);
-            if (this._pinned)
-                timeText = `${timeText}  ·  ${_('pinned — click chart to unpin')}`;
-        } else {
-            timeText = chartSample
-                ? `${_('Latest')}  ·  ${this._values.formatClock(chartSample.t)}`
-                : _('Latest');
-        }
+        let timeText = this._values.formatClock(scrubSample.t);
+        if (this._pinned)
+            timeText = `${timeText}  ·  ${_('pinned — click chart to unpin')}`;
 
         let valueText;
-        const raw = chartSample ? chartSample.v : null;
         if (this._processFocusName) {
-            valueText = `${this._processFocusName}  ${this._values.formatSeriesValue(meta.key, raw)}`;
+            valueText = `${this._processFocusName}  ${this._values.formatSeriesValue(meta.key, scrubSample.v)}`;
         } else {
-            valueText = `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, raw)}`;
+            valueText = `${_(meta.label)}  ${this._values.formatSeriesValue(meta.key, scrubSample.v)}`;
         }
 
         return {
@@ -437,7 +433,7 @@ export const HistoryChartMenuItem = GObject.registerClass({
             valueText,
             items,
             pinned: this._pinned,
-            scrubbing,
+            scrubbing: true,
         };
     }
 
