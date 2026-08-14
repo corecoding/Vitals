@@ -34,6 +34,8 @@ var VitalsMenuButton = GObject.registerClass({
         // item must match the index on the combo box
         this._sensorsIconPathPrefix = ['/icons/original/', '/icons/gnome/'];
 
+        // mapping of hwmon devices to labels
+        this._sensorsLabels = new Map();
         this._sensorMenuItems = {};
         this._hotLabels = {};
         this._hotItems = {};
@@ -44,7 +46,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._newGpuDetectedCount = 0;
         this._last_query = new Date().getTime();
 
-        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
+        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, this._sensorsLabels);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({
             vertical: false,
@@ -67,8 +69,62 @@ var VitalsMenuButton = GObject.registerClass({
         // start off with fresh sensors
         this._querySensors();
 
+        // associate sensors with labels
+        this._parseSensorsLabelMap();
+
         // start monitoring sensors
         this._initializeTimer();
+    }
+
+    // parse the user mapping for sensor labels and
+    // returns a map of maps. first level keys contain
+    // hwmon device and second level keys contain feature ids,
+    // second level values contain user defined labels
+    _parseSensorsLabelMap() {
+        let proc;
+        try {
+            const launcher = new Gio.SubprocessLauncher({
+                flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+            });
+            launcher.setenv("LD_LIBRARY_PATH", "/data/projects/experiments/lm-sensors/lib", false);
+            proc = launcher.spawnv(["/data/projects/experiments/lm-sensors/prog/sensors/sensors", "--label-map"]);
+        } catch (e) {
+            console.error("Failed to get sensors mapping from 'sensors --label-map'");
+            throw(e);
+        }
+        let success, stdout;
+        try {
+            [success, stdout] = proc.communicate_utf8(null, null);
+        } catch (e) {
+            console.error("Failed to get sensors mapping from 'sensors --label-map'");
+            throw(e);
+        }
+        
+        const chip_re = /^\s*chip\s+"(.*)"\s+\#\s+\/sys\/class\/hwmon\/hwmon(\d+)/;
+        const label_re = /^\s*label\s+(\w+)\s+(?:"(.*)"|(.*))/;
+        const ignore_re = /^\s*ignore\s+(\w+)/;
+
+        let key = null;
+        for (const line of stdout.split(/\r?\n/)) {
+            const chip_match = line.match(chip_re);
+            if (chip_match) {
+                const current_chip = chip_match[1];
+                const hwmon_device = `hwmon${chip_match[2]}`;
+                key = hwmon_device;
+                if (!this._sensorsLabels.has(key))
+                    this._sensorsLabels.set(key, new Map());
+                continue;
+            }
+            const label_match = line.match(label_re);
+            if (label_match && key) {
+                this._sensorsLabels.get(key).set(label_match[1], label_match[2] ?? label_match[3]);
+                continue;
+            }
+            const ignore_match = line.match(ignore_re);
+            if (ignore_match && key) {
+                this._sensorsLabels.get(key).set(ignore_match[1], "");
+            }
+        }
     }
 
     _connectSettingsSignals() {
