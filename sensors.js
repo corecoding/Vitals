@@ -64,6 +64,7 @@ export const Sensors = GObject.registerClass({
         this.resetHistory();
 
         this._last_processor = { 'core': {}, 'speed': [] };
+        this._processor_core_count = 0;
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
@@ -190,7 +191,8 @@ export const Sensors = GObject.registerClass({
             {
                 showGroup,
                 settings: this._settings,
-                processorCores: Math.max(0, Object.keys(this._last_processor['core']).length - 1),
+                processorCores: this._processor_core_count ||
+                    Math.max(0, Object.keys(this._last_processor['core']).length - 1),
             });
 
         // Custom (non-registry) groups: processor, network extras, storage disk/GTop, gpu
@@ -238,28 +240,45 @@ export const Sensors = GObject.registerClass({
     _queryProcessor(callback, dwell) {
         let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
+        // Frequency/per-core work was previously always done whenever Usage ran.
+        // Only do it when those sensors are needed (or the menu is open).
+        const filter = this._queryFilter;
+        const needsFreq = !filter || [...filter.keys].some(k => k.includes('frequency'));
+        const needsCores = !filter || [...filter.keys].some(k => k.includes('_core_'));
+
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
+            let cores = 0;
 
             for (let line of lines) {
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
-                if (reverse_data) {
-                    let cpu = reverse_data[1].trim();
+                if (!reverse_data)
+                    continue;
 
-                    if (!(cpu in statistics))
-                        statistics[cpu] = {};
+                let cpu = reverse_data[1].trim();
+                if (cpu !== 'cpu')
+                    cores++;
 
-                    if (!(cpu in this._last_processor['core']))
-                        this._last_processor['core'][cpu] = 0;
+                // Aggregate "cpu" line is enough for Usage; skip per-core unless needed
+                if (!needsCores && cpu !== 'cpu')
+                    continue;
 
-                    let stats = reverse_data[2].trim().split(' ').reverse();
-                    for (let column of columns)
-                        statistics[cpu][column] = parseInt(stats.pop());
-                }
+                if (!(cpu in statistics))
+                    statistics[cpu] = {};
+
+                if (!(cpu in this._last_processor['core']))
+                    this._last_processor['core'][cpu] = 0;
+
+                let stats = reverse_data[2].trim().split(' ').reverse();
+                for (let column of columns)
+                    statistics[cpu][column] = parseInt(stats.pop());
             }
 
-            let cores = Object.keys(statistics).length - 1;
+            if (cores > 0)
+                this._processor_core_count = cores;
+            else
+                cores = this._processor_core_count || 0;
 
             for (let cpu in statistics) {
                 let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
@@ -281,15 +300,18 @@ export const Sensors = GObject.registerClass({
                 this._last_processor['core'][cpu] = total;
             }
 
-            // if frequency scaling is enabled, gather cpu-freq values
-            if (!this._processor_uses_cpu_info) {
-                for (let core = 0; core <= cores; core++) {
+            // only gather cpu-freq when a frequency sensor is actually needed
+            if (needsFreq && !this._processor_uses_cpu_info) {
+                for (let core = 0; core < cores; core++) {
                     new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
                         this._last_processor['speed'][core] = parseInt(value);
                     }).catch(err => { });
                 }
             }
         }).catch(err => { });
+
+        if (!needsFreq)
+            return;
 
         // if frequency scaling is disabled, use cpuinfo for speed
         if (this._processor_uses_cpu_info) {
@@ -955,6 +977,7 @@ export const Sensors = GObject.registerClass({
         this._hardware_detected = false;
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
+        this._processor_core_count = 0;
         this._batteryState = {timeLeftHistory: [], chargeStatus: ''};
         // Re-bind battery source state after reset
         if (this._registry) {
