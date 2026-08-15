@@ -124,6 +124,14 @@ export function sensorKeyFromTypeLabel(type, label) {
 }
 
 // Hot-sensor / color keys: _<type>_<label parts>_
+export function aliasHotSensorKey(key) {
+    if (key == '__max_network-download__')
+        return '__network-rx_max__';
+    if (key == '__max_network-upload__')
+        return '__network-tx_max__';
+    return key;
+}
+
 export function parseSensorKey(key) {
     if (typeof key !== 'string' || !key.startsWith('_') || key.length < 3)
         return null;

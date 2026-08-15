@@ -16,7 +16,7 @@ import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/ex
 import * as Values from './values.js';
 import * as MenuItem from './menuItem.js';
 import * as SensorCatalog from './helpers/catalog.js';
-import {parseSensorKey} from './helpers/colors.js';
+import {aliasHotSensorKey} from './helpers/colors.js';
 
 let vitalsMenu;
 
@@ -183,74 +183,6 @@ var VitalsMenuButton = GObject.registerClass({
                 this._querySensors();
             }
         }, this);
-    }
-
-    /**
-     * When the menu is closed, only poll panel hot-sensors.
-     * Returns null for a full query, or { keys, groups, fullGroups }.
-     */
-    _getSensorQueryFilter() {
-        if (this._menuOpen)
-            return null;
-
-        const keys = new Set();
-        for (let key of this._settings.get_strv('hot-sensors')) {
-            if (key == '_default_icon_')
-                continue;
-            // fixes issue #225 which started when _max_ was moved to the end
-            if (key == '__max_network-download__')
-                key = '__network-rx_max__';
-            if (key == '__max_network-upload__')
-                key = '__network-tx_max__';
-            keys.add(key);
-        }
-
-        const groups = new Set();
-        const fullGroups = new Set();
-
-        for (let key of keys) {
-            let agg = key.match(/^__(temperature|voltage|fan)_(avg|min|max)__$/);
-            if (agg) {
-                fullGroups.add(agg[1]);
-                groups.add(agg[1]);
-                continue;
-            }
-
-            agg = key.match(/^__network-(rx|tx)_(max|boot|ses)__$/);
-            if (agg) {
-                fullGroups.add('network');
-                groups.add('network');
-                continue;
-            }
-
-            let parsed = parseSensorKey(key);
-            if (!parsed || !parsed.typePart)
-                continue;
-
-            let group = parsed.typePart;
-            if (group.startsWith('gpu'))
-                group = 'gpu';
-            else if (group.startsWith('network'))
-                group = 'network';
-
-            groups.add(group);
-
-            // Process Time is reported from /proc/uptime (registry) under the processor type
-            if (parsed.typePart === 'processor' && parsed.label === 'process time')
-                groups.add('system');
-        }
-
-        return {keys, groups, fullGroups};
-    }
-
-    _includeAggregatesForType(filter, type) {
-        if (!filter)
-            return true;
-        if (type == 'temperature' || type == 'voltage' || type == 'fan')
-            return filter.fullGroups.has(type);
-        if (type == 'network-rx' || type == 'network-tx')
-            return filter.fullGroups.has('network');
-        return true;
     }
 
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
@@ -443,9 +375,7 @@ var VitalsMenuButton = GObject.registerClass({
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
         for (let key of Object.values(hotSensors)) {
-            // fixes issue #225 which started when _max_ was moved to the end
-            if (key == '__max_network-download__') key = '__network-rx_max__';
-            if (key == '__max_network-upload__') key = '__network-tx_max__';
+            key = aliasHotSensorKey(key);
 
             this._createHotItem(key);
         }
@@ -580,12 +510,19 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _sensorIconPath(sensor, icon = 'icon') {
-        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
         let sensorKey = sensor;
-        if(sensor.startsWith('gpu')) sensorKey = 'gpu';
+        if (sensor.startsWith('gpu'))
+            sensorKey = 'gpu';
+
+        const icons = this._sensorIcons[sensorKey];
+        if (sensorKey === 'network' && icon.startsWith('icon-') && !(icons && icons[icon])) {
+            let cc = icon.slice('icon-'.length);
+            if (/^[a-z]{2}$/.test(cc))
+                return this._extensionObject.path + '/icons/flags/1x1/' + cc + '.svg';
+        }
 
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
-        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
+        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + icons[icon];
     }
 
     _ucFirst(string) {
@@ -641,8 +578,6 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
-        let filter = this._getSensorQueryFilter();
-
         this._sensors.query((label, value, type, format) => {
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
@@ -679,8 +614,11 @@ var VitalsMenuButton = GObject.registerClass({
                 }
             }
 
+            let includeAggregates = this._menuOpen ||
+                this._sensors.getHotFullGroups().has(SensorCatalog.sensorGroupFromType(type));
+
             let items = this._values.returnIfDifferent(dwell, label, value, type, format, key, {
-                includeAggregates: this._includeAggregatesForType(filter, type),
+                includeAggregates,
             });
             for (let item of items) {
                 if (item.type.startsWith('network-') && item.type.length == 10 && item.type != 'network-rx' && item.type != 'network-tx') {
@@ -700,7 +638,7 @@ var VitalsMenuButton = GObject.registerClass({
 
                 this._updateDisplay(_(item.label), item.value, item.type, item.key, item.style);
             }
-        }, dwell, filter);
+        }, dwell, this._menuOpen);
 
         //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
         if(this._newGpuDetected) this._newGpuDetectedCount++;

@@ -32,7 +32,9 @@ import {
     createSensorRegistry,
     getStaticSources,
     createBatterySource,
+    fieldKey,
 } from './helpers/sensorSources.js';
+import {sensorGroupFromType} from './helpers/catalog.js';
 
 // Shell and prefs hosts expose gettext on different module paths.
 let _;
@@ -84,7 +86,6 @@ export const Sensors = GObject.registerClass({
         this._frameMonitorFrameCount = 0;
         this._frameMonitorAccTime = 0;
         this._frameMonitorCurrentHz = 0;
-        this._queryFilter = null;
 
         // Path-centric registry: static catalog + discovery appends (hwmon, net, …)
         this._registry = createSensorRegistry();
@@ -95,11 +96,9 @@ export const Sensors = GObject.registerClass({
         this._registry.registerSource(createBatterySource(
             () => this._settings.get_int('battery-slot'),
             this._batteryState));
-
-        // Groups fully handled by the registry poll (custom leftovers call _query*)
-        this._registryGroups = new Set([
-            'temperature', 'voltage', 'fan', 'memory', 'system', 'battery',
-        ]);
+        this._registerLeftoverSources();
+        this._rebuildHotFromSettings();
+        this._addSettingChangedSignal('hot-sensors', this._rebuildHotFromSettings.bind(this));
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
@@ -157,59 +156,105 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, dwell, filter = null) {
-        // null filter = full query (menu open). Otherwise { keys, groups, fullGroups }.
-        this._queryFilter = filter;
+    _rebuildHotFromSettings() {
+        this._registry.rebuildHot(this._settings.get_strv('hot-sensors'));
+    }
 
-        if (filter) {
-            console.log(`Vitals: query start selective keys=${filter.keys.size} groups=[${[...filter.groups]}]`);
-        } else {
+    getHotFullGroups() {
+        return this._registry.hotFullGroups;
+    }
+
+    /**
+     * Poll sensors. Closed menu uses the cached hot subset; open menu uses the full catalog.
+     * Defaults to a full query so prefs discovery still enumerates every source.
+     */
+    query(callback, dwell, menuOpen = true) {
+        if (menuOpen)
             console.log('Vitals: query start full');
-        }
+        else
+            console.log(`Vitals: query start hot n=${this._registry.hot.length}`);
 
         if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
-            // Discovery must always emit so dropdown rows exist when the menu opens
-            this._queryFilter = null;
             console.log('Vitals: discovering hardware monitors');
             this._discoverHardwareMonitors(callback);
-            this._queryFilter = filter;
         }
 
         const showGroup = group => {
-            let option = group.startsWith('gpu') ? 'gpu' : group;
-            return this._settings.get_boolean('show-' + option);
+            return this._settings.get_boolean('show-' + sensorGroupFromType(group));
         };
 
-        // Net ifaces are registered once during discovery; poll only reads selected paths
         this._registry.poll(
             this._returnValue.bind(this),
             callback,
-            filter,
+            !!menuOpen,
             {
                 showGroup,
                 settings: this._settings,
+                dwell,
                 processorCores: this._processor_core_count ||
                     Math.max(0, Object.keys(this._last_processor['core']).length - 1),
             });
+    }
 
-        // Custom (non-registry) groups: processor, network extras, storage disk/GTop, gpu
-        for (let sensor in this._sensorIcons) {
-            if (this._registryGroups.has(sensor))
-                continue;
-            if (!this._settings.get_boolean('show-' + sensor))
-                continue;
-            if (filter && !filter.groups.has(sensor))
-                continue;
+    _registerLeftoverSources() {
+        this._registry.registerSource({
+            id: 'custom-processor',
+            group: 'processor',
+            fields: [
+                {label: 'Usage', type: 'processor', format: 'percent'},
+                {label: 'processor', type: 'processor-group', format: 'percent'},
+                {label: 'Frequency', type: 'processor', format: 'hertz'},
+                {label: 'Max frequency', type: 'processor', format: 'hertz'},
+                {label: 'Min frequency', type: 'processor', format: 'hertz'},
+            ],
+            matchKey: key => key.startsWith('_processor_') && key.includes('_core_'),
+            poll: (callback, wantedKeys, ctx) => {
+                this._queryProcessor(callback, ctx.dwell, wantedKeys);
+            },
+        });
 
-            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan')
-                continue;
+        this._registry.registerSource({
+            id: 'custom-network-public-ip',
+            group: 'network',
+            skipFullGroup: true,
+            fields: [{label: 'Public IP', type: 'network', format: 'string'}],
+            poll: (callback, wantedKeys, ctx) => {
+                this._queryNetwork(callback, ctx.dwell, wantedKeys);
+            },
+        });
 
-            let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-            this[method](callback, dwell);
-        }
+        this._registry.registerSource({
+            id: 'custom-storage',
+            group: 'storage',
+            fields: [
+                {label: 'Read total', type: 'storage', format: 'storage'},
+                {label: 'Write total', type: 'storage', format: 'storage'},
+                {label: 'Read rate', type: 'storage', format: 'storage'},
+                {label: 'Write rate', type: 'storage', format: 'storage'},
+                {label: 'Total', type: 'storage', format: 'storage'},
+                {label: 'Used', type: 'storage', format: 'storage'},
+                {label: 'Reserved', type: 'storage', format: 'storage'},
+                {label: 'Free', type: 'storage', format: 'storage'},
+                {label: 'Used %', type: 'storage', format: 'string'},
+                {label: 'Free %', type: 'storage', format: 'string'},
+                {label: 'storage', type: 'storage-group', format: 'storage'},
+            ],
+            poll: (callback, wantedKeys, ctx) => {
+                this._queryStorage(callback, ctx.dwell, wantedKeys);
+            },
+        });
+
+        this._registry.registerSource({
+            id: 'custom-gpu',
+            group: 'gpu',
+            matchGroup: true,
+            poll: (callback) => {
+                this._queryGpu(callback);
+            },
+        });
     }
 
     _discoverNetworkIfaces() {
@@ -237,14 +282,11 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _queryProcessor(callback, dwell) {
+    _queryProcessor(callback, dwell, wantedKeys = null) {
         let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
 
-        // Frequency/per-core work was previously always done whenever Usage ran.
-        // Only do it when those sensors are needed (or the menu is open).
-        const filter = this._queryFilter;
-        const needsFreq = !filter || [...filter.keys].some(k => k.includes('frequency'));
-        const needsCores = !filter || [...filter.keys].some(k => k.includes('_core_'));
+        const needsFreq = !wantedKeys || [...wantedKeys].some(k => k.includes('frequency'));
+        const needsCores = !wantedKeys || [...wantedKeys].some(k => k.includes('_core_'));
 
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
@@ -348,13 +390,10 @@ export const Sensors = GObject.registerClass({
     // Memory / system / battery / big-3 are polled via the registry only.
     // Network (public IP) and storage (diskstats/GTop) still use _query*.
 
-    _queryNetwork(callback, dwell) {
+    _queryNetwork(callback, dwell, wantedKeys = null) {
         // Iface bytes + wireless come from the registry; only public IP remains here.
-        const filter = this._queryFilter;
-
         if (this._settings.get_boolean('include-public-ip')) {
-            const publicIpKey = '_network_public_ip_';
-            const wantsPublicIp = !filter || filter.keys.has(publicIpKey);
+            const wantsPublicIp = !wantedKeys || wantedKeys.has(fieldKey('network', 'Public IP'));
 
             if (wantsPublicIp) {
                 if (this._next_public_ip_check <= 0) {
@@ -369,19 +408,17 @@ export const Sensors = GObject.registerClass({
         }
     }
 
-    _queryStorage(callback, dwell) {
+    _queryStorage(callback, dwell, wantedKeys = null) {
         // ZFS ARC is in the registry; diskstats + GTop stay custom.
-        const filter = this._queryFilter;
-        const emitAll = !filter;
-        const want = key => emitAll || filter.keys.has(key);
-
+        const want = key => !wantedKeys || wantedKeys.has(key);
         const wantsDisk =
-            want('_storage_read_total_') || want('_storage_write_total_') ||
-            want('_storage_read_rate_') || want('_storage_write_rate_');
+            want(fieldKey('storage', 'Read total')) || want(fieldKey('storage', 'Write total')) ||
+            want(fieldKey('storage', 'Read rate')) || want(fieldKey('storage', 'Write rate'));
         const wantsFs =
-            want('_storage_total_') || want('_storage_used_') || want('_storage_reserved_') ||
-            want('_storage_free_') || want('_storage_used_%_') || want('_storage_free_%_') ||
-            want('_storage_storage_');
+            want(fieldKey('storage', 'Total')) || want(fieldKey('storage', 'Used')) ||
+            want(fieldKey('storage', 'Reserved')) || want(fieldKey('storage', 'Free')) ||
+            want(fieldKey('storage', 'Used %')) || want(fieldKey('storage', 'Free %')) ||
+            want(fieldKey('storage-group', 'storage'));
 
         // check disk performance stats
         if (wantsDisk) {

@@ -2,12 +2,13 @@
   Path-centric sensor source registry.
 
   Static catalog entries are registered at Sensors init. Discovery (hwmon, net
-  ifaces, …) appends more sources in the same shape. Poll selects sources by
-  needed keys / fullGroups, reads each path once, and extracts fields.
+  ifaces, …) appends more sources in the same shape. rebuildHot() tags sources
+  when pins change; closed-menu poll iterates that snapshot only.
 */
 
 import * as FileModule from './file.js';
-import {sensorKeyFromTypeLabel} from './colors.js';
+import {sensorKeyFromTypeLabel, parseSensorKey, aliasHotSensorKey} from './colors.js';
+import {sensorGroupFromType} from './catalog.js';
 
 export function fieldKey(type, label) {
     return sensorKeyFromTypeLabel(type, label);
@@ -31,7 +32,13 @@ export function fieldKey(type, label) {
  * @property {string|RegExp} [delimiter] - for File.read
  * @property {boolean} [stripHeader]
  * @property {SensorField[]} fields
+ * @property {boolean} [hot] - true when included in the closed-menu snapshot
+ * @property {Set<string>|null} [wantedKeys] - null emits all fields
  * @property {function} [extract] - (contents, ctx, wantedKeys) => emit rows
+ * @property {function} [poll] - leftover query: (callback, wantedKeys, ctx)
+ * @property {function} [matchKey] - extra pin-key matcher (dynamic cores, …)
+ * @property {boolean} [matchGroup] - hot when any pin is this catalog group
+ * @property {boolean} [skipFullGroup] - exclude from aggregate full-group reads
  * @property {boolean} [discovered]
  */
 
@@ -39,6 +46,9 @@ export function createSensorRegistry() {
     /** @type {Map<string, SensorSource>} */
     const sources = new Map();
     const discoveredIds = new Set();
+    let lastHotKeys = null;
+    let hot = [];
+    let hotFullGroups = new Set();
 
     function normalizeSource(source) {
         const fields = (source.fields || []).map(field => {
@@ -49,7 +59,7 @@ export function createSensorRegistry() {
                 key: field.key || fieldKey(type, label),
             };
         });
-        return {...source, fields};
+        return {...source, fields, hot: false, wantedKeys: null};
     }
 
     function registerSource(source, options = {}) {
@@ -57,18 +67,24 @@ export function createSensorRegistry() {
         sources.set(normalized.id, normalized);
         if (options.discovered)
             discoveredIds.add(normalized.id);
+        if (lastHotKeys)
+            rebuildHot();
         return normalized;
     }
 
     function unregisterSource(id) {
         sources.delete(id);
         discoveredIds.delete(id);
+        if (lastHotKeys)
+            rebuildHot();
     }
 
     function clearDiscovered() {
         for (let id of discoveredIds)
             sources.delete(id);
         discoveredIds.clear();
+        if (lastHotKeys)
+            rebuildHot();
     }
 
     function allSources() {
@@ -79,57 +95,79 @@ export function createSensorRegistry() {
         return allSources().filter(source => source.group === group);
     }
 
-    /**
-     * Which field keys from this source are needed for this poll.
-     * null => emit all fields (menu open / full group).
-     */
-    function wantedKeysForSource(source, filter) {
-        if (!filter)
+    function normalizeHotKey(key) {
+        key = aliasHotSensorKey(key);
+        if (key == '_default_icon_')
             return null;
-        if (filter.fullGroups && filter.fullGroups.has(source.group) && !source.skipFullGroup)
-            return null;
-
-        const wanted = new Set();
-        for (let field of source.fields) {
-            if (filter.keys.has(field.key))
-                wanted.add(field.key);
-        }
-        return wanted.size ? wanted : null;
+        return key;
     }
 
-    function sourceIsSelected(source, filter, showGroup) {
-        if (showGroup && !showGroup(source.group))
-            return false;
+    function groupFromPinKey(key) {
+        let agg = key.match(/^__(.+?)_(avg|min|max|boot|ses)__$/);
+        if (agg)
+            return sensorGroupFromType(agg[1]);
+        let parsed = parseSensorKey(key);
+        if (!parsed || !parsed.typePart)
+            return '';
+        return sensorGroupFromType(parsed.typePart);
+    }
 
-        if (!filter)
-            return true;
+    function rebuildHot(hotKeys) {
+        if (hotKeys)
+            lastHotKeys = hotKeys;
+        if (!lastHotKeys)
+            lastHotKeys = [];
 
-        // Group must be in the selective set (or fullGroups implies group)
-        if (!filter.groups.has(source.group) &&
-            !(filter.fullGroups && filter.fullGroups.has(source.group)))
-            return false;
+        const keys = new Set();
+        for (let key of lastHotKeys) {
+            key = normalizeHotKey(key);
+            if (key)
+                keys.add(key);
+        }
 
-        if (filter.fullGroups && filter.fullGroups.has(source.group)) {
-            if (source.skipFullGroup) {
-                for (let field of source.fields) {
-                    if (filter.keys.has(field.key))
-                        return true;
-                }
-                return false;
+        hotFullGroups = new Set();
+        const pinGroups = new Set();
+        for (let key of keys) {
+            let group = groupFromPinKey(key);
+            if (!group)
+                continue;
+            if (/^__(.+?)_(avg|min|max|boot|ses)__$/.test(key))
+                hotFullGroups.add(group);
+            else
+                pinGroups.add(group);
+        }
+
+        for (let source of sources.values()) {
+            source.hot = false;
+            source.wantedKeys = null;
+
+            const matching = [];
+            for (let field of source.fields) {
+                if (keys.has(field.key))
+                    matching.push(field.key);
             }
-            return true;
+            if (typeof source.matchKey === 'function') {
+                for (let key of keys) {
+                    if (source.matchKey(key))
+                        matching.push(key);
+                }
+            }
+
+            const isFull = hotFullGroups.has(source.group) && !source.skipFullGroup;
+            const isGroup = source.matchGroup && pinGroups.has(source.group);
+            if (isFull) {
+                source.hot = true;
+                source.wantedKeys = null;
+            } else if (isGroup) {
+                source.hot = true;
+                source.wantedKeys = null;
+            } else if (matching.length) {
+                source.hot = true;
+                source.wantedKeys = new Set(matching);
+            }
         }
 
-        for (let field of source.fields) {
-            if (filter.keys.has(field.key))
-                return true;
-        }
-        return false;
-    }
-
-    function selectSources(filter, showGroup) {
-        return allSources().filter(source =>
-            sourceIsSelected(source, filter, showGroup));
+        hot = [...sources.values()].filter(source => source.hot);
     }
 
     function shouldEmitField(field, wantedKeys) {
@@ -223,23 +261,29 @@ export function createSensorRegistry() {
                     format: field.format || '',
                 });
             }
-            // Attach map for custom post-processors via source.afterExtract
             return {rows, map};
         }
 
         return rows;
     }
 
-    function poll(returnValue, callback, filter, ctx) {
+    function poll(returnValue, callback, menuOpen, ctx) {
         const showGroup = ctx.showGroup || (() => true);
-        const selected = selectSources(filter, showGroup);
+        const list = menuOpen ? sources.values() : hot;
 
-        for (let source of selected) {
+        for (let source of list) {
+            if (menuOpen && !showGroup(source.group))
+                continue;
+
+            const wantedKeys = menuOpen ? null : source.wantedKeys;
+            if (typeof source.poll === 'function') {
+                source.poll(callback, wantedKeys, ctx);
+                continue;
+            }
+
             const path = source.getPath ? source.getPath(ctx) : source.path;
             if (!path)
                 continue;
-
-            const wantedKeys = wantedKeysForSource(source, filter);
             const delimiter = source.delimiter != null ? source.delimiter : '';
             const stripHeader = !!source.stripHeader;
 
@@ -279,8 +323,10 @@ export function createSensorRegistry() {
         clearDiscovered,
         allSources,
         sourcesForGroup,
-        selectSources,
+        rebuildHot,
         poll,
+        get hot() { return hot; },
+        get hotFullGroups() { return hotFullGroups; },
     };
 }
 
