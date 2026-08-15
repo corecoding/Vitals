@@ -249,7 +249,7 @@ export const Sensors = GObject.registerClass({
                 this._last_processor['core'][cpu] = total;
             }
 
-            // if frequency scaling is enabled, gather cpu-freq values
+            // fallback: platforms without cpu MHz in /proc/cpuinfo (some ARM)
             if (!this._processor_uses_cpu_info) {
                 for (let core = 0; core <= cores; core++) {
                     new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
@@ -259,15 +259,19 @@ export const Sensors = GObject.registerClass({
             }
         }).catch(err => { });
 
-        // if frequency scaling is disabled, use cpuinfo for speed
+        // /proc/cpuinfo lists every core in one file; same values as per-core scaling_cur_freq
         if (this._processor_uses_cpu_info) {
-            // grab CPU frequency
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
                 let freqs = [];
                 for (let line of lines) {
                     // grab megahertz
                     let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
                     if (value) freqs.push(parseFloat(value[2]));
+                }
+
+                if (!freqs.length) {
+                    this._processor_uses_cpu_info = false;
+                    return;
                 }
 
                 let sum = freqs.reduce((a, b) => a + b);
@@ -278,8 +282,9 @@ export const Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
                 let min_hertz = freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000;
                 this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
-            }).catch(err => { });
-        // if frequency scaling is enabled, cpu-freq reports
+            }).catch(err => {
+                this._processor_uses_cpu_info = false;
+            });
         } else if (Object.values(this._last_processor['speed']).length > 0) {
             let sum = this._last_processor['speed'].reduce((a, b) => a + b);
             let hertz = (sum / this._last_processor['speed'].length) * 1000;
@@ -867,11 +872,6 @@ export const Sensors = GObject.registerClass({
                     }).catch(err => { });
                 });
             }
-        }).catch(err => { });
-
-        // does this system support cpu scaling? if so we will use it to grab Frequency and Boost below
-        new FileModule.File('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq').read().then(value => {
-            this._processor_uses_cpu_info = false;
         }).catch(err => { });
 
         // is static CPU information enabled?
