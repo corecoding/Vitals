@@ -277,7 +277,9 @@ export function createSensorRegistry() {
 
             const wantedKeys = menuOpen ? null : source.wantedKeys;
             if (typeof source.poll === 'function') {
-                source.poll(callback, wantedKeys, ctx);
+                const emit = (label, value, type, format) =>
+                    returnValue(callback, label, value, type, format);
+                source.poll(emit, wantedKeys, ctx);
                 continue;
             }
 
@@ -444,8 +446,8 @@ export function getStaticSources() {
 
                 // Process Time is typed as processor but sourced from uptime
                 const processKey = fieldKey('processor', 'Process Time');
-                if (want(processKey) || (emitAll && ctx.processorCores > 0)) {
-                    let cores = ctx.processorCores || 0;
+                let cores = (ctx.processor && ctx.processor.coreCount) || ctx.processorCores || 0;
+                if (want(processKey) || (emitAll && cores > 0)) {
                     if (cores > 0 && (emitAll || want(processKey)))
                         rows.push({
                             label: 'Process Time',
@@ -529,7 +531,307 @@ export function getStaticSources() {
                 {label: 'WiFi Signal Level', type: 'network', format: 'string'},
             ],
         },
+        {
+            id: 'proc-stat',
+            path: '/proc/stat',
+            group: 'processor',
+            delimiter: '\n',
+            matchKey: key => key.startsWith('_processor_') && key.includes('_core_'),
+            extract(lines, ctx, wantedKeys) {
+                const proc = ctx.processor;
+                if (!proc)
+                    return [];
+                const dwell = ctx.dwell || 1;
+                const emitAll = !wantedKeys;
+                const needsCores = emitAll || [...wantedKeys].some(k => k.includes('_core_'));
+                const formatCore = ctx._ || (s => s);
+                const columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
+                const statistics = {};
+                let cores = 0;
+
+                for (let line of lines) {
+                    let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
+                    if (!reverse_data)
+                        continue;
+
+                    let cpu = reverse_data[1].trim();
+                    if (cpu !== 'cpu')
+                        cores++;
+
+                    if (!needsCores && cpu !== 'cpu')
+                        continue;
+
+                    if (!(cpu in statistics))
+                        statistics[cpu] = {};
+                    if (!(cpu in proc.last.core))
+                        proc.last.core[cpu] = 0;
+
+                    let stats = reverse_data[2].trim().split(' ').reverse();
+                    for (let column of columns)
+                        statistics[cpu][column] = parseInt(stats.pop());
+                }
+
+                if (cores > 0)
+                    proc.coreCount = cores;
+                else
+                    cores = proc.coreCount || 0;
+                ctx.processorCores = proc.coreCount || cores;
+
+                const rows = [];
+                for (let cpu in statistics) {
+                    let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
+                    if (proc.last.core[cpu] > 0) {
+                        let delta = (total - proc.last.core[cpu]) / dwell;
+                        if (cpu == 'cpu') {
+                            delta = delta / (cores || 1);
+                            if (emitAll || wantedKeys.has(fieldKey('processor-group', 'processor')))
+                                rows.push({label: 'processor', value: delta / 100, type: 'processor-group', format: 'percent'});
+                            if (emitAll || wantedKeys.has(fieldKey('processor', 'Usage')))
+                                rows.push({label: 'Usage', value: delta / 100, type: 'processor', format: 'percent'});
+                        } else {
+                            let label = formatCore('Core %d').format(cpu.substr(3));
+                            if (emitAll || wantedKeys.has(fieldKey('processor', label)))
+                                rows.push({label, value: delta / 100, type: 'processor', format: 'percent'});
+                        }
+                    }
+                    proc.last.core[cpu] = total;
+                }
+                return rows;
+            },
+            fields: [
+                {label: 'Usage', type: 'processor', format: 'percent'},
+                {label: 'processor', type: 'processor-group', format: 'percent'},
+            ],
+        },
+        {
+            id: 'proc-cpuinfo-freq',
+            group: 'processor',
+            delimiter: '\n',
+            getPath(ctx) {
+                return (ctx.processor && ctx.processor.usesCpuInfo) ? '/proc/cpuinfo' : null;
+            },
+            extract(lines, _ctx, wantedKeys) {
+                const emitAll = !wantedKeys;
+                const want = key => emitAll || wantedKeys.has(key);
+                let freqs = [];
+                for (let line of lines) {
+                    let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
+                    if (value)
+                        freqs.push(parseFloat(value[2]));
+                }
+                if (!freqs.length)
+                    return [];
+                let sum = freqs.reduce((a, b) => a + b);
+                const rows = [];
+                if (want(fieldKey('processor', 'Frequency')))
+                    rows.push({label: 'Frequency', value: (sum / freqs.length) * 1000 * 1000, type: 'processor', format: 'hertz'});
+                if (want(fieldKey('processor', 'Max frequency')))
+                    rows.push({label: 'Max frequency', value: freqs.reduce((a, b) => Math.max(a, b)) * 1000 * 1000, type: 'processor', format: 'hertz'});
+                if (want(fieldKey('processor', 'Min frequency')))
+                    rows.push({label: 'Min frequency', value: freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000, type: 'processor', format: 'hertz'});
+                return rows;
+            },
+            fields: [
+                {label: 'Frequency', type: 'processor', format: 'hertz'},
+                {label: 'Max frequency', type: 'processor', format: 'hertz'},
+                {label: 'Min frequency', type: 'processor', format: 'hertz'},
+            ],
+        },
+        createSysCpufreqSource(),
+        {
+            id: 'proc-diskstats',
+            path: '/proc/diskstats',
+            group: 'storage',
+            delimiter: '\n',
+            extract(lines, ctx, wantedKeys) {
+                const st = ctx.storage;
+                if (!st || !st.device)
+                    return [];
+                const dwell = ctx.dwell || 1;
+                const emitAll = !wantedKeys;
+                const want = key => emitAll || wantedKeys.has(key);
+                const rows = [];
+                for (let line of lines) {
+                    let loadArray = line.trim().split(/\s+/);
+                    if ('/dev/' + loadArray[2] != st.device)
+                        continue;
+                    var read = (loadArray[5] * 512);
+                    var write = (loadArray[9] * 512);
+                    if (want(fieldKey('storage', 'Read total')))
+                        rows.push({label: 'Read total', value: read, type: 'storage', format: 'storage'});
+                    if (want(fieldKey('storage', 'Write total')))
+                        rows.push({label: 'Write total', value: write, type: 'storage', format: 'storage'});
+                    if (want(fieldKey('storage', 'Read rate')))
+                        rows.push({label: 'Read rate', value: (read - st.lastRead) / dwell, type: 'storage', format: 'storage'});
+                    if (want(fieldKey('storage', 'Write rate')))
+                        rows.push({label: 'Write rate', value: (write - st.lastWrite) / dwell, type: 'storage', format: 'storage'});
+                    st.lastRead = read;
+                    st.lastWrite = write;
+                    break;
+                }
+                return rows;
+            },
+            fields: [
+                {label: 'Read total', type: 'storage', format: 'storage'},
+                {label: 'Write total', type: 'storage', format: 'storage'},
+                {label: 'Read rate', type: 'storage', format: 'storage'},
+                {label: 'Write rate', type: 'storage', format: 'storage'},
+            ],
+        },
     ];
+}
+
+const FREQ_FIELDS = [
+    {label: 'Frequency', type: 'processor', format: 'hertz'},
+    {label: 'Max frequency', type: 'processor', format: 'hertz'},
+    {label: 'Min frequency', type: 'processor', format: 'hertz'},
+];
+
+export function createSysCpufreqSource() {
+    const freqKeys = FREQ_FIELDS.map(field => fieldKey(field.type, field.label));
+    return {
+        id: 'sys-cpufreq',
+        group: 'processor',
+        fields: FREQ_FIELDS,
+        poll(emit, wantedKeys, ctx) {
+            const proc = ctx.processor;
+            if (!proc || proc.usesCpuInfo)
+                return;
+            if (wantedKeys && !freqKeys.some(key => wantedKeys.has(key)))
+                return;
+
+            const cores = proc.coreCount || 0;
+            for (let core = 0; core < cores; core++) {
+                new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
+                    proc.last.speed[core] = parseInt(value);
+                }).catch(err => { });
+            }
+
+            const speeds = Object.values(proc.last.speed);
+            if (!speeds.length)
+                return;
+
+            const emitAll = !wantedKeys;
+            const want = key => emitAll || wantedKeys.has(key);
+            let sum = speeds.reduce((a, b) => a + b);
+            if (want(fieldKey('processor', 'Frequency')))
+                emit('Frequency', (sum / speeds.length) * 1000, 'processor', 'hertz');
+            if (want(fieldKey('processor', 'Max frequency')))
+                emit('Max frequency', speeds.reduce((a, b) => Math.max(a, b)) * 1000, 'processor', 'hertz');
+            if (want(fieldKey('processor', 'Min frequency')))
+                emit('Min frequency', speeds.reduce((a, b) => Math.min(a, b)) * 1000, 'processor', 'hertz');
+        },
+    };
+}
+
+export function createPublicIpSource(state) {
+    return {
+        id: 'custom-network-public-ip',
+        group: 'network',
+        skipFullGroup: true,
+        fields: [{label: 'Public IP', type: 'network', format: 'string'}],
+        poll(emit, wantedKeys, ctx) {
+            if (!ctx.settings.get_boolean('include-public-ip'))
+                return;
+            if (wantedKeys && !wantedKeys.has(fieldKey('network', 'Public IP')))
+                return;
+
+            if (state.nextCheck <= 0) {
+                let intervalMinutes = ctx.settings.get_int('network-public-ip-interval');
+                state.nextCheck = intervalMinutes * 60;
+                refreshPublicIp(emit, ctx.settings);
+            }
+            state.nextCheck -= ctx.dwell || 0;
+        },
+    };
+}
+
+function refreshPublicIp(emit, settings) {
+    const provider = settings.get_int('network-public-ip-provider');
+    let url;
+    if (provider === 1)
+        url = 'https://api.myip.com';
+    else if (provider === 2)
+        url = 'https://api.ipify.org?format=json';
+    else
+        url = 'https://ipv4.corecoding.com';
+
+    new FileModule.File(url).read().then(contents => {
+        let obj = JSON.parse(contents);
+        let cc = '';
+        let ip = '';
+        if (provider === 1) {
+            cc = (obj && typeof obj['cc'] === 'string') ? obj['cc'].trim().toLowerCase() : '';
+            if (cc === 'xx') cc = '';
+            ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
+        } else if (provider === 2) {
+            ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
+        } else {
+            cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
+            ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
+        }
+        const showFlag = settings.get_boolean('network-public-ip-show-flag');
+        let typeOut = (showFlag && /^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
+        emit('Public IP', ip, typeOut, 'string');
+    }).catch(err => { });
+}
+
+export function createGtopStorageSource(state) {
+    return {
+        id: 'gtop-storage',
+        group: 'storage',
+        fields: [
+            {label: 'Total', type: 'storage', format: 'storage'},
+            {label: 'Used', type: 'storage', format: 'storage'},
+            {label: 'Reserved', type: 'storage', format: 'storage'},
+            {label: 'Free', type: 'storage', format: 'storage'},
+            {label: 'Used %', type: 'storage', format: 'string'},
+            {label: 'Free %', type: 'storage', format: 'string'},
+            {label: 'storage', type: 'storage-group', format: 'storage'},
+        ],
+        poll(emit, wantedKeys, ctx) {
+            if (!state.read)
+                return;
+            const emitAll = !wantedKeys;
+            const want = key => emitAll || wantedKeys.has(key);
+            const keys = [
+                fieldKey('storage', 'Total'), fieldKey('storage', 'Used'),
+                fieldKey('storage', 'Reserved'), fieldKey('storage', 'Free'),
+                fieldKey('storage', 'Used %'), fieldKey('storage', 'Free %'),
+                fieldKey('storage-group', 'storage'),
+            ];
+            if (wantedKeys && !keys.some(key => wantedKeys.has(key)))
+                return;
+
+            const usage = state.read();
+            let total = usage.blocks * usage.block_size;
+            let avail = usage.bavail * usage.block_size;
+            let free = usage.bfree * usage.block_size;
+            let used = total - free;
+            let reserved = (total - avail) - used;
+            let freePercent = 0;
+            let usedPercent = 0;
+            if (total > 0) {
+                freePercent = Math.round((free / total) * 100);
+                usedPercent = Math.round((used / total) * 100);
+            }
+
+            if (want(fieldKey('storage', 'Total')))
+                emit('Total', total, 'storage', 'storage');
+            if (want(fieldKey('storage', 'Used')))
+                emit('Used', used, 'storage', 'storage');
+            if (want(fieldKey('storage', 'Reserved')))
+                emit('Reserved', reserved, 'storage', 'storage');
+            if (want(fieldKey('storage', 'Free')))
+                emit('Free', avail, 'storage', 'storage');
+            if (want(fieldKey('storage', 'Used %')))
+                emit('Used %', usedPercent + '%', 'storage', 'string');
+            if (want(fieldKey('storage', 'Free %')))
+                emit('Free %', freePercent + '%', 'storage', 'string');
+            if (want(fieldKey('storage-group', 'storage')))
+                emit('storage', avail, 'storage-group', 'storage');
+        },
+    };
 }
 
 export const BATTERY_PATHS = {

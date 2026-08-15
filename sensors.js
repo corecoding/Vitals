@@ -32,7 +32,8 @@ import {
     createSensorRegistry,
     getStaticSources,
     createBatterySource,
-    fieldKey,
+    createPublicIpSource,
+    createGtopStorageSource,
 } from './helpers/sensorSources.js';
 import {sensorGroupFromType} from './helpers/catalog.js';
 
@@ -65,14 +66,15 @@ export const Sensors = GObject.registerClass({
 
         this.resetHistory();
 
-        this._last_processor = { 'core': {}, 'speed': [] };
-        this._processor_core_count = 0;
+        this._processor = { last: { core: {}, speed: [] }, coreCount: 0, usesCpuInfo: true };
+        this._storageState = { device: '', lastRead: 0, lastWrite: 0 };
+        this._publicIpState = { nextCheck: 0 };
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
-        this._addSettingChangedSignal('network-public-ip-interval', () => {this._next_public_ip_check = 0;});
-        this._addSettingChangedSignal('network-public-ip-provider', () => {this._next_public_ip_check = 0;});
+        this._addSettingChangedSignal('network-public-ip-interval', () => {this._publicIpState.nextCheck = 0;});
+        this._addSettingChangedSignal('network-public-ip-provider', () => {this._publicIpState.nextCheck = 0;});
         //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._gpu_drm_vendors = null;
@@ -96,52 +98,16 @@ export const Sensors = GObject.registerClass({
         this._registry.registerSource(createBatterySource(
             () => this._settings.get_int('battery-slot'),
             this._batteryState));
-        this._registerLeftoverSources();
+        this._findStorageDevice();
+        if (hasGTop)
+            this.storage = new GTop.glibtop_fsusage();
+        this._registerHookSources();
         this._rebuildHotFromSettings();
         this._addSettingChangedSignal('hot-sensors', this._rebuildHotFromSettings.bind(this));
-
-        if (hasGTop) {
-            this.storage = new GTop.glibtop_fsusage();
-            this._storageDevice = '';
-            this._findStorageDevice();
-
-            this._lastRead = 0;
-            this._lastWrite = 0;
-        }
     }
 
     _addSettingChangedSignal(key, callback) {
         this._settingChangedSignals.push(this._settings.connect('changed::' + key, callback));
-    }
-
-    _refreshIPAddress(callback) {
-        const provider = this._settings.get_int('network-public-ip-provider');
-        let url;
-        if (provider === 1)
-            url = 'https://api.myip.com';
-        else if (provider === 2)
-            url = 'https://api.ipify.org?format=json';
-        else
-            url = 'https://ipv4.corecoding.com';
-
-        new FileModule.File(url).read().then(contents => {
-            let obj = JSON.parse(contents);
-            let cc = '';
-            let ip = '';
-            if (provider === 1) {
-                cc = (obj && typeof obj['cc'] === 'string') ? obj['cc'].trim().toLowerCase() : '';
-                if (cc === 'xx') cc = ''; // MyIP.com uses XX when country is unknown; not a real flag
-                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
-            } else if (provider === 2) {
-                ip = (obj && typeof obj['ip'] === 'string') ? obj['ip'].trim() : '';
-            } else {
-                cc = (obj && typeof obj['countryCode'] === 'string') ? obj['countryCode'].trim().toLowerCase() : '';
-                ip = (obj && typeof obj['IPv4'] === 'string') ? obj['IPv4'].trim() : '';
-            }
-            const showFlag = this._settings.get_boolean('network-public-ip-show-flag');
-            let typeOut = (showFlag && /^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
-            this._returnValue(callback, 'Public IP', ip, typeOut, 'string');
-        }).catch(err => { });
     }
 
     _findStorageDevice() {
@@ -149,7 +115,7 @@ export const Sensors = GObject.registerClass({
             for (let line of lines) {
                 let loadArray = line.trim().split(/\s+/);
                 if (loadArray[1] == this._settings.get_string('storage-path')) {
-                    this._storageDevice = loadArray[0];
+                    this._storageState.device = loadArray[0];
                     break;
                 }
             }
@@ -194,65 +160,29 @@ export const Sensors = GObject.registerClass({
                 showGroup,
                 settings: this._settings,
                 dwell,
-                processorCores: this._processor_core_count ||
-                    Math.max(0, Object.keys(this._last_processor['core']).length - 1),
+                _: _,
+                processor: this._processor,
+                processorCores: this._processor.coreCount,
+                storage: this._storageState,
             });
     }
 
-    _registerLeftoverSources() {
-        this._registry.registerSource({
-            id: 'custom-processor',
-            group: 'processor',
-            fields: [
-                {label: 'Usage', type: 'processor', format: 'percent'},
-                {label: 'processor', type: 'processor-group', format: 'percent'},
-                {label: 'Frequency', type: 'processor', format: 'hertz'},
-                {label: 'Max frequency', type: 'processor', format: 'hertz'},
-                {label: 'Min frequency', type: 'processor', format: 'hertz'},
-            ],
-            matchKey: key => key.startsWith('_processor_') && key.includes('_core_'),
-            poll: (callback, wantedKeys, ctx) => {
-                this._queryProcessor(callback, ctx.dwell, wantedKeys);
-            },
-        });
-
-        this._registry.registerSource({
-            id: 'custom-network-public-ip',
-            group: 'network',
-            skipFullGroup: true,
-            fields: [{label: 'Public IP', type: 'network', format: 'string'}],
-            poll: (callback, wantedKeys, ctx) => {
-                this._queryNetwork(callback, ctx.dwell, wantedKeys);
-            },
-        });
-
-        this._registry.registerSource({
-            id: 'custom-storage',
-            group: 'storage',
-            fields: [
-                {label: 'Read total', type: 'storage', format: 'storage'},
-                {label: 'Write total', type: 'storage', format: 'storage'},
-                {label: 'Read rate', type: 'storage', format: 'storage'},
-                {label: 'Write rate', type: 'storage', format: 'storage'},
-                {label: 'Total', type: 'storage', format: 'storage'},
-                {label: 'Used', type: 'storage', format: 'storage'},
-                {label: 'Reserved', type: 'storage', format: 'storage'},
-                {label: 'Free', type: 'storage', format: 'storage'},
-                {label: 'Used %', type: 'storage', format: 'string'},
-                {label: 'Free %', type: 'storage', format: 'string'},
-                {label: 'storage', type: 'storage-group', format: 'storage'},
-            ],
-            poll: (callback, wantedKeys, ctx) => {
-                this._queryStorage(callback, ctx.dwell, wantedKeys);
-            },
-        });
-
+    _registerHookSources() {
+        this._registry.registerSource(createPublicIpSource(this._publicIpState));
+        if (hasGTop) {
+            this._registry.registerSource(createGtopStorageSource({
+                read: () => {
+                    GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
+                    return this.storage;
+                },
+            }));
+        }
         this._registry.registerSource({
             id: 'custom-gpu',
             group: 'gpu',
             matchGroup: true,
-            poll: (callback) => {
-                this._queryGpu(callback);
+            poll: (emit) => {
+                this._pollGpu(emit);
             },
         });
     }
@@ -281,192 +211,6 @@ export const Sensors = GObject.registerClass({
             }
         }).catch(err => { });
     }
-
-    _queryProcessor(callback, dwell, wantedKeys = null) {
-        let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
-
-        const needsFreq = !wantedKeys || [...wantedKeys].some(k => k.includes('frequency'));
-        const needsCores = !wantedKeys || [...wantedKeys].some(k => k.includes('_core_'));
-
-        // check processor usage
-        new FileModule.File('/proc/stat').read("\n").then(lines => {
-            let statistics = {};
-            let cores = 0;
-
-            for (let line of lines) {
-                let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
-                if (!reverse_data)
-                    continue;
-
-                let cpu = reverse_data[1].trim();
-                if (cpu !== 'cpu')
-                    cores++;
-
-                // Aggregate "cpu" line is enough for Usage; skip per-core unless needed
-                if (!needsCores && cpu !== 'cpu')
-                    continue;
-
-                if (!(cpu in statistics))
-                    statistics[cpu] = {};
-
-                if (!(cpu in this._last_processor['core']))
-                    this._last_processor['core'][cpu] = 0;
-
-                let stats = reverse_data[2].trim().split(' ').reverse();
-                for (let column of columns)
-                    statistics[cpu][column] = parseInt(stats.pop());
-            }
-
-            if (cores > 0)
-                this._processor_core_count = cores;
-            else
-                cores = this._processor_core_count || 0;
-
-            for (let cpu in statistics) {
-                let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
-
-                // make sure we have data to report
-                if (this._last_processor['core'][cpu] > 0) {
-                    let delta = (total - this._last_processor['core'][cpu]) / dwell;
-
-                    // /proc/stat provides overall usage for us under the 'cpu' heading
-                    if (cpu == 'cpu') {
-                        delta = delta / cores;
-                        this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
-                        this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
-                    } else {
-                        this._returnValue(callback, _('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
-                    }
-                }
-
-                this._last_processor['core'][cpu] = total;
-            }
-
-            // only gather cpu-freq when a frequency sensor is actually needed
-            if (needsFreq && !this._processor_uses_cpu_info) {
-                for (let core = 0; core < cores; core++) {
-                    new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
-                        this._last_processor['speed'][core] = parseInt(value);
-                    }).catch(err => { });
-                }
-            }
-        }).catch(err => { });
-
-        if (!needsFreq)
-            return;
-
-        // if frequency scaling is disabled, use cpuinfo for speed
-        if (this._processor_uses_cpu_info) {
-            // grab CPU frequency
-            new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
-                let freqs = [];
-                for (let line of lines) {
-                    // grab megahertz
-                    let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
-                    if (value) freqs.push(parseFloat(value[2]));
-                }
-
-                let sum = freqs.reduce((a, b) => a + b);
-                let hertz = (sum / freqs.length) * 1000 * 1000;
-                this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-
-                let max_hertz = freqs.reduce((a, b) => Math.max(a, b)) * 1000 * 1000;
-                this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
-                let min_hertz = freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000;
-                this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
-            }).catch(err => { });
-        // if frequency scaling is enabled, cpu-freq reports
-        } else if (Object.values(this._last_processor['speed']).length > 0) {
-            let sum = this._last_processor['speed'].reduce((a, b) => a + b);
-            let hertz = (sum / this._last_processor['speed'].length) * 1000;
-            this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-            let max_hertz = this._last_processor['speed'].reduce((a, b) => Math.max(a, b)) * 1000;
-            this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
-            let min_hertz = this._last_processor['speed'].reduce((a, b) => Math.min(a, b)) * 1000;
-            this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
-        }
-    }
-
-    // Memory / system / battery / big-3 are polled via the registry only.
-    // Network (public IP) and storage (diskstats/GTop) still use _query*.
-
-    _queryNetwork(callback, dwell, wantedKeys = null) {
-        // Iface bytes + wireless come from the registry; only public IP remains here.
-        if (this._settings.get_boolean('include-public-ip')) {
-            const wantsPublicIp = !wantedKeys || wantedKeys.has(fieldKey('network', 'Public IP'));
-
-            if (wantsPublicIp) {
-                if (this._next_public_ip_check <= 0) {
-                    let intervalMinutes = this._settings.get_int('network-public-ip-interval');
-                    this._next_public_ip_check = intervalMinutes * 60;
-
-                    this._refreshIPAddress(callback);
-                }
-
-                this._next_public_ip_check -= dwell;
-            }
-        }
-    }
-
-    _queryStorage(callback, dwell, wantedKeys = null) {
-        // ZFS ARC is in the registry; diskstats + GTop stay custom.
-        const want = key => !wantedKeys || wantedKeys.has(key);
-        const wantsDisk =
-            want(fieldKey('storage', 'Read total')) || want(fieldKey('storage', 'Write total')) ||
-            want(fieldKey('storage', 'Read rate')) || want(fieldKey('storage', 'Write rate'));
-        const wantsFs =
-            want(fieldKey('storage', 'Total')) || want(fieldKey('storage', 'Used')) ||
-            want(fieldKey('storage', 'Reserved')) || want(fieldKey('storage', 'Free')) ||
-            want(fieldKey('storage', 'Used %')) || want(fieldKey('storage', 'Free %')) ||
-            want(fieldKey('storage-group', 'storage'));
-
-        // check disk performance stats
-        if (wantsDisk) {
-            new FileModule.File('/proc/diskstats').read("\n").then(lines => {
-                for (let line of lines) {
-                    let loadArray = line.trim().split(/\s+/);
-                    if ('/dev/' + loadArray[2] == this._storageDevice) {
-                        var read = (loadArray[5] * 512);
-                        var write = (loadArray[9] * 512);
-                        this._returnValue(callback, 'Read total', read, 'storage', 'storage');
-                        this._returnValue(callback, 'Write total', write, 'storage', 'storage');
-                        this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
-                        this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
-                        this._lastRead = read;
-                        this._lastWrite = write;
-                        break;
-                    }
-                }
-            }).catch(err => { });
-        }
-
-        // skip rest of stats if gtop not available
-        if (!hasGTop || !wantsFs) return;
-
-        GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
-
-        let total = this.storage.blocks * this.storage.block_size;
-        let avail = this.storage.bavail * this.storage.block_size;
-        let free = this.storage.bfree * this.storage.block_size;
-        let used = total - free;
-        let reserved = (total - avail) - used;
-        let freePercent = 0;
-        let usedPercent = 0;
-        if (total > 0) {
-          freePercent = Math.round((free / total) * 100);
-          usedPercent = Math.round((used / total) * 100);
-        }
-
-        this._returnValue(callback, 'Total', total, 'storage', 'storage');
-        this._returnValue(callback, 'Used', used, 'storage', 'storage');
-        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
-        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
-        this._returnValue(callback, 'Used %', usedPercent + '%', 'storage', 'string');
-        this._returnValue(callback, 'Free %', freePercent + '%', 'storage', 'string');
-        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
-    }
-
-    // Battery uevent is polled via the sensor source registry.
 
     _initFrameMonitor() {
         // Prefs has no gnome-shell `global`; skip refresh-rate sampling there.
@@ -519,44 +263,30 @@ export const Sensors = GObject.registerClass({
         }
     }
 
-    _queryGpu(callback) {
+    _pollGpu(emit) {
         if (this._frameMonitorCurrentHz > 0)
-            this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1', 'hertz');
+            emit('Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1', 'hertz');
 
         if (!this._nvidia_smi_process) {
-            // no nvidia-smi, so we use sysfs DRM if any cards was discovered
-            if (!this._gpu_drm_indices){
+            if (!this._gpu_drm_indices) {
                 if (this._frameMonitorCurrentHz > 0)
-                    this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1-group', 'hertz');
-                this._disableGpuLabels(callback);
-                return;
-            } else {
-                this._readGpuDrm(callback);
-                return;
+                    emit('Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1-group', 'hertz');
+                this._disableGpuLabels(emit);
             }
+            return;
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
-            /// for debugging multi-gpu on systems with only one gpu
-            /// duplicates the first gpu's data 3 times, for 4 total gpus
-            ///if(lines.length == 0) return;
-            ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
-            ///    lines.push(lines[0]);
-
             for (let i = 0; i < lines.length; i++) {
-                this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
+                this._parseNvidiaSmiLine(emit, lines[i], i + 1, lines.length > 1);
             }
 
-            // if we've already updated the static info during the last parse, then stop doing so.
-            // this is so the _parseNvidiaSmiLine function won't return static info anymore
-            // and the nvidia-smi commmand won't be queried for static info either
             if(!this._nvidia_static_returned) {
                 this._nvidia_static_returned = true;
-                //reconfigure the process to stop querying static info
                 this._reconfigureNvidiaSmiProcess();
             }
         }).catch(err => {
-            this._disableGpuLabels(callback);
+            this._disableGpuLabels(emit);
             this._terminateNvidiaSmiProcess();
         });
     }
@@ -659,50 +389,6 @@ export const Sensors = GObject.registerClass({
         this._returnStaticGpuValue(callback, 'Sub Device ID', staticInfo['sub_device_id'], typeName, 'string');
     }
 
-    _readGpuDrm(callback){
-        const multiGpu = this._gpu_drm_indices.length > 1;
-        const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
-        for (let z = 0; z < this._gpu_drm_indices.length; z++ ) {
-            let i = this._gpu_drm_indices[z];
-            const typeName = 'gpu#' + i;
-            const vendor = this._gpu_drm_vendors[z];
-
-            // AMD
-            if(vendor === "0x1002") {
-                // read GPU usage and create group lebel for card
-                new FileModule.File('/sys/class/drm/card'+i+'/device/gpu_busy_percent').read().then(value => {
-                    // create group
-                    this._returnGpuValue(callback, 'Graphics', parseInt(value) * 0.01, typeName + '-group', 'percent');
-                    this._returnGpuValue(callback, 'Vendor', "AMD", typeName, 'string');
-                    this._returnGpuValue(callback, 'Usage', parseInt(value) * 0.01, typeName, 'percent');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
-                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_used').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
-                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_total').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
-            } else {
-                // for other vendors only show basic card info
-                let vendorName = null;
-                switch (vendor){
-                    case '0x10DE': vendorName = 'NVIDIA'; break; // should be never used as nvidia-smi should be preferred
-                    case '0x13B5': vendorName = 'ARM'; break;
-                    case '0x5143': vendorName = 'Qualcomm'; break;
-                    case '0x8086': vendorName = 'Intel'; break;
-                    default: vendorName = "Unknown " + vendor;
-                }
-                this._returnGpuValue(callback, 'Graphics', vendorName, typeName + '-group', 'string');
-            }
-        }
-    }
-
     _disableGpuLabels(callback) {
         for (let labelObj of this._nvidia_labels)
             this._returnValue(callback, labelObj.label, 'disabled', labelObj.type, labelObj.format);
@@ -785,7 +471,7 @@ export const Sensors = GObject.registerClass({
 
         // does this system support cpu scaling? if so we will use it to grab Frequency and Boost below
         new FileModule.File('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq').read().then(value => {
-            this._processor_uses_cpu_info = false;
+            this._processor.usesCpuInfo = false;
         }).catch(err => { });
 
         // is static CPU information enabled?
@@ -834,21 +520,93 @@ export const Sensors = GObject.registerClass({
     _discoverGpuDrm() {
         // use DRM only if nvidia-smi is not used
         if (this._settings.get_boolean('show-gpu') && this._nvidia_smi_process == null) {
-            // try to discover up to 10 cards starting from index 0
-            for(let i = 0; i < 10 ; i++){
-                new FileModule.File('/sys/class/drm/card'+i+'/device/vendor').read().then(value => {
-                    if(!this._gpu_drm_indices){
+            for (let i = 0; i < 10; i++) {
+                const card = i;
+                new FileModule.File('/sys/class/drm/card' + card + '/device/vendor').read().then(vendor => {
+                    if (!this._gpu_drm_indices) {
                         this._gpu_drm_indices = [];
                         this._gpu_drm_vendors = [];
                     }
-                    this._gpu_drm_indices.push(i);
-                    this._gpu_drm_vendors.push(value);
+                    this._gpu_drm_indices.push(card);
+                    this._gpu_drm_vendors.push(vendor);
+                    this._registerDrmSources(card, vendor);
                 }).catch(err => { });
             }
         } else {
             this._gpu_drm_vendors = null;
             this._gpu_drm_indices = null;
         }
+    }
+
+    _registerDrmSources(card, vendor) {
+        const typeName = 'gpu#' + card;
+        const base = '/sys/class/drm/card' + card + '/device/';
+
+        if (vendor === '0x1002') {
+            this._registry.registerSource({
+                id: 'drm:' + base + 'gpu_busy_percent',
+                path: base + 'gpu_busy_percent',
+                group: 'gpu',
+                parse: 'raw',
+                extract(contents) {
+                    let usage = parseInt(contents) * 0.01;
+                    return [
+                        {label: 'Graphics', value: usage, type: typeName + '-group', format: 'percent'},
+                        {label: 'Vendor', value: 'AMD', type: typeName, format: 'string'},
+                        {label: 'Usage', value: usage, type: typeName, format: 'percent'},
+                    ];
+                },
+                fields: [
+                    {label: 'Graphics', type: typeName + '-group', format: 'percent'},
+                    {label: 'Vendor', type: typeName, format: 'string'},
+                    {label: 'Usage', type: typeName, format: 'percent'},
+                ],
+            }, {discovered: true});
+
+            this._registry.registerSource({
+                id: 'drm:' + base + 'mem_info_vram_used',
+                path: base + 'mem_info_vram_used',
+                group: 'gpu',
+                parse: 'raw',
+                extract: (contents, ctx) => {
+                    let unit = ctx.settings.get_int('memory-measurement') ? 1000 : 1024;
+                    return [{label: 'Memory Used', value: parseInt(contents) / unit, type: typeName, format: 'memory'}];
+                },
+                fields: [{label: 'Memory Used', type: typeName, format: 'memory'}],
+            }, {discovered: true});
+
+            this._registry.registerSource({
+                id: 'drm:' + base + 'mem_info_vram_total',
+                path: base + 'mem_info_vram_total',
+                group: 'gpu',
+                parse: 'raw',
+                extract: (contents, ctx) => {
+                    let unit = ctx.settings.get_int('memory-measurement') ? 1000 : 1024;
+                    return [{label: 'Memory Total', value: parseInt(contents) / unit, type: typeName, format: 'memory'}];
+                },
+                fields: [{label: 'Memory Total', type: typeName, format: 'memory'}],
+            }, {discovered: true});
+            return;
+        }
+
+        let vendorName;
+        switch (vendor) {
+            case '0x10DE': vendorName = 'NVIDIA'; break;
+            case '0x13B5': vendorName = 'ARM'; break;
+            case '0x5143': vendorName = 'Qualcomm'; break;
+            case '0x8086': vendorName = 'Intel'; break;
+            default: vendorName = 'Unknown ' + vendor;
+        }
+        this._registry.registerSource({
+            id: 'drm:' + base + 'vendor',
+            path: base + 'vendor',
+            group: 'gpu',
+            parse: 'raw',
+            extract() {
+                return [{label: 'Graphics', value: vendorName, type: typeName + '-group', format: 'string'}];
+            },
+            fields: [{label: 'Graphics', type: typeName + '-group', format: 'string'}],
+        }, {discovered: true});
     }
 
     // The nvidia-smi subprocess will keep running and print new sensor data to stdout every
@@ -1010,12 +768,20 @@ export const Sensors = GObject.registerClass({
     }
 
     resetHistory() {
-        this._next_public_ip_check = 0;
         this._hardware_detected = false;
         this._nvidia_static_returned = false;
-        this._processor_uses_cpu_info = true;
-        this._processor_core_count = 0;
         this._batteryState = {timeLeftHistory: [], chargeStatus: ''};
+        if (this._processor) {
+            this._processor.usesCpuInfo = true;
+            this._processor.coreCount = 0;
+            this._processor.last = { core: {}, speed: [] };
+        }
+        if (this._publicIpState)
+            this._publicIpState.nextCheck = 0;
+        if (this._storageState) {
+            this._storageState.lastRead = 0;
+            this._storageState.lastWrite = 0;
+        }
         // Re-bind battery source state after reset
         if (this._registry) {
             this._registry.clearDiscovered();
