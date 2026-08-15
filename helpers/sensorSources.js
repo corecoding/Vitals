@@ -14,6 +14,27 @@ export function fieldKey(type, label) {
     return sensorKeyFromTypeLabel(type, label);
 }
 
+export function sensorField(label, type, format, extra) {
+    return Object.assign({label, type, format: format || '', key: fieldKey(type, label)}, extra || {});
+}
+
+export function emitField(sink, field, value, wantedKeys, overrides) {
+    if (wantedKeys && !wantedKeys.has(field.key))
+        return;
+    const type = (overrides && overrides.type) || field.type;
+    const format = (overrides && 'format' in overrides) ? overrides.format : (field.format || '');
+    if (Array.isArray(sink))
+        sink.push({label: field.label, value, type, format});
+    else
+        sink(field.label, value, type, format);
+}
+
+export function wantsAny(fields, wantedKeys) {
+    if (!wantedKeys)
+        return true;
+    return fields.some(field => wantedKeys.has(field.key));
+}
+
 /**
  * @typedef {object} SensorField
  * @property {string} label
@@ -51,14 +72,11 @@ export function createSensorRegistry() {
     let hotFullGroups = new Set();
 
     function normalizeSource(source) {
-        const fields = (source.fields || []).map(field => {
-            const type = field.type;
-            const label = field.label;
-            return {
-                ...field,
-                key: field.key || fieldKey(type, label),
-            };
-        });
+        const fields = source.fields || [];
+        for (let field of fields) {
+            if (!field.key)
+                field.key = fieldKey(field.type, field.label);
+        }
         return {...source, fields, hot: false, wantedKeys: null};
     }
 
@@ -332,17 +350,67 @@ export function createSensorRegistry() {
     };
 }
 
+const FREQ = {
+    frequency: sensorField('Frequency', 'processor', 'hertz'),
+    max: sensorField('Max frequency', 'processor', 'hertz'),
+    min: sensorField('Min frequency', 'processor', 'hertz'),
+};
+const FREQ_FIELDS = Object.values(FREQ);
+
 /** Hard-coded sources common across machines. Discovery appends more later. */
 export function getStaticSources() {
+    const MEM = {
+        usage: sensorField('Usage', 'memory', 'percent'),
+        group: sensorField('memory', 'memory-group', 'percent'),
+        physical: sensorField('Physical', 'memory', 'memory'),
+        available: sensorField('Available', 'memory', 'memory'),
+        allocated: sensorField('Allocated', 'memory', 'memory'),
+        cached: sensorField('Cached', 'memory', 'memory'),
+        free: sensorField('Free', 'memory', 'memory'),
+        swapTotal: sensorField('Swap Total', 'memory', 'memory'),
+        swapFree: sensorField('Swap Free', 'memory', 'memory'),
+        swapUsed: sensorField('Swap Used', 'memory', 'memory'),
+        swapUsage: sensorField('Swap Usage', 'memory', 'percent'),
+    };
+    const LOAD = {
+        load1m: sensorField('Load 1m', 'system', 'load'),
+        group: sensorField('system', 'system-group', 'load'),
+        load5m: sensorField('Load 5m', 'system', 'load'),
+        load15m: sensorField('Load 15m', 'system', 'load'),
+        threadsActive: sensorField('Threads Active', 'system', 'string'),
+        threadsTotal: sensorField('Threads Total', 'system', 'string'),
+    };
+    const UPTIME = {
+        uptime: sensorField('Uptime', 'system', 'uptime'),
+        processTime: sensorField('Process Time', 'processor', 'uptime'),
+    };
+    const ZFS = {
+        target: sensorField('ARC Target', 'storage', 'storage'),
+        maximum: sensorField('ARC Maximum', 'storage', 'storage'),
+        current: sensorField('ARC Current', 'storage', 'storage'),
+    };
+    const WIFI = {
+        quality: sensorField('WiFi Link Quality', 'network', 'percent'),
+        signal: sensorField('WiFi Signal Level', 'network', 'string'),
+    };
+    const STAT = {
+        usage: sensorField('Usage', 'processor', 'percent'),
+        group: sensorField('processor', 'processor-group', 'percent'),
+    };
+    const DISK = {
+        readTotal: sensorField('Read total', 'storage', 'storage'),
+        writeTotal: sensorField('Write total', 'storage', 'storage'),
+        readRate: sensorField('Read rate', 'storage', 'storage'),
+        writeRate: sensorField('Write rate', 'storage', 'storage'),
+    };
+
     return [
         {
             id: 'proc-meminfo',
             path: '/proc/meminfo',
             group: 'memory',
+            fields: Object.values(MEM),
             extract(text, _ctx, wantedKeys) {
-                const emitAll = !wantedKeys;
-                const want = key => emitAll || wantedKeys.has(key);
-
                 let values = '', total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
                 if (values = text.match(/MemTotal:(\s+)(\d+) kB/)) total = values[2];
                 if (values = text.match(/MemAvailable:(\s+)(\d+) kB/)) avail = values[2];
@@ -357,38 +425,19 @@ export function getStaticSources() {
                 let swapUtilized = swapUsed / swapTotal;
 
                 const rows = [];
-                const push = (label, value, type, format) => {
-                    const key = fieldKey(type, label);
-                    if (want(key))
-                        rows.push({label, value, type, format});
-                };
-
-                push('Usage', utilized, 'memory', 'percent');
-                push('memory', utilized, 'memory-group', 'percent');
-                push('Physical', total, 'memory', 'memory');
-                push('Available', avail, 'memory', 'memory');
-                push('Allocated', used, 'memory', 'memory');
-                push('Cached', cached, 'memory', 'memory');
-                push('Free', memFree, 'memory', 'memory');
-                push('Swap Total', swapTotal, 'memory', 'memory');
-                push('Swap Free', swapFree, 'memory', 'memory');
-                push('Swap Used', swapUsed, 'memory', 'memory');
-                push('Swap Usage', swapUtilized, 'memory', 'percent');
+                emitField(rows, MEM.usage, utilized, wantedKeys);
+                emitField(rows, MEM.group, utilized, wantedKeys);
+                emitField(rows, MEM.physical, total, wantedKeys);
+                emitField(rows, MEM.available, avail, wantedKeys);
+                emitField(rows, MEM.allocated, used, wantedKeys);
+                emitField(rows, MEM.cached, cached, wantedKeys);
+                emitField(rows, MEM.free, memFree, wantedKeys);
+                emitField(rows, MEM.swapTotal, swapTotal, wantedKeys);
+                emitField(rows, MEM.swapFree, swapFree, wantedKeys);
+                emitField(rows, MEM.swapUsed, swapUsed, wantedKeys);
+                emitField(rows, MEM.swapUsage, swapUtilized, wantedKeys);
                 return rows;
             },
-            fields: [
-                {label: 'Usage', type: 'memory', format: 'percent'},
-                {label: 'memory', type: 'memory-group', format: 'percent'},
-                {label: 'Physical', type: 'memory', format: 'memory'},
-                {label: 'Available', type: 'memory', format: 'memory'},
-                {label: 'Allocated', type: 'memory', format: 'memory'},
-                {label: 'Cached', type: 'memory', format: 'memory'},
-                {label: 'Free', type: 'memory', format: 'memory'},
-                {label: 'Swap Total', type: 'memory', format: 'memory'},
-                {label: 'Swap Free', type: 'memory', format: 'memory'},
-                {label: 'Swap Used', type: 'memory', format: 'memory'},
-                {label: 'Swap Usage', type: 'memory', format: 'percent'},
-            ],
         },
         {
             id: 'proc-file-nr',
@@ -406,89 +455,52 @@ export function getStaticSources() {
             path: '/proc/loadavg',
             group: 'system',
             delimiter: ' ',
+            fields: Object.values(LOAD),
             extract(parts, _ctx, wantedKeys) {
-                const emitAll = !wantedKeys;
-                const want = key => emitAll || wantedKeys.has(key);
                 const proc = String(parts[3] || '').split('/');
                 const rows = [];
-                const push = (label, value, type, format) => {
-                    if (want(fieldKey(type, label)))
-                        rows.push({label, value, type, format});
-                };
-                push('Load 1m', parseFloat(parts[0]), 'system', 'load');
-                push('system', parseFloat(parts[0]), 'system-group', 'load');
-                push('Load 5m', parseFloat(parts[1]), 'system', 'load');
-                push('Load 15m', parseFloat(parts[2]), 'system', 'load');
-                push('Threads Active', proc[0], 'system', 'string');
-                push('Threads Total', proc[1], 'system', 'string');
+                emitField(rows, LOAD.load1m, parseFloat(parts[0]), wantedKeys);
+                emitField(rows, LOAD.group, parseFloat(parts[0]), wantedKeys);
+                emitField(rows, LOAD.load5m, parseFloat(parts[1]), wantedKeys);
+                emitField(rows, LOAD.load15m, parseFloat(parts[2]), wantedKeys);
+                emitField(rows, LOAD.threadsActive, proc[0], wantedKeys);
+                emitField(rows, LOAD.threadsTotal, proc[1], wantedKeys);
                 return rows;
             },
-            fields: [
-                {label: 'Load 1m', type: 'system', format: 'load'},
-                {label: 'system', type: 'system-group', format: 'load'},
-                {label: 'Load 5m', type: 'system', format: 'load'},
-                {label: 'Load 15m', type: 'system', format: 'load'},
-                {label: 'Threads Active', type: 'system', format: 'string'},
-                {label: 'Threads Total', type: 'system', format: 'string'},
-            ],
         },
         {
             id: 'proc-uptime',
             path: '/proc/uptime',
             group: 'system',
             delimiter: ' ',
+            fields: Object.values(UPTIME),
             extract(parts, ctx, wantedKeys) {
-                const emitAll = !wantedKeys;
-                const want = key => emitAll || wantedKeys.has(key);
                 const rows = [];
-                if (want(fieldKey('system', 'Uptime')))
-                    rows.push({label: 'Uptime', value: parts[0], type: 'system', format: 'uptime'});
+                emitField(rows, UPTIME.uptime, parts[0], wantedKeys);
 
                 // Process Time is typed as processor but sourced from uptime
-                const processKey = fieldKey('processor', 'Process Time');
                 let cores = (ctx.processor && ctx.processor.coreCount) || ctx.processorCores || 0;
-                if (want(processKey) || (emitAll && cores > 0)) {
-                    if (cores > 0 && (emitAll || want(processKey)))
-                        rows.push({
-                            label: 'Process Time',
-                            value: parts[0] - parts[1] / cores,
-                            type: 'processor',
-                            format: 'uptime',
-                        });
-                }
+                if (cores > 0)
+                    emitField(rows, UPTIME.processTime, parts[0] - parts[1] / cores, wantedKeys);
                 return rows;
             },
-            fields: [
-                {label: 'Uptime', type: 'system', format: 'uptime'},
-                {label: 'Process Time', type: 'processor', format: 'uptime'},
-            ],
         },
         {
             id: 'proc-zfs-arcstats',
             path: '/proc/spl/kstat/zfs/arcstats',
             group: 'storage',
+            fields: Object.values(ZFS),
             extract(text, _ctx, wantedKeys) {
-                const emitAll = !wantedKeys;
-                const want = key => emitAll || wantedKeys.has(key);
                 let values = '', target = 0, maximum = 0, current = 0;
                 if (values = text.match(/c(\s+)(\d+)(\s+)(\d+)/)) target = values[4];
                 if (values = text.match(/c_max(\s+)(\d+)(\s+)(\d+)/)) maximum = values[4];
                 if (values = text.match(/size(\s+)(\d+)(\s+)(\d+)/)) current = values[4];
                 const rows = [];
-                const push = (label, value) => {
-                    if (want(fieldKey('storage', label)))
-                        rows.push({label, value, type: 'storage', format: 'storage'});
-                };
-                push('ARC Target', target);
-                push('ARC Maximum', maximum);
-                push('ARC Current', current);
+                emitField(rows, ZFS.target, target, wantedKeys);
+                emitField(rows, ZFS.maximum, maximum, wantedKeys);
+                emitField(rows, ZFS.current, current, wantedKeys);
                 return rows;
             },
-            fields: [
-                {label: 'ARC Target', type: 'storage', format: 'storage'},
-                {label: 'ARC Maximum', type: 'storage', format: 'storage'},
-                {label: 'ARC Current', type: 'storage', format: 'storage'},
-            ],
         },
         {
             id: 'proc-net-wireless',
@@ -498,9 +510,8 @@ export function getStaticSources() {
             skipFullGroup: true,
             delimiter: '\n',
             stripHeader: true,
+            fields: Object.values(WIFI),
             extract(lines, _ctx, wantedKeys) {
-                const emitAll = !wantedKeys;
-                const want = key => emitAll || wantedKeys.has(key);
                 // wireless has two headers - first stripped by File.read
                 if (Array.isArray(lines))
                     lines = lines.slice();
@@ -520,16 +531,10 @@ export function getStaticSources() {
                     return [];
 
                 const rows = [];
-                if (want(fieldKey('network', 'WiFi Link Quality')))
-                    rows.push({label: 'WiFi Link Quality', value: quality_pct, type: 'network', format: 'percent'});
-                if (want(fieldKey('network', 'WiFi Signal Level')))
-                    rows.push({label: 'WiFi Signal Level', value: signal, type: 'network', format: 'string'});
+                emitField(rows, WIFI.quality, quality_pct, wantedKeys);
+                emitField(rows, WIFI.signal, signal, wantedKeys);
                 return rows;
             },
-            fields: [
-                {label: 'WiFi Link Quality', type: 'network', format: 'percent'},
-                {label: 'WiFi Signal Level', type: 'network', format: 'string'},
-            ],
         },
         {
             id: 'proc-stat',
@@ -537,6 +542,7 @@ export function getStaticSources() {
             group: 'processor',
             delimiter: '\n',
             matchKey: key => key.startsWith('_processor_') && key.includes('_core_'),
+            fields: Object.values(STAT),
             extract(lines, ctx, wantedKeys) {
                 const proc = ctx.processor;
                 if (!proc)
@@ -584,10 +590,8 @@ export function getStaticSources() {
                         let delta = (total - proc.last.core[cpu]) / dwell;
                         if (cpu == 'cpu') {
                             delta = delta / (cores || 1);
-                            if (emitAll || wantedKeys.has(fieldKey('processor-group', 'processor')))
-                                rows.push({label: 'processor', value: delta / 100, type: 'processor-group', format: 'percent'});
-                            if (emitAll || wantedKeys.has(fieldKey('processor', 'Usage')))
-                                rows.push({label: 'Usage', value: delta / 100, type: 'processor', format: 'percent'});
+                            emitField(rows, STAT.group, delta / 100, wantedKeys);
+                            emitField(rows, STAT.usage, delta / 100, wantedKeys);
                         } else {
                             let label = formatCore('Core %d').format(cpu.substr(3));
                             if (emitAll || wantedKeys.has(fieldKey('processor', label)))
@@ -598,21 +602,16 @@ export function getStaticSources() {
                 }
                 return rows;
             },
-            fields: [
-                {label: 'Usage', type: 'processor', format: 'percent'},
-                {label: 'processor', type: 'processor-group', format: 'percent'},
-            ],
         },
         {
             id: 'proc-cpuinfo-freq',
             group: 'processor',
             delimiter: '\n',
+            fields: FREQ_FIELDS,
             getPath(ctx) {
                 return (ctx.processor && ctx.processor.usesCpuInfo) ? '/proc/cpuinfo' : null;
             },
             extract(lines, _ctx, wantedKeys) {
-                const emitAll = !wantedKeys;
-                const want = key => emitAll || wantedKeys.has(key);
                 let freqs = [];
                 for (let line of lines) {
                     let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
@@ -623,19 +622,11 @@ export function getStaticSources() {
                     return [];
                 let sum = freqs.reduce((a, b) => a + b);
                 const rows = [];
-                if (want(fieldKey('processor', 'Frequency')))
-                    rows.push({label: 'Frequency', value: (sum / freqs.length) * 1000 * 1000, type: 'processor', format: 'hertz'});
-                if (want(fieldKey('processor', 'Max frequency')))
-                    rows.push({label: 'Max frequency', value: freqs.reduce((a, b) => Math.max(a, b)) * 1000 * 1000, type: 'processor', format: 'hertz'});
-                if (want(fieldKey('processor', 'Min frequency')))
-                    rows.push({label: 'Min frequency', value: freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000, type: 'processor', format: 'hertz'});
+                emitField(rows, FREQ.frequency, (sum / freqs.length) * 1000 * 1000, wantedKeys);
+                emitField(rows, FREQ.max, freqs.reduce((a, b) => Math.max(a, b)) * 1000 * 1000, wantedKeys);
+                emitField(rows, FREQ.min, freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000, wantedKeys);
                 return rows;
             },
-            fields: [
-                {label: 'Frequency', type: 'processor', format: 'hertz'},
-                {label: 'Max frequency', type: 'processor', format: 'hertz'},
-                {label: 'Min frequency', type: 'processor', format: 'hertz'},
-            ],
         },
         createSysCpufreqSource(),
         {
@@ -643,13 +634,12 @@ export function getStaticSources() {
             path: '/proc/diskstats',
             group: 'storage',
             delimiter: '\n',
+            fields: Object.values(DISK),
             extract(lines, ctx, wantedKeys) {
                 const st = ctx.storage;
                 if (!st || !st.device)
                     return [];
                 const dwell = ctx.dwell || 1;
-                const emitAll = !wantedKeys;
-                const want = key => emitAll || wantedKeys.has(key);
                 const rows = [];
                 for (let line of lines) {
                     let loadArray = line.trim().split(/\s+/);
@@ -657,38 +647,21 @@ export function getStaticSources() {
                         continue;
                     var read = (loadArray[5] * 512);
                     var write = (loadArray[9] * 512);
-                    if (want(fieldKey('storage', 'Read total')))
-                        rows.push({label: 'Read total', value: read, type: 'storage', format: 'storage'});
-                    if (want(fieldKey('storage', 'Write total')))
-                        rows.push({label: 'Write total', value: write, type: 'storage', format: 'storage'});
-                    if (want(fieldKey('storage', 'Read rate')))
-                        rows.push({label: 'Read rate', value: (read - st.lastRead) / dwell, type: 'storage', format: 'storage'});
-                    if (want(fieldKey('storage', 'Write rate')))
-                        rows.push({label: 'Write rate', value: (write - st.lastWrite) / dwell, type: 'storage', format: 'storage'});
+                    emitField(rows, DISK.readTotal, read, wantedKeys);
+                    emitField(rows, DISK.writeTotal, write, wantedKeys);
+                    emitField(rows, DISK.readRate, (read - st.lastRead) / dwell, wantedKeys);
+                    emitField(rows, DISK.writeRate, (write - st.lastWrite) / dwell, wantedKeys);
                     st.lastRead = read;
                     st.lastWrite = write;
                     break;
                 }
                 return rows;
             },
-            fields: [
-                {label: 'Read total', type: 'storage', format: 'storage'},
-                {label: 'Write total', type: 'storage', format: 'storage'},
-                {label: 'Read rate', type: 'storage', format: 'storage'},
-                {label: 'Write rate', type: 'storage', format: 'storage'},
-            ],
         },
     ];
 }
 
-const FREQ_FIELDS = [
-    {label: 'Frequency', type: 'processor', format: 'hertz'},
-    {label: 'Max frequency', type: 'processor', format: 'hertz'},
-    {label: 'Min frequency', type: 'processor', format: 'hertz'},
-];
-
 export function createSysCpufreqSource() {
-    const freqKeys = FREQ_FIELDS.map(field => fieldKey(field.type, field.label));
     return {
         id: 'sys-cpufreq',
         group: 'processor',
@@ -697,7 +670,7 @@ export function createSysCpufreqSource() {
             const proc = ctx.processor;
             if (!proc || proc.usesCpuInfo)
                 return;
-            if (wantedKeys && !freqKeys.some(key => wantedKeys.has(key)))
+            if (!wantsAny(FREQ_FIELDS, wantedKeys))
                 return;
 
             const cores = proc.coreCount || 0;
@@ -711,29 +684,26 @@ export function createSysCpufreqSource() {
             if (!speeds.length)
                 return;
 
-            const emitAll = !wantedKeys;
-            const want = key => emitAll || wantedKeys.has(key);
             let sum = speeds.reduce((a, b) => a + b);
-            if (want(fieldKey('processor', 'Frequency')))
-                emit('Frequency', (sum / speeds.length) * 1000, 'processor', 'hertz');
-            if (want(fieldKey('processor', 'Max frequency')))
-                emit('Max frequency', speeds.reduce((a, b) => Math.max(a, b)) * 1000, 'processor', 'hertz');
-            if (want(fieldKey('processor', 'Min frequency')))
-                emit('Min frequency', speeds.reduce((a, b) => Math.min(a, b)) * 1000, 'processor', 'hertz');
+            emitField(emit, FREQ.frequency, (sum / speeds.length) * 1000, wantedKeys);
+            emitField(emit, FREQ.max, speeds.reduce((a, b) => Math.max(a, b)) * 1000, wantedKeys);
+            emitField(emit, FREQ.min, speeds.reduce((a, b) => Math.min(a, b)) * 1000, wantedKeys);
         },
     };
 }
+
+const PUBLIC_IP = sensorField('Public IP', 'network', 'string');
 
 export function createPublicIpSource(state) {
     return {
         id: 'custom-network-public-ip',
         group: 'network',
         skipFullGroup: true,
-        fields: [{label: 'Public IP', type: 'network', format: 'string'}],
+        fields: [PUBLIC_IP],
         poll(emit, wantedKeys, ctx) {
             if (!ctx.settings.get_boolean('include-public-ip'))
                 return;
-            if (wantedKeys && !wantedKeys.has(fieldKey('network', 'Public IP')))
+            if (wantedKeys && !wantedKeys.has(PUBLIC_IP.key))
                 return;
 
             if (state.nextCheck <= 0) {
@@ -772,35 +742,30 @@ function refreshPublicIp(emit, settings) {
         }
         const showFlag = settings.get_boolean('network-public-ip-show-flag');
         let typeOut = (showFlag && /^[a-z]{2}$/.test(cc)) ? ('network-' + cc) : 'network';
-        emit('Public IP', ip, typeOut, 'string');
+        emitField(emit, PUBLIC_IP, ip, null, {type: typeOut});
     }).catch(err => { });
 }
 
+const GTOP = {
+    total: sensorField('Total', 'storage', 'storage'),
+    used: sensorField('Used', 'storage', 'storage'),
+    reserved: sensorField('Reserved', 'storage', 'storage'),
+    free: sensorField('Free', 'storage', 'storage'),
+    usedPercent: sensorField('Used %', 'storage', 'string'),
+    freePercent: sensorField('Free %', 'storage', 'string'),
+    group: sensorField('storage', 'storage-group', 'storage'),
+};
+
 export function createGtopStorageSource(state) {
+    const fields = Object.values(GTOP);
     return {
         id: 'gtop-storage',
         group: 'storage',
-        fields: [
-            {label: 'Total', type: 'storage', format: 'storage'},
-            {label: 'Used', type: 'storage', format: 'storage'},
-            {label: 'Reserved', type: 'storage', format: 'storage'},
-            {label: 'Free', type: 'storage', format: 'storage'},
-            {label: 'Used %', type: 'storage', format: 'string'},
-            {label: 'Free %', type: 'storage', format: 'string'},
-            {label: 'storage', type: 'storage-group', format: 'storage'},
-        ],
+        fields,
         poll(emit, wantedKeys, ctx) {
             if (!state.read)
                 return;
-            const emitAll = !wantedKeys;
-            const want = key => emitAll || wantedKeys.has(key);
-            const keys = [
-                fieldKey('storage', 'Total'), fieldKey('storage', 'Used'),
-                fieldKey('storage', 'Reserved'), fieldKey('storage', 'Free'),
-                fieldKey('storage', 'Used %'), fieldKey('storage', 'Free %'),
-                fieldKey('storage-group', 'storage'),
-            ];
-            if (wantedKeys && !keys.some(key => wantedKeys.has(key)))
+            if (!wantsAny(fields, wantedKeys))
                 return;
 
             const usage = state.read();
@@ -816,20 +781,13 @@ export function createGtopStorageSource(state) {
                 usedPercent = Math.round((used / total) * 100);
             }
 
-            if (want(fieldKey('storage', 'Total')))
-                emit('Total', total, 'storage', 'storage');
-            if (want(fieldKey('storage', 'Used')))
-                emit('Used', used, 'storage', 'storage');
-            if (want(fieldKey('storage', 'Reserved')))
-                emit('Reserved', reserved, 'storage', 'storage');
-            if (want(fieldKey('storage', 'Free')))
-                emit('Free', avail, 'storage', 'storage');
-            if (want(fieldKey('storage', 'Used %')))
-                emit('Used %', usedPercent + '%', 'storage', 'string');
-            if (want(fieldKey('storage', 'Free %')))
-                emit('Free %', freePercent + '%', 'storage', 'string');
-            if (want(fieldKey('storage-group', 'storage')))
-                emit('storage', avail, 'storage-group', 'storage');
+            emitField(emit, GTOP.total, total, wantedKeys);
+            emitField(emit, GTOP.used, used, wantedKeys);
+            emitField(emit, GTOP.reserved, reserved, wantedKeys);
+            emitField(emit, GTOP.free, avail, wantedKeys);
+            emitField(emit, GTOP.usedPercent, usedPercent + '%', wantedKeys);
+            emitField(emit, GTOP.freePercent, freePercent + '%', wantedKeys);
+            emitField(emit, GTOP.group, avail, wantedKeys);
         },
     };
 }
@@ -845,18 +803,32 @@ export const BATTERY_PATHS = {
     7: 'macsmc-battery',
 };
 
+const BATTERY = {
+    state: sensorField('State', 'battery', ''),
+    cycles: sensorField('Cycles', 'battery', ''),
+    voltage: sensorField('Voltage', 'battery', 'in'),
+    level: sensorField('Level', 'battery', ''),
+    percentage: sensorField('Percentage', 'battery', 'percent'),
+    powerRate: sensorField('Power Rate', 'battery', 'watt'),
+    group: sensorField('battery', 'battery-group', 'watt'),
+    energyFull: sensorField('Energy (full)', 'battery', 'watt-hour'),
+    energyDesign: sensorField('Energy (design)', 'battery', 'watt-hour'),
+    capacity: sensorField('Capacity', 'battery', 'percent'),
+    energyNow: sensorField('Energy (now)', 'battery', 'watt-hour'),
+    timeLeft: sensorField('Time left', 'battery', 'runtime'),
+};
+
 export function createBatterySource(getSlot, batteryState) {
     return {
         id: 'sys-battery-uevent',
         group: 'battery',
+        fields: Object.values(BATTERY),
         getPath(ctx) {
             let slot = getSlot(ctx);
             return '/sys/class/power_supply/' + BATTERY_PATHS[slot] + '/uevent';
         },
         delimiter: '\n',
         extract(lines, ctx, wantedKeys) {
-            const emitAll = !wantedKeys;
-            const want = key => emitAll || wantedKeys.has(key);
             const output = {};
             for (let line of lines) {
                 let split = String(line).split('=');
@@ -864,25 +836,17 @@ export function createBatterySource(getSlot, batteryState) {
             }
 
             const rows = [];
-            const push = (label, value, format) => {
-                if (want(fieldKey('battery', label)))
-                    rows.push({label, value, type: 'battery', format});
-            };
-            const pushGroup = (label, value, type, format) => {
-                if (want(fieldKey(type, label)))
-                    rows.push({label, value, type, format});
-            };
 
             if ('STATUS' in output)
-                push('State', output['STATUS'], '');
+                emitField(rows, BATTERY.state, output['STATUS'], wantedKeys);
             if ('CYCLE_COUNT' in output)
-                push('Cycles', output['CYCLE_COUNT'], '');
+                emitField(rows, BATTERY.cycles, output['CYCLE_COUNT'], wantedKeys);
             if ('VOLTAGE_NOW' in output)
-                push('Voltage', output['VOLTAGE_NOW'] / 1000, 'in');
+                emitField(rows, BATTERY.voltage, output['VOLTAGE_NOW'] / 1000, wantedKeys);
             if ('CAPACITY_LEVEL' in output)
-                push('Level', output['CAPACITY_LEVEL'], '');
+                emitField(rows, BATTERY.level, output['CAPACITY_LEVEL'], wantedKeys);
             if ('CAPACITY' in output)
-                push('Percentage', output['CAPACITY'] / 100, 'percent');
+                emitField(rows, BATTERY.percentage, output['CAPACITY'] / 100, wantedKeys);
 
             if ('VOLTAGE_NOW' in output && 'CURRENT_NOW' in output && (!('POWER_NOW' in output)))
                 output['POWER_NOW'] = (output['VOLTAGE_NOW'] * output['CURRENT_NOW']) / 1000000;
@@ -891,30 +855,30 @@ export function createBatterySource(getSlot, batteryState) {
                 const powerValue = (
                     parseFloat(output['POWER_NOW']) * (output['STATUS'] === 'Discharging' ? -1 : 1)
                 );
-                push('Power Rate', powerValue, 'watt');
-                pushGroup('battery', powerValue, 'battery-group', 'watt');
+                emitField(rows, BATTERY.powerRate, powerValue, wantedKeys);
+                emitField(rows, BATTERY.group, powerValue, wantedKeys);
             }
 
             if ('CHARGE_FULL' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL' in output)))
                 output['ENERGY_FULL'] = (output['CHARGE_FULL'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
 
             if ('ENERGY_FULL' in output)
-                push('Energy (full)', output['ENERGY_FULL'], 'watt-hour');
+                emitField(rows, BATTERY.energyFull, output['ENERGY_FULL'], wantedKeys);
 
             if ('CHARGE_FULL_DESIGN' in output && 'VOLTAGE_MIN_DESIGN' in output && (!('ENERGY_FULL_DESIGN' in output)))
                 output['ENERGY_FULL_DESIGN'] = (output['CHARGE_FULL_DESIGN'] * output['VOLTAGE_MIN_DESIGN']) / 1000000;
 
             if ('ENERGY_FULL_DESIGN' in output) {
-                push('Energy (design)', output['ENERGY_FULL_DESIGN'], 'watt-hour');
+                emitField(rows, BATTERY.energyDesign, output['ENERGY_FULL_DESIGN'], wantedKeys);
                 if ('ENERGY_FULL' in output)
-                    push('Capacity', (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), 'percent');
+                    emitField(rows, BATTERY.capacity, (output['ENERGY_FULL'] / output['ENERGY_FULL_DESIGN']), wantedKeys);
             }
 
             if ('VOLTAGE_MIN_DESIGN' in output && 'CHARGE_NOW' in output && (!('ENERGY_NOW' in output)))
                 output['ENERGY_NOW'] = (output['VOLTAGE_MIN_DESIGN'] * output['CHARGE_NOW']) / 1000000;
 
             if ('ENERGY_NOW' in output)
-                push('Energy (now)', output['ENERGY_NOW'], 'watt-hour');
+                emitField(rows, BATTERY.energyNow, output['ENERGY_NOW'], wantedKeys);
 
             if ('ENERGY_FULL' in output && 'ENERGY_NOW' in output && 'POWER_NOW' in output &&
                 output['POWER_NOW'] !== 0 && 'STATUS' in output &&
@@ -936,27 +900,13 @@ export function createBatterySource(getSlot, batteryState) {
                         batteryState.timeLeftHistory.shift();
                     let sum = batteryState.timeLeftHistory.reduce((a, b) => a + b);
                     let avg = sum / batteryState.timeLeftHistory.length;
-                    push('Time left', parseInt(avg), 'runtime');
+                    emitField(rows, BATTERY.timeLeft, parseInt(avg), wantedKeys);
                 }
             } else if ('STATUS' in output) {
-                push('Time left', output['STATUS'], '');
+                emitField(rows, BATTERY.timeLeft, output['STATUS'], wantedKeys, {format: ''});
             }
 
             return rows;
         },
-        fields: [
-            {label: 'State', type: 'battery', format: ''},
-            {label: 'Cycles', type: 'battery', format: ''},
-            {label: 'Voltage', type: 'battery', format: 'in'},
-            {label: 'Level', type: 'battery', format: ''},
-            {label: 'Percentage', type: 'battery', format: 'percent'},
-            {label: 'Power Rate', type: 'battery', format: 'watt'},
-            {label: 'battery', type: 'battery-group', format: 'watt'},
-            {label: 'Energy (full)', type: 'battery', format: 'watt-hour'},
-            {label: 'Energy (design)', type: 'battery', format: 'watt-hour'},
-            {label: 'Capacity', type: 'battery', format: 'percent'},
-            {label: 'Energy (now)', type: 'battery', format: 'watt-hour'},
-            {label: 'Time left', type: 'battery', format: 'runtime'},
-        ],
     };
 }

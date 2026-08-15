@@ -34,6 +34,8 @@ import {
     createBatterySource,
     createPublicIpSource,
     createGtopStorageSource,
+    sensorField,
+    emitField,
 } from './helpers/sensorSources.js';
 import {sensorGroupFromType} from './helpers/catalog.js';
 
@@ -543,48 +545,55 @@ export const Sensors = GObject.registerClass({
         const base = '/sys/class/drm/card' + card + '/device/';
 
         if (vendor === '0x1002') {
+            const busy = {
+                graphics: sensorField('Graphics', typeName + '-group', 'percent'),
+                vendor: sensorField('Vendor', typeName, 'string'),
+                usage: sensorField('Usage', typeName, 'percent'),
+            };
             this._registry.registerSource({
                 id: 'drm:' + base + 'gpu_busy_percent',
                 path: base + 'gpu_busy_percent',
                 group: 'gpu',
                 parse: 'raw',
-                extract(contents) {
+                fields: Object.values(busy),
+                extract(contents, _ctx, wantedKeys) {
                     let usage = parseInt(contents) * 0.01;
-                    return [
-                        {label: 'Graphics', value: usage, type: typeName + '-group', format: 'percent'},
-                        {label: 'Vendor', value: 'AMD', type: typeName, format: 'string'},
-                        {label: 'Usage', value: usage, type: typeName, format: 'percent'},
-                    ];
+                    const rows = [];
+                    emitField(rows, busy.graphics, usage, wantedKeys);
+                    emitField(rows, busy.vendor, 'AMD', wantedKeys);
+                    emitField(rows, busy.usage, usage, wantedKeys);
+                    return rows;
                 },
-                fields: [
-                    {label: 'Graphics', type: typeName + '-group', format: 'percent'},
-                    {label: 'Vendor', type: typeName, format: 'string'},
-                    {label: 'Usage', type: typeName, format: 'percent'},
-                ],
             }, {discovered: true});
 
+            const memUsed = sensorField('Memory Used', typeName, 'memory');
             this._registry.registerSource({
                 id: 'drm:' + base + 'mem_info_vram_used',
                 path: base + 'mem_info_vram_used',
                 group: 'gpu',
                 parse: 'raw',
-                extract: (contents, ctx) => {
+                fields: [memUsed],
+                extract: (contents, ctx, wantedKeys) => {
                     let unit = ctx.settings.get_int('memory-measurement') ? 1000 : 1024;
-                    return [{label: 'Memory Used', value: parseInt(contents) / unit, type: typeName, format: 'memory'}];
+                    const rows = [];
+                    emitField(rows, memUsed, parseInt(contents) / unit, wantedKeys);
+                    return rows;
                 },
-                fields: [{label: 'Memory Used', type: typeName, format: 'memory'}],
             }, {discovered: true});
 
+            const memTotal = sensorField('Memory Total', typeName, 'memory');
             this._registry.registerSource({
                 id: 'drm:' + base + 'mem_info_vram_total',
                 path: base + 'mem_info_vram_total',
                 group: 'gpu',
                 parse: 'raw',
-                extract: (contents, ctx) => {
+                fields: [memTotal],
+                extract: (contents, ctx, wantedKeys) => {
                     let unit = ctx.settings.get_int('memory-measurement') ? 1000 : 1024;
-                    return [{label: 'Memory Total', value: parseInt(contents) / unit, type: typeName, format: 'memory'}];
+                    const rows = [];
+                    emitField(rows, memTotal, parseInt(contents) / unit, wantedKeys);
+                    return rows;
                 },
-                fields: [{label: 'Memory Total', type: typeName, format: 'memory'}],
             }, {discovered: true});
             return;
         }
@@ -597,15 +606,18 @@ export const Sensors = GObject.registerClass({
             case '0x8086': vendorName = 'Intel'; break;
             default: vendorName = 'Unknown ' + vendor;
         }
+        const graphics = sensorField('Graphics', typeName + '-group', 'string');
         this._registry.registerSource({
             id: 'drm:' + base + 'vendor',
             path: base + 'vendor',
             group: 'gpu',
             parse: 'raw',
-            extract() {
-                return [{label: 'Graphics', value: vendorName, type: typeName + '-group', format: 'string'}];
+            fields: [graphics],
+            extract(_contents, _ctx, wantedKeys) {
+                const rows = [];
+                emitField(rows, graphics, vendorName, wantedKeys);
+                return rows;
             },
-            fields: [{label: 'Graphics', type: typeName + '-group', format: 'string'}],
         }, {discovered: true});
     }
 
