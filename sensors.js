@@ -136,10 +136,13 @@ export const Sensors = GObject.registerClass({
     }
 
     query(callback, dwell) {
+        console.log('Vitals: query start full'); // REMOVE ME
+
         if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
+            console.log('Vitals: discovering hardware monitors'); // REMOVE ME
             this._discoverHardwareMonitors(callback);
         }
 
