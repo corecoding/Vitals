@@ -29,18 +29,6 @@ import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
 
-// Shell and prefs hosts expose gettext on different module paths.
-let _;
-try {
-    ({gettext: _} = await import('resource:///org/gnome/shell/extensions/extension.js'));
-} catch (err) {
-    try {
-        ({gettext: _} = await import('resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js'));
-    } catch (err2) {
-        _ = (s) => s;
-    }
-}
-
 let GTop, hasGTop = true;
 try {
     ({default: GTop} = await import('gi://GTop'));
@@ -52,9 +40,10 @@ try {
 export const Sensors = GObject.registerClass({
     GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
-    _init(settings, sensorIcons) {
+    _init(settings, sensorIcons, gettext) {
         this._settings = settings;
         this._sensorIcons = sensorIcons;
+        this._gettext = gettext || (s => s);
 
         this.resetHistory();
 
@@ -245,7 +234,7 @@ export const Sensors = GObject.registerClass({
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                         this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
                     } else {
-                        this._returnValue(callback, _('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
+                        this._returnValue(callback, this._gettext('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
                     }
                 }
 

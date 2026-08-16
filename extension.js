@@ -44,7 +44,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._newGpuDetectedCount = 0;
         this._last_query = new Date().getTime();
 
-        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
+        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, _);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({
             vertical: false,
