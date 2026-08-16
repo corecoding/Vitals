@@ -35,6 +35,7 @@ class Settings {
         GObject.type_ensure(Adw.NavigationSplitView.$gtype);
         GObject.type_ensure(Adw.ToolbarView.$gtype);
         GObject.type_ensure(Adw.ViewStack.$gtype);
+        GObject.type_ensure(Adw.ViewStackPage.$gtype);
         this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
 
         // Threshold color editors are built lazily when each page is first shown,
@@ -149,15 +150,17 @@ class Settings {
 
     // ListBox rows use icon-name so GTK can recolor with the theme fg after
     // icon-style / dark changes. set_from_paintable often leaves #bebebe unmapped.
-    refresh_sidebar_icons(rows) {
+    refresh_sidebar_icons() {
         this._apply_icon_style();
 
-        for (let row of rows) {
-            if (!row.iconName || row.iconName === 'preferences-system-symbolic')
+        for (let name of Object.keys(sensorCatalog)) {
+            let image = this.builder.get_object('sidebar-icon-' + name);
+            if (!image)
                 continue;
 
-            row.image.clear();
-            row.image.set_from_icon_name(row.iconName);
+            let iconName = image.icon_name;
+            image.clear();
+            image.set_from_icon_name(iconName);
         }
     }
 
@@ -852,125 +855,24 @@ export default class VitalsPrefs extends ExtensionPreferences {
             window._vitalsSettings = null;
         });
 
-        this._fillSidebarPreferences(window, settings);
-
-        // GNOME Shell's prefs host requires visible_page after fillPreferencesWindow
-        // (extensionPrefsDialog.js). The sidebar replaces the window content, so
-        // register an unused page to satisfy that check.
-        window.add(new Adw.PreferencesPage());
-    }
-
-    _attachStackPages(settings, stack) {
-        let pages = [{ name: 'general' }];
-        for (let name of Object.keys(sensorCatalog)) {
-            let page = { name };
-            if (pages.length === 1)
-                page.section = _('Sensors');
-            pages.push(page);
-        }
-        for (let i = 0; i < pages.length; i++) {
-            let info = pages[i];
-            let page = settings.builder.get_object(info.name + '-page');
-            let title = page.get_title();
-            let iconName = page.get_icon_name();
-            // Header bar already shows the section title; hide the page banner.
-            page.set_title('');
-
-            stack.add_titled_with_icon(page, info.name, title, iconName);
-            info.title = title;
-            info.iconName = iconName;
-        }
-        return pages;
-    }
-
-    _prepareSidebarShell(window, settings) {
         window.set_search_enabled(false);
         window.set_default_size(720, 620);
 
         let root = settings.builder.get_object('prefs-root');
         let stack = settings.builder.get_object('prefs-stack');
+        let list = settings.builder.get_object('prefs-sidebar');
         let contentPage = settings.builder.get_object('prefs-content-page');
 
-        // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
+        // Replace PreferencesWindow's bottom-tab navigation with the sidebar shell.
         window.get_content().set_child(root);
-        let pages = this._attachStackPages(settings, stack);
-        return {root, stack, contentPage, pages};
-    }
-
-    _syncContentTitle(stack, contentPage, name) {
-        let visible = stack.get_visible_child();
-        if (!visible)
-            return;
-
-        let stackPage = stack.get_page(visible);
-        let title = stackPage.get_title();
-        // Sensor pages used to open as "Network Preferences", etc.
-        if (name && name !== 'general')
-            title = title + ' ' + _('Preferences');
-        contentPage.set_title(title);
-    }
-
-    _fillSidebarPreferences(window, settings) {
-        let {root, stack, contentPage, pages} = this._prepareSidebarShell(window, settings);
-        let list = settings.builder.get_object('prefs-sidebar');
-        let rows = [];
-
-        list.set_header_func((row, before) => {
-            let section = row._sectionTitle;
-            if (!section) {
-                row.set_header(null);
-                return;
-            }
-            if (before && before._sectionTitle === section) {
-                row.set_header(null);
-                return;
-            }
-            let header = new Gtk.Label({
-                label: section,
-                xalign: 0,
-                margin_start: 12,
-                margin_end: 12,
-                margin_top: 12,
-                margin_bottom: 6,
-            });
-            header.add_css_class('heading');
-            row.set_header(header);
-        });
-
-        for (let info of pages) {
-            let image = new Gtk.Image({
-                icon_name: info.iconName || 'image-missing',
-                pixel_size: 16,
-            });
-            let label = new Gtk.Label({
-                label: info.title,
-                xalign: 0,
-                hexpand: true,
-            });
-            let box = new Gtk.Box({
-                orientation: Gtk.Orientation.HORIZONTAL,
-                spacing: 12,
-                margin_start: 6,
-                margin_end: 6,
-                margin_top: 4,
-                margin_bottom: 4,
-            });
-            box.append(image);
-            box.append(label);
-
-            let row = new Gtk.ListBoxRow({ child: box });
-            row._pageName = info.name;
-            row._sectionTitle = info.section || null;
-            row.iconName = info.iconName;
-            row.image = image;
-            list.append(row);
-            rows.push(row);
-        }
 
         let selectRowForVisible = () => {
             let name = stack.get_visible_child_name();
-            for (let row of rows) {
-                if (row._pageName === name) {
+            for (let i = 0; ; i++) {
+                let row = list.get_row_at_index(i);
+                if (!row)
+                    break;
+                if (row.name === name) {
                     list.select_row(row);
                     break;
                 }
@@ -978,23 +880,29 @@ export default class VitalsPrefs extends ExtensionPreferences {
         };
 
         list.connect('row-activated', (_list, row) => {
-            if (!row?._pageName)
+            if (!row?.name || !stack.get_child_by_name(row.name))
                 return;
-            stack.set_visible_child_name(row._pageName);
+            stack.set_visible_child_name(row.name);
             root.set_show_content(true);
         });
-        // Browse mode selects on click; keep stack in sync.
         list.connect('row-selected', (_list, row) => {
-            if (!row?._pageName)
+            if (!row?.name || !stack.get_child_by_name(row.name))
                 return;
-            if (stack.get_visible_child_name() !== row._pageName)
-                stack.set_visible_child_name(row._pageName);
+            if (stack.get_visible_child_name() !== row.name)
+                stack.set_visible_child_name(row.name);
         });
 
         let syncVisiblePage = () => {
             let name = stack.get_visible_child_name();
             selectRowForVisible();
-            this._syncContentTitle(stack, contentPage, name);
+
+            let visible = stack.get_visible_child();
+            if (visible) {
+                let title = stack.get_page(visible).get_title();
+                if (name && name !== 'general')
+                    title = title + ' ' + _('Preferences');
+                contentPage.set_title(title);
+            }
             if (name)
                 settings.ensure_threshold_colors_for_page(name);
         };
@@ -1002,9 +910,14 @@ export default class VitalsPrefs extends ExtensionPreferences {
         stack.connect('notify::visible-child', syncVisiblePage);
         syncVisiblePage();
 
-        settings.refresh_sidebar_icons(rows);
+        settings.refresh_sidebar_icons();
         settings._connect_icon_style_refresh(() => {
-            settings.refresh_sidebar_icons(rows);
+            settings.refresh_sidebar_icons();
         });
+
+        // GNOME Shell's prefs host requires visible_page after fillPreferencesWindow
+        // (extensionPrefsDialog.js). The sidebar replaces the window content, so
+        // register an unused page to satisfy that check.
+        window.add(new Adw.PreferencesPage());
     }
 }
