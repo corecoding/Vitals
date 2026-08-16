@@ -3,7 +3,7 @@
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
 
-  <!-- Settings-style sidebar + content. Pages are declared below and referenced here. -->
+  <!-- Settings-style sidebar. Preference pages are attached to prefs-stack in prefs.js. -->
   <object class="AdwNavigationSplitView" id="prefs-root">
     <property name="vexpand">True</property>
     <property name="hexpand">True</property>
@@ -382,94 +382,6 @@
               <object class="AdwViewStack" id="prefs-stack">
                 <property name="vexpand">True</property>
                 <property name="hexpand">True</property>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">general</property>
-                    <property name="title" translatable="yes">General</property>
-                    <property name="icon-name">preferences-system-symbolic</property>
-                    <property name="child">general-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">temperature</property>
-                    <property name="title" translatable="yes">Temperature</property>
-                    <property name="icon-name">temperature-symbolic</property>
-                    <property name="child">temperature-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">voltage</property>
-                    <property name="title" translatable="yes">Voltage</property>
-                    <property name="icon-name">voltage-symbolic</property>
-                    <property name="child">voltage-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">fan</property>
-                    <property name="title" translatable="yes">Fan</property>
-                    <property name="icon-name">fan-symbolic</property>
-                    <property name="child">fan-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">memory</property>
-                    <property name="title" translatable="yes">Memory</property>
-                    <property name="icon-name">memory-symbolic</property>
-                    <property name="child">memory-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">processor</property>
-                    <property name="title" translatable="yes">Processor</property>
-                    <property name="icon-name">cpu-symbolic</property>
-                    <property name="child">processor-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">system</property>
-                    <property name="title" translatable="yes">System</property>
-                    <property name="icon-name">system-symbolic</property>
-                    <property name="child">system-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">network</property>
-                    <property name="title" translatable="yes">Network</property>
-                    <property name="icon-name">network-symbolic</property>
-                    <property name="child">network-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">storage</property>
-                    <property name="title" translatable="yes">Storage</property>
-                    <property name="icon-name">storage-symbolic</property>
-                    <property name="child">storage-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">battery</property>
-                    <property name="title" translatable="yes">Battery</property>
-                    <property name="icon-name">battery-symbolic</property>
-                    <property name="child">battery-page</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwViewStackPage">
-                    <property name="name">gpu</property>
-                    <property name="title" translatable="yes">GPU</property>
-                    <property name="icon-name">gpu-symbolic</property>
-                    <property name="child">gpu-page</property>
-                  </object>
-                </child>
               </object>
             </property>
           </object>
@@ -494,6 +406,7 @@
   <!-- General -->
   <object class="AdwPreferencesPage" id="general-page">
     <property name="name">general</property>
+    <property name="title" translatable="yes">General</property>
     <property name="icon-name">preferences-system-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -640,6 +553,7 @@
   <!-- Temperature -->
   <object class="AdwPreferencesPage" id="temperature-page">
     <property name="name">temperature</property>
+    <property name="title" translatable="yes">Temperature</property>
     <property name="icon-name">temperature-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -678,6 +592,7 @@
   <!-- Voltage -->
   <object class="AdwPreferencesPage" id="voltage-page">
     <property name="name">voltage</property>
+    <property name="title" translatable="yes">Voltage</property>
     <property name="icon-name">voltage-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -701,6 +616,7 @@
   <!-- Fan -->
   <object class="AdwPreferencesPage" id="fan-page">
     <property name="name">fan</property>
+    <property name="title" translatable="yes">Fan</property>
     <property name="icon-name">fan-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -724,6 +640,7 @@
   <!-- Memory -->
   <object class="AdwPreferencesPage" id="memory-page">
     <property name="name">memory</property>
+    <property name="title" translatable="yes">Memory</property>
     <property name="icon-name">memory-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -762,6 +679,7 @@
   <!-- Processor -->
   <object class="AdwPreferencesPage" id="processor-page">
     <property name="name">processor</property>
+    <property name="title" translatable="yes">Processor</property>
     <property name="icon-name">cpu-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -796,6 +714,7 @@
   <!-- System -->
   <object class="AdwPreferencesPage" id="system-page">
     <property name="name">system</property>
+    <property name="title" translatable="yes">System</property>
     <property name="icon-name">system-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -833,6 +752,7 @@
   <!-- Network -->
   <object class="AdwPreferencesPage" id="network-page">
     <property name="name">network</property>
+    <property name="title" translatable="yes">Network</property>
     <property name="icon-name">network-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -941,6 +861,7 @@
   <!-- Storage -->
   <object class="AdwPreferencesPage" id="storage-page">
     <property name="name">storage</property>
+    <property name="title" translatable="yes">Storage</property>
     <property name="icon-name">storage-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -993,6 +914,7 @@
   <!-- Battery -->
   <object class="AdwPreferencesPage" id="battery-page">
     <property name="name">battery</property>
+    <property name="title" translatable="yes">Battery</property>
     <property name="icon-name">battery-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">
@@ -1037,6 +959,7 @@
   <!-- GPU -->
   <object class="AdwPreferencesPage" id="gpu-page">
     <property name="name">gpu</property>
+    <property name="title" translatable="yes">GPU</property>
     <property name="icon-name">gpu-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup">

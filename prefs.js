@@ -35,7 +35,6 @@ class Settings {
         GObject.type_ensure(Adw.NavigationSplitView.$gtype);
         GObject.type_ensure(Adw.ToolbarView.$gtype);
         GObject.type_ensure(Adw.ViewStack.$gtype);
-        GObject.type_ensure(Adw.ViewStackPage.$gtype);
         this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
 
         // Threshold color editors are built lazily when each page is first shown,
@@ -865,6 +864,18 @@ export default class VitalsPrefs extends ExtensionPreferences {
 
         // Replace PreferencesWindow's bottom-tab navigation with the sidebar shell.
         window.get_content().set_child(root);
+
+        let pages = [{ name: 'general' }];
+        for (let name of Object.keys(sensorCatalog))
+            pages.push({ name });
+        for (let info of pages) {
+            let page = settings.builder.get_object(info.name + '-page');
+            let title = page.get_title();
+            let iconName = page.get_icon_name();
+            // Header bar already shows the section title; hide the page banner.
+            page.set_title('');
+            stack.add_titled_with_icon(page, info.name, title, iconName);
+        }
 
         let selectRowForVisible = () => {
             let name = stack.get_visible_child_name();
