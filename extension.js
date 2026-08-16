@@ -44,7 +44,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._newGpuDetectedCount = 0;
         this._last_query = new Date().getTime();
 
-        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
+        this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, _);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({
             vertical: false,
@@ -509,12 +509,19 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _sensorIconPath(sensor, icon = 'icon') {
-        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
         let sensorKey = sensor;
-        if(sensor.startsWith('gpu')) sensorKey = 'gpu';
+        if (sensor.startsWith('gpu'))
+            sensorKey = 'gpu';
+
+        const icons = this._sensorIcons[sensorKey];
+        if (sensorKey === 'network' && icon.startsWith('icon-') && !(icons && icons[icon])) {
+            let cc = icon.slice('icon-'.length);
+            if (/^[a-z]{2}$/.test(cc))
+                return this._extensionObject.path + '/icons/flags/1x1/' + cc + '.svg';
+        }
 
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
-        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
+        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + icons[icon];
     }
 
     _ucFirst(string) {
@@ -570,6 +577,7 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
+        let wantedKeys = this.menu.isOpen ? null : new Set(this._settings.get_strv('hot-sensors'));
         this._sensors.query((label, value, type, format) => {
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
@@ -625,7 +633,7 @@ var VitalsMenuButton = GObject.registerClass({
 
                 this._updateDisplay(_(item.label), item.value, item.type, item.key, item.style);
             }
-        }, dwell);
+        }, dwell, wantedKeys);
 
         //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
         if(this._newGpuDetected) this._newGpuDetectedCount++;

@@ -28,7 +28,6 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 let GTop, hasGTop = true;
 try {
@@ -41,9 +40,10 @@ try {
 export const Sensors = GObject.registerClass({
     GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
-    _init(settings, sensorIcons) {
+    _init(settings, sensorIcons, gettext) {
         this._settings = settings;
         this._sensorIcons = sensorIcons;
+        this._gettext = gettext || (s => s);
 
         this.resetHistory();
 
@@ -124,11 +124,14 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, dwell) {
+    query(callback, dwell, wantedKeys) {
+        console.log('Vitals: query start full'); // REMOVE ME
+
         if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
+            console.log('Vitals: discovering hardware monitors'); // REMOVE ME
             this._discoverHardwareMonitors(callback);
         }
 
@@ -136,7 +139,7 @@ export const Sensors = GObject.registerClass({
             if (this._settings.get_boolean('show-' + sensor)) {
                 if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
                     // for temp, volt, fan, we have a shared handler
-                    this._queryTempVoltFan(callback, sensor);
+                    this._queryTempVoltFan(callback, sensor, wantedKeys);
                 } else {
                     // directly call queryFunction below
                     let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
@@ -146,8 +149,17 @@ export const Sensors = GObject.registerClass({
         }
     }
 
-    _queryTempVoltFan(callback, type) {
+    _queryTempVoltFan(callback, type, wantedKeys) {
+        let readAll = !wantedKeys ||
+            wantedKeys.has('__' + type + '_avg__') ||
+            wantedKeys.has('__' + type + '_min__') ||
+            wantedKeys.has('__' + type + '_max__');
+
         for (let label in this._tempVoltFanSensors[type]) {
+            if (!readAll &&
+                !wantedKeys.has('_' + type + '_' + label.replace(' ', '_').toLowerCase() + '_'))
+                continue;
+
             let sensor = this._tempVoltFanSensors[type][label];
 
             new FileModule.File(sensor['path']).read().then(value => {
@@ -190,8 +202,6 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryProcessor(callback, dwell) {
-        let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
-
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
@@ -201,22 +211,18 @@ export const Sensors = GObject.registerClass({
                 if (reverse_data) {
                     let cpu = reverse_data[1].trim();
 
-                    if (!(cpu in statistics))
-                        statistics[cpu] = {};
-
                     if (!(cpu in this._last_processor['core']))
                         this._last_processor['core'][cpu] = 0;
 
-                    let stats = reverse_data[2].trim().split(' ').reverse();
-                    for (let column of columns)
-                        statistics[cpu][column] = parseInt(stats.pop());
+                    let s = reverse_data[2].trim().split(' ');
+                    statistics[cpu] = parseInt(s[0]) + parseInt(s[1]) + parseInt(s[2]);
                 }
             }
 
             let cores = Object.keys(statistics).length - 1;
 
             for (let cpu in statistics) {
-                let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
+                let total = statistics[cpu];
 
                 // make sure we have data to report
                 if (this._last_processor['core'][cpu] > 0) {
@@ -228,16 +234,16 @@ export const Sensors = GObject.registerClass({
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                         this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
                     } else {
-                        this._returnValue(callback, _('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
+                        this._returnValue(callback, this._gettext('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
                     }
                 }
 
                 this._last_processor['core'][cpu] = total;
             }
 
-            // if frequency scaling is enabled, gather cpu-freq values
+            // fallback: platforms without cpu MHz in /proc/cpuinfo (some ARM)
             if (!this._processor_uses_cpu_info) {
-                for (let core = 0; core <= cores; core++) {
+                for (let core = 0; core < cores; core++) {
                     new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
                         this._last_processor['speed'][core] = parseInt(value);
                     }).catch(err => { });
@@ -245,15 +251,19 @@ export const Sensors = GObject.registerClass({
             }
         }).catch(err => { });
 
-        // if frequency scaling is disabled, use cpuinfo for speed
+        // /proc/cpuinfo lists every core in one file; same values as per-core scaling_cur_freq
         if (this._processor_uses_cpu_info) {
-            // grab CPU frequency
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
                 let freqs = [];
                 for (let line of lines) {
                     // grab megahertz
                     let value = line.match(/^cpu MHz(\s+): ([+-]?\d+(\.\d+)?)/);
                     if (value) freqs.push(parseFloat(value[2]));
+                }
+
+                if (!freqs.length) {
+                    this._processor_uses_cpu_info = false;
+                    return;
                 }
 
                 let sum = freqs.reduce((a, b) => a + b);
@@ -264,8 +274,9 @@ export const Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
                 let min_hertz = freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000;
                 this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
-            }).catch(err => { });
-        // if frequency scaling is enabled, cpu-freq reports
+            }).catch(err => {
+                this._processor_uses_cpu_info = false;
+            });
         } else if (Object.values(this._last_processor['speed']).length > 0) {
             let sum = this._last_processor['speed'].reduce((a, b) => a + b);
             let hertz = (sum / this._last_processor['speed'].length) * 1000;
@@ -306,27 +317,11 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryNetwork(callback, dwell) {
-        // check network speed
-        let directions = ['tx', 'rx'];
-        let netbase = '/sys/class/net/';
-
-        new FileModule.File(netbase).list().then(interfaces => {
-            for (let iface of interfaces) {
-                for (let direction of directions) {
-                    // lo tx and rx are the same
-                    if (iface == 'lo' && direction == 'rx') continue;
-
-                    new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
-                        // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
-                        // by not using network-rx or network-tx
-                        let name = iface + ((iface == 'lo')?'':' ' + direction);
-
-                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
-                        this._returnValue(callback, name, value, type, 'storage');
-                    }).catch(err => { });
-                }
-            }
-        }).catch(err => { });
+        for (let sensor of this._networkIfaces) {
+            new FileModule.File(sensor.path).read().then(value => {
+                this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
+            }).catch(err => { });
+        }
 
         // some may not want public ip checking
         if (this._settings.get_boolean('include-public-ip')) {
@@ -347,14 +342,15 @@ export const Sensors = GObject.registerClass({
             lines.shift();
 
             // if multiple wireless device, we use the last one
-            for (let line of lines) {
-                let netArray = line.trim().split(/\s+/);
-                let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
-                let signal = netArray[3].substr(0, netArray[3].length-1);
+            let line = lines[lines.length - 1];
+            if (!line)
+                return;
+            let netArray = line.trim().split(/\s+/);
+            let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
+            let signal = netArray[3].substr(0, netArray[3].length-1);
 
-                this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
-                this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
-            }
+            this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
+            this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
         }).catch(err => { });
     }
 
@@ -545,6 +541,10 @@ export const Sensors = GObject.registerClass({
     }
 
     _initFrameMonitor() {
+        // Prefs has no gnome-shell `global`; skip refresh-rate sampling there.
+        if (typeof global === 'undefined' || !global.stage)
+            return;
+
         if (this._frameMonitorSignalId) return;
         this._frameMonitorLastTime = 0;
         this._frameMonitorFrameCount = 0;
@@ -556,6 +556,12 @@ export const Sensors = GObject.registerClass({
     }
 
     _destroyFrameMonitor() {
+        if (typeof global === 'undefined' || !global.stage) {
+            this._frameMonitorSignalId = 0;
+            this._frameMonitorLastTime = 0;
+            this._frameMonitorCurrentHz = 0;
+            return;
+        }
         if (this._frameMonitorSignalId) {
             global.stage.disconnect(this._frameMonitorSignalId);
             this._frameMonitorSignalId = 0;
@@ -788,9 +794,8 @@ export const Sensors = GObject.registerClass({
 
         if(format !== "string" && (value === 'N/A' || value === '[N/A]' || isNaN(value))) return;
 
-        let nvidiaLabel = {'label': label, 'type': type, 'format': format};
-        if (!this._nvidia_labels.includes(nvidiaLabel))
-            this._nvidia_labels.push(nvidiaLabel);
+        if (!this._nvidia_labels[label + type])
+            this._nvidia_labels.push(this._nvidia_labels[label + type] = {label, type, format});
 
         this._returnValue(callback, label, value, type, format);
     }
@@ -845,11 +850,6 @@ export const Sensors = GObject.registerClass({
             }
         }).catch(err => { });
 
-        // does this system support cpu scaling? if so we will use it to grab Frequency and Boost below
-        new FileModule.File('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq').read().then(value => {
-            this._processor_uses_cpu_info = false;
-        }).catch(err => { });
-
         // is static CPU information enabled?
         if (this._settings.get_boolean('include-static-info')) {
             // grab static CPU information
@@ -890,7 +890,36 @@ export const Sensors = GObject.registerClass({
         // Launch nvidia-smi subprocess if nvidia querying is enabled
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
+        this._discoverNetworkIfaces(callback);
         this._initFrameMonitor();
+    }
+
+    _discoverNetworkIfaces(callback) {
+        this._networkIfaces = [];
+        let netbase = '/sys/class/net/';
+        let directions = ['tx', 'rx'];
+
+        new FileModule.File(netbase).list().then(interfaces => {
+            for (let iface of interfaces) {
+                for (let direction of directions) {
+                    // lo tx and rx are the same
+                    if (iface == 'lo' && direction == 'rx')
+                        continue;
+
+                    // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
+                    // by not using network-rx or network-tx
+                    let name = iface + ((iface == 'lo') ? '' : ' ' + direction);
+                    let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
+                    let path = netbase + iface + '/statistics/' + direction + '_bytes';
+                    this._networkIfaces.push({name, type, path});
+
+                    // update screen on initial build to prevent delay on update
+                    new FileModule.File(path).read().then(value => {
+                        this._returnValue(callback, name, value, type, 'storage');
+                    }).catch(err => { });
+                }
+            }
+        }).catch(err => { });
     }
 
     _discoverGpuDrm() {
@@ -1076,6 +1105,7 @@ export const Sensors = GObject.registerClass({
     resetHistory() {
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
+        this._networkIfaces = [];
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
