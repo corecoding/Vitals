@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <requires lib="libadwaita" version="1.9"/>
+  <requires lib="libadwaita" version="1.4"/>
 
-  <!-- Settings-style left sidebar + content (pages attached in prefs.js) -->
+  <!-- Sidebar shell; pages are attached to prefs-stack in prefs.js -->
   <object class="AdwNavigationSplitView" id="prefs-root">
     <property name="vexpand">True</property>
     <property name="hexpand">True</property>
@@ -21,9 +21,19 @@
               </object>
             </child>
             <property name="content">
-              <object class="AdwViewSwitcherSidebar" id="prefs-sidebar">
-                <property name="stack">prefs-stack</property>
-                <property name="mode">sidebar</property>
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkListBox" id="prefs-sidebar">
+                    <property name="selection-mode">browse</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </property>
           </object>
@@ -51,4 +61,606 @@
       </object>
     </property>
   </object>
+
+  <object class="GtkAdjustment" id="update-time-adjustment">
+    <property name="lower">1</property>
+    <property name="upper">60</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="network-public-ip-interval-adjustment">
+    <property name="lower">15</property>
+    <property name="upper">1440</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">15</property>
+  </object>
+
+  <!-- General -->
+  <object class="AdwPreferencesPage" id="general-page">
+    <property name="name">general</property>
+    <property name="title" translatable="yes">General</property>
+    <property name="icon-name">preferences-system-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Behavior</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Seconds between updates</property>
+            <property name="activatable">False</property>
+            <child type="suffix">
+              <object class="GtkScale" id="update-time">
+                <property name="orientation">horizontal</property>
+                <property name="valign">center</property>
+                <property name="hexpand">True</property>
+                <property name="width-request">200</property>
+                <property name="draw-value">True</property>
+                <property name="digits">0</property>
+                <property name="round-digits">0</property>
+                <property name="value-pos">right</property>
+                <property name="adjustment">update-time-adjustment</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Position in panel</property>
+            <property name="activatable-widget">position-in-panel</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="position-in-panel">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">Left</item>
+                  <item translatable="yes">Center</item>
+                  <item translatable="yes">Right</item>
+                  <item translatable="yes">Far Left</item>
+                  <item translatable="yes">Far Right</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Menu always centered</property>
+            <property name="activatable-widget">menu-centered</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="menu-centered">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Appearance</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Use higher precision</property>
+            <property name="activatable-widget">use-higher-precision</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="use-higher-precision">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Alphabetize sensors</property>
+            <property name="activatable-widget">alphabetize</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="alphabetize">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Hide zero values</property>
+            <property name="activatable-widget">hide-zeros</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="hide-zeros">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Use fixed widths</property>
+            <property name="activatable-widget">fixed-widths</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="fixed-widths">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Hide icons in top bar</property>
+            <property name="activatable-widget">hide-icons</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="hide-icons">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Icon style</property>
+            <property name="activatable-widget">icon-style</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="icon-style">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">Original</item>
+                  <item translatable="yes">GNOME</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">About</property>
+        <property name="description" translatable="yes">Feature requests or bugs? Please visit &lt;a href=&quot;https://github.com/corecoding/Vitals/issues&quot;&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href=&quot;https://corecoding.com/donate.php&quot;&gt;Donate&lt;/a&gt; if you found this useful.</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+      </object>
+    </child>
+  </object>
+
+  <!-- Temperature -->
+  <object class="AdwPreferencesPage" id="temperature-page">
+    <property name="name">temperature</property>
+    <property name="title" translatable="yes">Temperature</property>
+    <property name="icon-name">temperature-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor temperature</property>
+            <property name="activatable-widget">show-temperature</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-temperature">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Unit</property>
+            <property name="activatable-widget">unit</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="unit">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">°C</item>
+                  <item translatable="yes">°F</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Voltage -->
+  <object class="AdwPreferencesPage" id="voltage-page">
+    <property name="name">voltage</property>
+    <property name="title" translatable="yes">Voltage</property>
+    <property name="icon-name">voltage-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor voltage</property>
+            <property name="activatable-widget">show-voltage</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-voltage">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Fan -->
+  <object class="AdwPreferencesPage" id="fan-page">
+    <property name="name">fan</property>
+    <property name="title" translatable="yes">Fan</property>
+    <property name="icon-name">fan-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor fan</property>
+            <property name="activatable-widget">show-fan</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-fan">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Memory -->
+  <object class="AdwPreferencesPage" id="memory-page">
+    <property name="name">memory</property>
+    <property name="title" translatable="yes">Memory</property>
+    <property name="icon-name">memory-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor memory</property>
+            <property name="activatable-widget">show-memory</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-memory">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Measurement</property>
+            <property name="activatable-widget">memory-measurement</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="memory-measurement">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">Binary</item>
+                  <item translatable="yes">Decimal</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Processor -->
+  <object class="AdwPreferencesPage" id="processor-page">
+    <property name="name">processor</property>
+    <property name="title" translatable="yes">Processor</property>
+    <property name="icon-name">cpu-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor processor</property>
+            <property name="activatable-widget">show-processor</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-processor">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Include static info</property>
+            <property name="activatable-widget">include-static-info</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="include-static-info">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- System -->
+  <object class="AdwPreferencesPage" id="system-page">
+    <property name="name">system</property>
+    <property name="title" translatable="yes">System</property>
+    <property name="icon-name">system-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor system</property>
+            <property name="activatable-widget">show-system</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-system">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor command</property>
+            <property name="activatable-widget">monitor-cmd</property>
+            <child type="suffix">
+              <object class="GtkEntry" id="monitor-cmd">
+                <property name="valign">center</property>
+                <property name="hexpand">True</property>
+                <property name="width-chars">24</property>
+                <property name="placeholder-text">gnome-system-monitor</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Network -->
+  <object class="AdwPreferencesPage" id="network-page">
+    <property name="name">network</property>
+    <property name="title" translatable="yes">Network</property>
+    <property name="icon-name">network-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor network</property>
+            <property name="activatable-widget">show-network</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-network">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Include public IP address</property>
+            <property name="activatable-widget">include-public-ip</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="include-public-ip">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Update in minutes</property>
+            <property name="activatable-widget">network-public-ip-interval</property>
+            <child type="suffix">
+              <object class="GtkSpinButton" id="network-public-ip-interval">
+                <property name="valign">center</property>
+                <property name="climb-rate">1</property>
+                <property name="digits">0</property>
+                <property name="numeric">True</property>
+                <property name="snap-to-ticks">True</property>
+                <property name="adjustment">network-public-ip-interval-adjustment</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Public IP provider</property>
+            <property name="activatable-widget">network-public-ip-provider</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="network-public-ip-provider">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">Core Coding</item>
+                  <item translatable="yes">MyIP.com</item>
+                  <item translatable="yes">ipify</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Show country flag</property>
+            <property name="activatable-widget">network-public-ip-show-flag</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="network-public-ip-show-flag">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Format</property>
+            <property name="activatable-widget">network-speed-format</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="network-speed-format">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">Bytes</item>
+                  <item translatable="yes">Bits</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Speed Unit</property>
+            <property name="activatable-widget">network-speed-unit</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="network-speed-unit">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">Auto</item>
+                  <item translatable="yes">Kbps / KiB/s</item>
+                  <item translatable="yes">Mbps / MiB/s</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Storage -->
+  <object class="AdwPreferencesPage" id="storage-page">
+    <property name="name">storage</property>
+    <property name="title" translatable="yes">Storage</property>
+    <property name="icon-name">storage-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor storage</property>
+            <property name="activatable-widget">show-storage</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-storage">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Path</property>
+            <property name="activatable-widget">storage-path</property>
+            <child type="suffix">
+              <object class="GtkEntry" id="storage-path">
+                <property name="valign">center</property>
+                <property name="hexpand">True</property>
+                <property name="width-chars">24</property>
+                <property name="placeholder-text">/</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Measurement</property>
+            <property name="activatable-widget">storage-measurement</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="storage-measurement">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">Binary</item>
+                  <item translatable="yes">Decimal</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Battery -->
+  <object class="AdwPreferencesPage" id="battery-page">
+    <property name="name">battery</property>
+    <property name="title" translatable="yes">Battery</property>
+    <property name="icon-name">battery-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor battery</property>
+            <property name="activatable-widget">show-battery</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-battery">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Display Battery</property>
+            <property name="activatable-widget">battery-slot</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="battery-slot">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">BAT0</item>
+                  <item translatable="yes">BAT1</item>
+                  <item translatable="yes">BAT2</item>
+                  <item translatable="yes">BATT</item>
+                  <item translatable="yes">CMB0</item>
+                  <item translatable="yes">CMB1</item>
+                  <item translatable="yes">CMB2</item>
+                  <item translatable="yes">macsmc-battery</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- GPU -->
+  <object class="AdwPreferencesPage" id="gpu-page">
+    <property name="name">gpu</property>
+    <property name="title" translatable="yes">GPU</property>
+    <property name="icon-name">gpu-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor GPU</property>
+            <property name="activatable-widget">show-gpu</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-gpu">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Include static GPU info</property>
+            <property name="activatable-widget">include-static-gpu-info</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="include-static-gpu-info">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
 </interface>
+

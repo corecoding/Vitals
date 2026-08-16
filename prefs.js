@@ -34,26 +34,6 @@ function flatButton({icon_name, label, tooltip_text}) {
     return new Gtk.Button(props);
 }
 
-// AdwViewSwitcherSidebar landed in libadwaita 1.9 (GNOME 49+/50).
-function supportsModernSidebarPrefs() {
-    return typeof Adw.ViewSwitcherSidebar === 'function';
-}
-
-// AdwNavigationSplitView landed in libadwaita 1.4 (GNOME 45+).
-function supportsLegacySidebarPrefs() {
-    return typeof Adw.NavigationSplitView === 'function';
-}
-
-function ensureSidebarShellTypes(modern) {
-    GObject.type_ensure(Adw.HeaderBar.$gtype);
-    GObject.type_ensure(Adw.NavigationPage.$gtype);
-    GObject.type_ensure(Adw.NavigationSplitView.$gtype);
-    GObject.type_ensure(Adw.ToolbarView.$gtype);
-    GObject.type_ensure(Adw.ViewStack.$gtype);
-    if (modern)
-        GObject.type_ensure(Adw.ViewSwitcherSidebar.$gtype);
-}
-
 class Settings {
     constructor(extensionObject) {
         this._extensionObject = extensionObject;
@@ -63,15 +43,13 @@ class Settings {
 
         this.builder = new Gtk.Builder();
         this.builder.set_translation_domain(this._extensionObject.metadata['gettext-domain']);
-        this.builder.add_from_file(this._extensionObject.path + '/prefs-pages.ui');
 
-        if (supportsModernSidebarPrefs()) {
-            ensureSidebarShellTypes(true);
-            this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
-        } else if (supportsLegacySidebarPrefs()) {
-            ensureSidebarShellTypes(false);
-            this.builder.add_from_file(this._extensionObject.path + '/prefs-legacy.ui');
-        }
+        GObject.type_ensure(Adw.HeaderBar.$gtype);
+        GObject.type_ensure(Adw.NavigationPage.$gtype);
+        GObject.type_ensure(Adw.NavigationSplitView.$gtype);
+        GObject.type_ensure(Adw.ToolbarView.$gtype);
+        GObject.type_ensure(Adw.ViewStack.$gtype);
+        this.builder.add_from_file(this._extensionObject.path + '/prefs.ui');
 
         // Threshold color editors are built lazily when each page is first shown,
         // so we do not construct dozens of Gtk.ColorButtons up front.
@@ -161,54 +139,17 @@ class Settings {
         return iconTheme;
     }
 
-    // Resolve a Vitals *-symbolic icon so GTK can recolor it with the theme fg
-    // (light/dark). Prefer theme lookup over new_for_file, which draws fills as-is.
-    _lookup_symbolic_icon(iconName, size, scale) {
-        let iconTheme = this._apply_icon_style();
-        return iconTheme.lookup_icon(
-            iconName,
-            null,
-            size,
-            scale,
-            Gtk.TextDirection.NONE,
-            Gtk.IconLookupFlags.FORCE_SYMBOLIC);
-    }
-
     _connect_icon_style_refresh(refresh) {
         this.builder.get_object('icon-style').connect('changed', refresh);
 
-        // Legacy Gtk.Image symbolic paintables can lag style changes; refresh on dark toggle.
         let styleManager = Adw.StyleManager.get_default();
         styleManager.connect('notify::dark', refresh);
         styleManager.connect('notify::color-scheme', refresh);
     }
 
-    // ViewSwitcherSidebar binds icon-name, so theme cache can keep old SVGs after
-    // icon-style changes. Push a symbolic paintable from the active pack instead.
-    refresh_sidebar_icons(switcher, stack) {
-        let sidebar = switcher.get_first_child();
-        if (!(sidebar instanceof Adw.Sidebar))
-            return;
-
-        let scale = Math.max(1, switcher.get_scale_factor());
-        let pages = stack.get_pages();
-        let items = sidebar.get_items();
-        let count = Math.min(pages.get_n_items(), items.get_n_items());
-
-        for (let i = 0; i < count; i++) {
-            let iconName = pages.get_item(i).get_icon_name();
-            if (!iconName || iconName === 'preferences-system-symbolic')
-                continue;
-
-            items.get_item(i).set_icon_paintable(
-                this._lookup_symbolic_icon(iconName, 16, scale));
-        }
-    }
-
-    // Legacy ListBox rows: use icon-name (not paintables). On older GTK,
-    // set_from_paintable often leaves #bebebe unmapped — fine on dark, gray on light.
-    // icon-name recolors with the theme fg; refresh after icon-style / dark changes.
-    refresh_legacy_sidebar_icons(rows) {
+    // ListBox rows use icon-name so GTK can recolor with the theme fg after
+    // icon-style / dark changes. set_from_paintable often leaves #bebebe unmapped.
+    refresh_sidebar_icons(rows) {
         this._apply_icon_style();
 
         for (let row of rows) {
@@ -923,28 +864,10 @@ export default class VitalsPrefs extends ExtensionPreferences {
             window._vitalsSettings = null;
         });
 
-        if (supportsModernSidebarPrefs())
-            this._fillModernSidebarPreferences(window, settings);
-        else if (supportsLegacySidebarPrefs())
-            this._fillLegacySidebarPreferences(window, settings);
-        else
-            this._fillClassicPreferences(window, settings);
+        this._fillSidebarPreferences(window, settings);
     }
 
-    _fillClassicPreferences(window, settings) {
-        for (let info of prefsPageInfos())
-            window.add(settings.builder.get_object(info.name + '-page'));
-
-        let loadVisible = () => {
-            let visible = window.visible_page;
-            if (visible && visible.name)
-                settings.ensure_threshold_colors_for_page(visible.name);
-        };
-        window.connect('notify::visible-page', loadVisible);
-        loadVisible();
-    }
-
-    _attachStackPages(settings, stack, useSections) {
+    _attachStackPages(settings, stack) {
         let pages = prefsPageInfos();
         for (let i = 0; i < pages.length; i++) {
             let info = pages[i];
@@ -954,18 +877,14 @@ export default class VitalsPrefs extends ExtensionPreferences {
             // Header bar already shows the section title; hide the page banner.
             page.set_title('');
 
-            let stackPage = stack.add_titled_with_icon(page, info.name, title, iconName);
-            if (useSections && info.section) {
-                stackPage.set_starts_section(true);
-                stackPage.set_section_title(info.section);
-            }
+            stack.add_titled_with_icon(page, info.name, title, iconName);
             info.title = title;
             info.iconName = iconName;
         }
         return pages;
     }
 
-    _prepareSidebarShell(window, settings, useSections) {
+    _prepareSidebarShell(window, settings) {
         window.set_search_enabled(false);
         window.set_default_size(720, 620);
 
@@ -975,7 +894,7 @@ export default class VitalsPrefs extends ExtensionPreferences {
 
         // Replace PreferencesWindow's bottom-tab navigation with a Settings-style sidebar.
         window.get_content().set_child(root);
-        let pages = this._attachStackPages(settings, stack, useSections);
+        let pages = this._attachStackPages(settings, stack);
         return {root, stack, contentPage, pages};
     }
 
@@ -992,31 +911,8 @@ export default class VitalsPrefs extends ExtensionPreferences {
         contentPage.set_title(title);
     }
 
-    _fillModernSidebarPreferences(window, settings) {
-        let {root, stack, contentPage} = this._prepareSidebarShell(window, settings, true);
-        let sidebar = settings.builder.get_object('prefs-sidebar');
-
-        let syncVisiblePage = () => {
-            let name = stack.get_visible_child_name();
-            this._syncContentTitle(stack, contentPage, name);
-            if (name)
-                settings.ensure_threshold_colors_for_page(name);
-        };
-
-        stack.connect('notify::visible-child', syncVisiblePage);
-        sidebar.connect('activated', () => {
-            root.set_show_content(true);
-        });
-        syncVisiblePage();
-
-        settings.refresh_sidebar_icons(sidebar, stack);
-        settings._connect_icon_style_refresh(() => {
-            settings.refresh_sidebar_icons(sidebar, stack);
-        });
-    }
-
-    _fillLegacySidebarPreferences(window, settings) {
-        let {root, stack, contentPage, pages} = this._prepareSidebarShell(window, settings, false);
+    _fillSidebarPreferences(window, settings) {
+        let {root, stack, contentPage, pages} = this._prepareSidebarShell(window, settings);
         let list = settings.builder.get_object('prefs-sidebar');
         let rows = [];
 
@@ -1107,9 +1003,9 @@ export default class VitalsPrefs extends ExtensionPreferences {
         stack.connect('notify::visible-child', syncVisiblePage);
         syncVisiblePage();
 
-        settings.refresh_legacy_sidebar_icons(rows);
+        settings.refresh_sidebar_icons(rows);
         settings._connect_icon_style_refresh(() => {
-            settings.refresh_legacy_sidebar_icons(rows);
+            settings.refresh_sidebar_icons(rows);
         });
     }
 }
