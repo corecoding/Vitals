@@ -853,6 +853,11 @@ export default class VitalsPrefs extends ExtensionPreferences {
         });
 
         this._fillSidebarPreferences(window, settings);
+
+        // GNOME Shell's prefs host requires visible_page after fillPreferencesWindow
+        // (extensionPrefsDialog.js). The sidebar replaces the window content, so
+        // register an unused page to satisfy that check.
+        window.add(new Adw.PreferencesPage());
     }
 
     _attachStackPages(settings, stack) {
