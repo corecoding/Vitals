@@ -37,6 +37,10 @@ const cbFun = (d, c) => {
     return [d[0] + aa, bb];
 };
 
+const decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+const binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
+const hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
+
 export const Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
@@ -64,10 +68,6 @@ export const Values = GObject.registerClass({
         let format = '';
         let ending = '';
         let exp = 0;
-
-        var decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
-        var binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
-        var hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
         switch (sensorClass) {
             case 'percent':

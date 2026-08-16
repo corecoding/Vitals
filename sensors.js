@@ -136,16 +136,13 @@ export const Sensors = GObject.registerClass({
         }
 
         for (let sensor in this._sensorIcons) {
-            if (this._settings.get_boolean('show-' + sensor)) {
-                if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
-                    // for temp, volt, fan, we have a shared handler
-                    this._queryTempVoltFan(callback, sensor, wantedKeys);
-                } else {
-                    // directly call queryFunction below
-                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                    this[method](callback, dwell);
-                }
-            }
+            if (!this._settings.get_boolean('show-' + sensor)) continue;
+            if (wantedKeys && sensor != 'system' && sensor != 'gpu' &&
+                ![...wantedKeys].some(k => k.includes('_' + sensor))) continue;
+            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan')
+                this._queryTempVoltFan(callback, sensor, wantedKeys);
+            else
+                this['_query' + sensor[0].toUpperCase() + sensor.slice(1)](callback, dwell);
         }
     }
 
@@ -173,14 +170,9 @@ export const Sensors = GObject.registerClass({
     _queryMemory(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
-            let values = '', total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
-
-            if (values = lines.match(/MemTotal:(\s+)(\d+) kB/)) total = values[2];
-            if (values = lines.match(/MemAvailable:(\s+)(\d+) kB/)) avail = values[2];
-            if (values = lines.match(/SwapTotal:(\s+)(\d+) kB/)) swapTotal = values[2];
-            if (values = lines.match(/SwapFree:(\s+)(\d+) kB/)) swapFree = values[2];
-            if (values = lines.match(/Cached:(\s+)(\d+) kB/)) cached = values[2];
-            if (values = lines.match(/MemFree:(\s+)(\d+) kB/)) memFree = values[2];
+            let m = Object.fromEntries([...lines.matchAll(/^(\w+):\s+(\d+)/gm)].map(x => [x[1], +x[2]]));
+            let total = m.MemTotal || 0, avail = m.MemAvailable || 0, swapTotal = m.SwapTotal || 0;
+            let swapFree = m.SwapFree || 0, cached = m.Cached || 0, memFree = m.MemFree || 0;
 
             let used = total - avail
             let utilized = used / total;
@@ -265,27 +257,21 @@ export const Sensors = GObject.registerClass({
                     this._processor_uses_cpu_info = false;
                     return;
                 }
-
-                let sum = freqs.reduce((a, b) => a + b);
-                let hertz = (sum / freqs.length) * 1000 * 1000;
-                this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-
-                let max_hertz = freqs.reduce((a, b) => Math.max(a, b)) * 1000 * 1000;
-                this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
-                let min_hertz = freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000;
-                this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
+                this._returnFrequencies(callback, freqs, 1000 * 1000);
             }).catch(err => {
                 this._processor_uses_cpu_info = false;
             });
         } else if (Object.values(this._last_processor['speed']).length > 0) {
-            let sum = this._last_processor['speed'].reduce((a, b) => a + b);
-            let hertz = (sum / this._last_processor['speed'].length) * 1000;
-            this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-            let max_hertz = this._last_processor['speed'].reduce((a, b) => Math.max(a, b)) * 1000;
-            this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
-            let min_hertz = this._last_processor['speed'].reduce((a, b) => Math.min(a, b)) * 1000;
-            this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
+            this._returnFrequencies(callback, Object.values(this._last_processor['speed']), 1000);
         }
+    }
+
+    _returnFrequencies(callback, freqs, scale) {
+        let sum = 0, min = freqs[0], max = freqs[0];
+        for (let v of freqs) { sum += v; if (v < min) min = v; if (v > max) max = v; }
+        this._returnValue(callback, 'Frequency', (sum / freqs.length) * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Max frequency', max * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Min frequency', min * scale, 'processor', 'hertz');
     }
 
     _querySystem(callback) {
@@ -592,6 +578,7 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryGpu(callback) {
+        this._initFrameMonitor();
         if (this._frameMonitorCurrentHz > 0)
             this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1', 'hertz');
 
@@ -891,7 +878,6 @@ export const Sensors = GObject.registerClass({
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._discoverNetworkIfaces(callback);
-        this._initFrameMonitor();
     }
 
     _discoverNetworkIfaces(callback) {
