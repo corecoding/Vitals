@@ -577,6 +577,7 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
+        let wantedKeys = this.menu.isOpen ? null : new Set(this._settings.get_strv('hot-sensors'));
         this._sensors.query((label, value, type, format) => {
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
@@ -632,7 +633,7 @@ var VitalsMenuButton = GObject.registerClass({
 
                 this._updateDisplay(_(item.label), item.value, item.type, item.key, item.style);
             }
-        }, dwell, this.menu.isOpen);
+        }, dwell, wantedKeys);
 
         //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
         if(this._newGpuDetected) this._newGpuDetectedCount++;

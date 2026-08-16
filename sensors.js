@@ -28,7 +28,6 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
-import {sensorKeyFromTypeLabel} from './helpers/colors.js';
 
 // Shell and prefs hosts expose gettext on different module paths.
 let _;
@@ -66,7 +65,6 @@ export const Sensors = GObject.registerClass({
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('network-public-ip-interval', () => {this._next_public_ip_check = 0;});
         this._addSettingChangedSignal('network-public-ip-provider', () => {this._next_public_ip_check = 0;});
-        this._addSettingChangedSignal('hot-sensors', () => { this._tvfWanted = null; });
         //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._gpu_drm_vendors = null;
@@ -137,7 +135,7 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, dwell, menuOpen) {
+    query(callback, dwell, wantedKeys) {
         console.log('Vitals: query start full'); // REMOVE ME
 
         if (!this._hardware_detected) {
@@ -152,7 +150,7 @@ export const Sensors = GObject.registerClass({
             if (this._settings.get_boolean('show-' + sensor)) {
                 if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
                     // for temp, volt, fan, we have a shared handler
-                    this._queryTempVoltFan(callback, sensor, menuOpen);
+                    this._queryTempVoltFan(callback, sensor, wantedKeys);
                 } else {
                     // directly call queryFunction below
                     let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
@@ -162,49 +160,18 @@ export const Sensors = GObject.registerClass({
         }
     }
 
-    _rebuildTvfWanted() {
-        const types = ['temperature', 'voltage', 'fan'];
-        const hot = new Set(this._settings.get_strv('hot-sensors'));
-        this._tvfAll = {};
-        this._tvfWanted = {};
-        for (let type of types) {
-            this._tvfAll[type] = hot.has('__' + type + '_avg__') ||
-                hot.has('__' + type + '_min__') ||
-                hot.has('__' + type + '_max__');
-            this._tvfWanted[type] = new Set();
-            if (this._tvfAll[type] || !this._tempVoltFanSensors || !this._tempVoltFanSensors[type])
+    _queryTempVoltFan(callback, type, wantedKeys) {
+        let readAll = !wantedKeys ||
+            wantedKeys.has('__' + type + '_avg__') ||
+            wantedKeys.has('__' + type + '_min__') ||
+            wantedKeys.has('__' + type + '_max__');
+
+        for (let label in this._tempVoltFanSensors[type]) {
+            if (!readAll &&
+                !wantedKeys.has('_' + type + '_' + label.replace(' ', '_').toLowerCase() + '_'))
                 continue;
-            for (let label in this._tempVoltFanSensors[type]) {
-                let sensor = this._tempVoltFanSensors[type][label];
-                if (hot.has(sensor.key))
-                    this._tvfWanted[type].add(label);
-            }
-        }
-    }
 
-    _queryTempVoltFan(callback, type, menuOpen) {
-        let sensors = this._tempVoltFanSensors[type];
-        if (!sensors)
-            return;
-
-        let labels;
-        if (menuOpen !== false) {
-            labels = Object.keys(sensors);
-        } else {
-            if (!this._tvfWanted)
-                this._rebuildTvfWanted();
-            if (this._tvfAll[type])
-                labels = Object.keys(sensors);
-            else if (this._tvfWanted[type].size === 0)
-                return;
-            else
-                labels = this._tvfWanted[type];
-        }
-
-        for (let label of labels) {
-            let sensor = sensors[label];
-            if (!sensor)
-                continue;
+            let sensor = this._tempVoltFanSensors[type][label];
 
             new FileModule.File(sensor['path']).read().then(value => {
                 this._returnValue(callback, label, value, type, sensor['format']);
@@ -858,7 +825,6 @@ export const Sensors = GObject.registerClass({
 
     _discoverHardwareMonitors(callback) {
         this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {} };
-        this._tvfWanted = null;
 
         let hwbase = '/sys/class/hwmon/';
 
@@ -1149,17 +1115,14 @@ export const Sensors = GObject.registerClass({
 
         this._tempVoltFanSensors[obj['type']][label] = {
           'format': obj['format'],
-            'path': obj['input'],
-              'key': sensorKeyFromTypeLabel(obj['type'], label)
+            'path': obj['input']
         };
-        this._tvfWanted = null;
     }
 
     resetHistory() {
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
         this._networkIfaces = [];
-        this._tvfWanted = null;
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
