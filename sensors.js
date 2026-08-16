@@ -325,27 +325,11 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryNetwork(callback, dwell) {
-        // check network speed
-        let directions = ['tx', 'rx'];
-        let netbase = '/sys/class/net/';
-
-        new FileModule.File(netbase).list().then(interfaces => {
-            for (let iface of interfaces) {
-                for (let direction of directions) {
-                    // lo tx and rx are the same
-                    if (iface == 'lo' && direction == 'rx') continue;
-
-                    new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
-                        // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
-                        // by not using network-rx or network-tx
-                        let name = iface + ((iface == 'lo')?'':' ' + direction);
-
-                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
-                        this._returnValue(callback, name, value, type, 'storage');
-                    }).catch(err => { });
-                }
-            }
-        }).catch(err => { });
+        for (let sensor of this._networkIfaces) {
+            new FileModule.File(sensor.path).read().then(value => {
+                this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
+            }).catch(err => { });
+        }
 
         // some may not want public ip checking
         if (this._settings.get_boolean('include-public-ip')) {
@@ -914,7 +898,36 @@ export const Sensors = GObject.registerClass({
         // Launch nvidia-smi subprocess if nvidia querying is enabled
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
+        this._discoverNetworkIfaces(callback);
         this._initFrameMonitor();
+    }
+
+    _discoverNetworkIfaces(callback) {
+        this._networkIfaces = [];
+        let netbase = '/sys/class/net/';
+        let directions = ['tx', 'rx'];
+
+        new FileModule.File(netbase).list().then(interfaces => {
+            for (let iface of interfaces) {
+                for (let direction of directions) {
+                    // lo tx and rx are the same
+                    if (iface == 'lo' && direction == 'rx')
+                        continue;
+
+                    // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
+                    // by not using network-rx or network-tx
+                    let name = iface + ((iface == 'lo') ? '' : ' ' + direction);
+                    let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
+                    let path = netbase + iface + '/statistics/' + direction + '_bytes';
+                    this._networkIfaces.push({name, type, path});
+
+                    // update screen on initial build to prevent delay on update
+                    new FileModule.File(path).read().then(value => {
+                        this._returnValue(callback, name, value, type, 'storage');
+                    }).catch(err => { });
+                }
+            }
+        }).catch(err => { });
     }
 
     _discoverGpuDrm() {
@@ -1100,6 +1113,7 @@ export const Sensors = GObject.registerClass({
     resetHistory() {
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
+        this._networkIfaces = [];
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
