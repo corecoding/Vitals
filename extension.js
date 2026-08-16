@@ -509,12 +509,19 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _sensorIconPath(sensor, icon = 'icon') {
-        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
         let sensorKey = sensor;
-        if(sensor.startsWith('gpu')) sensorKey = 'gpu';
+        if (sensor.startsWith('gpu'))
+            sensorKey = 'gpu';
+
+        const icons = this._sensorIcons[sensorKey];
+        if (sensorKey === 'network' && icon.startsWith('icon-') && !(icons && icons[icon])) {
+            let cc = icon.slice('icon-'.length);
+            if (/^[a-z]{2}$/.test(cc))
+                return this._extensionObject.path + '/icons/flags/1x1/' + cc + '.svg';
+        }
 
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
-        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
+        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + icons[icon];
     }
 
     _ucFirst(string) {
