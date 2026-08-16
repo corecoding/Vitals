@@ -20,20 +20,6 @@ import * as SensorsModule from './sensors.js';
 
 const SENSOR_DISCOVERY_SETTLE_SECONDS = 2;
 
-function flatButton({icon_name, label, tooltip_text}) {
-    let props = {
-        valign: Gtk.Align.CENTER,
-        css_classes: ['flat'],
-    };
-    if (icon_name)
-        props.icon_name = icon_name;
-    if (label)
-        props.label = label;
-    if (tooltip_text)
-        props.tooltip_text = tooltip_text;
-    return new Gtk.Button(props);
-}
-
 class Settings {
     constructor(extensionObject) {
         this._extensionObject = extensionObject;
@@ -65,6 +51,20 @@ class Settings {
         this._bind_sensor_page_gates();
         this._bind_settings();
         this._start_sensor_discovery();
+    }
+
+    _flatButton({icon_name, label, tooltip_text}) {
+        let props = {
+            valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
+        };
+        if (icon_name)
+            props.icon_name = icon_name;
+        if (label)
+            props.label = label;
+        if (tooltip_text)
+            props.tooltip_text = tooltip_text;
+        return new Gtk.Button(props);
     }
 
     destroy() {
@@ -632,7 +632,7 @@ class Settings {
             tooltip_text: _('Band color'),
         });
 
-        let deleteButton = flatButton({
+        let deleteButton = this._flatButton({
             icon_name: 'edit-delete-symbolic',
             tooltip_text: _('Remove breakpoint'),
         });
@@ -698,7 +698,7 @@ class Settings {
             rows: [],
         };
 
-        let addButton = flatButton({
+        let addButton = this._flatButton({
             icon_name: 'list-add-symbolic',
             tooltip_text: _('Add breakpoint'),
         });
@@ -708,7 +708,7 @@ class Settings {
             this._sync_all_threshold_colors(pageName);
         });
 
-        let removeButton = flatButton({
+        let removeButton = this._flatButton({
             icon_name: 'user-trash-symbolic',
             tooltip_text: _('Remove color scale'),
         });
@@ -803,7 +803,7 @@ class Settings {
         });
         this._populate_add_colors_dropdown_model(addColorsDropdown, pageName, settingsKey);
 
-        let addColorsButton = flatButton({
+        let addColorsButton = this._flatButton({
             icon_name: 'list-add-symbolic',
             label: _('Add'),
         });
@@ -841,18 +841,6 @@ class Settings {
     }
 }
 
-
-function prefsPageInfos() {
-    let pages = [{ name: 'general' }];
-    for (let name of Object.keys(sensorCatalog)) {
-        let page = { name };
-        if (pages.length === 1)
-            page.section = _('Sensors');
-        pages.push(page);
-    }
-    return pages;
-}
-
 export default class VitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window._settings = this.getSettings();
@@ -868,7 +856,13 @@ export default class VitalsPrefs extends ExtensionPreferences {
     }
 
     _attachStackPages(settings, stack) {
-        let pages = prefsPageInfos();
+        let pages = [{ name: 'general' }];
+        for (let name of Object.keys(sensorCatalog)) {
+            let page = { name };
+            if (pages.length === 1)
+                page.section = _('Sensors');
+            pages.push(page);
+        }
         for (let i = 0; i < pages.length; i++) {
             let info = pages[i];
             let page = settings.builder.get_object(info.name + '-page');
