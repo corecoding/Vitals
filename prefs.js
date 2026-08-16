@@ -54,12 +54,9 @@ function ensureSidebarShellTypes(modern) {
         GObject.type_ensure(Adw.ViewSwitcherSidebar.$gtype);
 }
 
-const Settings = new GObject.Class({
-    Name: 'Vitals.Settings',
-
-    _init: function(extensionObject, params) {
-        this._extensionObject = extensionObject
-        this.parent(params);
+class Settings {
+    constructor(extensionObject) {
+        this._extensionObject = extensionObject;
 
         this._settings = extensionObject.getSettings();
         this._apply_icon_style();
@@ -90,9 +87,9 @@ const Settings = new GObject.Class({
         this._bind_sensor_page_gates();
         this._bind_settings();
         this._start_sensor_discovery();
-    },
+    }
 
-    destroy: function() {
+    destroy() {
         if (this._sensorDiscoveryTimeoutId) {
             GLib.source_remove(this._sensorDiscoveryTimeoutId);
             this._sensorDiscoveryTimeoutId = 0;
@@ -101,13 +98,13 @@ const Settings = new GObject.Class({
             this._sensors.destroy();
             this._sensors = null;
         }
-    },
+    }
 
-    _start_sensor_discovery: function() {
+    _start_sensor_discovery() {
         if (this._sensors)
             return;
 
-        this._sensors = new SensorsModule.Sensors(this._settings, sensorCatalog);
+        this._sensors = new SensorsModule.Sensors(this._settings, sensorCatalog, _);
         let collect = (label, value, type, format) => {
             this._collect_discovered_sensor(label, type, format);
         };
@@ -125,9 +122,9 @@ const Settings = new GObject.Class({
                 this._refresh_add_colors_dropdowns();
                 return GLib.SOURCE_REMOVE;
             });
-    },
+    }
 
-    _collect_discovered_sensor: function(label, type, format) {
+    _collect_discovered_sensor(label, type, format) {
         if (!type || type.endsWith('-group'))
             return;
 
@@ -143,17 +140,17 @@ const Settings = new GObject.Class({
             this._discoveredSensorsByPage[pageName] = [];
         if (!this._discoveredSensorsByPage[pageName].includes(key))
             this._discoveredSensorsByPage[pageName].push(key);
-    },
+    }
 
-    _refresh_add_colors_dropdowns: function() {
+    _refresh_add_colors_dropdowns() {
         for (let pageName of Object.keys(this._discoveredSensorsByPage))
             this._discoveredSensorsByPage[pageName].sort();
 
         for (let pageName of Object.keys(this._thresholdColorPages))
             this._sync_add_colors_row(pageName);
-    },
+    }
 
-    _apply_icon_style: function() {
+    _apply_icon_style() {
         let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
         let styles = ['original', 'gnome'];
         let dir = styles[this._settings.get_int('icon-style')] || 'original';
@@ -162,11 +159,11 @@ const Settings = new GObject.Class({
         let others = (iconTheme.get_search_path() || []).filter(p => !p.startsWith(iconsRoot));
         iconTheme.set_search_path([vitalsPath].concat(others));
         return iconTheme;
-    },
+    }
 
     // Resolve a Vitals *-symbolic icon so GTK can recolor it with the theme fg
     // (light/dark). Prefer theme lookup over new_for_file, which draws fills as-is.
-    _lookup_symbolic_icon: function(iconName, size, scale) {
+    _lookup_symbolic_icon(iconName, size, scale) {
         let iconTheme = this._apply_icon_style();
         return iconTheme.lookup_icon(
             iconName,
@@ -175,20 +172,20 @@ const Settings = new GObject.Class({
             scale,
             Gtk.TextDirection.NONE,
             Gtk.IconLookupFlags.FORCE_SYMBOLIC);
-    },
+    }
 
-    _connect_icon_style_refresh: function(refresh) {
+    _connect_icon_style_refresh(refresh) {
         this.builder.get_object('icon-style').connect('changed', refresh);
 
         // Legacy Gtk.Image symbolic paintables can lag style changes; refresh on dark toggle.
         let styleManager = Adw.StyleManager.get_default();
         styleManager.connect('notify::dark', refresh);
         styleManager.connect('notify::color-scheme', refresh);
-    },
+    }
 
     // ViewSwitcherSidebar binds icon-name, so theme cache can keep old SVGs after
     // icon-style changes. Push a symbolic paintable from the active pack instead.
-    refresh_sidebar_icons: function(switcher, stack) {
+    refresh_sidebar_icons(switcher, stack) {
         let sidebar = switcher.get_first_child();
         if (!(sidebar instanceof Adw.Sidebar))
             return;
@@ -206,12 +203,12 @@ const Settings = new GObject.Class({
             items.get_item(i).set_icon_paintable(
                 this._lookup_symbolic_icon(iconName, 16, scale));
         }
-    },
+    }
 
     // Legacy ListBox rows: use icon-name (not paintables). On older GTK,
     // set_from_paintable often leaves #bebebe unmapped — fine on dark, gray on light.
     // icon-name recolors with the theme fg; refresh after icon-style / dark changes.
-    refresh_legacy_sidebar_icons: function(rows) {
+    refresh_legacy_sidebar_icons(rows) {
         this._apply_icon_style();
 
         for (let row of rows) {
@@ -221,9 +218,9 @@ const Settings = new GObject.Class({
             row.image.clear();
             row.image.set_from_icon_name(row.iconName);
         }
-    },
+    }
 
-    ensure_threshold_colors_for_page: function(pageName) {
+    ensure_threshold_colors_for_page(pageName) {
         if (this._thresholdColorPages[pageName] || !sensorCatalog[pageName]?.colorFormats)
             return;
 
@@ -231,9 +228,9 @@ const Settings = new GObject.Class({
             `${pageName}-page`,
             `${pageName}-colors`,
             pageName);
-    },
+    }
 
-    _action_row_for: function(widget) {
+    _action_row_for(widget) {
         let current = widget;
         while (current) {
             if (current instanceof Adw.ActionRow)
@@ -241,18 +238,18 @@ const Settings = new GObject.Class({
             current = current.get_parent();
         }
         return widget;
-    },
+    }
 
-    _set_dependent_widgets_sensitive: function(widgetIds, sensitive) {
+    _set_dependent_widgets_sensitive(widgetIds, sensitive) {
         for (let id of widgetIds) {
             let widget = this.builder.get_object(id);
             if (!widget)
                 continue;
             this._action_row_for(widget).set_sensitive(sensitive);
         }
-    },
+    }
 
-    _sync_sensor_page_sensitivity: function(pageName) {
+    _sync_sensor_page_sensitivity(pageName) {
         let gate = this._sensorPageGates[pageName];
         if (!gate)
             return;
@@ -268,9 +265,9 @@ const Settings = new GObject.Class({
 
         if (gate.afterSync)
             gate.afterSync(enabled);
-    },
+    }
 
-    _bind_sensor_page_gates: function() {
+    _bind_sensor_page_gates() {
         let providerWidget = this.builder.get_object('network-public-ip-provider');
         let flagWidget = this.builder.get_object('network-public-ip-show-flag');
 
@@ -310,11 +307,11 @@ const Settings = new GObject.Class({
             });
             this._sync_sensor_page_sensitivity(pageName);
         }
-    },
+    }
 
     // Drop panel-pinned sensors that belong to a disabled sensor group.
     // Keys look like _memory_usage_ / __network-rx_max__; group name is in the key.
-    _remove_hot_sensors_for_group: function(group) {
+    _remove_hot_sensors_for_group(group) {
         let hotSensors = this._settings.get_strv('hot-sensors');
         let removed = [];
         let filtered = hotSensors.filter(key => {
@@ -336,10 +333,10 @@ const Settings = new GObject.Class({
             filtered.push('_default_icon_');
 
         this._settings.set_strv('hot-sensors', filtered);
-    },
+    }
 
     // Restore sensors stashed earlier in this prefs session when the group is re-enabled.
-    _restore_hot_sensors_for_group: function(group) {
+    _restore_hot_sensors_for_group(group) {
         let restored = this._removedHotSensors[group];
         if (!restored || restored.length === 0)
             return;
@@ -355,10 +352,10 @@ const Settings = new GObject.Class({
         }
 
         this._settings.set_strv('hot-sensors', hotSensors);
-    },
+    }
 
     // Bind the gtk window to the schema settings
-    _bind_settings: function() {
+    _bind_settings() {
         let widget;
 
         // process sensor toggles
@@ -433,12 +430,12 @@ const Settings = new GObject.Class({
             });
         }
 
-    },
+    }
 
     // Runtime matching is `value >= threshold` (see values.js), so each band is
     // [low, high). Integer breakpoints use high-1 in the label (0–39, 40–59, …).
     // Float breakpoints keep an explicit half-open label (0 – <0.5).
-    _band_title: function(low, high) {
+    _band_title(low, high) {
         if (high === null || high === undefined)
             return _('%s and above').format(low);
 
@@ -449,17 +446,17 @@ const Settings = new GObject.Class({
             return `${low} – ${high - 1}`;
 
         return `${low} – <${high}`;
-    },
+    }
 
-    _threshold_for_row: function(row) {
+    _threshold_for_row(row) {
         let text = row._thresholdEntry.text.trim();
         let value = Number.parseFloat(text);
         if (text === '' || !Number.isFinite(value))
             return row._committedThreshold;
         return value;
-    },
+    }
 
-    _commit_threshold_entry: function(row) {
+    _commit_threshold_entry(row) {
         let text = row._thresholdEntry.text.trim();
         let value = Number.parseFloat(text);
         if (text === '' || !Number.isFinite(value)) {
@@ -469,11 +466,11 @@ const Settings = new GObject.Class({
 
         row._committedThreshold = value;
         return value;
-    },
+    }
 
     // Band pairing stays on committed order so mid-edit typing does not move
     // "and above" between rows; label numbers use the live entry text.
-    _refresh_band_titles: function(rows) {
+    _refresh_band_titles(rows) {
         let items = rows.map(row => ({
             row: row,
             orderKey: row._committedThreshold,
@@ -489,9 +486,9 @@ const Settings = new GObject.Class({
             items[i].row.set_title(
                 GLib.markup_escape_text(this._band_title(low, high), -1));
         }
-    },
+    }
 
-    _reorder_threshold_rows: function(palette) {
+    _reorder_threshold_rows(palette) {
         let rows = palette.rows;
         let sorted = rows.slice().sort(
             (a, b) => a._committedThreshold - b._committedThreshold);
@@ -506,9 +503,9 @@ const Settings = new GObject.Class({
             palette.group.add(row);
             rows.push(row);
         }
-    },
+    }
 
-    _sync_all_threshold_colors: function(pageName) {
+    _sync_all_threshold_colors(pageName) {
         let state = this._thresholdColorPages[pageName];
         if (!state)
             return;
@@ -534,9 +531,9 @@ const Settings = new GObject.Class({
             this._refresh_band_titles(palette.rows);
         }
         this._sync_add_colors_row(pageName);
-    },
+    }
 
-    _color_sensor_options: function(pageName, settingsKey, excludeKeys = null) {
+    _color_sensor_options(pageName, settingsKey, excludeKeys = null) {
         let excluded = new Set(excludeKeys || []);
         let live = [];
         let liveSet = new Set();
@@ -565,22 +562,22 @@ const Settings = new GObject.Class({
         }
         orphans.sort();
         return {live, orphans};
-    },
+    }
 
-    _palette_targets_in_use: function(pageName) {
+    _palette_targets_in_use(pageName) {
         let state = this._thresholdColorPages[pageName];
         if (!state)
             return [];
         return state.palettes.map(palette => palette.sensorKey || null);
-    },
+    }
 
-    _sensor_key_is_live: function(pageName, sensorKey) {
+    _sensor_key_is_live(pageName, sensorKey) {
         if ((this._discoveredSensorsByPage[pageName] || []).includes(sensorKey))
             return true;
         return this._settings.get_strv('hot-sensors').includes(sensorKey);
-    },
+    }
 
-    _available_add_color_targets: function(pageName, settingsKey) {
+    _available_add_color_targets(pageName, settingsKey) {
         let inUse = this._palette_targets_in_use(pageName);
         let excludeSensors = inUse.filter(key => key !== null);
         let {live, orphans} = this._color_sensor_options(pageName, settingsKey, excludeSensors);
@@ -600,9 +597,9 @@ const Settings = new GObject.Class({
             labels.push(_('%s (unavailable)').format(labelFromSensorKey(key)));
         }
         return {keys, labels};
-    },
+    }
 
-    _populate_add_colors_dropdown_model: function(dropdown, pageName, settingsKey) {
+    _populate_add_colors_dropdown_model(dropdown, pageName, settingsKey) {
         let {keys, labels} = this._available_add_color_targets(pageName, settingsKey);
         let model = new Gtk.StringList();
         for (let label of labels)
@@ -612,9 +609,9 @@ const Settings = new GObject.Class({
         dropdown._sensorKeys = keys;
         if (keys.length > 0)
             dropdown.set_selected(0);
-    },
+    }
 
-    _sync_add_colors_row: function(pageName) {
+    _sync_add_colors_row(pageName) {
         let state = this._thresholdColorPages[pageName];
         if (!state || !state.addColorsRow || !state.addGroup)
             return;
@@ -645,9 +642,9 @@ const Settings = new GObject.Class({
             state.page.remove(state.addGroup);
             state.page.add(state.addGroup);
         }
-    },
+    }
 
-    _palette_title: function(sensorKey, pageName) {
+    _palette_title(sensorKey, pageName) {
         if (!sensorKey)
             return _('All sensors colors');
 
@@ -655,11 +652,11 @@ const Settings = new GObject.Class({
         if (this._sensor_key_is_live(pageName, sensorKey))
             return _('%s colors').format(label);
         return _('%s colors (unavailable)').format(label);
-    },
+    }
 
     // New breakpoints sort after the current max so they become the new
     // "and above" row. Prefer a whole-number step to avoid decimal creep.
-    _next_breakpoint_threshold: function(palette) {
+    _next_breakpoint_threshold(palette) {
         if (!palette.rows.length)
             return 0;
 
@@ -669,9 +666,9 @@ const Settings = new GObject.Class({
         if (values.every(value => Number.isInteger(value)))
             return max + 10;
         return max + 1;
-    },
+    }
 
-    _make_color_row: function(pageName, palette, text = '0.0',
+    _make_color_row(pageName, palette, text = '0.0',
         red = DEFAULT_THRESHOLD_RGBA.red,
         green = DEFAULT_THRESHOLD_RGBA.green,
         blue = DEFAULT_THRESHOLD_RGBA.blue,
@@ -742,9 +739,9 @@ const Settings = new GObject.Class({
             else
                 this._sync_all_threshold_colors(pageName);
         });
-    },
+    }
 
-    _add_threshold_palette: function(pageName, sensorKey, entries, options = null) {
+    _add_threshold_palette(pageName, sensorKey, entries, options = null) {
         let seedDefault = !!(options && options.seedDefault);
         let state = this._thresholdColorPages[pageName];
         let targetKey = sensorKey || null;
@@ -807,9 +804,9 @@ const Settings = new GObject.Class({
         }
         this._refresh_band_titles(palette.rows);
         return palette;
-    },
+    }
 
-    _remove_threshold_palette: function(pageName, palette) {
+    _remove_threshold_palette(pageName, palette) {
         let state = this._thresholdColorPages[pageName];
         if (!state)
             return;
@@ -821,9 +818,9 @@ const Settings = new GObject.Class({
         state.page.remove(palette.group);
         state.palettes.splice(index, 1);
         this._sync_all_threshold_colors(pageName);
-    },
+    }
 
-    _add_threshold_colors_group: function(pageId, settingsKey, pageName) {
+    _add_threshold_colors_group(pageId, settingsKey, pageName) {
         let page = this.builder.get_object(pageId);
         let sorted = sanitizeAndSortColorEntries(this._settings.get_strv(settingsKey));
         this._settings.set_strv(settingsKey, sorted.map(entry => formatColorEntry(entry)));
@@ -901,7 +898,7 @@ const Settings = new GObject.Class({
 
         this._sync_sensor_page_sensitivity(pageName);
     }
-});
+}
 
 
 function prefsPageInfos() {
