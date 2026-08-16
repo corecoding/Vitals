@@ -213,8 +213,6 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryProcessor(callback, dwell) {
-        let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
-
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
@@ -224,22 +222,18 @@ export const Sensors = GObject.registerClass({
                 if (reverse_data) {
                     let cpu = reverse_data[1].trim();
 
-                    if (!(cpu in statistics))
-                        statistics[cpu] = {};
-
                     if (!(cpu in this._last_processor['core']))
                         this._last_processor['core'][cpu] = 0;
 
-                    let stats = reverse_data[2].trim().split(' ').reverse();
-                    for (let column of columns)
-                        statistics[cpu][column] = parseInt(stats.pop());
+                    let s = reverse_data[2].trim().split(' ');
+                    statistics[cpu] = parseInt(s[0]) + parseInt(s[1]) + parseInt(s[2]);
                 }
             }
 
             let cores = Object.keys(statistics).length - 1;
 
             for (let cpu in statistics) {
-                let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
+                let total = statistics[cpu];
 
                 // make sure we have data to report
                 if (this._last_processor['core'][cpu] > 0) {
@@ -260,7 +254,7 @@ export const Sensors = GObject.registerClass({
 
             // fallback: platforms without cpu MHz in /proc/cpuinfo (some ARM)
             if (!this._processor_uses_cpu_info) {
-                for (let core = 0; core <= cores; core++) {
+                for (let core = 0; core < cores; core++) {
                     new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
                         this._last_processor['speed'][core] = parseInt(value);
                     }).catch(err => { });
@@ -359,14 +353,15 @@ export const Sensors = GObject.registerClass({
             lines.shift();
 
             // if multiple wireless device, we use the last one
-            for (let line of lines) {
-                let netArray = line.trim().split(/\s+/);
-                let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
-                let signal = netArray[3].substr(0, netArray[3].length-1);
+            let line = lines[lines.length - 1];
+            if (!line)
+                return;
+            let netArray = line.trim().split(/\s+/);
+            let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
+            let signal = netArray[3].substr(0, netArray[3].length-1);
 
-                this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
-                this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
-            }
+            this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
+            this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
         }).catch(err => { });
     }
 
@@ -810,9 +805,8 @@ export const Sensors = GObject.registerClass({
 
         if(format !== "string" && (value === 'N/A' || value === '[N/A]' || isNaN(value))) return;
 
-        let nvidiaLabel = {'label': label, 'type': type, 'format': format};
-        if (!this._nvidia_labels.includes(nvidiaLabel))
-            this._nvidia_labels.push(nvidiaLabel);
+        if (!this._nvidia_labels[label + type])
+            this._nvidia_labels.push(this._nvidia_labels[label + type] = {label, type, format});
 
         this._returnValue(callback, label, value, type, format);
     }
