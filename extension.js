@@ -39,9 +39,10 @@ var VitalsMenuButton = GObject.registerClass({
         this._hotItems = {};
         this._groups = {};
         this._widths = {};
-        this._numGpus = 1;
-        this._newGpuDetected = false;
-        this._newGpuDetectedCount = 0;
+        // category → highest instance number seen (gpu always starts at 1 for refresh rate)
+        this._instanceCounts = {gpu: 1};
+        this._pendingInstance = null;
+        this._pendingInstanceCount = 0;
         this._last_query = new Date().getTime();
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, _);
@@ -83,7 +84,7 @@ var VitalsMenuButton = GObject.registerClass({
                          'fixed-widths', 'hide-icons', 'unit',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
-                         'include-static-info', 'include-static-gpu-info' ];
+                         'include-static-info', 'include-static-gpu-info', 'custom-commands' ];
 
         for (let setting of settings)
             this._settings.connectObject('changed::' + setting, this._redrawMenu.bind(this), this);
@@ -96,7 +97,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _thresholdColorsChanged() {
-        this._values.resetHistory(this._numGpus);
+        this._values.resetHistory(this._instanceCounts);
         this._querySensors();
     }
 
@@ -106,14 +107,13 @@ var VitalsMenuButton = GObject.registerClass({
             // groups associated sensors under accordion menu
             if (sensor in this._groups) continue;
 
-            //handle gpus separately.
+            // gpu uses instance groups (gpu#1, …)
             if (sensor === 'gpu') continue;
 
             this._initializeMenuGroup(sensor, sensor);
         }
 
-        for (let i = 1; i <= this._numGpus; i++)
-            this._initializeMenuGroup('gpu#' + i, 'gpu', (this._numGpus > 1 ? ' ' + i : ''));
+        this._ensureInstanceGroups('gpu', this._instanceCounts.gpu || 1);
 
         // add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -138,7 +138,7 @@ var VitalsMenuButton = GObject.registerClass({
         refreshButton.connect('clicked', (self) => {
             // force refresh by clearing history
             this._sensors.resetHistory();
-            this._values.resetHistory(this._numGpus);
+            this._values.resetHistory(this._instanceCounts);
 
             // make sure timer fires at next full interval
             this._initializeTimer();
@@ -183,7 +183,8 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
-        this._groups[groupName] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(groupName) + menuSuffix), true);
+        this._groups[groupName] = new PopupMenu.PopupSubMenuMenuItem(
+            _(SensorCatalog.categoryTitle(optionName) + menuSuffix), true);
         this._groups[groupName].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(groupName));
 
         // hide menu items that user has requested to not include
@@ -196,8 +197,27 @@ var VitalsMenuButton = GObject.registerClass({
             this._groups[groupName]._statusLabel.text = _('No Data');
         }
 
-        if(position == -1) this.menu.addMenuItem(this._groups[groupName]);
+        if (position == -1) this.menu.addMenuItem(this._groups[groupName]);
         else this.menu.addMenuItem(this._groups[groupName], position);
+    }
+
+    _ensureInstanceGroups(category, count) {
+        let prev = this._instanceCounts[category] || 0;
+        this._instanceCounts[category] = Math.max(prev, count);
+        let n = this._instanceCounts[category];
+
+        for (let i = 1; i <= n; i++) {
+            let key = category + '#' + i;
+            if (key in this._groups)
+                continue;
+            let suffix = n > 1 ? ' ' + i : '';
+            // insert before separator / action buttons when possible
+            let position = Object.keys(this._groups).length;
+            this._initializeMenuGroup(key, category, suffix, position);
+        }
+
+        if (n > 1 && (category + '#1') in this._groups)
+            this._groups[category + '#1'].label.text = _(SensorCatalog.categoryTitle(category) + ' 1');
     }
 
     _createRoundButton(iconName) {
@@ -291,10 +311,15 @@ var VitalsMenuButton = GObject.registerClass({
 
     _showHideSensorsChanged(self, sensor) {
         const sensorName = sensor.substr(5);
-        if(sensorName === 'gpu') {
-            for(let i = 1; i <= this._numGpus; i++)
-                this._groups[sensorName + '#' + i].visible = this._settings.get_boolean(sensor);
-        } else
+        let count = this._instanceCounts[sensorName] || 0;
+        if (count > 0) {
+            for (let i = 1; i <= count; i++) {
+                let key = sensorName + '#' + i;
+                if (this._groups[key])
+                    this._groups[key].visible = this._settings.get_boolean(sensor);
+            }
+        }
+        if (this._groups[sensorName])
             this._groups[sensorName].visible = this._settings.get_boolean(sensor);
 
         // prefs may have removed this group's sensors from hot-sensors; rebuild panel/menu
@@ -321,15 +346,17 @@ var VitalsMenuButton = GObject.registerClass({
         // you have to click to appear
         this._sensors.resetHistory();
         for (const sensor in this._sensorIcons) {
-            if (sensor == "gpu") continue;
-            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
+            if ((this._instanceCounts[sensor] || 0) > 0)
+                continue;
+            if (this._groups[sensor])
+                this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
         }
 
-        // gpu's are indexed differently, handle them here
-        const gpuKeys = Object.keys(this._groups).filter(key => key.startsWith("gpu#"));
-        gpuKeys.forEach((gpuKey) => {
-            this._groups[gpuKey].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath("gpu"));
-        });
+        for (const key of Object.keys(this._groups)) {
+            let parsed = SensorCatalog.parseInstanceType(key);
+            if (parsed.instance > 0)
+                this._groups[key].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(parsed.category));
+        }
     }
 
     _iconStyleChanged() {
@@ -364,7 +391,7 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._drawMenu();
         this._sensors.resetHistory();
-        this._values.resetHistory(this._numGpus);
+        this._values.resetHistory(this._instanceCounts);
         this._querySensors();
     }
 
@@ -509,9 +536,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _sensorIconPath(sensor, icon = 'icon') {
-        let sensorKey = sensor;
-        if (sensor.startsWith('gpu'))
-            sensorKey = 'gpu';
+        let sensorKey = SensorCatalog.sensorGroupFromType(sensor);
 
         const icons = this._sensorIcons[sensorKey];
         if (sensorKey === 'network' && icon.startsWith('icon-') && !(icons && icons[icon])) {
@@ -525,8 +550,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _ucFirst(string) {
-        if(string.startsWith('gpu')) return 'Graphics';
-        return string.charAt(0).toUpperCase() + string.slice(1);
+        return SensorCatalog.categoryTitle(string);
     }
 
     _positionInPanel() {
@@ -591,26 +615,29 @@ var VitalsMenuButton = GObject.registerClass({
                 if (value == 'disabled') return;
             }
 
-            // add/initialize any gpu groups that we haven't added yet
-            if (typeKey.startsWith('gpu') && typeKey !== 'gpu#1') {
-                const split = typeKey.split('#');
-                if(split.length == 2 && this._numGpus < parseInt(split[1])) {
-                    // occasionally two lines from nvidia-smi will be read at once
-                    // so we only actually update the number of gpus if we have recieved multiple lines at least 3 times in a row
-                    // i.e. we make sure that mutiple queries have detected a new gpu back-to-back
-                    if(this._newGpuDetectedCount < 2) {
-                        this._newGpuDetected = true;
-                        return;
+            // grow instance groups (gpu#2, storage#1, …) for multi-instance command output
+            let parsed = SensorCatalog.parseInstanceType(typeKey);
+            if (parsed.instance >= 1) {
+                let current = this._instanceCounts[parsed.category] || 0;
+                if (parsed.instance > current) {
+                    // debounce growth past the first instance (tools may merge stdout lines)
+                    if (parsed.instance > 1) {
+                        let pendingKey = parsed.category + '#' + parsed.instance;
+                        if (this._pendingInstance !== pendingKey) {
+                            this._pendingInstance = pendingKey;
+                            this._pendingInstanceCount = 1;
+                            return;
+                        }
+                        if (this._pendingInstanceCount < 2) {
+                            this._pendingInstanceCount++;
+                            return;
+                        }
+                        this._pendingInstance = null;
+                        this._pendingInstanceCount = 0;
                     }
 
-                    this._numGpus = parseInt(split[1]);
-                    this._newGpuDetectedCount = 0;
-                    this._newGpuDetected = false;
-                    // change label for gpu 1 from "Graphics" to "Graphics 1" since we have multiple gpus now
-                    this._groups['gpu#1'].label.text = this._ucFirst('gpu#1') + ' 1';
-                    for(let i = 2; i <= this._numGpus; i++)
-                        if(!('gpu#' + i in this._groups))
-                            this._initializeMenuGroup('gpu#' + i, 'gpu', ' ' + i, Object.keys(this._groups).length);
+                    this._ensureInstanceGroups(parsed.category, parsed.instance);
+                    this._values.resetHistory(this._instanceCounts);
                 }
             }
 
@@ -635,10 +662,8 @@ var VitalsMenuButton = GObject.registerClass({
             }
         }, dwell, wantedKeys);
 
-        //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
-        if(this._newGpuDetected) this._newGpuDetectedCount++;
-        else this._newGpuDetectedCount = 0;
-        this._newGpuDetected = false;
+        if (!this._pendingInstance)
+            this._pendingInstanceCount = 0;
     }
 
     destroy() {

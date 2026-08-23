@@ -53,7 +53,7 @@ export const Values = GObject.registerClass({
         this._networkSpeeds = {};
 
         this._history = {};
-        this.resetHistory();
+        this.resetHistory({gpu: 1});
     }
 
     _legible(value, sensorClass, type, sensorKey = null) {
@@ -408,20 +408,23 @@ export const Values = GObject.registerClass({
         return output;
     }
 
-    resetHistory(numGpus) {
+    resetHistory(instanceCounts) {
         // don't call this._history = {}, as we want to keep network-rx and network-tx
         // otherwise network history statistics will start over
+        let counts = instanceCounts || {};
+
         for (let sensor in this._sensorIcons) {
-            //each gpu has it's own sensor name and thus must be handled separately
-            if(sensor === 'gpu') continue;
+            let n = counts[sensor] || 0;
+            if (n > 0) {
+                for (let i = 1; i <= n; i++) {
+                    this._history[sensor + '#' + i] = {};
+                    this._history[sensor + '#' + i + '-group'] = {};
+                }
+                continue;
+            }
 
             this._history[sensor] = {};
             this._history[sensor + '-group'] = {};
-        }
-
-        for(let i = 1; i <= numGpus; i++){
-            this._history['gpu#' + i] = {};
-            this._history['gpu#' + i + '-group'] = {};
         }
     }
 });

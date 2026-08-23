@@ -6,7 +6,7 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import {sensorCatalog, colorPageForSensor} from './helpers/catalog.js';
+import {sensorCatalog, colorPageForSensor, commandFieldFormats, categoryTitle} from './helpers/catalog.js';
 import {
     compareColorEntries,
     DEFAULT_THRESHOLD_RGBA,
@@ -16,6 +16,7 @@ import {
     sensorKeyBelongsToColorPage,
     sensorKeyFromTypeLabel,
 } from './helpers/colors.js';
+import {buildNvidiaPreset, blankCommandPreset} from './helpers/presets.js';
 import * as SensorsModule from './sensors.js';
 
 const SENSOR_DISCOVERY_SETTLE_SECONDS = 2;
@@ -50,6 +51,7 @@ class Settings {
         this._sensorDiscoveryTimeoutId = 0;
         this._bind_sensor_page_gates();
         this._bind_settings();
+        this._bind_commands_page();
         this._start_sensor_discovery();
     }
 
@@ -373,6 +375,248 @@ class Settings {
             });
         }
 
+    }
+
+    _load_commands() {
+        try {
+            let parsed = JSON.parse(this._settings.get_string('custom-commands') || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    _save_commands(commands) {
+        this._settings.set_boolean('custom-commands-seeded', true);
+        this._settings.set_string('custom-commands', JSON.stringify(commands));
+        this._refresh_commands_list();
+    }
+
+    _bind_commands_page() {
+        this._commandsSelectedId = null;
+        this._commandsListGroup = this.builder.get_object('commands-list-group');
+        this._commandsEditorGroup = this.builder.get_object('commands-editor-group');
+
+        this.builder.get_object('commands-add-nvidia').connect('clicked', () => {
+            let commands = this._load_commands();
+            if (commands.some(c => c.id === 'nvidia-smi'))
+                return;
+            commands.push(buildNvidiaPreset(this._settings.get_boolean('include-static-gpu-info')));
+            this._save_commands(commands);
+            this._select_command('nvidia-smi');
+        });
+
+        this.builder.get_object('commands-add-blank').connect('clicked', () => {
+            let cmd = blankCommandPreset();
+            let commands = this._load_commands();
+            commands.push(cmd);
+            this._save_commands(commands);
+            this._select_command(cmd.id);
+        });
+
+        this._refresh_commands_list();
+    }
+
+    _refresh_commands_list() {
+        if (!this._commandListRows)
+            this._commandListRows = [];
+        for (let row of this._commandListRows)
+            this._commandsListGroup.remove(row);
+        this._commandListRows = [];
+
+        let commands = this._load_commands();
+        if (commands.length === 0) {
+            let empty = new Adw.ActionRow({
+                title: _('No custom commands configured'),
+                subtitle: _('Add the NVIDIA SMI preset or a blank command'),
+            });
+            this._commandsListGroup.add(empty);
+            this._commandListRows.push(empty);
+            this._commandsEditorGroup.visible = false;
+            return;
+        }
+
+        for (let cmd of commands) {
+            let row = new Adw.ActionRow({
+                title: cmd.name || cmd.id,
+                subtitle: `${cmd.category || 'gpu'} · ${cmd.mode || 'oneshot'}`,
+                activatable: true,
+            });
+            let enabled = new Gtk.Switch({
+                valign: Gtk.Align.CENTER,
+                active: cmd.enabled !== false,
+            });
+            enabled.connect('notify::active', () => {
+                let list = this._load_commands();
+                let item = list.find(c => c.id === cmd.id);
+                if (item) {
+                    item.enabled = enabled.active;
+                    this._settings.set_boolean('custom-commands-seeded', true);
+                    this._settings.set_string('custom-commands', JSON.stringify(list));
+                }
+            });
+            row.add_suffix(enabled);
+            row.connect('activated', () => this._select_command(cmd.id));
+            this._commandsListGroup.add(row);
+            this._commandListRows.push(row);
+        }
+
+        if (this._commandsSelectedId && commands.some(c => c.id === this._commandsSelectedId))
+            this._select_command(this._commandsSelectedId);
+        else
+            this._commandsEditorGroup.visible = false;
+    }
+
+    _clear_editor_group() {
+        if (!this._commandEditorRows)
+            this._commandEditorRows = [];
+        for (let row of this._commandEditorRows)
+            this._commandsEditorGroup.remove(row);
+        this._commandEditorRows = [];
+    }
+
+    _select_command(id) {
+        this._commandsSelectedId = id;
+        let commands = this._load_commands();
+        let cmd = commands.find(c => c.id === id);
+        if (!cmd) {
+            this._commandsEditorGroup.visible = false;
+            return;
+        }
+
+        this._clear_editor_group();
+        this._commandsEditorGroup.visible = true;
+        this._commandsEditorGroup.title = _('Edit: %s').format(cmd.name || cmd.id);
+
+        const addRow = (row) => {
+            this._commandsEditorGroup.add(row);
+            this._commandEditorRows.push(row);
+        };
+
+        const persist = () => {
+            let list = this._load_commands();
+            let idx = list.findIndex(c => c.id === id);
+            if (idx >= 0) {
+                list[idx] = cmd;
+                this._settings.set_boolean('custom-commands-seeded', true);
+                this._settings.set_string('custom-commands', JSON.stringify(list));
+            }
+        };
+
+        if (cmd.id === 'nvidia-smi') {
+            addRow(new Adw.ActionRow({
+                title: _('NVIDIA SMI preset'),
+                subtitle: _('Query and fields follow the built-in preset; static columns follow the GPU preference'),
+            }));
+        }
+
+        let nameRow = new Adw.EntryRow({title: _('Name'), text: cmd.name || ''});
+        nameRow.connect('changed', () => {
+            cmd.name = nameRow.text;
+            persist();
+        });
+        addRow(nameRow);
+
+        let catRow = new Adw.ComboRow({title: _('Category')});
+        let catModel = new Gtk.StringList();
+        let catKeys = Object.keys(sensorCatalog);
+        for (let key of catKeys)
+            catModel.append(categoryTitle(key));
+        catRow.model = catModel;
+        catRow.selected = Math.max(0, catKeys.indexOf(cmd.category || 'gpu'));
+        catRow.connect('notify::selected', () => {
+            cmd.category = catKeys[catRow.selected] || 'gpu';
+            persist();
+        });
+        addRow(catRow);
+
+        let modeRow = new Adw.ComboRow({title: _('Mode')});
+        modeRow.model = Gtk.StringList.new([_('Oneshot each update'), _('Long-running process')]);
+        modeRow.selected = cmd.mode === 'long_running' ? 1 : 0;
+        modeRow.connect('notify::selected', () => {
+            cmd.mode = modeRow.selected === 1 ? 'long_running' : 'oneshot';
+            persist();
+        });
+        addRow(modeRow);
+
+        let argvRow = new Adw.EntryRow({
+            title: _('Arguments (JSON array)'),
+            text: JSON.stringify(cmd.argv || []),
+        });
+        argvRow.connect('changed', () => {
+            try {
+                let parsed = JSON.parse(argvRow.text);
+                if (Array.isArray(parsed) && parsed.every(a => typeof a === 'string')) {
+                    cmd.argv = parsed;
+                    persist();
+                }
+            } catch (e) { /* incomplete edit */ }
+        });
+        addRow(argvRow);
+
+        let fieldDelim = new Adw.EntryRow({
+            title: _('Field delimiter'),
+            text: cmd.field_delimiter !== undefined ? cmd.field_delimiter : ',',
+        });
+        fieldDelim.connect('changed', () => {
+            cmd.field_delimiter = fieldDelim.text;
+            persist();
+        });
+        addRow(fieldDelim);
+
+        let multiRow = new Adw.SwitchRow({
+            title: _('Multi-instance (one group per output line)'),
+            active: !!cmd.multi_instance,
+        });
+        multiRow.connect('notify::active', () => {
+            cmd.multi_instance = multiRow.active;
+            persist();
+        });
+        addRow(multiRow);
+
+        let headerRow = new Adw.EntryRow({
+            title: _('Group header field name'),
+            text: cmd.group_header_field || '',
+        });
+        headerRow.connect('changed', () => {
+            cmd.group_header_field = headerRow.text;
+            persist();
+        });
+        addRow(headerRow);
+
+        let fieldsRow = new Adw.EntryRow({
+            title: _('Fields (JSON array)'),
+            text: JSON.stringify(cmd.fields || []),
+        });
+        fieldsRow.connect('changed', () => {
+            try {
+                let parsed = JSON.parse(fieldsRow.text);
+                if (Array.isArray(parsed)) {
+                    cmd.fields = parsed;
+                    persist();
+                }
+            } catch (e) { /* incomplete */ }
+        });
+        addRow(fieldsRow);
+
+        addRow(new Adw.ActionRow({
+            title: _('Formats'),
+            subtitle: commandFieldFormats.join(', '),
+        }));
+
+        let deleteBtn = this._flatButton({
+            label: _('Remove command'),
+            icon_name: 'user-trash-symbolic',
+        });
+        deleteBtn.add_css_class('destructive-action');
+        deleteBtn.connect('clicked', () => {
+            let list = this._load_commands().filter(c => c.id !== id);
+            this._commandsSelectedId = null;
+            this._save_commands(list);
+        });
+        let deleteRow = new Adw.ActionRow({title: _('Remove')});
+        deleteRow.add_suffix(deleteBtn);
+        addRow(deleteRow);
     }
 
     // Runtime matching is `value >= threshold` (see values.js), so each band is
@@ -868,6 +1112,7 @@ export default class VitalsPrefs extends ExtensionPreferences {
         let pages = [{ name: 'general' }];
         for (let name of Object.keys(sensorCatalog))
             pages.push({ name });
+        pages.push({ name: 'commands' });
         for (let info of pages) {
             let page = settings.builder.get_object(info.name + '-page');
             let title = page.get_title();

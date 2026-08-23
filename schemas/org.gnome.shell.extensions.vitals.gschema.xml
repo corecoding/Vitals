@@ -157,12 +157,22 @@
     <key type="b" name="show-gpu">
       <default>false</default>
       <summary>Monitor GPU</summary>
-      <description>Display GPU information (requires the nvidia-smi tool)</description>
+      <description>Display GPU information from custom commands, nvidia-smi preset, DRM sysfs, and refresh rate</description>
     </key>
     <key type="b" name="include-static-gpu-info">
       <default>false</default>
       <summary>Include GPU static information</summary>
-      <description>Display GPU static information that doesn't change</description>
+      <description>When using the NVIDIA SMI preset, include static GPU fields that do not change often</description>
+    </key>
+    <key type="s" name="custom-commands">
+      <default>"[]"</default>
+      <summary>Custom command sensors</summary>
+      <description>JSON array of user-defined command sensors (argv, delimiter, field list). Prefer argv arrays; do not pass untrusted input through a shell.</description>
+    </key>
+    <key type="b" name="custom-commands-seeded">
+      <default>false</default>
+      <summary>Custom commands migration done</summary>
+      <description>True after first-run seeding of built-in presets into custom-commands</description>
     </key>
     <key type="i" name="icon-style">
       <default>0</default>

@@ -106,8 +106,18 @@ Vitals was originally forked from [gnome-shell-extension-freon](https://github.c
 * fan-symbolic.svg - inherited from [Freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon) project, with mild modifications.
 * (temperature | cpu)-symbolic.svg - designed by [daudix](https://github.com/daudix).
 
+## Custom command sensors
+
+Vitals can run user-defined command-line tools and map delimited output (CSV-style) into menu sensor rows. Configure them under **Preferences → Commands**.
+
+- Prefer an **argv JSON array** (not a shell string). Use `["bash","-lc","…"]` only when you need a shell.
+- **Oneshot** runs the command each update interval; **long-running** keeps a process whose stdout is read each interval (supports `{update_time}` in argv).
+- **Multi-instance** treats each output line as a separate category group (e.g. Graphics 1 / Graphics 2).
+- The **NVIDIA SMI** preset replaces the old built-in nvidia-smi integration. If you already had GPU monitoring enabled, Vitals seeds this preset once on upgrade.
+- With no active GPU custom command, Vitals falls back to DRM/sysfs (e.g. AMD) plus the hardcoded refresh-rate sensor.
+
 ## Disclaimer
-Sensor data is obtained from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
+Sensor data is obtained from the system using hwmon, GTop, optional custom commands, and related tools. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
 
 ## Development Commands
 

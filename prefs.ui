@@ -360,6 +360,34 @@
                         </child>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">commands</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-commands">
+                                <property name="icon-name">utilities-terminal-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Commands</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -965,6 +993,7 @@
       <object class="AdwPreferencesGroup">
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
+        <property name="description" translatable="yes">GPU sensors come from custom commands (Commands page), the NVIDIA SMI preset, DRM sysfs, and refresh rate.</property>
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Monitor GPU</property>
@@ -979,6 +1008,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Include static GPU info</property>
+            <property name="subtitle" translatable="yes">Applies to the NVIDIA SMI preset</property>
             <property name="activatable-widget">include-static-gpu-info</property>
             <child type="suffix">
               <object class="GtkSwitch" id="include-static-gpu-info">
@@ -987,6 +1017,56 @@
             </child>
           </object>
         </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Custom commands -->
+  <object class="AdwPreferencesPage" id="commands-page">
+    <property name="name">commands</property>
+    <property name="title" translatable="yes">Commands</property>
+    <property name="icon-name">utilities-terminal-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="commands-list-group">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="title" translatable="yes">Custom command sensors</property>
+        <property name="description" translatable="yes">Run command-line tools and map delimited output to sensor rows. Prefer argv lists; only use a shell if you need one.</property>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Add command</property>
+            <child type="suffix">
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkButton" id="commands-add-nvidia">
+                    <property name="label" translatable="yes">NVIDIA SMI preset</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="commands-add-blank">
+                    <property name="label" translatable="yes">Blank</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup" id="commands-editor-group">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="title" translatable="yes">Edit selected</property>
+        <property name="visible">False</property>
       </object>
     </child>
   </object>
