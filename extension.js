@@ -352,9 +352,14 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
-    _redrawMenu() {
+    _redrawHotSensors() {
         this._removeHotItems();
+        this._drawMenu();
+        this._values.resetHistory(this._numGpus);
+        this._querySensors();
+    }
 
+    _redrawMenu() {
         for (let key in this._sensorMenuItems) {
             if (key.includes('-group')) continue;
             let item = this._sensorMenuItems[key];
@@ -362,10 +367,8 @@ var VitalsMenuButton = GObject.registerClass({
             item.destroy();
         }
 
-        this._drawMenu();
         this._sensors.resetHistory();
-        this._values.resetHistory(this._numGpus);
-        this._querySensors();
+        this._redrawHotSensors();
     }
 
     _drawMenu() {
@@ -441,28 +444,23 @@ var VitalsMenuButton = GObject.registerClass({
             if (self.checked) {
                 // add selected sensor to panel
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, self.value, self.gicon);
             } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
-                this._removeHotItem(self.key);
             }
 
             if (hotSensors.length <= 0) {
                 // add generic icon to panel when no sensors are selected
                 hotSensors.push('_default_icon_');
-                this._createHotItem('_default_icon_');
             } else {
                 let defIconPos = hotSensors.indexOf('_default_icon_');
-                if (defIconPos >= 0) {
-                    // remove generic icon from panel when sensors are selected
+                if (defIconPos >= 0)
                     hotSensors.splice(defIconPos, 1);
-                    this._removeHotItem('_default_icon_');
-                }
             }
 
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
+            this._redrawHotSensors();
         });
 
         this._sensorMenuItems[key] = item;
