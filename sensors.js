@@ -124,10 +124,52 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _groupIsWanted(wantedKeys, group) {
+        if (!wantedKeys)
+            return true;
+
+        for (let key of wantedKeys) {
+            if (!key || key === '_default_icon_')
+                continue;
+            if (key.includes('_' + group + '_') ||
+                key.includes('_' + group + '-') ||
+                key.includes('_' + group + '#'))
+                return true;
+        }
+
+        return false;
+    }
+
+    _hasRealWantedKeys(wantedKeys) {
+        if (!wantedKeys)
+            return true;
+
+        for (let key of wantedKeys) {
+            if (key && key !== '_default_icon_')
+                return true;
+        }
+
+        return false;
+    }
+
+    _needsHardwareDiscovery(wantedKeys) {
+        if (!wantedKeys)
+            return true;
+
+        return this._groupIsWanted(wantedKeys, 'temperature') ||
+            this._groupIsWanted(wantedKeys, 'voltage') ||
+            this._groupIsWanted(wantedKeys, 'fan') ||
+            this._groupIsWanted(wantedKeys, 'network') ||
+            this._groupIsWanted(wantedKeys, 'gpu');
+    }
+
     query(callback, dwell, wantedKeys) {
+        if (!this._hasRealWantedKeys(wantedKeys))
+            return;
+
         console.log('Vitals: ==================== query start full ===================='); // REMOVE ME
 
-        if (!this._hardware_detected) {
+        if (!this._hardware_detected && this._needsHardwareDiscovery(wantedKeys)) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
@@ -136,15 +178,24 @@ export const Sensors = GObject.registerClass({
         }
 
         for (let sensor in this._sensorIcons) {
-            if (this._settings.get_boolean('show-' + sensor)) {
-                if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
-                    // for temp, volt, fan, we have a shared handler
-                    this._queryTempVoltFan(callback, sensor, wantedKeys);
-                } else {
-                    // directly call queryFunction below
-                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                    this[method](callback, dwell);
-                }
+            if (!this._settings.get_boolean('show-' + sensor))
+                continue;
+
+            let wanted = this._groupIsWanted(wantedKeys, sensor);
+            // Process Time is emitted by _querySystem as type processor
+            if (!wanted && sensor === 'system' && wantedKeys &&
+                wantedKeys.has('_processor_process_time_'))
+                wanted = true;
+            if (!wanted)
+                continue;
+
+            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
+                // for temp, volt, fan, we have a shared handler
+                this._queryTempVoltFan(callback, sensor, wantedKeys);
+            } else {
+                // directly call queryFunction below
+                let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+                this[method](callback, dwell);
             }
         }
     }
