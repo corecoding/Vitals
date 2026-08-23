@@ -34,7 +34,7 @@ msgstr "Preferències"
 
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
-msgstr "Incloure la direcció IP pública"
+msgstr "Inclou l'adreça IP pública"
 
 #: prefs.ui:70
 msgid "Format"
@@ -82,11 +82,11 @@ msgstr "Extrem dret"
 
 #: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
-msgstr "Utilitzar una major precisió"
+msgstr "Utilitza més precisió"
 
 #: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
-msgstr "Ordenar sensors alfabèticament"
+msgstr "Ordena els sensors alfabèticament"
 
 #: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
@@ -111,12 +111,10 @@ msgid ""
 "href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
 "useful."
 msgstr ""
-"T'agrada el que veus? Dóna suport al desenvolupament d'aquesta extensió "
-"mitjançant <a href=\"https://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"Sense garantia, expressa o implícita. Peticions de característiques o "
-"errors? Per favor visiti el nostre projecte a <a href=\"https://github.com/"
-"corecoding/Vitals\">GitHub</a>."
+"Voleu demanar noves funcionalitats o informar d'errors? Visiteu <a href=\"https://github.com/"
+"corecoding/Vitals/issues\">GitHub</a>. Sense cap garantia, expressa o "
+"implícita. <a href=\"https://corecoding.com/donate.php\">Feu una donació</"
+"a> si us ha resultat útil."
 
 #: prefs.ui:394
 msgid "Sensors"
@@ -176,7 +174,7 @@ msgstr "Mostra la bateria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
-msgstr "Sensors a mostrar al tauler"
+msgstr "Sensors que es mostraran al tauler"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
@@ -228,7 +226,7 @@ msgstr "Mostra la rotació del ventilador per minut"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
 msgid "Display memory information"
-msgstr "Mostrar la informació de memòria"
+msgstr "Mostra la informació de memòria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
 msgid "Display processor information"
@@ -236,7 +234,7 @@ msgstr "Mostra la informació del processador"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
 msgid "Display system information"
-msgstr "Mostrar la informació del sistema"
+msgstr "Mostra la informació del sistema"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
 msgid "Display storage information"
@@ -244,7 +242,7 @@ msgstr "Mostra la informació d'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
 msgid "Display network information"
-msgstr "Mostrar la informació de xarxa"
+msgstr "Mostra la informació de xarxa"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
 msgid "Display public IP address of internet connection"
@@ -288,11 +286,11 @@ msgstr "Podeu utilitzar gigabyte o gibibyte per a l'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
 msgid "Battery slot to monitor"
-msgstr "Bateria a monitorar"
+msgstr "Ranura de bateria que cal monitoritzar"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
 msgid "Which numerical battery slot should vitals monitor"
-msgstr "Bateria a monitorar per vitals"
+msgstr "Quina ranura numèrica de bateria ha de monitoritzar Vitals"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
 msgid "Use fixed widths in top bar"
@@ -305,7 +303,7 @@ msgstr ""
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
 msgid "Keep top bar clean by only showing sensor values"
-msgstr "Mantingueu la barra superior neta mostrant només els valors del sensor"
+msgstr "Manté la barra superior neta mostrant només els valors del sensor"
 
 #: sensors.js:42
 msgid "Temperature"
@@ -390,7 +388,7 @@ msgstr "Turbo"
 
 #: sensors.js:238
 msgid "Vendor"
-msgstr "Proveïdor"
+msgstr "Fabricant"
 
 #: sensors.js:239
 msgid "Bogomips"

@@ -76,11 +76,10 @@ var VitalsMenuButton = GObject.registerClass({
             'changed::update-time', this._initializeTimer.bind(this),
             'changed::position-in-panel', this._positionInPanelChanged.bind(this),
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
-            'changed::icon-style', this._iconStyleChanged.bind(this),
             this);
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
-                         'fixed-widths', 'hide-icons', 'unit',
+                         'fixed-widths', 'hide-icons', 'unit', 'icon-style',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
                          'include-static-info', 'include-static-gpu-info' ];
@@ -316,27 +315,6 @@ var VitalsMenuButton = GObject.registerClass({
         boxes[position[0]].insert_child_at_index(this.container, position[1]);
     }
 
-    _redrawDetailsMenuIcons() {
-        // updates the icons on the 'details' menu, the one
-        // you have to click to appear
-        this._sensors.resetHistory();
-        for (const sensor in this._sensorIcons) {
-            if (sensor == "gpu") continue;
-            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
-        }
-
-        // gpu's are indexed differently, handle them here
-        const gpuKeys = Object.keys(this._groups).filter(key => key.startsWith("gpu#"));
-        gpuKeys.forEach((gpuKey) => {
-            this._groups[gpuKey].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath("gpu"));
-        });
-    }
-
-    _iconStyleChanged() {
-        this._redrawDetailsMenuIcons();
-        this._redrawMenu();
-    }
-
     _removeHotItems(){
         for (let key in this._hotItems) {
             this._removeHotItem(key);
@@ -352,9 +330,14 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
-    _redrawMenu() {
+    _redrawHotSensors() {
         this._removeHotItems();
+        this._drawMenu();
+        this._values.resetHistory(this._numGpus);
+        this._querySensors();
+    }
 
+    _redrawMenu() {
         for (let key in this._sensorMenuItems) {
             if (key.includes('-group')) continue;
             let item = this._sensorMenuItems[key];
@@ -362,10 +345,12 @@ var VitalsMenuButton = GObject.registerClass({
             item.destroy();
         }
 
-        this._drawMenu();
+        // group headers persist across row rebuilds; refresh pack (original vs gnome)
+        for (let groupName in this._groups)
+            this._groups[groupName].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(groupName));
+
         this._sensors.resetHistory();
-        this._values.resetHistory(this._numGpus);
-        this._querySensors();
+        this._redrawHotSensors();
     }
 
     _drawMenu() {
@@ -441,28 +426,23 @@ var VitalsMenuButton = GObject.registerClass({
             if (self.checked) {
                 // add selected sensor to panel
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, self.value, self.gicon);
             } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
-                this._removeHotItem(self.key);
             }
 
             if (hotSensors.length <= 0) {
                 // add generic icon to panel when no sensors are selected
                 hotSensors.push('_default_icon_');
-                this._createHotItem('_default_icon_');
             } else {
                 let defIconPos = hotSensors.indexOf('_default_icon_');
-                if (defIconPos >= 0) {
-                    // remove generic icon from panel when sensors are selected
+                if (defIconPos >= 0)
                     hotSensors.splice(defIconPos, 1);
-                    this._removeHotItem('_default_icon_');
-                }
             }
 
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
+            this._redrawHotSensors();
         });
 
         this._sensorMenuItems[key] = item;

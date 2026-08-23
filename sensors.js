@@ -124,10 +124,56 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, dwell, wantedKeys) {
-        console.log('Vitals: query start full'); // REMOVE ME
+    _groupIsWanted(wantedKeys, group) {
+        if (!wantedKeys)
+            return true;
 
-        if (!this._hardware_detected) {
+        for (let key of wantedKeys) {
+            if (!key || key === '_default_icon_')
+                continue;
+            if (key.includes('_' + group + '_') ||
+                key.includes('_' + group + '-') ||
+                key.includes('_' + group + '#'))
+                return true;
+        }
+
+        return false;
+    }
+
+    _hasRealWantedKeys(wantedKeys) {
+        if (!wantedKeys)
+            return true;
+
+        for (let key of wantedKeys) {
+            if (key && key !== '_default_icon_')
+                return true;
+        }
+
+        return false;
+    }
+
+    _needsHardwareDiscovery(wantedKeys) {
+        if (!wantedKeys)
+            return true;
+
+        return this._groupIsWanted(wantedKeys, 'temperature') ||
+            this._groupIsWanted(wantedKeys, 'voltage') ||
+            this._groupIsWanted(wantedKeys, 'fan') ||
+            this._groupIsWanted(wantedKeys, 'network') ||
+            this._groupIsWanted(wantedKeys, 'gpu');
+    }
+
+    query(callback, dwell, wantedKeys) {
+        // Public IP lives in the Network menu but is not a pinned-group sensor
+        if (this._settings.get_boolean('include-public-ip'))
+            this._queryPublicIp(callback, dwell);
+
+        if (!this._hasRealWantedKeys(wantedKeys))
+            return;
+
+        console.log('Vitals: ==================== query start full ===================='); // REMOVE ME
+
+        if (!this._hardware_detected && this._needsHardwareDiscovery(wantedKeys)) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
@@ -136,13 +182,25 @@ export const Sensors = GObject.registerClass({
         }
 
         for (let sensor in this._sensorIcons) {
-            if (!this._settings.get_boolean('show-' + sensor)) continue;
-            if (wantedKeys && sensor != 'system' && sensor != 'gpu' &&
-                ![...wantedKeys].some(k => k.includes('_' + sensor))) continue;
-            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan')
+            if (!this._settings.get_boolean('show-' + sensor))
+                continue;
+
+            let wanted = this._groupIsWanted(wantedKeys, sensor);
+            // Process Time is emitted by _querySystem as type processor
+            if (!wanted && sensor === 'system' && wantedKeys &&
+                wantedKeys.has('_processor_process_time_'))
+                wanted = true;
+            if (!wanted)
+                continue;
+
+            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
+                // for temp, volt, fan, we have a shared handler
                 this._queryTempVoltFan(callback, sensor, wantedKeys);
-            else
-                this['_query' + sensor[0].toUpperCase() + sensor.slice(1)](callback, dwell);
+            } else {
+                // directly call queryFunction below
+                let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+                this[method](callback, dwell);
+            }
         }
     }
 
@@ -302,24 +360,20 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _queryPublicIp(callback, dwell) {
+        if (this._next_public_ip_check <= 0) {
+            this._next_public_ip_check = this._settings.get_int('network-public-ip-interval') * 60;
+            this._refreshIPAddress(callback);
+        }
+
+        this._next_public_ip_check -= dwell;
+    }
+
     _queryNetwork(callback, dwell) {
         for (let sensor of this._networkIfaces) {
             new FileModule.File(sensor.path).read().then(value => {
                 this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
             }).catch(err => { });
-        }
-
-        // some may not want public ip checking
-        if (this._settings.get_boolean('include-public-ip')) {
-            // check the public ip every hour or when waking from sleep
-            if (this._next_public_ip_check <= 0) {
-                let intervalMinutes = this._settings.get_int('network-public-ip-interval');
-                this._next_public_ip_check = intervalMinutes * 60;
-
-                this._refreshIPAddress(callback);
-            }
-
-            this._next_public_ip_check -= dwell;
         }
 
         // wireless interface statistics
@@ -602,9 +656,10 @@ export const Sensors = GObject.registerClass({
             ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
             ///    lines.push(lines[0]);
 
-            for (let i = 0; i < lines.length; i++) {
-                this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
-            }
+            // split('\n') leaves a trailing empty string when the read ends in a newline
+            let csv = lines.at(-1) || lines.at(-2);
+            if (csv)
+                this._parseNvidiaSmiLine(callback, csv, 1, false);
 
             // if we've already updated the static info during the last parse, then stop doing so.
             // this is so the _parseNvidiaSmiLine function won't return static info anymore
@@ -911,13 +966,11 @@ export const Sensors = GObject.registerClass({
     _discoverGpuDrm() {
         // use DRM only if nvidia-smi is not used
         if (this._settings.get_boolean('show-gpu') && this._nvidia_smi_process == null) {
+            this._gpu_drm_indices = [];
+            this._gpu_drm_vendors = [];
             // try to discover up to 10 cards starting from index 0
             for(let i = 0; i < 10 ; i++){
                 new FileModule.File('/sys/class/drm/card'+i+'/device/vendor').read().then(value => {
-                    if(!this._gpu_drm_indices){
-                        this._gpu_drm_indices = [];
-                        this._gpu_drm_vendors = [];
-                    }
                     this._gpu_drm_indices.push(i);
                     this._gpu_drm_vendors.push(value);
                 }).catch(err => { });
