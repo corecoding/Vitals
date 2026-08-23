@@ -650,12 +650,6 @@ export const Sensors = GObject.registerClass({
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
-            /// for debugging multi-gpu on systems with only one gpu
-            /// duplicates the first gpu's data 3 times, for 4 total gpus
-            ///if(lines.length == 0) return;
-            ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
-            ///    lines.push(lines[0]);
-
             // split('\n') leaves a trailing empty string when the read ends in a newline
             let csv = lines.at(-1) || lines.at(-2);
             if (csv)
