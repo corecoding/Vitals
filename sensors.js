@@ -164,6 +164,10 @@ export const Sensors = GObject.registerClass({
     }
 
     query(callback, dwell, wantedKeys) {
+        // Public IP lives in the Network menu but is not a pinned-group sensor
+        if (this._settings.get_boolean('include-public-ip'))
+            this._queryPublicIp(callback, dwell);
+
         if (!this._hasRealWantedKeys(wantedKeys))
             return;
 
@@ -367,24 +371,20 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _queryPublicIp(callback, dwell) {
+        if (this._next_public_ip_check <= 0) {
+            this._next_public_ip_check = this._settings.get_int('network-public-ip-interval') * 60;
+            this._refreshIPAddress(callback);
+        }
+
+        this._next_public_ip_check -= dwell;
+    }
+
     _queryNetwork(callback, dwell) {
         for (let sensor of this._networkIfaces) {
             new FileModule.File(sensor.path).read().then(value => {
                 this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
             }).catch(err => { });
-        }
-
-        // some may not want public ip checking
-        if (this._settings.get_boolean('include-public-ip')) {
-            // check the public ip every hour or when waking from sleep
-            if (this._next_public_ip_check <= 0) {
-                let intervalMinutes = this._settings.get_int('network-public-ip-interval');
-                this._next_public_ip_check = intervalMinutes * 60;
-
-                this._refreshIPAddress(callback);
-            }
-
-            this._next_public_ip_check -= dwell;
         }
 
         // wireless interface statistics
