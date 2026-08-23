@@ -125,7 +125,7 @@ export const Sensors = GObject.registerClass({
     }
 
     query(callback, dwell, wantedKeys) {
-        console.log('Vitals: query start full'); // REMOVE ME
+        console.log('Vitals: ==================== query start full ===================='); // REMOVE ME
 
         if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
