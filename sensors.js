@@ -199,7 +199,10 @@ export const Sensors = GObject.registerClass({
             } else {
                 // directly call queryFunction below
                 let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                this[method](callback, dwell);
+                if (sensor === 'network')
+                    this[method](callback, dwell, wantedKeys);
+                else
+                    this[method](callback, dwell);
             }
         }
     }
@@ -369,14 +372,53 @@ export const Sensors = GObject.registerClass({
         this._next_public_ip_check -= dwell;
     }
 
-    _queryNetwork(callback, dwell) {
+    _queryNetwork(callback, dwell, wantedKeys) {
+        let readAll = !wantedKeys;
+        let needRx = readAll;
+        let needTx = readAll;
+        let needWifi = readAll;
+
+        if (wantedKeys) {
+            for (let key of wantedKeys) {
+                if (key.startsWith('_network-rx_') ||
+                    key === '__network-rx_max__' ||
+                    key === '__network-rx_boot__' ||
+                    key === '__network-rx_ses__')
+                    needRx = true;
+                else if (key.startsWith('_network-tx_') ||
+                    key === '__network-tx_max__' ||
+                    key === '__network-tx_boot__' ||
+                    key === '__network-tx_ses__')
+                    needTx = true;
+                else if (key === '_network_wifi_link quality_' ||
+                    key === '_network_wifi_signal level_')
+                    needWifi = true;
+            }
+        }
+
         for (let sensor of this._networkIfaces) {
+            if (!readAll) {
+                if (sensor.type === 'network-rx' && !needRx)
+                    continue;
+                if (sensor.type === 'network-tx' && !needTx)
+                    continue;
+                // lo is type "network" and is excluded from Device totals (#217)
+                if (sensor.type === 'network' &&
+                    !wantedKeys.has('_' + sensor.type + '_' + sensor.name.replace(' ', '_').toLowerCase() + '_'))
+                    continue;
+            }
+
             new FileModule.File(sensor.path).read().then(value => {
                 this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
             }).catch(err => { });
         }
 
-        // wireless interface statistics
+        // WiFi quality/signal only when menu open / those pins, and discovery found wireless
+        if (needWifi && this._hasWireless)
+            this._queryWireless(callback);
+    }
+
+    _queryWireless(callback) {
         new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
             // wireless has two headers - first is stripped in helper function
             lines.shift();
@@ -927,6 +969,7 @@ export const Sensors = GObject.registerClass({
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._discoverNetworkIfaces(callback);
+        this._discoverWireless(callback);
     }
 
     _discoverNetworkIfaces(callback) {
@@ -955,6 +998,20 @@ export const Sensors = GObject.registerClass({
                 }
             }
         }).catch(err => { });
+    }
+
+    _discoverWireless(callback) {
+        this._hasWireless = false;
+        new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
+            lines.shift();
+            let line = lines[lines.length - 1];
+            if (!line)
+                return;
+            this._hasWireless = true;
+            this._queryWireless(callback);
+        }).catch(err => {
+            this._hasWireless = false;
+        });
     }
 
     _discoverGpuDrm() {
@@ -1139,6 +1196,7 @@ export const Sensors = GObject.registerClass({
         this._next_public_ip_check = 0;
         this._hardware_detected = false;
         this._networkIfaces = [];
+        this._hasWireless = false;
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
