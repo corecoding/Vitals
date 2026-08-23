@@ -666,9 +666,10 @@ export const Sensors = GObject.registerClass({
             ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
             ///    lines.push(lines[0]);
 
-            for (let i = 0; i < lines.length; i++) {
-                this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
-            }
+            // split('\n') leaves a trailing empty string when the read ends in a newline
+            let csv = lines.at(-1) || lines.at(-2);
+            if (csv)
+                this._parseNvidiaSmiLine(callback, csv, 1, false);
 
             // if we've already updated the static info during the last parse, then stop doing so.
             // this is so the _parseNvidiaSmiLine function won't return static info anymore
@@ -976,13 +977,11 @@ export const Sensors = GObject.registerClass({
     _discoverGpuDrm() {
         // use DRM only if nvidia-smi is not used
         if (this._settings.get_boolean('show-gpu') && this._nvidia_smi_process == null) {
+            this._gpu_drm_indices = [];
+            this._gpu_drm_vendors = [];
             // try to discover up to 10 cards starting from index 0
             for(let i = 0; i < 10 ; i++){
                 new FileModule.File('/sys/class/drm/card'+i+'/device/vendor').read().then(value => {
-                    if(!this._gpu_drm_indices){
-                        this._gpu_drm_indices = [];
-                        this._gpu_drm_vendors = [];
-                    }
                     this._gpu_drm_indices.push(i);
                     this._gpu_drm_vendors.push(value);
                 }).catch(err => { });
