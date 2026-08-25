@@ -368,32 +368,55 @@ export const Sensors = GObject.registerClass({
         this._next_public_ip_check -= dwell;
     }
 
+    // Returns 'all', a Set of sensor keys, or null.
+    // Boot/Session/Device aggregates need every iface so totals stay correct.
     _networkWanted(wantedKeys, kind) {
         if (!wantedKeys)
-            return true;
+            return 'all';
         if (kind === 'wifi')
-            return wantedKeys.has('_network_wifi_link quality_') ||
-                wantedKeys.has('_network_wifi_signal level_');
+            return (wantedKeys.has('_network_wifi_link quality_') ||
+                wantedKeys.has('_network_wifi_signal level_')) ? 'all' : null;
+
+        let keys = null;
         for (let key of wantedKeys) {
-            if (key.startsWith('_network-' + kind + '_') ||
-                key === '__network-' + kind + '_max__' ||
+            if (key === '__network-' + kind + '_max__' ||
                 key === '__network-' + kind + '_boot__' ||
                 key === '__network-' + kind + '_ses__')
-                return true;
+                return 'all';
+            if (key.startsWith('_network-' + kind + '_')) {
+                if (!keys)
+                    keys = new Set();
+                keys.add(key);
+            }
         }
-        return false;
+        return keys;
     }
 
     _queryNetwork(callback, dwell, wantedKeys) {
+        let wantRx = this._networkWanted(wantedKeys, 'rx');
+        let wantTx = this._networkWanted(wantedKeys, 'tx');
+
         for (let sensor of this._networkIfaces) {
-            if (sensor.type === 'network-rx' && !this._networkWanted(wantedKeys, 'rx'))
+            let want = null;
+            if (sensor.type === 'network-rx')
+                want = wantRx;
+            else if (sensor.type === 'network-tx')
+                want = wantTx;
+            else if (sensor.type === 'network') {
+                // lo is type "network" and is excluded from Device totals (#217)
+                if (!wantedKeys ||
+                    wantedKeys.has('_network_' + sensor.name.replace(' ', '_').toLowerCase() + '_'))
+                    want = 'all';
+            }
+
+            if (!want)
                 continue;
-            if (sensor.type === 'network-tx' && !this._networkWanted(wantedKeys, 'tx'))
-                continue;
-            // lo is type "network" and is excluded from Device totals (#217)
-            if (sensor.type === 'network' && wantedKeys &&
-                !wantedKeys.has('_network_' + sensor.name.replace(' ', '_').toLowerCase() + '_'))
-                continue;
+            if (want !== 'all') {
+                let key = '_' + sensor.type + '_' +
+                    sensor.name.replace(' ', '_').toLowerCase() + '_';
+                if (!want.has(key))
+                    continue;
+            }
 
             new FileModule.File(sensor.path).read().then(value => {
                 this._returnValue(callback, sensor.name, value, sensor.type, 'storage');

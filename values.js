@@ -343,13 +343,18 @@ export const Values = GObject.registerClass({
                 key: bootKey,
             });
 
-            // keeps track of session start point
-            if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
-                this._networkSpeedOffset[key] = sum;
+            // per-iface byte counter at first sight; session = sum of deltas (#234)
+            if (!(key in this._networkSpeedOffset))
+                this._networkSpeedOffset[key] = value;
 
-            // outputs session upload and download for all interfaces for #234
+            let sessionBytes = 0;
+            for (let k in this._history[type]) {
+                let cur = parseFloat(this._history[type][k][1]);
+                sessionBytes += cur - (this._networkSpeedOffset[k] ?? cur);
+            }
+
             let sessionKey = '__' + type + '_ses__';
-            let session = this._legible(sum - this._networkSpeedOffset[key], format, type, sessionKey);
+            let session = this._legible(sessionBytes, format, type, sessionKey);
             output.push({
                 label: 'Session ' + direction,
                 value: session.text,
