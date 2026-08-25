@@ -558,6 +558,19 @@ var VitalsMenuButton = GObject.registerClass({
         this._last_query = now;
 
         let wantedKeys = this.menu.isOpen ? null : new Set(this._settings.get_strv('hot-sensors'));
+        // panel placeholder only — nothing to poll unless public IP is enabled
+        if (wantedKeys && !this._settings.get_boolean('include-public-ip')) {
+            let idle = true;
+            for (let key of wantedKeys) {
+                if (key && key !== '_default_icon_') {
+                    idle = false;
+                    break;
+                }
+            }
+            if (idle)
+                return;
+        }
+
         this._sensors.query((label, value, type, format) => {
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
