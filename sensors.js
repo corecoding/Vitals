@@ -186,8 +186,13 @@ export const Sensors = GObject.registerClass({
         }
 
         for (let sensor in this._sensorIcons) {
-            if (!this._settings.get_boolean('show-' + sensor))
+            // Process Time needs core counts from _queryProcessor even if Processor is hidden
+            if (!this._settings.get_boolean('show-' + sensor)) {
+                if (sensor === 'processor' && wantedKeys &&
+                    wantedKeys.has('_processor_process_time_'))
+                    this._queryProcessor(callback, dwell);
                 continue;
+            }
 
             let wanted = this._groupIsWanted(wantedKeys, sensor);
             // Process Time is emitted by _querySystem as type processor
@@ -215,7 +220,7 @@ export const Sensors = GObject.registerClass({
 
         for (let label in this._tempVoltFanSensors[type]) {
             if (!readAll &&
-                !wantedKeys.has('_' + type + '_' + label.replace(' ', '_').toLowerCase() + '_'))
+                !wantedKeys.has('_' + type + '_' + label.replaceAll(' ', '_').toLowerCase() + '_'))
                 continue;
 
             let sensor = this._tempVoltFanSensors[type][label];
@@ -235,10 +240,10 @@ export const Sensors = GObject.registerClass({
             let total = m.MemTotal || 0, avail = m.MemAvailable || 0, swapTotal = m.SwapTotal || 0;
             let swapFree = m.SwapFree || 0, cached = m.Cached || 0, memFree = m.MemFree || 0;
 
-            let used = total - avail
-            let utilized = used / total;
-            let swapUsed = swapTotal - swapFree
-            let swapUtilized = swapUsed / swapTotal;
+            let used = total - avail;
+            let utilized = total ? used / total : 0;
+            let swapUsed = swapTotal - swapFree;
+            let swapUtilized = swapTotal ? swapUsed / swapTotal : 0;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
@@ -409,7 +414,7 @@ export const Sensors = GObject.registerClass({
             else if (sensor.type === 'network') {
                 // lo is type "network" and is excluded from Device totals (#217)
                 if (!wantedKeys ||
-                    wantedKeys.has('_network_' + sensor.name.replace(' ', '_').toLowerCase() + '_'))
+                    wantedKeys.has('_network_' + sensor.name.replaceAll(' ', '_').toLowerCase() + '_'))
                     want = 'all';
             }
 
@@ -417,7 +422,7 @@ export const Sensors = GObject.registerClass({
                 continue;
             if (want !== 'all') {
                 let key = '_' + sensor.type + '_' +
-                    sensor.name.replace(' ', '_').toLowerCase() + '_';
+                    sensor.name.replaceAll(' ', '_').toLowerCase() + '_';
                 if (!want.has(key))
                     continue;
             }

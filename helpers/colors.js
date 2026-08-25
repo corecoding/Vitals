@@ -118,7 +118,7 @@ export function sensorKeyFromTypeLabel(type, label) {
     let typeKey = (type || '').replace('-group', '');
     if (/^network-(?!rx$|tx$)/.test(typeKey))
         typeKey = 'network';
-    return '_' + typeKey + '_' + String(label).replace(' ', '_').toLowerCase() + '_';
+    return '_' + typeKey + '_' + String(label).replaceAll(' ', '_').toLowerCase() + '_';
 }
 
 // Hot-sensor / color keys: _<type>_<label parts>_
