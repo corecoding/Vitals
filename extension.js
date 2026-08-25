@@ -349,7 +349,7 @@ var VitalsMenuButton = GObject.registerClass({
         for (let groupName in this._groups)
             this._groups[groupName].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(groupName));
 
-        this._sensors.resetHistory();
+        this._sensors.resetHistory(false);
         this._redrawHotSensors();
     }
 

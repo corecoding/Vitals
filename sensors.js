@@ -179,6 +179,10 @@ export const Sensors = GObject.registerClass({
             this._hardware_detected = true;
             console.log('Vitals: discovering hardware monitors'); // REMOVE ME
             this._discoverHardwareMonitors(callback);
+        } else if (this._static_info_refresh) {
+            // menu redraw cleared rows but kept discovery; re-emit static CPU/kernel only
+            this._static_info_refresh = false;
+            this._queryStaticInfo(callback);
         }
 
         for (let sensor in this._sensorIcons) {
@@ -943,46 +947,51 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
 
         // is static CPU information enabled?
-        if (this._settings.get_boolean('include-static-info')) {
-            // grab static CPU information
-            new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
-                let vendor_id = '';
-                let bogomips = '';
-                let sockets = {};
-                let cache = '';
-
-                for (let line of lines) {
-                    let value = '';
-
-                    // grab cpu vendor
-                    if (value = line.match(/^vendor_id(\s+): (\w+.*)/)) vendor_id = value[2];
-
-                    // grab bogomips
-                    if (value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/)) bogomips = value[2];
-
-                    // grab processor count
-                    if (value = line.match(/^physical id(\s+): (\d+)$/)) sockets[value[2]] = 1;
-
-                    // grab cache
-                    if (value = line.match(/^cache size(\s+): (\d+) KB$/)) cache = value[2];
-                }
-
-                this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
-                this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
-                this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
-                this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
-            }).catch(err => { });
-
-            // grab static CPU information
-            new FileModule.File('/proc/version').read(' ').then(kernelArray => {
-                this._returnValue(callback, 'Kernel', kernelArray[2], 'system', 'string');
-            }).catch(err => { });
-        }
+        this._queryStaticInfo(callback);
 
         // Launch nvidia-smi subprocess if nvidia querying is enabled
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._discoverNetworkIfaces(callback);
+    }
+
+    _queryStaticInfo(callback) {
+        if (!this._settings.get_boolean('include-static-info'))
+            return;
+
+        // grab static CPU information
+        new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
+            let vendor_id = '';
+            let bogomips = '';
+            let sockets = {};
+            let cache = '';
+
+            for (let line of lines) {
+                let value = '';
+
+                // grab cpu vendor
+                if (value = line.match(/^vendor_id(\s+): (\w+.*)/)) vendor_id = value[2];
+
+                // grab bogomips
+                if (value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/)) bogomips = value[2];
+
+                // grab processor count
+                if (value = line.match(/^physical id(\s+): (\d+)$/)) sockets[value[2]] = 1;
+
+                // grab cache
+                if (value = line.match(/^cache size(\s+): (\d+) KB$/)) cache = value[2];
+            }
+
+            this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
+            this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
+            this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
+            this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
+        }).catch(err => { });
+
+        // grab static CPU information
+        new FileModule.File('/proc/version').read(' ').then(kernelArray => {
+            this._returnValue(callback, 'Kernel', kernelArray[2], 'system', 'string');
+        }).catch(err => { });
     }
 
     _discoverNetworkIfaces(callback) {
@@ -1200,11 +1209,17 @@ export const Sensors = GObject.registerClass({
         };
     }
 
-    resetHistory() {
+    // rediscover=false keeps network/TVF/GPU discovery across cosmetic menu redraws
+    resetHistory(rediscover = true) {
         this._next_public_ip_check = 0;
-        this._hardware_detected = false;
-        this._networkIfaces = [];
-        this._hasWireless = false;
+        this._static_info_refresh = false;
+        if (rediscover) {
+            this._hardware_detected = false;
+            this._networkIfaces = [];
+            this._hasWireless = false;
+        } else {
+            this._static_info_refresh = true;
+        }
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
@@ -1214,6 +1229,10 @@ export const Sensors = GObject.registerClass({
         this._frameMonitorLastTime = 0;
         this._frameMonitorFrameCount = 0;
         this._frameMonitorAccTime = 0;
+
+        // soft reset must restart nvidia-smi so static GPU fields are queried again
+        if (!rediscover)
+            this._reconfigureNvidiaSmiProcess();
     }
 
     destroy() {
