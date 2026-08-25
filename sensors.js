@@ -197,12 +197,8 @@ export const Sensors = GObject.registerClass({
                 // for temp, volt, fan, we have a shared handler
                 this._queryTempVoltFan(callback, sensor, wantedKeys);
             } else {
-                // directly call queryFunction below
                 let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                if (sensor === 'network')
-                    this[method](callback, dwell, wantedKeys);
-                else
-                    this[method](callback, dwell);
+                this[method](callback, dwell, wantedKeys);
             }
         }
     }
@@ -372,49 +368,39 @@ export const Sensors = GObject.registerClass({
         this._next_public_ip_check -= dwell;
     }
 
-    _queryNetwork(callback, dwell, wantedKeys) {
-        let readAll = !wantedKeys;
-        let needRx = readAll;
-        let needTx = readAll;
-        let needWifi = readAll;
-
-        if (wantedKeys) {
-            for (let key of wantedKeys) {
-                if (key.startsWith('_network-rx_') ||
-                    key === '__network-rx_max__' ||
-                    key === '__network-rx_boot__' ||
-                    key === '__network-rx_ses__')
-                    needRx = true;
-                else if (key.startsWith('_network-tx_') ||
-                    key === '__network-tx_max__' ||
-                    key === '__network-tx_boot__' ||
-                    key === '__network-tx_ses__')
-                    needTx = true;
-                else if (key === '_network_wifi_link quality_' ||
-                    key === '_network_wifi_signal level_')
-                    needWifi = true;
-            }
+    _networkWanted(wantedKeys, kind) {
+        if (!wantedKeys)
+            return true;
+        if (kind === 'wifi')
+            return wantedKeys.has('_network_wifi_link quality_') ||
+                wantedKeys.has('_network_wifi_signal level_');
+        for (let key of wantedKeys) {
+            if (key.startsWith('_network-' + kind + '_') ||
+                key === '__network-' + kind + '_max__' ||
+                key === '__network-' + kind + '_boot__' ||
+                key === '__network-' + kind + '_ses__')
+                return true;
         }
+        return false;
+    }
 
+    _queryNetwork(callback, dwell, wantedKeys) {
         for (let sensor of this._networkIfaces) {
-            if (!readAll) {
-                if (sensor.type === 'network-rx' && !needRx)
-                    continue;
-                if (sensor.type === 'network-tx' && !needTx)
-                    continue;
-                // lo is type "network" and is excluded from Device totals (#217)
-                if (sensor.type === 'network' &&
-                    !wantedKeys.has('_' + sensor.type + '_' + sensor.name.replace(' ', '_').toLowerCase() + '_'))
-                    continue;
-            }
+            if (sensor.type === 'network-rx' && !this._networkWanted(wantedKeys, 'rx'))
+                continue;
+            if (sensor.type === 'network-tx' && !this._networkWanted(wantedKeys, 'tx'))
+                continue;
+            // lo is type "network" and is excluded from Device totals (#217)
+            if (sensor.type === 'network' && wantedKeys &&
+                !wantedKeys.has('_network_' + sensor.name.replace(' ', '_').toLowerCase() + '_'))
+                continue;
 
             new FileModule.File(sensor.path).read().then(value => {
                 this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
             }).catch(err => { });
         }
 
-        // WiFi quality/signal only when menu open / those pins, and discovery found wireless
-        if (needWifi && this._hasWireless)
+        if (this._networkWanted(wantedKeys, 'wifi') && this._hasWireless)
             this._queryWireless(callback);
     }
 
@@ -692,10 +678,15 @@ export const Sensors = GObject.registerClass({
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
-            // split('\n') leaves a trailing empty string when the read ends in a newline
-            let csv = lines.at(-1) || lines.at(-2);
-            if (csv)
-                this._parseNvidiaSmiLine(callback, csv, 1, false);
+            /// for debugging multi-gpu on systems with only one gpu
+            /// duplicates the first gpu's data 3 times, for 4 total gpus
+            ///if(lines.length == 0) return;
+            ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
+            ///    lines.push(lines[0]);
+
+            for (let i = 0; i < lines.length; i++) {
+                this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
+            }
 
             // if we've already updated the static info during the last parse, then stop doing so.
             // this is so the _parseNvidiaSmiLine function won't return static info anymore
@@ -969,11 +960,11 @@ export const Sensors = GObject.registerClass({
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._discoverNetworkIfaces(callback);
-        this._discoverWireless(callback);
     }
 
     _discoverNetworkIfaces(callback) {
         this._networkIfaces = [];
+        this._hasWireless = false;
         let netbase = '/sys/class/net/';
         let directions = ['tx', 'rx'];
 
@@ -997,21 +988,15 @@ export const Sensors = GObject.registerClass({
                     }).catch(err => { });
                 }
             }
-        }).catch(err => { });
-    }
 
-    _discoverWireless(callback) {
-        this._hasWireless = false;
-        new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
-            lines.shift();
-            let line = lines[lines.length - 1];
-            if (!line)
-                return;
-            this._hasWireless = true;
-            this._queryWireless(callback);
-        }).catch(err => {
-            this._hasWireless = false;
-        });
+            new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
+                lines.shift();
+                if (!lines[lines.length - 1])
+                    return;
+                this._hasWireless = true;
+                this._queryWireless(callback);
+            }).catch(err => { });
+        }).catch(err => { });
     }
 
     _discoverGpuDrm() {
