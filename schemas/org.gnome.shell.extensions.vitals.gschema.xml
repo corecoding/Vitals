@@ -83,6 +83,7 @@
     </key>
     <key type="i" name="network-public-ip-interval">
       <default>60</default>
+      <range min="15" max="1440"/>
       <summary>Public IP refresh interval in minutes</summary>
     </key>
     <key name="network-public-ip-show-flag" type="b">

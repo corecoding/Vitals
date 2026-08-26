@@ -370,7 +370,9 @@ export const Sensors = GObject.registerClass({
 
     _queryPublicIp(callback, dwell) {
         if (this._next_public_ip_check <= 0) {
-            this._next_public_ip_check = this._settings.get_int('network-public-ip-interval') * 60;
+            // prefs UI minimum is 15; clamp in case an older/dconf value is lower
+            let minutes = Math.max(15, this._settings.get_int('network-public-ip-interval'));
+            this._next_public_ip_check = minutes * 60;
             this._refreshIPAddress(callback);
         }
 
@@ -1217,9 +1219,9 @@ export const Sensors = GObject.registerClass({
 
     // rediscover=false keeps network/TVF/GPU discovery across cosmetic menu redraws
     resetHistory(rediscover = true) {
-        this._next_public_ip_check = 0;
         this._static_info_refresh = false;
         if (rediscover) {
+            this._next_public_ip_check = 0;
             this._hardware_detected = false;
             this._networkIfaces = [];
             this._hasWireless = false;
