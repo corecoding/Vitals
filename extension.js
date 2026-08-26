@@ -491,9 +491,11 @@ var VitalsMenuButton = GObject.registerClass({
 
     _sensorIconPath(sensor, icon = 'icon') {
         let sensorKey = sensor;
-        if (sensor.startsWith('gpu'))
-            sensorKey = 'gpu';
 
+        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
+        if (sensor.startsWith('gpu')) sensorKey = 'gpu';
+
+        // allows country flags to show
         const icons = this._sensorIcons[sensorKey];
         if (sensorKey === 'network' && icon.startsWith('icon-') && !(icons && icons[icon])) {
             let cc = icon.slice('icon-'.length);
@@ -558,18 +560,13 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
-        let wantedKeys = this.menu.isOpen ? null : new Set(this._settings.get_strv('hot-sensors'));
-        // panel placeholder only — nothing to poll unless public IP is enabled
-        if (wantedKeys && !this._settings.get_boolean('include-public-ip')) {
-            let idle = true;
-            for (let key of wantedKeys) {
-                if (key && key !== '_default_icon_') {
-                    idle = false;
-                    break;
-                }
-            }
-            if (idle)
+        let wantedKeys = null;
+        if (!this.menu.isOpen) {
+            let hot = this._settings.get_strv('hot-sensors');
+            // empty or sole `_default_icon_` — nothing to refresh on the panel
+            if (hot.length <= 1 && (!hot[0] || hot[0] === '_default_icon_'))
                 return;
+            wantedKeys = new Set(hot);
         }
 
         this._sensors.query((label, value, type, format) => {
