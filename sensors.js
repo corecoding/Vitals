@@ -842,10 +842,10 @@ export const Sensors = GObject.registerClass({
             let i = this._gpu_drm_indices[z];
             const gpuIndex = z + 1;
             const typeName = 'gpu#' + gpuIndex;
-            const vendor = this._gpu_drm_vendors[z];
+            const vendor = (this._gpu_drm_vendors[z] || '').toLowerCase();
 
             // AMD
-            if(vendor === "0x1002") {
+            if (vendor === '0x1002') {
                 // read GPU usage and create group lebel for card
                 new FileModule.File('/sys/class/drm/card'+i+'/device/gpu_busy_percent').read().then(value => {
                     // create group
@@ -866,16 +866,17 @@ export const Sensors = GObject.registerClass({
                     // nothing to do, keep old value displayed
                 });
             } else {
-                // for other vendors only show basic card info
+                // known vendors without DRM busy metrics — name only
                 let vendorName = null;
-                switch (vendor){
-                    case '0x10DE': vendorName = 'NVIDIA'; break; // should be never used as nvidia-smi should be preferred
-                    case '0x13B5': vendorName = 'ARM'; break;
+                switch (vendor) {
+                    case '0x10de': vendorName = 'NVIDIA'; break; // should be never used as nvidia-smi should be preferred
+                    case '0x13b5': vendorName = 'ARM'; break;
                     case '0x5143': vendorName = 'Qualcomm'; break;
                     case '0x8086': vendorName = 'Intel'; break;
-                    default: vendorName = "Unknown " + vendor;
+                    case '0x1234': vendorName = 'QEMU'; break;
                 }
-                this._returnGpuValue(callback, 'Graphics', vendorName, typeName + '-group', 'string');
+                if (vendorName)
+                    this._returnGpuValue(callback, 'Graphics', vendorName, typeName + '-group', 'string');
             }
         }
     }

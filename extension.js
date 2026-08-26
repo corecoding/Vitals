@@ -362,7 +362,9 @@ var VitalsMenuButton = GObject.registerClass({
             if (key == '__max_network-download__') key = '__network-rx_max__';
             if (key == '__max_network-upload__') key = '__network-tx_max__';
 
-            this._createHotItem(key);
+            // reuse dropdown value/icon so pin doesn't flash "…" (esp. Public IP between polls)
+            let menuItem = this._sensorMenuItems[key];
+            this._createHotItem(key, menuItem?.value, menuItem?.gicon);
         }
     }
 
