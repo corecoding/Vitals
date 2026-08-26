@@ -159,7 +159,8 @@ var VitalsMenuButton = GObject.registerClass({
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-            this._extensionObject.openPreferences();
+            // rejects if a prefs dialog is already open
+            this._extensionObject.openPreferences().catch(() => {});
         });
         customButtonBox.add_child(prefsButton);
 
