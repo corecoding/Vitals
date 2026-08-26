@@ -164,9 +164,10 @@ export const Sensors = GObject.registerClass({
     }
 
     query(callback, dwell, wantedKeys) {
-        // Public IP lives in the Network menu but is not a pinned-group sensor
-        if (this._settings.get_boolean('include-public-ip'))
-            this._queryPublicIp(callback, dwell);
+        // menu open (wantedKeys null) or Public IP pinned to the panel
+        if (this._settings.get_boolean('include-public-ip') &&
+            (!wantedKeys || wantedKeys.has('_network_public_ip_')))
+            this._queryPublicIp(callback);
 
         if (!this._hasRealWantedKeys(wantedKeys))
             return;
@@ -368,15 +369,15 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _queryPublicIp(callback, dwell) {
-        if (this._next_public_ip_check <= 0) {
+    _queryPublicIp(callback) {
+        // wall-clock deadline so skipped closed-menu polls still honor the interval
+        let now = GLib.get_real_time() / 1000000;
+        if (this._next_public_ip_check <= now) {
             // prefs UI minimum is 15; clamp in case an older/dconf value is lower
             let minutes = Math.max(15, this._settings.get_int('network-public-ip-interval'));
-            this._next_public_ip_check = minutes * 60;
+            this._next_public_ip_check = now + minutes * 60;
             this._refreshIPAddress(callback);
         }
-
-        this._next_public_ip_check -= dwell;
     }
 
     // Returns 'all', a Set of sensor keys, or null.
