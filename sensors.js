@@ -371,6 +371,7 @@ export const Sensors = GObject.registerClass({
     _queryPublicIp(callback, dwell) {
         if (this._next_public_ip_check <= 0) {
             this._next_public_ip_check = this._settings.get_int('network-public-ip-interval') * 60;
+            console.log('Vitals: querying public IP'); // REMOVE ME
             this._refreshIPAddress(callback);
         }
 
