@@ -725,7 +725,7 @@ export const Sensors = GObject.registerClass({
 
         if (!this._nvidia_smi_process) {
             // no nvidia-smi, so we use sysfs DRM if any cards was discovered
-            if (!this._gpu_drm_indices) {
+            if (!this._gpu_drm_indices?.length) {
                 this._returnGpuGroupHeader(callback, 'gpu#1', null);
                 this._disableGpuLabels(callback);
                 return;
@@ -862,31 +862,35 @@ export const Sensors = GObject.registerClass({
         const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
         for (let z = 0; z < this._gpu_drm_indices.length; z++) {
             let i = this._gpu_drm_indices[z];
-            const gpuIndex = z + 1;
-            const typeName = 'gpu#' + gpuIndex;
-            const vendor = (this._gpu_drm_vendors[z] || '').toLowerCase();
-            let vendorName = this._drmVendorName(vendor);
-            if (vendorName)
-                this._returnStaticGpuValue(callback, 'Vendor', vendorName, typeName, 'string');
+            const typeName = 'gpu#' + (z + 1);
+            const cardBase = '/sys/class/drm/card' + i + '/device/';
 
-            // AMD exposes busy percent via sysfs
-            if (vendor === '0x1002') {
-                new FileModule.File('/sys/class/drm/card' + i + '/device/gpu_busy_percent').read().then(value => {
-                    let usage = parseInt(value) * 0.01;
-                    this._returnGpuGroupHeader(callback, typeName, usage);
-                    this._returnGpuValue(callback, 'Usage', usage, typeName, 'percent');
-                }).catch(err => {
+            new FileModule.File(cardBase + 'vendor').read().then(vendorRaw => {
+                let vendor = (vendorRaw || '').toLowerCase();
+                let vendorName = this._drmVendorName(vendor);
+                if (vendorName)
+                    this._returnDrmStaticGpuValue(callback, 'Vendor', vendorName, typeName, 'string');
+
+                if (vendor === '0x1002') {
+                    new FileModule.File(cardBase + 'gpu_busy_percent').read().then(value => {
+                        let usage = parseInt(value) * 0.01;
+                        this._returnGpuGroupHeader(callback, typeName, usage);
+                        this._returnGpuValue(callback, 'Usage', usage, typeName, 'percent');
+                    }).catch(err => {
+                        this._returnGpuGroupHeader(callback, typeName, null);
+                    });
+                    new FileModule.File(cardBase + 'mem_info_vram_used').read().then(value => {
+                        this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
+                    }).catch(err => { });
+                    new FileModule.File(cardBase + 'mem_info_vram_total').read().then(value => {
+                        this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
+                    }).catch(err => { });
+                } else {
                     this._returnGpuGroupHeader(callback, typeName, null);
-                });
-                new FileModule.File('/sys/class/drm/card' + i + '/device/mem_info_vram_used').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => { });
-                new FileModule.File('/sys/class/drm/card' + i + '/device/mem_info_vram_total').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => { });
-            } else {
+                }
+            }).catch(err => {
                 this._returnGpuGroupHeader(callback, typeName, null);
-            }
+            });
         }
     }
 
@@ -896,12 +900,18 @@ export const Sensors = GObject.registerClass({
     }
 
     _returnStaticGpuValue(callback, label, value, type, format) {
-        //if we've already tried to return existing static info before or if the option isn't enabled, then do nothing.
+        // nvidia-smi static fields are fetched once; _nvidia_static_returned closes that window
         if (this._nvidia_static_returned || !this._settings.get_boolean('include-static-gpu-info'))
             return;
 
-        //we don't need to disable static info labels, so just use ordinary returnValue function
         this._returnValue(callback, label, value, type, format);
+    }
+
+    _returnDrmStaticGpuValue(callback, label, value, type, format) {
+        if (!this._settings.get_boolean('include-static-gpu-info'))
+            return;
+
+        this._returnGpuValue(callback, label, value, type, format);
     }
 
     _returnGpuValue(callback, label, value, type, format, display = true) {
