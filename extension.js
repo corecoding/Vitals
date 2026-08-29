@@ -257,7 +257,7 @@ var VitalsMenuButton = GObject.registerClass({
         );
     }
 
-    _createHotItem(key, value, gicon) {
+    _createHotItem(key, value, gicon, style) {
         let item = new St.BoxLayout({
             style_class: 'vitals-panel-item',
         });
@@ -276,6 +276,7 @@ var VitalsMenuButton = GObject.registerClass({
         let label = new St.Label({
             style_class: 'vitals-panel-label',
             text: (value)?value:'\u2026', // ...
+            style: style || null,
             y_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
@@ -363,9 +364,9 @@ var VitalsMenuButton = GObject.registerClass({
             if (key == '__max_network-download__') key = '__network-rx_max__';
             if (key == '__max_network-upload__') key = '__network-tx_max__';
 
-            // reuse dropdown value/icon so pin doesn't flash "…" (esp. Public IP between polls)
+            // reuse dropdown value/icon/style so pin doesn't flash "…" or uncolored text
             let menuItem = this._sensorMenuItems[key];
-            this._createHotItem(key, menuItem?.value, menuItem?.gicon);
+            this._createHotItem(key, menuItem?.value, menuItem?.gicon, menuItem?.valueStyle);
         }
     }
 
