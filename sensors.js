@@ -709,11 +709,11 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryGpu(callback) {
-        this._initFrameMonitor();
         if (this._frameMonitorCurrentHz > 0)
             this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1', 'hertz');
 
         if (!this._nvidia_smi_process) {
+            // no nvidia-smi, so we use sysfs DRM if any cards was discovered
             if (!this._gpu_drm_indices?.length) {
                 this._returnGpuGroupHeader(callback, 'gpu#1', null);
                 this._disableGpuLabels(callback);
@@ -725,34 +725,32 @@ export const Sensors = GObject.registerClass({
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
-            this._parseNvidiaSmiRead(callback, lines);
+            const expectedSplitLength = 19;
+            let valid = lines.filter(line => line.trim() &&
+                line.split(',').length >= expectedSplitLength);
 
-            if (!this._nvidia_static_returned) {
+            if (valid.length > 0) {
+                // stdout can hold multiple snapshots; keep only the latest row per GPU
+                let count = this._nvidia_gpu_count || 1;
+                let batch = valid.slice(-count);
+                for (let i = 0; i < batch.length; i++)
+                    this._parseNvidiaSmiLine(callback, batch[i], i + 1, batch.length > 1);
+            } else {
+                this._returnGpuGroupHeader(callback, 'gpu#1', null);
+            }
+
+            // if we've already updated the static info during the last parse, then stop doing so.
+            // this is so the _parseNvidiaSmiLine function won't return static info anymore
+            // and the nvidia-smi commmand won't be queried for static info either
+            if(!this._nvidia_static_returned) {
                 this._nvidia_static_returned = true;
+                //reconfigure the process to stop querying static info
                 this._reconfigureNvidiaSmiProcess();
             }
         }).catch(err => {
             this._disableGpuLabels(callback);
             this._terminateNvidiaSmiProcess();
         });
-    }
-
-    _parseNvidiaSmiRead(callback, lines) {
-        const expectedSplitLength = 19;
-        let valid = lines.filter(line => line.trim() &&
-            line.split(',').length >= expectedSplitLength);
-
-        if (valid.length === 0) {
-            this._returnGpuGroupHeader(callback, 'gpu#1', null);
-            return;
-        }
-
-        // stdout can hold multiple snapshots; keep only the latest row per GPU
-        let count = this._nvidia_gpu_count || 1;
-        let batch = valid.slice(-count);
-        let multiGpu = batch.length > 1;
-        for (let i = 0; i < batch.length; i++)
-            this._parseNvidiaSmiLine(callback, batch[i], i + 1, multiGpu);
     }
 
     _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
@@ -905,10 +903,11 @@ export const Sensors = GObject.registerClass({
     }
 
     _returnStaticGpuValue(callback, label, value, type, format) {
-        // nvidia-smi static fields are fetched once; _nvidia_static_returned closes that window
+        //if we've already tried to return existing static info before or if the option isn't enabled, then do nothing.
         if (this._nvidia_static_returned || !this._settings.get_boolean('include-static-gpu-info'))
             return;
 
+        //we don't need to disable static info labels, so just use ordinary returnValue function
         this._returnValue(callback, label, value, type, format);
     }
 
@@ -917,8 +916,9 @@ export const Sensors = GObject.registerClass({
 
         if(format !== "string" && (value === 'N/A' || value === '[N/A]' || isNaN(value))) return;
 
-        if (!this._nvidia_labels[label + type])
-            this._nvidia_labels.push(this._nvidia_labels[label + type] = {label, type, format});
+        let nvidiaLabel = {'label': label, 'type': type, 'format': format};
+        if (!this._nvidia_labels.includes(nvidiaLabel))
+            this._nvidia_labels.push(nvidiaLabel);
 
         this._returnValue(callback, label, value, type, format);
     }
@@ -980,6 +980,7 @@ export const Sensors = GObject.registerClass({
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._discoverNetworkIfaces(callback);
+        this._initFrameMonitor();
     }
 
     _queryStaticInfo(callback) {
