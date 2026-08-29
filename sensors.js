@@ -200,7 +200,7 @@ export const Sensors = GObject.registerClass({
             if (!wanted && sensor === 'system' && wantedKeys &&
                 wantedKeys.has('_processor_process_time_'))
                 wanted = true;
-            if (!wanted)
+            if (!wanted && sensor !== 'gpu')
                 continue;
 
             if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
@@ -703,7 +703,14 @@ export const Sensors = GObject.registerClass({
         }
 
         if (this._frameMonitorCurrentHz > 0)
-            this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, typeName + '-group', 'hertz');
+            this._returnGpuValue(callback, 'Graphics', this._frameMonitorCurrentHz, typeName + '-group', 'hertz');
+    }
+
+    _emitGpuVendor(callback, typeName, vendorText) {
+        if (!this._settings.get_boolean('include-static-gpu-info') || !vendorText)
+            return;
+
+        this._returnGpuValue(callback, 'Vendor', vendorText, typeName, 'string');
     }
 
     _drmVendorName(vendorId) {
@@ -724,15 +731,18 @@ export const Sensors = GObject.registerClass({
             this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1', 'hertz');
 
         if (!this._nvidia_smi_process) {
+            if (this._settings.get_boolean('show-gpu') && !this._gpu_drm_indices?.length)
+                this._discoverGpuDrm();
+
             // no nvidia-smi, so we use sysfs DRM if any cards was discovered
             if (!this._gpu_drm_indices?.length) {
                 this._returnGpuGroupHeader(callback, 'gpu#1', null);
                 this._disableGpuLabels(callback);
                 return;
-            } else {
-                this._readGpuDrm(callback);
-                return;
             }
+
+            this._readGpuDrm(callback);
+            return;
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
@@ -742,19 +752,22 @@ export const Sensors = GObject.registerClass({
             ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
             ///    lines.push(lines[0]);
 
-            for (let i = 0; i < lines.length; i++) {
+            for (let i = 0; i < lines.length; i++)
                 this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
-            }
+
+            if (lines.length === 0)
+                this._returnGpuGroupHeader(callback, 'gpu#1', null);
 
             // if we've already updated the static info during the last parse, then stop doing so.
             // this is so the _parseNvidiaSmiLine function won't return static info anymore
             // and the nvidia-smi commmand won't be queried for static info either
-            if(!this._nvidia_static_returned) {
+            if (!this._nvidia_static_returned) {
                 this._nvidia_static_returned = true;
                 //reconfigure the process to stop querying static info
                 this._reconfigureNvidiaSmiProcess();
             }
         }).catch(err => {
+            this._returnGpuGroupHeader(callback, 'gpu#1', null);
             this._disableGpuLabels(callback);
             this._terminateNvidiaSmiProcess();
         });
@@ -809,10 +822,10 @@ export const Sensors = GObject.registerClass({
         const typeName = 'gpu#' + gpuNum;
         const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
         const memTempValid = !isNaN(parseInt(temp_mem));
+        let util = parseInt(util_gpu) * 0.01;
 
-        this._returnGpuGroupHeader(callback, typeName, parseInt(util_gpu) * 0.01);
-
-        this._returnGpuValue(callback, 'Name', label, typeName, '');
+        this._returnGpuGroupHeader(callback, typeName, isNaN(util) ? null : util);
+        this._emitGpuVendor(callback, typeName, label.trim());
 
         this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, typeName, 'percent');
 
@@ -865,11 +878,12 @@ export const Sensors = GObject.registerClass({
             const typeName = 'gpu#' + (z + 1);
             const cardBase = '/sys/class/drm/card' + i + '/device/';
 
+            // refresh-rate fallback runs synchronously; async reads may override with utilization
+            this._returnGpuGroupHeader(callback, typeName, null);
+
             new FileModule.File(cardBase + 'vendor').read().then(vendorRaw => {
                 let vendor = (vendorRaw || '').toLowerCase();
-                let vendorName = this._drmVendorName(vendor);
-                if (vendorName)
-                    this._returnDrmStaticGpuValue(callback, 'Vendor', vendorName, typeName, 'string');
+                this._emitGpuVendor(callback, typeName, this._drmVendorName(vendor));
 
                 if (vendor === '0x1002') {
                     new FileModule.File(cardBase + 'gpu_busy_percent').read().then(value => {
@@ -885,12 +899,8 @@ export const Sensors = GObject.registerClass({
                     new FileModule.File(cardBase + 'mem_info_vram_total').read().then(value => {
                         this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
                     }).catch(err => { });
-                } else {
-                    this._returnGpuGroupHeader(callback, typeName, null);
                 }
-            }).catch(err => {
-                this._returnGpuGroupHeader(callback, typeName, null);
-            });
+            }).catch(err => { });
         }
     }
 
@@ -905,13 +915,6 @@ export const Sensors = GObject.registerClass({
             return;
 
         this._returnValue(callback, label, value, type, format);
-    }
-
-    _returnDrmStaticGpuValue(callback, label, value, type, format) {
-        if (!this._settings.get_boolean('include-static-gpu-info'))
-            return;
-
-        this._returnGpuValue(callback, label, value, type, format);
     }
 
     _returnGpuValue(callback, label, value, type, format, display = true) {
