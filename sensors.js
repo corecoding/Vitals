@@ -376,6 +376,7 @@ export const Sensors = GObject.registerClass({
             // prefs UI minimum is 15; clamp in case an older/dconf value is lower
             let minutes = Math.max(15, this._settings.get_int('network-public-ip-interval'));
             this._next_public_ip_check = now + minutes * 60;
+            console.log('Vitals: querying public IP'); // REMOVE ME
             this._refreshIPAddress(callback);
         }
     }
