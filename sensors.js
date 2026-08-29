@@ -1257,9 +1257,9 @@ export const Sensors = GObject.registerClass({
 
     // rediscover=false keeps network/TVF/GPU discovery across cosmetic menu redraws
     resetHistory(rediscover = true) {
+        this._next_public_ip_check = 0;
         this._static_info_refresh = false;
         if (rediscover) {
-            this._next_public_ip_check = 0;
             this._hardware_detected = false;
             this._networkIfaces = [];
             this._hasWireless = false;
