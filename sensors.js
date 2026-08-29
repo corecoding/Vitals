@@ -25,6 +25,7 @@
 */
 
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
@@ -59,6 +60,7 @@ export const Sensors = GObject.registerClass({
         this._gpu_drm_vendors = null;
         this._gpu_drm_indices = null;
         this._nvidia_smi_process = null;
+        this._nvidia_gpu_count = 1;
         this._nvidia_labels = [];
         this._bad_split_count = 0;
 
@@ -723,10 +725,7 @@ export const Sensors = GObject.registerClass({
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
-            // split('\n') leaves a trailing empty string when the read ends in a newline
-            let csv = lines.at(-1) || lines.at(-2);
-            if (csv)
-                this._parseNvidiaSmiLine(callback, csv, 1, false);
+            this._parseNvidiaSmiRead(callback, lines);
 
             if (!this._nvidia_static_returned) {
                 this._nvidia_static_returned = true;
@@ -736,6 +735,24 @@ export const Sensors = GObject.registerClass({
             this._disableGpuLabels(callback);
             this._terminateNvidiaSmiProcess();
         });
+    }
+
+    _parseNvidiaSmiRead(callback, lines) {
+        const expectedSplitLength = 19;
+        let valid = lines.filter(line => line.trim() &&
+            line.split(',').length >= expectedSplitLength);
+
+        if (valid.length === 0) {
+            this._returnGpuGroupHeader(callback, 'gpu#1', null);
+            return;
+        }
+
+        // stdout can hold multiple snapshots; keep only the latest row per GPU
+        let count = this._nvidia_gpu_count || 1;
+        let batch = valid.slice(-count);
+        let multiGpu = batch.length > 1;
+        for (let i = 0; i < batch.length; i++)
+            this._parseNvidiaSmiLine(callback, batch[i], i + 1, multiGpu);
     }
 
     _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
@@ -880,8 +897,11 @@ export const Sensors = GObject.registerClass({
     }
 
     _disableGpuLabels(callback) {
-        for (let labelObj of this._nvidia_labels)
+        for (let labelObj of this._nvidia_labels) {
+            if (labelObj.type.includes('-group'))
+                continue;
             this._returnValue(callback, labelObj.label, 'disabled', labelObj.type, labelObj.format);
+        }
     }
 
     _returnStaticGpuValue(callback, label, value, type, format) {
@@ -1105,6 +1125,7 @@ export const Sensors = GObject.registerClass({
                 ];
 
                 this._nvidia_smi_process = new SubProcessModule.SubProcess(command);
+                this._detectNvidiaGpuCount();
             } catch(e) {
                 // proprietary nvidia driver not installed
                 this._terminateNvidiaSmiProcess();
@@ -1112,6 +1133,23 @@ export const Sensors = GObject.registerClass({
         } else {
             this._terminateNvidiaSmiProcess();
         }
+    }
+
+    _detectNvidiaGpuCount() {
+        this._nvidia_gpu_count = 1;
+        try {
+            let proc = Gio.Subprocess.new(
+                ['nvidia-smi', '--query-gpu=name', '--format=csv,noheader,nounits'],
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
+            proc.communicate_utf8_async(null, null, (subprocess, res) => {
+                try {
+                    let [, stdout] = subprocess.communicate_utf8_finish(res);
+                    let count = stdout.trim().split('\n').filter(line => line.trim()).length;
+                    if (count > 0)
+                        this._nvidia_gpu_count = count;
+                } catch (e) { }
+            });
+        } catch (e) { }
     }
 
     _terminateNvidiaSmiProcess() {

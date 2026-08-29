@@ -135,8 +135,9 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round refresh button
         let refreshButton = this._createRoundButton('view-refresh-symbolic', _('Refresh'));
         refreshButton.connect('clicked', (self) => {
-            // force refresh by clearing history
-            this._sensors.resetHistory();
+            // soft reset: clear history without rediscovering hardware (rediscover races
+            // _queryGpu when DRM indices are briefly empty and disables the group header)
+            this._sensors.resetHistory(false);
             this._values.resetHistory(this._numGpus);
 
             // make sure timer fires at next full interval
@@ -582,6 +583,9 @@ var VitalsMenuButton = GObject.registerClass({
 
                 // don't continue below, last known value is shown
                 if (value == 'disabled') return;
+            } else if (value == 'disabled' && type.includes('-group')) {
+                // group headers are not menu rows; formatting 'disabled' yields NaN
+                return;
             }
 
             // add/initialize any gpu groups that we haven't added yet
