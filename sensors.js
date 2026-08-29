@@ -695,6 +695,29 @@ export const Sensors = GObject.registerClass({
         }
     }
 
+    _returnGpuGroupHeader(callback, typeName, utilization) {
+        if (utilization !== null && utilization !== undefined &&
+            utilization !== 'N/A' && utilization !== '[N/A]' && !isNaN(utilization)) {
+            this._returnGpuValue(callback, 'Graphics', utilization, typeName + '-group', 'percent');
+            return;
+        }
+
+        if (this._frameMonitorCurrentHz > 0)
+            this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, typeName + '-group', 'hertz');
+    }
+
+    _drmVendorName(vendorId) {
+        switch ((vendorId || '').toLowerCase()) {
+            case '0x1002': return 'AMD';
+            case '0x10de': return 'NVIDIA';
+            case '0x13b5': return 'ARM';
+            case '0x5143': return 'Qualcomm';
+            case '0x8086': return 'Intel';
+            case '0x1234': return 'QEMU';
+            default: return null;
+        }
+    }
+
     _queryGpu(callback) {
         this._initFrameMonitor();
         if (this._frameMonitorCurrentHz > 0)
@@ -702,9 +725,8 @@ export const Sensors = GObject.registerClass({
 
         if (!this._nvidia_smi_process) {
             // no nvidia-smi, so we use sysfs DRM if any cards was discovered
-            if (!this._gpu_drm_indices){
-                if (this._frameMonitorCurrentHz > 0)
-                    this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1-group', 'hertz');
+            if (!this._gpu_drm_indices) {
+                this._returnGpuGroupHeader(callback, 'gpu#1', null);
                 this._disableGpuLabels(callback);
                 return;
             } else {
@@ -788,7 +810,7 @@ export const Sensors = GObject.registerClass({
         const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
         const memTempValid = !isNaN(parseInt(temp_mem));
 
-        this._returnGpuValue(callback, 'Graphics', parseInt(util_gpu) * 0.01, typeName + '-group', 'percent');
+        this._returnGpuGroupHeader(callback, typeName, parseInt(util_gpu) * 0.01);
 
         this._returnGpuValue(callback, 'Name', label, typeName, '');
 
@@ -836,48 +858,34 @@ export const Sensors = GObject.registerClass({
         this._returnStaticGpuValue(callback, 'Sub Device ID', staticInfo['sub_device_id'], typeName, 'string');
     }
 
-    _readGpuDrm(callback){
-        const multiGpu = this._gpu_drm_indices.length > 1;
+    _readGpuDrm(callback) {
         const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
-        for (let z = 0; z < this._gpu_drm_indices.length; z++ ) {
+        for (let z = 0; z < this._gpu_drm_indices.length; z++) {
             let i = this._gpu_drm_indices[z];
             const gpuIndex = z + 1;
             const typeName = 'gpu#' + gpuIndex;
             const vendor = (this._gpu_drm_vendors[z] || '').toLowerCase();
+            let vendorName = this._drmVendorName(vendor);
+            if (vendorName)
+                this._returnStaticGpuValue(callback, 'Vendor', vendorName, typeName, 'string');
 
-            // AMD
+            // AMD exposes busy percent via sysfs
             if (vendor === '0x1002') {
-                // read GPU usage and create group lebel for card
-                new FileModule.File('/sys/class/drm/card'+i+'/device/gpu_busy_percent').read().then(value => {
-                    // create group
-                    this._returnGpuValue(callback, 'Graphics', parseInt(value) * 0.01, typeName + '-group', 'percent');
-                    this._returnGpuValue(callback, 'Vendor', "AMD", typeName, 'string');
-                    this._returnGpuValue(callback, 'Usage', parseInt(value) * 0.01, typeName, 'percent');
+                new FileModule.File('/sys/class/drm/card' + i + '/device/gpu_busy_percent').read().then(value => {
+                    let usage = parseInt(value) * 0.01;
+                    this._returnGpuGroupHeader(callback, typeName, usage);
+                    this._returnGpuValue(callback, 'Usage', usage, typeName, 'percent');
                 }).catch(err => {
-                    // nothing to do, keep old value displayed
+                    this._returnGpuGroupHeader(callback, typeName, null);
                 });
-                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_used').read().then(value => {
+                new FileModule.File('/sys/class/drm/card' + i + '/device/mem_info_vram_used').read().then(value => {
                     this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
-                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_total').read().then(value => {
+                }).catch(err => { });
+                new FileModule.File('/sys/class/drm/card' + i + '/device/mem_info_vram_total').read().then(value => {
                     this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
+                }).catch(err => { });
             } else {
-                // known vendors without DRM busy metrics — name only
-                let vendorName = null;
-                switch (vendor) {
-                    case '0x10de': vendorName = 'NVIDIA'; break; // should be never used as nvidia-smi should be preferred
-                    case '0x13b5': vendorName = 'ARM'; break;
-                    case '0x5143': vendorName = 'Qualcomm'; break;
-                    case '0x8086': vendorName = 'Intel'; break;
-                    case '0x1234': vendorName = 'QEMU'; break;
-                }
-                if (vendorName)
-                    this._returnGpuValue(callback, 'Graphics', vendorName, typeName + '-group', 'string');
+                this._returnGpuGroupHeader(callback, typeName, null);
             }
         }
     }
