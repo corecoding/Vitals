@@ -566,11 +566,11 @@ var VitalsMenuButton = GObject.registerClass({
 
         let wantedKeys = null;
         if (!this.menu.isOpen) {
-            let hot = this._settings.get_strv('hot-sensors');
-            // empty or sole `_default_icon_` — nothing to refresh on the panel
-            if (hot.length <= 1 && (!hot[0] || hot[0] === '_default_icon_'))
+            // panel labels only — `_default_icon_` is in _hotItems, not _hotLabels
+            let keys = Object.keys(this._hotLabels);
+            if (keys.length === 0)
                 return;
-            wantedKeys = new Set(hot);
+            wantedKeys = new Set(keys);
         }
 
         this._sensors.query((label, value, type, format) => {
