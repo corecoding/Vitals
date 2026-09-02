@@ -125,7 +125,3 @@ Sensor data is obtained from the system using hwmon and GTop. Core Coding and th
 [Please consider donating if you find this extension useful.](https://corecoding.com/donate.php)
 
 [gextension]: https://extensions.gnome.org/extension/1460/vitals/
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=corecoding/Vitals&type=Date)](https://star-history.com/#corecoding/Vitals&Date)
