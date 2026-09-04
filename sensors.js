@@ -49,7 +49,6 @@ export const Sensors = GObject.registerClass({
         this.resetHistory();
 
         this._last_processor = { 'core': {}, 'speed': [] };
-        this._last_processor_time = 0;
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
@@ -127,61 +126,16 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _groupIsWanted(wantedKeys, group) {
-        if (!wantedKeys)
-            return true;
-
-        for (let key of wantedKeys) {
-            if (!key || key === '_default_icon_')
-                continue;
-            if (key.includes('_' + group + '_') ||
-                key.includes('_' + group + '-') ||
-                key.includes('_' + group + '#'))
-                return true;
-        }
-
-        return false;
-    }
-
-    _hasRealWantedKeys(wantedKeys) {
-        if (!wantedKeys)
-            return true;
-
-        for (let key of wantedKeys) {
-            if (key && key !== '_default_icon_')
-                return true;
-        }
-
-        return false;
-    }
-
-    _needsHardwareDiscovery(wantedKeys) {
-        if (!wantedKeys)
-            return true;
-
-        return this._groupIsWanted(wantedKeys, 'temperature') ||
-            this._groupIsWanted(wantedKeys, 'voltage') ||
-            this._groupIsWanted(wantedKeys, 'fan') ||
-            this._groupIsWanted(wantedKeys, 'network') ||
-            this._groupIsWanted(wantedKeys, 'gpu');
-    }
-
     query(callback, dwell, wantedKeys) {
         // menu open (wantedKeys null) or Public IP pinned to the panel
         if (this._settings.get_boolean('include-public-ip') &&
             (!wantedKeys || wantedKeys.has('_network_public_ip_')))
             this._queryPublicIp(callback);
 
-        if (!this._hasRealWantedKeys(wantedKeys))
-            return;
-
-        console.log('Vitals: ==================== query start full ===================='); // REMOVE ME
-
-        if (!this._hardware_detected && this._needsHardwareDiscovery(wantedKeys)) {
+        if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
-            console.log('Vitals: discovering hardware monitors'); // REMOVE ME
             this._discoverHardwareMonitors(callback);
         } else if (this._static_info_refresh) {
             // menu redraw cleared rows but kept discovery; re-emit static CPU/kernel only
@@ -198,20 +152,12 @@ export const Sensors = GObject.registerClass({
                 continue;
             }
 
-            let wanted = this._groupIsWanted(wantedKeys, sensor);
-            // Process Time is emitted by _querySystem as type processor
-            if (!wanted && sensor === 'system' && wantedKeys &&
-                wantedKeys.has('_processor_process_time_'))
-                wanted = true;
-            if (!wanted && sensor !== 'gpu')
-                continue;
-
             if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
-                // for temp, volt, fan, we have a shared handler
+                // wantedKeys filters individual hwmon files when the menu is closed
                 this._queryTempVoltFan(callback, sensor, wantedKeys);
             } else {
                 let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                this[method](callback, dwell, wantedKeys);
+                this[method](callback, dwell);
             }
         }
     }
@@ -267,13 +213,6 @@ export const Sensors = GObject.registerClass({
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
-            // use time since last /proc/stat sample — query dwell is wrong when
-            // processor was skipped while the menu was closed (lazy polling)
-            let now = GLib.get_monotonic_time() / 1000000;
-            let sampleDwell = this._last_processor_time > 0 ? now - this._last_processor_time : dwell;
-            if (sampleDwell <= 0)
-                sampleDwell = dwell;
-            this._last_processor_time = now;
 
             for (let line of lines) {
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
@@ -295,7 +234,7 @@ export const Sensors = GObject.registerClass({
 
                 // make sure we have data to report
                 if (this._last_processor['core'][cpu] > 0) {
-                    let delta = (total - this._last_processor['core'][cpu]) / sampleDwell;
+                    let delta = (total - this._last_processor['core'][cpu]) / dwell;
 
                     // /proc/stat provides overall usage for us under the 'cpu' heading
                     if (cpu == 'cpu') {
@@ -386,67 +325,18 @@ export const Sensors = GObject.registerClass({
             // prefs UI minimum is 15; clamp in case an older/dconf value is lower
             let minutes = Math.max(15, this._settings.get_int('network-public-ip-interval'));
             this._next_public_ip_check = now + minutes * 60;
-            console.log('Vitals: querying public IP'); // REMOVE ME
             this._refreshIPAddress(callback);
         }
     }
 
-    // Returns 'all', a Set of sensor keys, or null.
-    // Boot/Session/Device aggregates need every iface so totals stay correct.
-    _networkWanted(wantedKeys, kind) {
-        if (!wantedKeys)
-            return 'all';
-        if (kind === 'wifi')
-            return (wantedKeys.has('_network_wifi_link quality_') ||
-                wantedKeys.has('_network_wifi_signal level_')) ? 'all' : null;
-
-        let keys = null;
-        for (let key of wantedKeys) {
-            if (key === '__network-' + kind + '_max__' ||
-                key === '__network-' + kind + '_boot__' ||
-                key === '__network-' + kind + '_ses__')
-                return 'all';
-            if (key.startsWith('_network-' + kind + '_')) {
-                if (!keys)
-                    keys = new Set();
-                keys.add(key);
-            }
-        }
-        return keys;
-    }
-
-    _queryNetwork(callback, dwell, wantedKeys) {
-        let wantRx = this._networkWanted(wantedKeys, 'rx');
-        let wantTx = this._networkWanted(wantedKeys, 'tx');
-
+    _queryNetwork(callback, dwell) {
         for (let sensor of this._networkIfaces) {
-            let want = null;
-            if (sensor.type === 'network-rx')
-                want = wantRx;
-            else if (sensor.type === 'network-tx')
-                want = wantTx;
-            else if (sensor.type === 'network') {
-                // lo is type "network" and is excluded from Device totals (#217)
-                if (!wantedKeys ||
-                    wantedKeys.has('_network_' + sensor.name.replaceAll(' ', '_').toLowerCase() + '_'))
-                    want = 'all';
-            }
-
-            if (!want)
-                continue;
-            if (want !== 'all') {
-                let key = '_' + sensor.type + '_' +
-                    sensor.name.replaceAll(' ', '_').toLowerCase() + '_';
-                if (!want.has(key))
-                    continue;
-            }
-
             new FileModule.File(sensor.path).read().then(value => {
                 this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
             }).catch(err => { });
         }
 
-        if (this._networkWanted(wantedKeys, 'wifi') && this._hasWireless)
+        if (this._hasWireless)
             this._queryWireless(callback);
     }
 
@@ -492,8 +382,11 @@ export const Sensors = GObject.registerClass({
                     var write = (loadArray[9] * 512);
                     this._returnValue(callback, 'Read total', read, 'storage', 'storage');
                     this._returnValue(callback, 'Write total', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
-                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
+                    // skip rates until counters are seeded (same pattern as processor cores)
+                    if (this._lastRead > 0)
+                        this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
+                    if (this._lastWrite > 0)
+                        this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
                     this._lastRead = read;
                     this._lastWrite = write;
                     break;
