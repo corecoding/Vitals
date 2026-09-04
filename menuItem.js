@@ -68,6 +68,10 @@ export const MenuItem = GObject.registerClass({
         this._valueLabel.style = style || null;
     }
 
+    get valueStyle() {
+        return this._valueLabel.style;
+    }
+
     // prevents menu from being closed
     activate(event) {
     this._checked = !this._checked;

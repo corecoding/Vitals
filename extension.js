@@ -76,11 +76,10 @@ var VitalsMenuButton = GObject.registerClass({
             'changed::update-time', this._initializeTimer.bind(this),
             'changed::position-in-panel', this._positionInPanelChanged.bind(this),
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
-            'changed::icon-style', this._iconStyleChanged.bind(this),
             this);
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
-                         'fixed-widths', 'hide-icons', 'unit',
+                         'fixed-widths', 'hide-icons', 'unit', 'icon-style',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
                          'include-static-info', 'include-static-gpu-info' ];
@@ -136,8 +135,9 @@ var VitalsMenuButton = GObject.registerClass({
         // custom round refresh button
         let refreshButton = this._createRoundButton('view-refresh-symbolic', _('Refresh'));
         refreshButton.connect('clicked', (self) => {
-            // force refresh by clearing history
-            this._sensors.resetHistory();
+            // soft reset: clear history without rediscovering hardware (rediscover races
+            // _queryGpu when DRM indices are briefly empty and disables the group header)
+            this._sensors.resetHistory(false);
             this._values.resetHistory(this._numGpus);
 
             // make sure timer fires at next full interval
@@ -160,7 +160,8 @@ var VitalsMenuButton = GObject.registerClass({
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-            this._extensionObject.openPreferences();
+            // rejects if a prefs dialog is already open
+            this._extensionObject.openPreferences().catch(() => {});
         });
         customButtonBox.add_child(prefsButton);
 
@@ -256,7 +257,7 @@ var VitalsMenuButton = GObject.registerClass({
         );
     }
 
-    _createHotItem(key, value, gicon) {
+    _createHotItem(key, value, gicon, style) {
         let item = new St.BoxLayout({
             style_class: 'vitals-panel-item',
         });
@@ -275,6 +276,7 @@ var VitalsMenuButton = GObject.registerClass({
         let label = new St.Label({
             style_class: 'vitals-panel-label',
             text: (value)?value:'\u2026', // ...
+            style: style || null,
             y_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
@@ -316,27 +318,6 @@ var VitalsMenuButton = GObject.registerClass({
         boxes[position[0]].insert_child_at_index(this.container, position[1]);
     }
 
-    _redrawDetailsMenuIcons() {
-        // updates the icons on the 'details' menu, the one
-        // you have to click to appear
-        this._sensors.resetHistory();
-        for (const sensor in this._sensorIcons) {
-            if (sensor == "gpu") continue;
-            this._groups[sensor].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(sensor));
-        }
-
-        // gpu's are indexed differently, handle them here
-        const gpuKeys = Object.keys(this._groups).filter(key => key.startsWith("gpu#"));
-        gpuKeys.forEach((gpuKey) => {
-            this._groups[gpuKey].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath("gpu"));
-        });
-    }
-
-    _iconStyleChanged() {
-        this._redrawDetailsMenuIcons();
-        this._redrawMenu();
-    }
-
     _removeHotItems(){
         for (let key in this._hotItems) {
             this._removeHotItem(key);
@@ -352,9 +333,14 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
-    _redrawMenu() {
+    _redrawHotSensors() {
         this._removeHotItems();
+        this._drawMenu();
+        this._values.resetHistory(this._numGpus);
+        this._querySensors();
+    }
 
+    _redrawMenu() {
         for (let key in this._sensorMenuItems) {
             if (key.includes('-group')) continue;
             let item = this._sensorMenuItems[key];
@@ -362,10 +348,12 @@ var VitalsMenuButton = GObject.registerClass({
             item.destroy();
         }
 
-        this._drawMenu();
-        this._sensors.resetHistory();
-        this._values.resetHistory(this._numGpus);
-        this._querySensors();
+        // group headers persist across row rebuilds; refresh pack (original vs gnome)
+        for (let groupName in this._groups)
+            this._groups[groupName].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(groupName));
+
+        this._sensors.resetHistory(false);
+        this._redrawHotSensors();
     }
 
     _drawMenu() {
@@ -376,7 +364,9 @@ var VitalsMenuButton = GObject.registerClass({
             if (key == '__max_network-download__') key = '__network-rx_max__';
             if (key == '__max_network-upload__') key = '__network-tx_max__';
 
-            this._createHotItem(key);
+            // reuse dropdown value/icon/style so pin doesn't flash "…" or uncolored text
+            let menuItem = this._sensorMenuItems[key];
+            this._createHotItem(key, menuItem?.value, menuItem?.gicon, menuItem?.valueStyle);
         }
     }
 
@@ -441,28 +431,23 @@ var VitalsMenuButton = GObject.registerClass({
             if (self.checked) {
                 // add selected sensor to panel
                 hotSensors.push(self.key);
-                this._createHotItem(self.key, self.value, self.gicon);
             } else {
                 // remove selected sensor from panel
                 hotSensors.splice(hotSensors.indexOf(self.key), 1);
-                this._removeHotItem(self.key);
             }
 
             if (hotSensors.length <= 0) {
                 // add generic icon to panel when no sensors are selected
                 hotSensors.push('_default_icon_');
-                this._createHotItem('_default_icon_');
             } else {
                 let defIconPos = hotSensors.indexOf('_default_icon_');
-                if (defIconPos >= 0) {
-                    // remove generic icon from panel when sensors are selected
+                if (defIconPos >= 0)
                     hotSensors.splice(defIconPos, 1);
-                    this._removeHotItem('_default_icon_');
-                }
             }
 
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
+            this._redrawHotSensors();
         });
 
         this._sensorMenuItems[key] = item;
@@ -509,12 +494,21 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _sensorIconPath(sensor, icon = 'icon') {
-        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
         let sensorKey = sensor;
-        if(sensor.startsWith('gpu')) sensorKey = 'gpu';
+
+        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
+        if (sensor.startsWith('gpu')) sensorKey = 'gpu';
+
+        // allows country flags to show
+        const icons = this._sensorIcons[sensorKey];
+        if (sensorKey === 'network' && icon.startsWith('icon-') && !(icons && icons[icon])) {
+            let cc = icon.slice('icon-'.length);
+            if (/^[a-z]{2}$/.test(cc))
+                return this._extensionObject.path + '/icons/flags/1x1/' + cc + '.svg';
+        }
 
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
-        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + this._sensorIcons[sensorKey][icon];
+        return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + icons[icon];
     }
 
     _ucFirst(string) {
@@ -570,10 +564,14 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
+        // panel labels only when closed — `_default_icon_` is in _hotItems, not _hotLabels
+        // empty set still queries so dwell-based sensors keep warm baselines
+        let wantedKeys = this.menu.isOpen ? null : new Set(Object.keys(this._hotLabels));
+
         this._sensors.query((label, value, type, format) => {
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
-            let key = '_' + typeKey + '_' + label.replace(' ', '_').toLowerCase() + '_';
+            let key = '_' + typeKey + '_' + label.replaceAll(' ', '_').toLowerCase() + '_';
 
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
@@ -581,6 +579,9 @@ var VitalsMenuButton = GObject.registerClass({
 
                 // don't continue below, last known value is shown
                 if (value == 'disabled') return;
+            } else if (value == 'disabled' && type.includes('-group')) {
+                // group headers are not menu rows; formatting 'disabled' yields NaN
+                return;
             }
 
             // add/initialize any gpu groups that we haven't added yet
@@ -625,7 +626,7 @@ var VitalsMenuButton = GObject.registerClass({
 
                 this._updateDisplay(_(item.label), item.value, item.type, item.key, item.style);
             }
-        }, dwell);
+        }, dwell, wantedKeys);
 
         //if a new gpu has been detected during the last query, then increment the amount of times we've detected a new gpu
         if(this._newGpuDetected) this._newGpuDetectedCount++;

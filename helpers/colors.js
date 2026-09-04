@@ -69,8 +69,6 @@ function normalizeColorComponent(component) {
 
 function styleForEntries(value, entries) {
     const thresholds = entries
-        .slice()
-        .sort((a, b) => a.threshold - b.threshold)
         .map(entry => {
             const red = normalizeColorComponent(entry.red);
             const green = normalizeColorComponent(entry.green);
@@ -102,7 +100,7 @@ export function getUsageColor(value, colors, sensorKey = null) {
     if (!colors || colors.length === 0 || !Number.isFinite(value))
         return '';
 
-    const entries = colors.map(parseColorEntry).filter(Boolean);
+    const entries = sanitizeAndSortColorEntries(colors);
     if (entries.length === 0)
         return '';
 
@@ -120,7 +118,7 @@ export function sensorKeyFromTypeLabel(type, label) {
     let typeKey = (type || '').replace('-group', '');
     if (/^network-(?!rx$|tx$)/.test(typeKey))
         typeKey = 'network';
-    return '_' + typeKey + '_' + String(label).replace(' ', '_').toLowerCase() + '_';
+    return '_' + typeKey + '_' + String(label).replaceAll(' ', '_').toLowerCase() + '_';
 }
 
 // Hot-sensor / color keys: _<type>_<label parts>_

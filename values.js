@@ -37,6 +37,10 @@ const cbFun = (d, c) => {
     return [d[0] + aa, bb];
 };
 
+const decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+const binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
+const hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
+
 export const Values = GObject.registerClass({
        GTypeName: 'Values',
 }, class Values extends GObject.Object {
@@ -64,10 +68,6 @@ export const Values = GObject.registerClass({
         let format = '';
         let ending = '';
         let exp = 0;
-
-        var decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
-        var binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
-        var hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
         switch (sensorClass) {
             case 'percent':
@@ -343,13 +343,18 @@ export const Values = GObject.registerClass({
                 key: bootKey,
             });
 
-            // keeps track of session start point
-            if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
-                this._networkSpeedOffset[key] = sum;
+            // per-iface byte counter at first sight; session = sum of deltas (#234)
+            if (!(key in this._networkSpeedOffset))
+                this._networkSpeedOffset[key] = value;
 
-            // outputs session upload and download for all interfaces for #234
+            let sessionBytes = 0;
+            for (let k in this._history[type]) {
+                let cur = parseFloat(this._history[type][k][1]);
+                sessionBytes += cur - (this._networkSpeedOffset[k] ?? cur);
+            }
+
             let sessionKey = '__' + type + '_ses__';
-            let session = this._legible(sum - this._networkSpeedOffset[key], format, type, sessionKey);
+            let session = this._legible(sessionBytes, format, type, sessionKey);
             output.push({
                 label: 'Session ' + direction,
                 value: session.text,
@@ -358,9 +363,11 @@ export const Values = GObject.registerClass({
                 key: sessionKey,
             });
 
-            // calculate speed for this interface
-            let speed = (value - previousValue[1]) / dwell;
+            // calculate speed for this interface - there is nothing to compare
+            // against the very first time an interface is seen
+            let speed = (previousValue)?(value - previousValue[1]) / dwell:0;
             let speedFormatted = this._legible(speed, 'speed', type, key);
+
             output.push({
                 label,
                 value: speedFormatted.text,
