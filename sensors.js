@@ -132,10 +132,13 @@ export const Sensors = GObject.registerClass({
             (!wantedKeys || wantedKeys.has('_network_public_ip_')))
             this._queryPublicIp(callback);
 
+        console.log('Vitals: ==================== query start full ===================='); // REMOVE ME
+
         if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
+            console.log('Vitals: discovering hardware monitors'); // REMOVE ME
             this._discoverHardwareMonitors(callback);
         } else if (this._static_info_refresh) {
             // menu redraw cleared rows but kept discovery; re-emit static CPU/kernel only
@@ -325,6 +328,7 @@ export const Sensors = GObject.registerClass({
             // prefs UI minimum is 15; clamp in case an older/dconf value is lower
             let minutes = Math.max(15, this._settings.get_int('network-public-ip-interval'));
             this._next_public_ip_check = now + minutes * 60;
+            console.log('Vitals: querying public IP'); // REMOVE ME
             this._refreshIPAddress(callback);
         }
     }
