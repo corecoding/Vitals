@@ -363,9 +363,10 @@ export const Values = GObject.registerClass({
                 key: sessionKey,
             });
 
-            // calculate speed for this interface - there is nothing to compare
-            // against the very first time an interface is seen
-            let speed = (previousValue)?(value - previousValue[1]) / dwell:0;
+            // calculate speed for this interface. No previous sample, a zero
+            // baseline, or a counter reset (VPN/tunnel recycle) is not a rate.
+            let prevBytes = previousValue ? parseFloat(previousValue[1]) : 0;
+            let speed = (prevBytes && value >= prevBytes) ? (value - prevBytes) / dwell : 0;
             let speedFormatted = this._legible(speed, 'speed', type, key);
 
             output.push({
