@@ -49,6 +49,7 @@ export const Sensors = GObject.registerClass({
         this.resetHistory();
 
         this._last_processor = { 'core': {}, 'speed': [] };
+        this._last_processor_time = 0;
 
         this._settingChangedSignals = [];
         this._addSettingChangedSignal('show-gpu', this._reconfigureNvidiaSmiProcess.bind(this));
@@ -266,6 +267,13 @@ export const Sensors = GObject.registerClass({
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
+            // use time since last /proc/stat sample — query dwell is wrong when
+            // processor was skipped while the menu was closed (lazy polling)
+            let now = GLib.get_monotonic_time() / 1000000;
+            let sampleDwell = this._last_processor_time > 0 ? now - this._last_processor_time : dwell;
+            if (sampleDwell <= 0)
+                sampleDwell = dwell;
+            this._last_processor_time = now;
 
             for (let line of lines) {
                 let reverse_data = line.match(/^(cpu\d*\s)(.+)/);
@@ -287,7 +295,7 @@ export const Sensors = GObject.registerClass({
 
                 // make sure we have data to report
                 if (this._last_processor['core'][cpu] > 0) {
-                    let delta = (total - this._last_processor['core'][cpu]) / dwell;
+                    let delta = (total - this._last_processor['core'][cpu]) / sampleDwell;
 
                     // /proc/stat provides overall usage for us under the 'cpu' heading
                     if (cpu == 'cpu') {
