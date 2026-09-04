@@ -819,7 +819,8 @@ export const Sensors = GObject.registerClass({
     _returnGpuValue(callback, label, value, type, format, display = true) {
         if(!display) return;
 
-        if(format !== "string" && (value === 'N/A' || value === '[N/A]' || isNaN(value))) return;
+        if (format !== 'string' && isNaN(value))
+            return;
 
         if (!this._nvidia_labels[label + type])
             this._nvidia_labels.push(this._nvidia_labels[label + type] = {label, type, format});
@@ -828,8 +829,8 @@ export const Sensors = GObject.registerClass({
     }
 
     _returnValue(callback, label, value, type, format) {
-        // don't return if value is not a number - will revisit later
-        //if (isNaN(value)) return;
+        if (value != 'disabled' && format !== 'string' && isNaN(value))
+            return;
         callback(label, value, type, format);
     }
 
