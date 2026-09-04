@@ -564,14 +564,9 @@ var VitalsMenuButton = GObject.registerClass({
         let dwell = (now - this._last_query) / 1000;
         this._last_query = now;
 
-        let wantedKeys = null;
-        if (!this.menu.isOpen) {
-            // panel labels only — `_default_icon_` is in _hotItems, not _hotLabels
-            let keys = Object.keys(this._hotLabels);
-            if (keys.length === 0)
-                return;
-            wantedKeys = new Set(keys);
-        }
+        // panel labels only when closed — `_default_icon_` is in _hotItems, not _hotLabels
+        // empty set still queries so dwell-based sensors keep warm baselines
+        let wantedKeys = this.menu.isOpen ? null : new Set(Object.keys(this._hotLabels));
 
         this._sensors.query((label, value, type, format) => {
             let typeKey = type.replace('-group', '');
