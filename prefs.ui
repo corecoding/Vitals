@@ -1,7 +1,394 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <requires lib="libadwaita" version="1.9"/>
+  <requires lib="libadwaita" version="1.4"/>
+
+  <!-- Settings-style sidebar. Preference pages are attached to prefs-stack in prefs.js. -->
+  <object class="AdwNavigationSplitView" id="prefs-root">
+    <property name="vexpand">True</property>
+    <property name="hexpand">True</property>
+    <property name="min-sidebar-width">220</property>
+    <property name="max-sidebar-width">320</property>
+    <property name="sidebar-width-fraction">0.28</property>
+    <property name="sidebar">
+      <object class="AdwNavigationPage" id="prefs-sidebar-page">
+        <property name="title" translatable="yes">Vitals</property>
+        <property name="child">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar">
+                <property name="show-end-title-buttons">False</property>
+              </object>
+            </child>
+            <property name="content">
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkListBox" id="prefs-sidebar">
+                    <property name="selection-mode">browse</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">general</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-general">
+                                <property name="icon-name">preferences-system-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">General</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="selectable">False</property>
+                        <property name="activatable">False</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Sensors</property>
+                            <property name="xalign">0</property>
+                            <property name="hexpand">True</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">12</property>
+                            <property name="margin-bottom">6</property>
+                            <style>
+                              <class name="heading"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">temperature</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-temperature">
+                                <property name="icon-name">temperature-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Temperature</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">voltage</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-voltage">
+                                <property name="icon-name">voltage-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Voltage</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">fan</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-fan">
+                                <property name="icon-name">fan-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Fan</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">memory</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-memory">
+                                <property name="icon-name">memory-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Memory</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">processor</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-processor">
+                                <property name="icon-name">cpu-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Processor</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">system</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-system">
+                                <property name="icon-name">system-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">System</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">network</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-network">
+                                <property name="icon-name">network-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Network</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">storage</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-storage">
+                                <property name="icon-name">storage-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Storage</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">battery</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-battery">
+                                <property name="icon-name">battery-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Battery</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">gpu</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-gpu">
+                                <property name="icon-name">gpu-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">GPU</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+    <property name="content">
+      <object class="AdwNavigationPage" id="prefs-content-page">
+        <property name="title" translatable="yes">General</property>
+        <property name="child">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar">
+                <property name="show-start-title-buttons">False</property>
+              </object>
+            </child>
+            <property name="content">
+              <object class="AdwViewStack" id="prefs-stack">
+                <property name="vexpand">True</property>
+                <property name="hexpand">True</property>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
 
   <object class="GtkAdjustment" id="update-time-adjustment">
     <property name="lower">1</property>
@@ -311,6 +698,17 @@
         </child>
         <child>
           <object class="AdwActionRow">
+            <property name="title" translatable="yes">Show individual cores</property>
+            <property name="activatable-widget">include-processor-cores</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="include-processor-cores">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
             <property name="title" translatable="yes">Include static info</property>
             <property name="activatable-widget">include-static-info</property>
             <child type="suffix">
@@ -603,53 +1001,5 @@
       </object>
     </child>
   </object>
-
-  <!-- Settings-style left sidebar + content (wired in prefs.js) -->
-  <object class="AdwNavigationSplitView" id="prefs-root">
-    <property name="vexpand">True</property>
-    <property name="hexpand">True</property>
-    <property name="min-sidebar-width">220</property>
-    <property name="max-sidebar-width">320</property>
-    <property name="sidebar-width-fraction">0.28</property>
-    <property name="sidebar">
-      <object class="AdwNavigationPage" id="prefs-sidebar-page">
-        <property name="title" translatable="yes">Vitals</property>
-        <property name="child">
-          <object class="AdwToolbarView">
-            <child type="top">
-              <object class="AdwHeaderBar">
-                <property name="show-end-title-buttons">False</property>
-              </object>
-            </child>
-            <property name="content">
-              <object class="AdwViewSwitcherSidebar" id="prefs-sidebar">
-                <property name="stack">prefs-stack</property>
-                <property name="mode">sidebar</property>
-              </object>
-            </property>
-          </object>
-        </property>
-      </object>
-    </property>
-    <property name="content">
-      <object class="AdwNavigationPage" id="prefs-content-page">
-        <property name="title" translatable="yes">General</property>
-        <property name="child">
-          <object class="AdwToolbarView">
-            <child type="top">
-              <object class="AdwHeaderBar">
-                <property name="show-start-title-buttons">False</property>
-              </object>
-            </child>
-            <property name="content">
-              <object class="AdwViewStack" id="prefs-stack">
-                <property name="vexpand">True</property>
-                <property name="hexpand">True</property>
-              </object>
-            </property>
-          </object>
-        </property>
-      </object>
-    </property>
-  </object>
 </interface>
+
