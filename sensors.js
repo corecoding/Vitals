@@ -48,6 +48,9 @@ export const Sensors = GObject.registerClass({
 
         this.resetHistory();
 
+        // interfaces seen by the last network query, to spot the ones that go away
+        this._network_interfaces = [];
+
         this._last_processor = { 'core': {}, 'speed': [] };
 
         this._settingChangedSignals = [];
@@ -330,11 +333,45 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryNetwork(callback, dwell) {
-        for (let sensor of this._networkIfaces) {
-            new FileModule.File(sensor.path).read().then(value => {
-                this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
-            }).catch(err => { });
-        }
+        // check network speed
+        let directions = ['tx', 'rx'];
+        let netbase = '/sys/class/net/';
+
+        new FileModule.File(netbase).list().then(interfaces => {
+            // 'lo' is always present, so an empty listing means the read failed
+            if (!interfaces.length) return;
+
+            // issue #557 - forget interfaces the kernel no longer has
+            for (let iface of this._network_interfaces) {
+                if (interfaces.includes(iface)) continue;
+
+                for (let direction of directions) {
+                    if (iface == 'lo' && direction == 'rx') continue;
+
+                    let name = iface + ((iface == 'lo')?'':' ' + direction);
+                    let type = 'network' + ((iface=='lo')?'':'-' + direction);
+                    this._returnValue(callback, name, 'destroy', type, 'storage');
+                }
+            }
+
+            this._network_interfaces = interfaces;
+
+            for (let iface of interfaces) {
+                for (let direction of directions) {
+                    // lo tx and rx are the same
+                    if (iface == 'lo' && direction == 'rx') continue;
+
+                    new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
+                        // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
+                        // by not using network-rx or network-tx
+                        let name = iface + ((iface == 'lo')?'':' ' + direction);
+
+                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
+                        this._returnValue(callback, name, value, type, 'storage');
+                    }).catch(err => { });
+                }
+            }
+        }).catch(err => { });
 
         if (this._hasWireless)
             this._queryWireless(callback);
@@ -825,7 +862,7 @@ export const Sensors = GObject.registerClass({
     }
 
     _returnValue(callback, label, value, type, format) {
-        if (value != 'disabled' && format !== 'string' && isNaN(value))
+        if (value != 'disabled' && value != 'destroy' && format !== 'string' && isNaN(value))
             return;
         callback(label, value, type, format);
     }

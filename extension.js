@@ -570,6 +570,17 @@ var VitalsMenuButton = GObject.registerClass({
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
             let key = '_' + typeKey + '_' + label.replaceAll(' ', '_').toLowerCase() + '_';
 
+            // issue #557 - interface is gone, drop it rather than show its last reading
+            if (value == 'destroy') {
+                this._values.removeNetworkSensor(key, label, type.replace('network-', ''));
+                if (key in this._sensorMenuItems) {
+                    this._sensorMenuItems[key].destroy();
+                    delete this._sensorMenuItems[key];
+                }
+                this._removeHotItem(key);
+                return;
+            }
+
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
                 this._sensorMenuItems[key].setSensitive((value!='disabled'));
