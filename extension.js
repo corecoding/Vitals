@@ -47,7 +47,6 @@ var VitalsMenuButton = GObject.registerClass({
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons, _);
         this._values = new Values.Values(this._settings, this._sensorIcons);
         this._menuLayout = new St.BoxLayout({
-            vertical: false,
             clip_to_allocation: true,
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
@@ -124,7 +123,6 @@ var VitalsMenuButton = GObject.registerClass({
 
         let customButtonBox = new St.BoxLayout({
             style_class: 'vitals-button-box',
-            vertical: false,
             clip_to_allocation: true,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
