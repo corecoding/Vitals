@@ -135,11 +135,6 @@
       <summary>Use fixed widths in top bar</summary>
       <description>Keep sensors in top bar from jumping around</description>
     </key>
-    <key type="b" name="use-monospace-font">
-      <default>false</default>
-      <summary>Use monospace font for values</summary>
-      <description>Display sensor values in a monospace font so digits stay aligned</description>
-    </key>
     <key type="b" name="hide-icons">
       <default>false</default>
       <summary>Hide icons in top bar</summary>

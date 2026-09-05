@@ -29,7 +29,7 @@ export const MenuItem = GObject.registerClass({
         this.add_child(this._labelActor);
 
         // add value
-        this._valueLabel = new St.Label({ text: value, style_class: 'vitals-menu-value' });
+        this._valueLabel = new St.Label({ text: value });
         this._valueLabel.set_x_align(Clutter.ActorAlign.END);
         this._valueLabel.set_x_expand(true);
         this._valueLabel.set_y_expand(true);

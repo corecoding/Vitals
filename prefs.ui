@@ -514,17 +514,6 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Use monospace font for values</property>
-            <property name="activatable-widget">use-monospace-font</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="use-monospace-font">
-                <property name="valign">center</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwActionRow">
             <property name="title" translatable="yes">Hide icons in top bar</property>
             <property name="activatable-widget">hide-icons</property>
             <child type="suffix">

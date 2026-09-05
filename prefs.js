@@ -307,7 +307,6 @@ class Settings {
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
                         'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
-                        'use-monospace-font',
                         'hide-icons', 'menu-centered', 'include-static-info',
                         'include-processor-cores',
                         'show-gpu', 'include-static-gpu-info' ];
