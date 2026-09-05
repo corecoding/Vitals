@@ -13,3 +13,5 @@
 .vitals-button-action:hover, .vitals-button-action:focus { border-color: #777; }
 .vitals-button-action > StIcon { icon-size: 16px; }
 .vitals-button-box { padding: 0px; spacing: 22px; }
+.vitals-mono-values .vitals-panel-label,
+.vitals-mono-values .vitals-menu-value { font-family: "Adwaita Mono", "Source Code Pro", monospace; }

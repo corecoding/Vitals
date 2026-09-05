@@ -62,6 +62,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._connectSettingsSignals();
 
         this._initializeMenu();
+        this._syncMonospaceFont();
 
         // start off with fresh sensors
         this._querySensors();
@@ -75,6 +76,7 @@ var VitalsMenuButton = GObject.registerClass({
             'changed::update-time', this._initializeTimer.bind(this),
             'changed::position-in-panel', this._positionInPanelChanged.bind(this),
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
+            'changed::use-monospace-font', this._syncMonospaceFont.bind(this),
             this);
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
@@ -315,6 +317,21 @@ var VitalsMenuButton = GObject.registerClass({
         boxes[position[0]].insert_child_at_index(this.container, position[1]);
     }
 
+    _syncMonospaceFont() {
+        let useMono = this._settings.get_boolean('use-monospace-font');
+        this._setStyleClass(this, 'vitals-mono-values', useMono);
+        this._setStyleClass(this.menu.box, 'vitals-mono-values', useMono);
+    }
+
+    _setStyleClass(actor, name, enabled) {
+        if (!actor)
+            return;
+        if (enabled)
+            actor.add_style_class_name(name);
+        else
+            actor.remove_style_class_name(name);
+    }
+
     _removeHotItems(){
         for (let key in this._hotItems) {
             this._removeHotItem(key);
@@ -465,7 +482,8 @@ var VitalsMenuButton = GObject.registerClass({
     _defaultLabel() {
         return new St.Label({
                y_expand: true,
-                y_align: Clutter.ActorAlign.CENTER
+                y_align: Clutter.ActorAlign.CENTER,
+            style_class: 'vitals-menu-value'
         });
     }
 
