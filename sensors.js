@@ -1081,7 +1081,7 @@ export const Sensors = GObject.registerClass({
                                 trisensors[key2] = {
                                     'type': sensor_types[sensor_type],
                                   'format': sensor_type,
-                                   // if name = 'drivetemp' I put the drive model
+                                   // drivetemp: prefer the drive model when sysfs exposes it
                                    'label': path + (name == 'drivetemp' ? '/device/model' : '/name')
                                 };
                             }
@@ -1103,7 +1103,9 @@ export const Sensors = GObject.registerClass({
                         new FileModule.File(obj['label']).read().then(label => {
                             this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
-                            let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
+                            // device/model is not always present; keep the hwmon name as fallback
+                            let tmpFile = name == 'drivetemp' ? path + '/name'
+                                : obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
                                 this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
@@ -1115,8 +1117,8 @@ export const Sensors = GObject.registerClass({
     }
 
     _addTempVoltFan(callback, obj, name, label, extra, value) {
-        // prepend module that provided sensor data (I don't do this for drivetemp)
-        if (name != label && name != "drivetemp") label = name + ' ' + label;
+        // prepend module that provided sensor data, except drivetemp (label is already the model)
+        if (name != label && name != 'drivetemp') label = name + ' ' + label;
 
         //if (label == 'nvme Composite') label = 'NVMe';
         //if (label == 'nouveau') label = 'Nvidia';
