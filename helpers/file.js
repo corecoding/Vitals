@@ -3,7 +3,6 @@ import GLib from 'gi://GLib'
 import { convertUint8ArrayToString } from './bytes.js';
 
 export function File(path) {
-    this.path = path; // REMOVE ME
     if (path.indexOf('https://') == -1)
         this.file = Gio.File.new_for_path(path);
     else
@@ -11,7 +10,6 @@ export function File(path) {
 }
 
 File.prototype.read = function(delimiter = '', strip_header = false) {
-    console.log(`Vitals: read ${this.path}`); // REMOVE ME
     return new Promise((resolve, reject) => {
         try {
             this.file.load_contents_async(null, function(file, res) {
@@ -41,7 +39,6 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
 };
 
 File.prototype.list = function() {
-    console.log(`Vitals: list ${this.path}`); // REMOVE ME
     return new Promise((resolve, reject) => {
         let max_items = 125, results = [];
 
