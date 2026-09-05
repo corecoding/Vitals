@@ -155,6 +155,11 @@
       <summary>Include processor static information</summary>
       <description>Display processor static information that doesn't change</description>
     </key>
+    <key type="b" name="include-processor-cores">
+      <default>false</default>
+      <summary>Show individual CPU cores</summary>
+      <description>Display usage for each processor core</description>
+    </key>
     <key type="b" name="show-gpu">
       <default>false</default>
       <summary>Monitor GPU</summary>

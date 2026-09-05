@@ -241,7 +241,7 @@ export const Sensors = GObject.registerClass({
                         delta = delta / cores;
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                         this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
-                    } else {
+                    } else if (this._settings.get_boolean('include-processor-cores')) {
                         this._returnValue(callback, this._gettext('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
                     }
                 }

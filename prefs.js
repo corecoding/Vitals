@@ -219,7 +219,7 @@ class Settings {
             'voltage': { toggle: 'show-voltage', widgets: [] },
             'fan': { toggle: 'show-fan', widgets: [] },
             'memory': { toggle: 'show-memory', widgets: ['memory-measurement'] },
-            'processor': { toggle: 'show-processor', widgets: ['include-static-info'] },
+            'processor': { toggle: 'show-processor', widgets: ['include-static-info', 'include-processor-cores'] },
             'system': { toggle: 'show-system', widgets: ['monitor-cmd'] },
             'network': {
                 toggle: 'show-network',
@@ -308,6 +308,7 @@ class Settings {
                         'alphabetize', 'hide-zeros', 'include-public-ip',
                         'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
                         'hide-icons', 'menu-centered', 'include-static-info',
+                        'include-processor-cores',
                         'show-gpu', 'include-static-gpu-info' ];
 
         for (let key in sensors) {
