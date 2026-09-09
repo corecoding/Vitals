@@ -110,6 +110,34 @@
                     </child>
                     <child>
                       <object class="GtkListBoxRow">
+                        <property name="name">coolant</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-coolant">
+                                <property name="icon-name">water-droplet-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Coolant</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
                         <property name="name">voltage</property>
                         <child>
                           <object class="GtkBox">
@@ -156,6 +184,34 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="label" translatable="yes">Fan</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="name">pump</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-pump">
+                                <property name="icon-name">pump-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Pump</property>
                                 <property name="xalign">0</property>
                                 <property name="hexpand">True</property>
                               </object>
@@ -589,6 +645,45 @@
     </child>
   </object>
 
+  <!-- Coolant -->
+  <object class="AdwPreferencesPage" id="coolant-page">
+    <property name="name">coolant</property>
+    <property name="title" translatable="yes">Coolant</property>
+    <property name="icon-name">water-droplet-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor coolant</property>
+            <property name="activatable-widget">show-coolant</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-coolant">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Unit</property>
+            <property name="activatable-widget">coolant-unit</property>
+            <child type="suffix">
+              <object class="GtkComboBoxText" id="coolant-unit">
+                <property name="valign">center</property>
+                <items>
+                  <item translatable="yes">°C</item>
+                  <item translatable="yes">°F</item>
+                </items>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
   <!-- Voltage -->
   <object class="AdwPreferencesPage" id="voltage-page">
     <property name="name">voltage</property>
@@ -628,6 +723,30 @@
             <property name="activatable-widget">show-fan</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-fan">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Pump -->
+  <object class="AdwPreferencesPage" id="pump-page">
+    <property name="name">pump</property>
+    <property name="title" translatable="yes">Pump</property>
+    <property name="icon-name">pump-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor pump</property>
+            <property name="activatable-widget">show-pump</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-pump">
                 <property name="valign">center</property>
               </object>
             </child>

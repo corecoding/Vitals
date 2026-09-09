@@ -26,7 +26,7 @@
 
 import GObject from 'gi://GObject';
 
-import {sensorCatalog, colorsKeyForSensor} from './helpers/catalog.js';
+import {colorsKeyForSensor, isAggregateGroup, unitSettingForType} from './helpers/catalog.js';
 import {getUsageColor} from './helpers/colors.js';
 
 const cbFun = (d, c) => {
@@ -81,7 +81,7 @@ export const Values = GObject.registerClass({
                 ending = '°C';
 
                 // are we converting to fahrenheit?
-                if (this._settings.get_int('unit') == 1) {
+                if (this._settings.get_int(unitSettingForType(type)) == 1) {
                     value = ((9 / 5) * value + 32);
                     ending = '°F';
                 }
@@ -277,7 +277,7 @@ export const Values = GObject.registerClass({
         this._history[historyType][key] = [legible.text, value];
 
         // process average, min and max values
-        if (type == 'temperature' || type == 'voltage' || type == 'fan') {
+        if (isAggregateGroup(type)) {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
             // show value in group even if there is one value present
