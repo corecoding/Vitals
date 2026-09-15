@@ -718,6 +718,17 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Use cpufreq for frequency</property>
+            <property name="activatable-widget">use-processor-cpufreq</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="use-processor-cpufreq">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </object>

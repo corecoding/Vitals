@@ -250,8 +250,8 @@ export const Sensors = GObject.registerClass({
                 this._last_processor['core'][cpu] = total;
             }
 
-            // fallback: platforms without cpu MHz in /proc/cpuinfo (some ARM)
-            if (!this._processor_uses_cpu_info) {
+            // per-core scaling_cur_freq: prefs override, or fallback when cpuinfo has no MHz
+            if (!this._useCpuinfoFrequency()) {
                 for (let core = 0; core < cores; core++) {
                     new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
                         this._last_processor['speed'][core] = parseInt(value);
@@ -260,8 +260,7 @@ export const Sensors = GObject.registerClass({
             }
         }).catch(err => { });
 
-        // /proc/cpuinfo lists every core in one file; same values as per-core scaling_cur_freq
-        if (this._processor_uses_cpu_info) {
+        if (this._useCpuinfoFrequency()) {
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
                 let freqs = [];
                 for (let line of lines) {
@@ -281,6 +280,10 @@ export const Sensors = GObject.registerClass({
         } else if (Object.values(this._last_processor['speed']).length > 0) {
             this._returnFrequencies(callback, Object.values(this._last_processor['speed']), 1000);
         }
+    }
+
+    _useCpuinfoFrequency() {
+        return !this._settings.get_boolean('use-processor-cpufreq') && this._processor_uses_cpu_info;
     }
 
     _returnFrequencies(callback, freqs, scale) {

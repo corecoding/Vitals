@@ -160,6 +160,11 @@
       <summary>Show individual CPU cores</summary>
       <description>Display usage for each processor core</description>
     </key>
+    <key type="b" name="use-processor-cpufreq">
+      <default>false</default>
+      <summary>Use cpufreq for frequency</summary>
+      <description>Read current CPU frequency from per-core scaling_cur_freq instead of /proc/cpuinfo</description>
+    </key>
     <key type="b" name="show-gpu">
       <default>false</default>
       <summary>Monitor GPU</summary>
