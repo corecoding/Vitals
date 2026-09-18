@@ -250,12 +250,16 @@ export const Sensors = GObject.registerClass({
                 this._last_processor['core'][cpu] = total;
             }
 
-            // per-core scaling_cur_freq: prefs override, or fallback when cpuinfo has no MHz
+            // per-core cpufreq: prefs override, or fallback when cpuinfo has no MHz
             if (!this._useCpuinfoFrequency()) {
                 for (let core = 0; core < cores; core++) {
-                    new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
-                        this._last_processor['speed'][core] = parseInt(value);
-                    }).catch(err => { });
+                    let base = '/sys/devices/system/cpu/cpu' + core + '/cpufreq/';
+                    this._readKhz(base + 'scaling_cur_freq', khz => this._last_processor['speed'][core] = khz);
+                    // policy limits are stable; sample every core once, keep the extremes
+                    if (this._cpufreqMin == null) {
+                        this._readKhz(base + 'scaling_min_freq', khz => { if (!(khz >= this._cpufreqMin)) this._cpufreqMin = khz; });
+                        this._readKhz(base + 'scaling_max_freq', khz => { if (!(khz <= this._cpufreqMax)) this._cpufreqMax = khz; });
+                    }
                 }
             }
         }).catch(err => { });
@@ -278,20 +282,24 @@ export const Sensors = GObject.registerClass({
                 this._processor_uses_cpu_info = false;
             });
         } else if (Object.values(this._last_processor['speed']).length > 0) {
-            this._returnFrequencies(callback, Object.values(this._last_processor['speed']), 1000);
+            this._returnFrequencies(callback, Object.values(this._last_processor['speed']), 1000, this._cpufreqMin, this._cpufreqMax);
         }
+    }
+
+    _readKhz(path, cb) {
+        new FileModule.File(path).read().then(v => cb(parseInt(v))).catch(() => {});
     }
 
     _useCpuinfoFrequency() {
         return !this._settings.get_boolean('use-processor-cpufreq') && this._processor_uses_cpu_info;
     }
 
-    _returnFrequencies(callback, freqs, scale) {
+    _returnFrequencies(callback, freqs, scale, minHz, maxHz) {
         let sum = 0, min = freqs[0], max = freqs[0];
         for (let v of freqs) { sum += v; if (v < min) min = v; if (v > max) max = v; }
         this._returnValue(callback, 'Frequency', (sum / freqs.length) * scale, 'processor', 'hertz');
-        this._returnValue(callback, 'Max frequency', max * scale, 'processor', 'hertz');
-        this._returnValue(callback, 'Min frequency', min * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Max frequency', (maxHz ?? max) * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Min frequency', (minHz ?? min) * scale, 'processor', 'hertz');
     }
 
     _querySystem(callback) {
@@ -1183,6 +1191,7 @@ export const Sensors = GObject.registerClass({
         }
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
+        this._cpufreqMin = this._cpufreqMax = null;
         this._battery_time_left_history = [];
         this._battery_charge_status = '';
         this._nvidia_labels = [];
