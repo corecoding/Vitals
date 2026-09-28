@@ -103,7 +103,7 @@
     <key type="i" name="network-speed-unit">
       <default>0</default>
       <summary>Fixed network speed unit</summary>
-      <description>Fix the network speed unit instead of auto-scaling. 0=Auto, 1=Kbps/KiB/s, 2=Mbps/MiB/s</description>
+      <description>Fix the network speed unit instead of auto-scaling. 0=Auto, 1=kbps/kB/s, 2=Mbps/MB/s</description>
     </key>
     <key type="s" name="storage-path">
       <default>"/"</default>
