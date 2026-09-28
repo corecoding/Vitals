@@ -419,7 +419,7 @@ var VitalsMenuButton = GObject.registerClass({
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
-        let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon));
+        let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon, key));
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {
@@ -484,13 +484,13 @@ var VitalsMenuButton = GObject.registerClass({
             icon.gicon = Gio.icon_new_for_string(this._sensorIconPath('system'));
         } else { // support for hide icons #80
             let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
-            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(type, iconObj));
+            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(type, iconObj, key));
         }
 
         return icon;
     }
 
-    _sensorIconPath(sensor, icon = 'icon') {
+    _sensorIconPath(sensor, icon = 'icon', key = '') {
         let sensorKey = sensor;
 
         // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
@@ -505,6 +505,8 @@ var VitalsMenuButton = GObject.registerClass({
         }
 
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
+        if (sensorKey === 'memory' && iconPathPrefixIndex === 1 && key.startsWith('_memory_swap_'))
+            icon = 'icon-swap';
         return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + icons[icon];
     }
 
