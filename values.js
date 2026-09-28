@@ -167,7 +167,7 @@ export const Values = GObject.registerClass({
                 if (use_bps) {
                     ending = decimal[exp].replace('B', 'bps');
                 } else {
-                    ending = decimal[exp] + '/s';
+                    ending = decimal[exp];
                 }
 
                 break;
