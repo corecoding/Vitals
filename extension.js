@@ -472,9 +472,13 @@ var VitalsMenuButton = GObject.registerClass({
     _defaultIcon(key) {
         let split = key.replaceAll('_', ' ').trim().split(' ')[0].split('-');
         let type = split[0];
+        let panelType = type.startsWith('gpu') ? 'gpu' : type;
+        if (type === 'network' && (split[1] === 'rx' || split[1] === 'tx'))
+            panelType += '-' + split[1];
+        let iconStyle = this._settings.get_int('icon-style') === 1 ? 'gnome' : 'original';
 
         let icon = new St.Icon({
-          style_class: 'system-status-icon vitals-panel-icon-' + type,
+          style_class: `system-status-icon vitals-panel-icon vitals-panel-icon-${panelType} vitals-panel-icon-${iconStyle}`,
             reactive: true
         });
 
