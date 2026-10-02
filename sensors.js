@@ -257,8 +257,8 @@ export const Sensors = GObject.registerClass({
                     this._readKhz(base + 'scaling_cur_freq', khz => this._last_processor['speed'][core] = khz);
                     // policy limits are stable; sample every core once, keep the extremes
                     if (this._cpufreqMin == null) {
-                        this._readKhz(base + 'scaling_min_freq', khz => { if (!(khz >= this._cpufreqMin)) this._cpufreqMin = khz; });
-                        this._readKhz(base + 'scaling_max_freq', khz => { if (!(khz <= this._cpufreqMax)) this._cpufreqMax = khz; });
+                        this._readKhz(base + 'scaling_min_freq', khz => { if (this._cpufreqMin == null || khz < this._cpufreqMin) this._cpufreqMin = khz; });
+                        this._readKhz(base + 'scaling_max_freq', khz => { if (this._cpufreqMax == null || khz > this._cpufreqMax) this._cpufreqMax = khz; });
                     }
                 }
             }
@@ -936,13 +936,13 @@ export const Sensors = GObject.registerClass({
     }
 
     _discoverNetworkIfaces(callback) {
-        let previous = this._networkIfaces;
-        this._networkIfaces = [];
-        this._hasWireless = false;
         let netbase = '/sys/class/net/';
         let directions = ['tx', 'rx'];
 
         new FileModule.File(netbase).list().then(interfaces => {
+            // swap in a complete list so overlapping discoveries can't append duplicates
+            let previous = this._networkIfaces;
+            let ifaces = [];
             for (let iface of interfaces) {
                 for (let direction of directions) {
                     // lo tx and rx are the same
@@ -954,7 +954,7 @@ export const Sensors = GObject.registerClass({
                     let name = iface + ((iface == 'lo') ? '' : ' ' + direction);
                     let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
                     let path = netbase + iface + '/statistics/' + direction + '_bytes';
-                    this._networkIfaces.push({name, type, path});
+                    ifaces.push({name, type, path});
 
                     // update screen on initial build to prevent delay on update
                     new FileModule.File(path).read().then(value => {
@@ -969,6 +969,8 @@ export const Sensors = GObject.registerClass({
                     this._returnValue(callback, sensor.name, 'destroy', sensor.type, 'storage');
             }
 
+            this._networkIfaces = ifaces;
+            this._hasWireless = false;
             new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
                 lines.shift();
                 if (!lines[lines.length - 1])
