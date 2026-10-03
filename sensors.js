@@ -652,6 +652,11 @@ export const Sensors = GObject.registerClass({
             this._disableGpuLabels(callback);
             this._terminateNvidiaSmiProcess();
         });
+
+        // nvidia-smi only covers nvidia cards; any other sysfs card still needs its sensors
+        // read so hybrid systems keep showing every gpu
+        if (this._gpu_drm_indices?.length)
+            this._readGpuDrm(callback);
     }
 
     _parseNvidiaSmiLine(callback, csv, gpuNum, multiGpu) {
@@ -755,10 +760,19 @@ export const Sensors = GObject.registerClass({
 
     _readGpuDrm(callback) {
         const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
+        // when nvidia-smi is running it owns the first groups, so sysfs cards are numbered after them
+        let groupOffset = this._nvidia_smi_process ? this._nvidia_gpu_count : 0;
         for (let z = 0; z < this._gpu_drm_indices.length; z++) {
             let i = this._gpu_drm_indices[z];
-            const typeName = 'gpu#' + (z + 1);
             const vendor = (this._gpu_drm_vendors[z] || '').toLowerCase();
+
+            // nvidia cards are already reported through nvidia-smi, reading them here too
+            // would duplicate every sensor under a second group
+            if (vendor === '0x10de' && this._nvidia_smi_process)
+                continue;
+
+            groupOffset++;
+            const typeName = 'gpu#' + groupOffset;
             const cardBase = '/sys/class/drm/card' + i + '/device/';
 
             this._returnGpuGroupHeader(callback, typeName, null);
@@ -961,8 +975,9 @@ export const Sensors = GObject.registerClass({
     }
 
     _discoverGpuDrm() {
-        // use DRM only if nvidia-smi is not used
-        if (this._settings.get_boolean('show-gpu') && this._nvidia_smi_process == null) {
+        // DRM discovery runs even when nvidia-smi is used: nvidia-smi only reports nvidia
+        // cards, so non-nvidia cards still have to be read through sysfs to stay visible
+        if (this._settings.get_boolean('show-gpu')) {
             this._gpu_drm_indices = [];
             this._gpu_drm_vendors = [];
             // try to discover up to 10 cards starting from index 0
