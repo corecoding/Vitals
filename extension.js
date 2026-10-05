@@ -200,7 +200,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _createRoundButton(iconName) {
         let button = new St.Button({
-            style_class: 'message-list-clear-button button vitals-button-action'
+            style_class: 'button vitals-button-action'
         });
 
         button.child = new St.Icon({
