@@ -28,7 +28,8 @@
 .vitals-panel-icon-original.vitals-panel-icon-temperature { margin-right: 3px; } /* right inset: 3px */
 .vitals-panel-icon-original.vitals-panel-icon-voltage { margin-right: 3px; } /* right inset: 3px */
 /* END measured icon margins */
-.vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; border: 1px solid transparent; }
-.vitals-button-action:hover, .vitals-button-action:focus { border-color: #777; }
+/* Geometry only; background and interactive states come from the theme's
+ * generic .button class, which every GNOME button already hooks. */
+.vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; }
 .vitals-button-action > StIcon { icon-size: 16px; }
 .vitals-button-box { padding: 0px; spacing: 22px; }
