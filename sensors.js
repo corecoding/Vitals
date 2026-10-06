@@ -153,7 +153,7 @@ export const Sensors = GObject.registerClass({
                 continue;
             }
 
-            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
+            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan' || sensor == 'power') {
                 // wantedKeys filters individual hwmon files when the menu is closed
                 this._queryTempVoltFan(callback, sensor, wantedKeys);
             } else {
@@ -862,7 +862,7 @@ export const Sensors = GObject.registerClass({
     }
 
     _discoverHardwareMonitors(callback) {
-        this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {} };
+        this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {}, 'power': {} };
 
         let hwbase = '/sys/class/hwmon/';
 
@@ -877,6 +877,9 @@ export const Sensors = GObject.registerClass({
 
         if (this._settings.get_boolean('show-fan'))
             sensor_types['fan'] = 'fan';
+
+        if (this._settings.get_boolean('show-power'))
+            sensor_types['power'] = 'power';
 
         // a little informal, but this code has zero I/O block
         new FileModule.File(hwbase).list().then(files => {
@@ -1173,7 +1176,7 @@ export const Sensors = GObject.registerClass({
         if (label == 'Package id 1') label = 'Processor 1';
         label = label.replace('Package id', 'CPU');
 
-        let types = [ 'temperature', 'voltage', 'fan' ];
+        let types = [ 'temperature', 'voltage', 'fan', 'power' ];
         for (let type of types) {
             // check if this label already exists
             if (label in this._tempVoltFanSensors[type]) {

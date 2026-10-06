@@ -11,6 +11,7 @@
 .vitals-panel-icon-gnome.vitals-panel-icon-network-rx { margin-right: 3px; } /* right inset: 3px */
 .vitals-panel-icon-gnome.vitals-panel-icon-network { margin-right: 5px; } /* right inset: 1px */
 .vitals-panel-icon-gnome.vitals-panel-icon-network-tx { margin-right: 3px; } /* right inset: 3px */
+.vitals-panel-icon-gnome.vitals-panel-icon-power { margin-right: 6px; } /* right inset: 0px */
 .vitals-panel-icon-gnome.vitals-panel-icon-storage { margin-right: 5px; } /* right inset: 1px */
 .vitals-panel-icon-gnome.vitals-panel-icon-system { margin-right: 6px; } /* right inset: 0px */
 .vitals-panel-icon-gnome.vitals-panel-icon-temperature { margin-right: 2px; } /* right inset: 4px */
@@ -23,6 +24,7 @@
 .vitals-panel-icon-original.vitals-panel-icon-network-rx { margin-right: 6px; } /* right inset: 0px */
 .vitals-panel-icon-original.vitals-panel-icon-network { margin-right: 6px; } /* right inset: 0px */
 .vitals-panel-icon-original.vitals-panel-icon-network-tx { margin-right: 6px; } /* right inset: 0px */
+.vitals-panel-icon-original.vitals-panel-icon-power { margin-right: 6px; } /* right inset: 0px */
 .vitals-panel-icon-original.vitals-panel-icon-storage { margin-right: 4px; } /* right inset: 2px */
 .vitals-panel-icon-original.vitals-panel-icon-system { margin-right: 6px; } /* right inset: 0px */
 .vitals-panel-icon-original.vitals-panel-icon-temperature { margin-right: 3px; } /* right inset: 3px */

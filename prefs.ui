@@ -166,6 +166,34 @@
                     </child>
                     <child>
                       <object class="GtkListBoxRow">
+                        <property name="name">power</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <child>
+                              <object class="GtkImage" id="sidebar-icon-power">
+                                <property name="icon-name">power-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Power</property>
+                                <property name="xalign">0</property>
+                                <property name="hexpand">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
                         <property name="name">memory</property>
                         <child>
                           <object class="GtkBox">
@@ -628,6 +656,30 @@
             <property name="activatable-widget">show-fan</property>
             <child type="suffix">
               <object class="GtkSwitch" id="show-fan">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <!-- Power -->
+  <object class="AdwPreferencesPage" id="power-page">
+    <property name="name">power</property>
+    <property name="title" translatable="yes">Power</property>
+    <property name="icon-name">power-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Monitor power</property>
+            <property name="activatable-widget">show-power</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="show-power">
                 <property name="valign">center</property>
               </object>
             </child>

@@ -51,6 +51,11 @@
       <summary>Monitor fan</summary>
       <description>Display fan rotation per minute</description>
     </key>
+    <key type="b" name="show-power">
+      <default>true</default>
+      <summary>Monitor power</summary>
+      <description>Display power draw of various components</description>
+    </key>
     <key type="b" name="show-memory">
       <default>true</default>
       <summary>Monitor memory</summary>
