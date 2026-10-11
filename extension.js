@@ -584,6 +584,10 @@ var VitalsMenuButton = GObject.registerClass({
                     delete this._sensorMenuItems[key];
                 }
                 this._removeHotItem(key);
+
+                // an empty panel box leaves no way to open the menu
+                if (Object.keys(this._hotItems).length == 0)
+                    this._createHotItem('_default_icon_');
                 return;
             }
 

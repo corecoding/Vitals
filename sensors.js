@@ -961,6 +961,7 @@ export const Sensors = GObject.registerClass({
         new FileModule.File(netbase).list().then(interfaces => {
             // swap in a complete list so overlapping discoveries can't append duplicates
             let previous = this._networkIfaces;
+            let known = new Set(previous.map(sensor => sensor.name));
             let ifaces = [];
             for (let iface of interfaces) {
                 for (let direction of directions) {
@@ -974,6 +975,10 @@ export const Sensors = GObject.registerClass({
                     let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
                     let path = netbase + iface + '/statistics/' + direction + '_bytes';
                     ifaces.push({name, type, path});
+
+                    // known ifaces are already polled this round; a second sample would read as ~0 speed
+                    if (known.has(name))
+                        continue;
 
                     // update screen on initial build to prevent delay on update
                     new FileModule.File(path).read().then(value => {
@@ -1141,6 +1146,9 @@ export const Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
+                            // some USB bridges expose an empty drivetemp model
+                            if (!label && name == 'drivetemp')
+                                throw new Error('empty drivetemp model');
                             this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
                             // device/model is not always present; keep the hwmon name as fallback
