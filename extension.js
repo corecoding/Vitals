@@ -572,6 +572,9 @@ var VitalsMenuButton = GObject.registerClass({
         let wantedKeys = this.menu.isOpen ? null : new Set(Object.keys(this._hotLabels));
 
         this._sensors.query((label, value, type, format) => {
+            // async reads can resolve after disable(); the panel widgets are gone by then
+            if (this._destroyed) return;
+
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
             let key = '_' + typeKey + '_' + label.replaceAll(' ', '_').toLowerCase() + '_';
@@ -653,6 +656,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
+        this._destroyed = true;
         this._destroyTimer();
         this._sensors.destroy();
 
