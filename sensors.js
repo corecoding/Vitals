@@ -304,7 +304,9 @@ export const Sensors = GObject.registerClass({
     }
 
     _useCpuinfoFrequency() {
-        return !this._settings.get_boolean('use-processor-cpufreq') && this._processor_uses_cpu_info;
+        // the pref only applies once a policy limit read proves cpufreq exists (VMs often lack it)
+        let cpufreq = this._settings.get_boolean('use-processor-cpufreq') && this._cpufreqMax != null;
+        return !cpufreq && this._processor_uses_cpu_info;
     }
 
     _returnFrequencies(callback, freqs, scale) {
