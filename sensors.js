@@ -156,6 +156,8 @@ export const Sensors = GObject.registerClass({
             if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan' || sensor == 'power') {
                 // wantedKeys filters individual hwmon files when the menu is closed
                 this._queryTempVoltFan(callback, sensor, wantedKeys);
+
+                if (sensor == 'power') this._queryPowercap(callback);
             } else {
                 let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
                 this[method](callback, dwell);
@@ -578,6 +580,17 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _queryPowercap(callback) {
+        let usePowercap = this._settings.get_boolean('use-powercap');
+        if (!usePowercap) return;
+
+        for (let instance of this._powercapInstances) {
+            new FileModule.File(instance.path).read().then(value => {
+                this._returnValue(callback, instance.name, value, 'microjoules', 'microjoules');
+            }).catch(err => { });
+        }
+    }
+
     _initFrameMonitor() {
         // Prefs has no gnome-shell `global`; skip refresh-rate sampling there.
         if (typeof global === 'undefined' || !global.stage)
@@ -915,6 +928,7 @@ export const Sensors = GObject.registerClass({
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._discoverNetworkIfaces(callback);
+        this._discoverPowercapInstances(callback);
         this._initFrameMonitor();
     }
 
@@ -1019,6 +1033,19 @@ export const Sensors = GObject.registerClass({
             this._gpu_drm_vendors = null;
             this._gpu_drm_indices = null;
         }
+    }
+
+    _discoverPowercapInstances(callback) {
+        const powercapbase = '/sys/class/powercap/';
+
+        new FileModule.File(powercapbase).list().then(children => {
+            const instances = [];
+            for (const name of children) {
+                const path = powercapbase + name + '/energy_uj';
+                instances.push({name, path});
+            }
+            this._powercapInstances = instances;
+        }).catch(err => { });
     }
 
     // The nvidia-smi subprocess will keep running and print new sensor data to stdout every
@@ -1210,6 +1237,7 @@ export const Sensors = GObject.registerClass({
             this._hardware_detected = false;
             this._networkIfaces = [];
             this._hasWireless = false;
+            this._powercapInstances = [];
         } else {
             this._static_info_refresh = true;
         }

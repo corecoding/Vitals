@@ -218,7 +218,7 @@ class Settings {
             'temperature': { toggle: 'show-temperature', widgets: ['unit'] },
             'voltage': { toggle: 'show-voltage', widgets: [] },
             'fan': { toggle: 'show-fan', widgets: [] },
-            'power': { toggle: 'show-power', widgets: [] },
+            'power': { toggle: 'show-power', widgets: ['use-powercap'] },
             'memory': { toggle: 'show-memory', widgets: ['memory-measurement'] },
             'processor': { toggle: 'show-processor', widgets: ['include-static-info', 'include-processor-cores', 'use-processor-cpufreq'] },
             'system': { toggle: 'show-system', widgets: ['monitor-cmd'] },
@@ -303,7 +303,8 @@ class Settings {
         let widget;
 
         // process sensor toggles
-        let sensors = [ 'show-temperature', 'show-voltage', 'show-fan', 'show-power',
+        let sensors = [ 'show-temperature', 'show-voltage', 'show-fan',
+                        'show-power', 'use-powercap',
                         'show-memory', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
                         'alphabetize', 'hide-zeros', 'include-public-ip',
