@@ -26,7 +26,7 @@
 
 import GObject from 'gi://GObject';
 
-import {sensorCatalog, colorsKeyForSensor} from './helpers/catalog.js';
+import {sensorCatalog, colorsKeyForSensor, groupColorsApply} from './helpers/catalog.js';
 import {getUsageColor} from './helpers/colors.js';
 
 const cbFun = (d, c) => {
@@ -68,6 +68,8 @@ export const Values = GObject.registerClass({
         let format = '';
         let ending = '';
         let exp = 0;
+        // Number compared to the color thresholds; null means the displayed number.
+        let colorValue = null;
 
         switch (sensorClass) {
             case 'percent':
@@ -98,6 +100,8 @@ export const Values = GObject.registerClass({
                 ending = 'V';
                 break;
             case 'hertz':
+                // Thresholds are in GHz: the displayed unit changes with the value (400 MHz, 4.5 GHz).
+                colorValue = value / 1e9;
                 if (value > 0) {
                     exp = Math.max(0, Math.floor(Math.log(value) / Math.log(unit)));
                     if (value >= Math.pow(unit, exp) * (unit - 0.05)) exp++;
@@ -230,7 +234,7 @@ export const Values = GObject.registerClass({
                 break;
         }
 
-        let numeric = (typeof value === 'number' && Number.isFinite(value)) ? value : null;
+        let numeric = colorValue ?? ((typeof value === 'number' && Number.isFinite(value)) ? value : null);
         return {
             text: format.format(value, ending).trim(),
             style: this._styleFor(numeric, type, sensorClass, sensorKey),
@@ -242,7 +246,8 @@ export const Values = GObject.registerClass({
         if (!colorsKey || numeric === null || !Number.isFinite(numeric))
             return '';
 
-        return getUsageColor(numeric, this._settings.get_strv(colorsKey), sensorKey);
+        return getUsageColor(numeric, this._settings.get_strv(colorsKey), sensorKey,
+            groupColorsApply(type, format));
     }
 
     returnIfDifferent(dwell, label, value, type, format, key) {
