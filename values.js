@@ -419,8 +419,7 @@ export const Values = GObject.registerClass({
         } else if (type == 'microjoules') {
             const prevMicrojoules = previousValue ? parseInt(previousValue[1]) : 0;
             const microwatts = prevMicrojoules ? (value - prevMicrojoules) / dwell : 0;
-            const watts = microwatts / 1000000;
-            const wattsFormatted = this._legible(watts, 'watt-gpu', type, key);
+            const wattsFormatted = this._legible(microwatts, 'power', type, key);
 
             output.push({
                 label,

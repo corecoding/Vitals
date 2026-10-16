@@ -1040,9 +1040,14 @@ export const Sensors = GObject.registerClass({
 
         new FileModule.File(powercapbase).list().then(children => {
             const instances = [];
-            for (const name of children) {
-                const path = powercapbase + name + '/energy_uj';
-                instances.push({name, path});
+            for (const id of children) {
+                const path = powercapbase + id + '/energy_uj';
+                const instance = {name: id, path};
+                instances.push(instance);
+
+                new FileModule.File(powercapbase + id + '/name').read().then(name => {
+                    instance.name = name;
+                }).catch(err => { });
             }
             this._powercapInstances = instances;
         }).catch(err => { });
