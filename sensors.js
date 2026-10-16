@@ -310,11 +310,16 @@ export const Sensors = GObject.registerClass({
     }
 
     _returnFrequencies(callback, freqs, scale) {
+        // counter-based readings jitter just below the policy floor; no ceiling clamp,
+        // since acpi-cpufreq boost can legitimately exceed scaling_max_freq
+        let floor = this._cpufreqMin != null ? this._cpufreqMin * 1000 / scale : 0;
+        freqs = freqs.map(v => Math.max(v, floor));
+
         let sum = 0, min = freqs[0], max = freqs[0];
         for (let v of freqs) { sum += v; if (v < min) min = v; if (v > max) max = v; }
         this._returnValue(callback, 'Frequency', (sum / freqs.length) * scale, 'processor', 'hertz');
-        this._returnValue(callback, 'Fastest core', max * scale, 'processor', 'hertz');
-        this._returnValue(callback, 'Slowest core', min * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Frequency (fastest core)', max * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Frequency (slowest core)', min * scale, 'processor', 'hertz');
 
         // cpufreq policy limits are in kHz
         if (this._cpufreqMax != null)

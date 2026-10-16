@@ -163,7 +163,7 @@
     <key type="b" name="use-processor-cpufreq">
       <default>false</default>
       <summary>Read live frequency from cpufreq</summary>
-      <description>Read Frequency, Fastest core and Slowest core from per-core scaling_cur_freq instead of /proc/cpuinfo. Max and Min frequency always come from scaling_max_freq and scaling_min_freq.</description>
+      <description>Read Frequency and its fastest/slowest core values from per-core scaling_cur_freq instead of /proc/cpuinfo. Max and Min frequency always come from scaling_max_freq and scaling_min_freq.</description>
     </key>
     <key type="b" name="show-gpu">
       <default>false</default>
