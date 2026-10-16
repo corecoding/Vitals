@@ -928,7 +928,7 @@ export const Sensors = GObject.registerClass({
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
         this._discoverNetworkIfaces(callback);
-        this._discoverPowercapInstances(callback);
+        this._discoverPowercapInstances();
         this._initFrameMonitor();
     }
 
@@ -1035,11 +1035,34 @@ export const Sensors = GObject.registerClass({
         }
     }
 
-    _discoverPowercapInstances(callback) {
+    _discoverPowercapInstances() {
         const powercapbase = '/sys/class/powercap/';
 
         new FileModule.File(powercapbase).list().then(children => {
             const instances = [];
+
+            let processed = 0;
+            const onNameRead = () => {
+                // Wait for all names to be read
+                ++processed;
+                if (processed < children.length) return;
+
+                // Remove duplicates
+                for (let i = 1; i < instances.length; ++i) {
+                    for (let j = 0; j < i; ++j) {
+                        if (instances[i].name === instances[j].name) {
+                            instances.splice(i, 1);
+                            --i;
+                            break;
+                        }
+                    }
+                }
+
+                // Commit new list
+                this._powercapInstances = instances;
+            };
+
+
             for (const id of children) {
                 const path = powercapbase + id + '/energy_uj';
                 const instance = {name: id, path};
@@ -1047,9 +1070,11 @@ export const Sensors = GObject.registerClass({
 
                 new FileModule.File(powercapbase + id + '/name').read().then(name => {
                     instance.name = name;
-                }).catch(err => { });
+                    onNameRead();
+                }).catch(err => {
+                    onNameRead();
+                });
             }
-            this._powercapInstances = instances;
         }).catch(err => { });
     }
 
