@@ -123,7 +123,7 @@
     <key type="b" name="use-powercap">
       <default>true</default>
       <summary>Use powercap</summary>
-      <summary>Read power draw from powercap interfaces like Intel RAPL</summary>
+      <description>Read power draw from powercap interfaces like Intel RAPL</description>
     </key>
     <key type="i" name="memory-measurement">
       <default>1</default>
