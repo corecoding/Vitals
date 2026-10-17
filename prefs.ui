@@ -685,6 +685,17 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Read powercap</property>
+            <property name="activatable-widget">use-powercap</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="use-powercap">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </object>

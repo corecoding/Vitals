@@ -120,6 +120,11 @@
       <summary>Monitor battery</summary>
       <description>Monitor battery health</description>
     </key>
+    <key type="b" name="use-powercap">
+      <default>true</default>
+      <summary>Use powercap</summary>
+      <description>Read power draw from powercap interfaces like Intel RAPL</description>
+    </key>
     <key type="i" name="memory-measurement">
       <default>1</default>
       <summary>Memory measurement</summary>

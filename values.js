@@ -267,8 +267,8 @@ export const Values = GObject.registerClass({
         // is the value different from last time?
         let legible = this._legible(value, format, type, key);
 
-        // don't return early when dealing with network traffic
-        if (historyType != 'network-rx' && historyType != 'network-tx') {
+        // don't return early when dealing with network traffic or energy rate
+        if (historyType != 'network-rx' && historyType != 'network-tx' && historyType != 'microjoules') {
             // only update when we are coming through for the first time, or if a value has changed
             if (key in this._history[historyType] && this._history[historyType][key][0] == legible.text)
                 return output;
@@ -416,6 +416,18 @@ export const Values = GObject.registerClass({
                     });
                 }
             }
+        } else if (type == 'microjoules') {
+            const prevMicrojoules = previousValue ? parseInt(previousValue[1]) : 0;
+            const microwatts = prevMicrojoules ? (value - prevMicrojoules) / dwell : 0;
+            const wattsFormatted = this._legible(microwatts, 'power', type, key);
+
+            output.push({
+                label,
+                value: wattsFormatted.text,
+                style: wattsFormatted.style,
+                type: 'power',
+                key,
+            });
         }
 
         return output;
