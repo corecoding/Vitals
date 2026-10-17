@@ -155,6 +155,16 @@
       <summary>Include processor static information</summary>
       <description>Display processor static information that doesn't change</description>
     </key>
+    <key type="b" name="include-processor-cores">
+      <default>false</default>
+      <summary>Show individual CPU cores</summary>
+      <description>Display usage for each processor core</description>
+    </key>
+    <key type="b" name="use-processor-cpufreq">
+      <default>false</default>
+      <summary>Read live frequency from cpufreq</summary>
+      <description>Read Frequency, Max frequency and Min frequency from per-core scaling_cur_freq instead of /proc/cpuinfo</description>
+    </key>
     <key type="b" name="show-gpu">
       <default>false</default>
       <summary>Monitor GPU</summary>

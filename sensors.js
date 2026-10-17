@@ -138,9 +138,10 @@ export const Sensors = GObject.registerClass({
             this._hardware_detected = true;
             this._discoverHardwareMonitors(callback);
         } else if (this._static_info_refresh) {
-            // menu redraw cleared rows but kept discovery; re-emit static CPU/kernel only
+            // menu redraw / Refresh: re-emit static CPU/kernel and rediscover NICs
             this._static_info_refresh = false;
             this._queryStaticInfo(callback);
+            this._discoverNetworkIfaces(callback);
         }
 
         for (let sensor in this._sensorIcons) {
@@ -241,7 +242,7 @@ export const Sensors = GObject.registerClass({
                         delta = delta / cores;
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                         this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
-                    } else {
+                    } else if (this._settings.get_boolean('include-processor-cores')) {
                         this._returnValue(callback, this._gettext('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
                     }
                 }
@@ -249,18 +250,20 @@ export const Sensors = GObject.registerClass({
                 this._last_processor['core'][cpu] = total;
             }
 
-            // fallback: platforms without cpu MHz in /proc/cpuinfo (some ARM)
-            if (!this._processor_uses_cpu_info) {
-                for (let core = 0; core < cores; core++) {
-                    new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
-                        this._last_processor['speed'][core] = parseInt(value);
-                    }).catch(err => { });
-                }
+            // per-core cpufreq: prefs override, or fallback when cpuinfo has no MHz
+            if (!this._useCpuinfoFrequency()) {
+                for (let core = 0; core < cores; core++)
+                    this._readKhz(this._cpufreqPath(core, 'scaling_cur_freq'), khz => this._last_processor['speed'][core] = khz);
             }
         }).catch(err => { });
 
-        // /proc/cpuinfo lists every core in one file; same values as per-core scaling_cur_freq
-        if (this._processor_uses_cpu_info) {
+        // probe once per session; VMs often have no cpufreq
+        if (!this._cpufreqProbed) {
+            this._cpufreqProbed = true;
+            this._readKhz(this._cpufreqPath(0, 'scaling_cur_freq'), () => this._hasCpufreq = true);
+        }
+
+        if (this._useCpuinfoFrequency()) {
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
                 let freqs = [];
                 for (let line of lines) {
@@ -280,6 +283,22 @@ export const Sensors = GObject.registerClass({
         } else if (Object.values(this._last_processor['speed']).length > 0) {
             this._returnFrequencies(callback, Object.values(this._last_processor['speed']), 1000);
         }
+    }
+
+    _cpufreqPath(core, file) {
+        return '/sys/devices/system/cpu/cpu' + core + '/cpufreq/' + file;
+    }
+
+    _readKhz(path, cb) {
+        new FileModule.File(path).read().then(v => {
+            let khz = parseInt(v);
+            if (!isNaN(khz)) cb(khz);
+        }).catch(() => {});
+    }
+
+    _useCpuinfoFrequency() {
+        let cpufreq = this._settings.get_boolean('use-processor-cpufreq') && this._hasCpufreq;
+        return !cpufreq && this._processor_uses_cpu_info;
     }
 
     _returnFrequencies(callback, freqs, scale) {
@@ -825,7 +844,7 @@ export const Sensors = GObject.registerClass({
     }
 
     _returnValue(callback, label, value, type, format) {
-        if (value != 'disabled' && format !== 'string' && isNaN(value))
+        if (value != 'disabled' && value != 'destroy' && format !== 'string' && isNaN(value))
             return;
         callback(label, value, type, format);
     }
@@ -924,12 +943,14 @@ export const Sensors = GObject.registerClass({
     }
 
     _discoverNetworkIfaces(callback) {
-        this._networkIfaces = [];
-        this._hasWireless = false;
         let netbase = '/sys/class/net/';
         let directions = ['tx', 'rx'];
 
         new FileModule.File(netbase).list().then(interfaces => {
+            // swap in a complete list so overlapping discoveries can't append duplicates
+            let previous = this._networkIfaces;
+            let known = new Set(previous.map(sensor => sensor.name));
+            let ifaces = [];
             for (let iface of interfaces) {
                 for (let direction of directions) {
                     // lo tx and rx are the same
@@ -941,7 +962,11 @@ export const Sensors = GObject.registerClass({
                     let name = iface + ((iface == 'lo') ? '' : ' ' + direction);
                     let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
                     let path = netbase + iface + '/statistics/' + direction + '_bytes';
-                    this._networkIfaces.push({name, type, path});
+                    ifaces.push({name, type, path});
+
+                    // known ifaces are already polled this round; a second sample would read as ~0 speed
+                    if (known.has(name))
+                        continue;
 
                     // update screen on initial build to prevent delay on update
                     new FileModule.File(path).read().then(value => {
@@ -950,6 +975,14 @@ export const Sensors = GObject.registerClass({
                 }
             }
 
+            // issue #557 - drop ifaces that disappeared since last discovery
+            for (let sensor of previous) {
+                if (!interfaces.includes(sensor.name.split(' ')[0]))
+                    this._returnValue(callback, sensor.name, 'destroy', sensor.type, 'storage');
+            }
+
+            this._networkIfaces = ifaces;
+            this._hasWireless = false;
             new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
                 lines.shift();
                 if (!lines[lines.length - 1])
@@ -1081,7 +1114,8 @@ export const Sensors = GObject.registerClass({
                                 trisensors[key2] = {
                                     'type': sensor_types[sensor_type],
                                   'format': sensor_type,
-                                   'label': path + '/name'
+                                   // drivetemp: prefer the drive model when sysfs exposes it
+                                   'label': path + (name == 'drivetemp' ? '/device/model' : '/name')
                                 };
                             }
 
@@ -1100,9 +1134,14 @@ export const Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
+                            // some USB bridges expose an empty drivetemp model
+                            if (!label && name == 'drivetemp')
+                                throw new Error('empty drivetemp model');
                             this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
-                            let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
+                            // device/model is not always present; keep the hwmon name as fallback
+                            let tmpFile = name == 'drivetemp' ? path + '/name'
+                                : obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
                                 this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
@@ -1114,8 +1153,8 @@ export const Sensors = GObject.registerClass({
     }
 
     _addTempVoltFan(callback, obj, name, label, extra, value) {
-        // prepend module that provided sensor data
-        if (name != label) label = name + ' ' + label;
+        // prepend module that provided sensor data, except drivetemp (label is already the model)
+        if (name != label && name != 'drivetemp') label = name + ' ' + label;
 
         //if (label == 'nvme Composite') label = 'NVMe';
         //if (label == 'nouveau') label = 'Nvidia';
@@ -1164,6 +1203,8 @@ export const Sensors = GObject.registerClass({
             this._hardware_detected = false;
             this._networkIfaces = [];
             this._hasWireless = false;
+            this._cpufreqProbed = false;
+            this._hasCpufreq = false;
         } else {
             this._static_info_refresh = true;
         }

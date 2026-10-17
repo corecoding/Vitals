@@ -698,10 +698,32 @@
         </child>
         <child>
           <object class="AdwActionRow">
+            <property name="title" translatable="yes">Show individual cores</property>
+            <property name="activatable-widget">include-processor-cores</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="include-processor-cores">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
             <property name="title" translatable="yes">Include static info</property>
             <property name="activatable-widget">include-static-info</property>
             <child type="suffix">
               <object class="GtkSwitch" id="include-static-info">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Read live frequency from cpufreq</property>
+            <property name="activatable-widget">use-processor-cpufreq</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="use-processor-cpufreq">
                 <property name="valign">center</property>
               </object>
             </child>

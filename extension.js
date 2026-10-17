@@ -81,7 +81,7 @@ var VitalsMenuButton = GObject.registerClass({
                          'fixed-widths', 'hide-icons', 'unit', 'icon-style',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
-                         'include-static-info', 'include-static-gpu-info' ];
+                         'include-static-info', 'include-processor-cores', 'include-static-gpu-info' ];
 
         for (let setting of settings)
             this._settings.connectObject('changed::' + setting, this._redrawMenu.bind(this), this);
@@ -200,7 +200,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _createRoundButton(iconName) {
         let button = new St.Button({
-            style_class: 'message-list-clear-button button vitals-button-action'
+            style_class: 'button vitals-button-action'
         });
 
         button.child = new St.Icon({
@@ -419,7 +419,7 @@ var VitalsMenuButton = GObject.registerClass({
         let split = sensor.type.split('-');
         let type = split[0];
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
-        let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon));
+        let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon, key));
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
         item.connect('toggle', (self) => {
@@ -472,9 +472,13 @@ var VitalsMenuButton = GObject.registerClass({
     _defaultIcon(key) {
         let split = key.replaceAll('_', ' ').trim().split(' ')[0].split('-');
         let type = split[0];
+        let panelType = type.startsWith('gpu') ? 'gpu' : type;
+        if (type === 'network' && (split[1] === 'rx' || split[1] === 'tx'))
+            panelType += '-' + split[1];
+        let iconStyle = this._settings.get_int('icon-style') === 1 ? 'gnome' : 'original';
 
         let icon = new St.Icon({
-          style_class: 'system-status-icon vitals-panel-icon-' + type,
+          style_class: `system-status-icon vitals-panel-icon vitals-panel-icon-${panelType} vitals-panel-icon-${iconStyle}`,
             reactive: true
         });
 
@@ -484,13 +488,13 @@ var VitalsMenuButton = GObject.registerClass({
             icon.gicon = Gio.icon_new_for_string(this._sensorIconPath('system'));
         } else { // support for hide icons #80
             let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
-            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(type, iconObj));
+            icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(type, iconObj, key));
         }
 
         return icon;
     }
 
-    _sensorIconPath(sensor, icon = 'icon') {
+    _sensorIconPath(sensor, icon = 'icon', key = '') {
         let sensorKey = sensor;
 
         // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
@@ -505,6 +509,8 @@ var VitalsMenuButton = GObject.registerClass({
         }
 
         const iconPathPrefixIndex = this._settings.get_int('icon-style');
+        if (sensorKey === 'memory' && iconPathPrefixIndex === 1 && key.startsWith('_memory_swap_'))
+            icon = 'icon-swap';
         return this._extensionObject.path + this._sensorsIconPathPrefix[iconPathPrefixIndex] + icons[icon];
     }
 
@@ -566,9 +572,27 @@ var VitalsMenuButton = GObject.registerClass({
         let wantedKeys = this.menu.isOpen ? null : new Set(Object.keys(this._hotLabels));
 
         this._sensors.query((label, value, type, format) => {
+            // async reads can resolve after disable(); the panel widgets are gone by then
+            if (this._destroyed) return;
+
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
             let key = '_' + typeKey + '_' + label.replaceAll(' ', '_').toLowerCase() + '_';
+
+            // issue #557 - interface is gone, drop it rather than show its last reading
+            if (value == 'destroy') {
+                this._values.removeNetworkSensor(key, label, type.replace('network-', ''));
+                if (key in this._sensorMenuItems) {
+                    this._sensorMenuItems[key].destroy();
+                    delete this._sensorMenuItems[key];
+                }
+                this._removeHotItem(key);
+
+                // an empty panel box leaves no way to open the menu
+                if (Object.keys(this._hotItems).length == 0)
+                    this._createHotItem('_default_icon_');
+                return;
+            }
 
             // if a sensor is disabled, gray it out
             if (key in this._sensorMenuItems) {
@@ -632,6 +656,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
+        this._destroyed = true;
         this._destroyTimer();
         this._sensors.destroy();
 

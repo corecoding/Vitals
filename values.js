@@ -416,6 +416,17 @@ export const Values = GObject.registerClass({
         return output;
     }
 
+    // issue #557 - forget a removed interface, so its last counters stop being totalled
+    removeNetworkSensor(key, label, direction) {
+        for (let type of ['network', 'network-rx', 'network-tx'])
+            if (type in this._history) delete this._history[type][key];
+
+        delete this._networkSpeedOffset[key];
+
+        if (direction in this._networkSpeeds)
+            delete this._networkSpeeds[direction][label];
+    }
+
     resetHistory(numGpus) {
         // don't call this._history = {}, as we want to keep network-rx and network-tx
         // otherwise network history statistics will start over
