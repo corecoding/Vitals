@@ -257,20 +257,13 @@ export const Sensors = GObject.registerClass({
                 for (let core = 0; core < cores; core++)
                     this._readKhz(this._cpufreqPath(core, 'scaling_cur_freq'), khz => this._last_processor['speed'][core] = khz);
             }
-
-            // policy limits are stable; sample every core once per reset, keep the extremes
-            if (!this._cpufreqLimitsRead) {
-                this._cpufreqLimitsRead = true;
-                for (let core = 0; core < cores; core++) {
-                    this._readKhz(this._cpufreqPath(core, 'scaling_min_freq'), khz => {
-                        if (this._cpufreqMin == null || khz < this._cpufreqMin) this._cpufreqMin = khz;
-                    });
-                    this._readKhz(this._cpufreqPath(core, 'scaling_max_freq'), khz => {
-                        if (this._cpufreqMax == null || khz > this._cpufreqMax) this._cpufreqMax = khz;
-                    });
-                }
-            }
         }).catch(err => { });
+
+        // probe once per session; VMs often have no cpufreq
+        if (!this._cpufreqProbed) {
+            this._cpufreqProbed = true;
+            this._readKhz(this._cpufreqPath(0, 'scaling_cur_freq'), () => this._hasCpufreq = true);
+        }
 
         if (this._useCpuinfoFrequency()) {
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
@@ -306,21 +299,16 @@ export const Sensors = GObject.registerClass({
     }
 
     _useCpuinfoFrequency() {
-        return !this._settings.get_boolean('use-processor-cpufreq') && this._processor_uses_cpu_info;
+        let cpufreq = this._settings.get_boolean('use-processor-cpufreq') && this._hasCpufreq;
+        return !cpufreq && this._processor_uses_cpu_info;
     }
 
     _returnFrequencies(callback, freqs, scale) {
         let sum = 0, min = freqs[0], max = freqs[0];
         for (let v of freqs) { sum += v; if (v < min) min = v; if (v > max) max = v; }
         this._returnValue(callback, 'Frequency', (sum / freqs.length) * scale, 'processor', 'hertz');
-        this._returnValue(callback, 'Fastest core', max * scale, 'processor', 'hertz');
-        this._returnValue(callback, 'Slowest core', min * scale, 'processor', 'hertz');
-
-        // cpufreq policy limits are in kHz
-        if (this._cpufreqMax != null)
-            this._returnValue(callback, 'Max frequency', this._cpufreqMax * 1000, 'processor', 'hertz');
-        if (this._cpufreqMin != null)
-            this._returnValue(callback, 'Min frequency', this._cpufreqMin * 1000, 'processor', 'hertz');
+        this._returnValue(callback, 'Max frequency', max * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Min frequency', min * scale, 'processor', 'hertz');
     }
 
     _querySystem(callback) {
@@ -978,6 +966,7 @@ export const Sensors = GObject.registerClass({
         new FileModule.File(netbase).list().then(interfaces => {
             // swap in a complete list so overlapping discoveries can't append duplicates
             let previous = this._networkIfaces;
+            let known = new Set(previous.map(sensor => sensor.name));
             let ifaces = [];
             for (let iface of interfaces) {
                 for (let direction of directions) {
@@ -991,6 +980,10 @@ export const Sensors = GObject.registerClass({
                     let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
                     let path = netbase + iface + '/statistics/' + direction + '_bytes';
                     ifaces.push({name, type, path});
+
+                    // known ifaces are already polled this round; a second sample would read as ~0 speed
+                    if (known.has(name))
+                        continue;
 
                     // update screen on initial build to prevent delay on update
                     new FileModule.File(path).read().then(value => {
@@ -1201,6 +1194,9 @@ export const Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
+                            // some USB bridges expose an empty drivetemp model
+                            if (!label && name == 'drivetemp')
+                                throw new Error('empty drivetemp model');
                             this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
                             // device/model is not always present; keep the hwmon name as fallback
@@ -1268,13 +1264,13 @@ export const Sensors = GObject.registerClass({
             this._networkIfaces = [];
             this._hasWireless = false;
             this._powercapInstances = [];
+            this._cpufreqProbed = false;
+            this._hasCpufreq = false;
         } else {
             this._static_info_refresh = true;
         }
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
-        this._cpufreqLimitsRead = false;
-        this._cpufreqMin = this._cpufreqMax = null;
         this._battery_time_left_history = [];
         this._battery_charge_status = '';
         this._nvidia_labels = [];

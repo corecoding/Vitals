@@ -200,7 +200,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _createRoundButton(iconName) {
         let button = new St.Button({
-            style_class: 'message-list-clear-button button vitals-button-action'
+            style_class: 'button vitals-button-action'
         });
 
         button.child = new St.Icon({
@@ -572,6 +572,9 @@ var VitalsMenuButton = GObject.registerClass({
         let wantedKeys = this.menu.isOpen ? null : new Set(Object.keys(this._hotLabels));
 
         this._sensors.query((label, value, type, format) => {
+            // async reads can resolve after disable(); the panel widgets are gone by then
+            if (this._destroyed) return;
+
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
             let key = '_' + typeKey + '_' + label.replaceAll(' ', '_').toLowerCase() + '_';
@@ -584,6 +587,10 @@ var VitalsMenuButton = GObject.registerClass({
                     delete this._sensorMenuItems[key];
                 }
                 this._removeHotItem(key);
+
+                // an empty panel box leaves no way to open the menu
+                if (Object.keys(this._hotItems).length == 0)
+                    this._createHotItem('_default_icon_');
                 return;
             }
 
@@ -649,6 +656,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
+        this._destroyed = true;
         this._destroyTimer();
         this._sensors.destroy();
 
