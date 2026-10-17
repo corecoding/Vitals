@@ -97,6 +97,11 @@ export const Values = GObject.registerClass({
                 format = ((value >= 0) ? '+' : '-') + ((use_higher_precision)?'%.2f %s':'%.1f %s');
                 ending = 'V';
                 break;
+            case 'power': // hwmon reports microwatts
+                value = value / 1000000;
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                ending = 'W';
+                break;
             case 'hertz':
                 if (value > 0) {
                     exp = Math.max(0, Math.floor(Math.log(value) / Math.log(unit)));
@@ -277,7 +282,7 @@ export const Values = GObject.registerClass({
         this._history[historyType][key] = [legible.text, value];
 
         // process average, min and max values
-        if (type == 'temperature' || type == 'voltage' || type == 'fan') {
+        if (type == 'temperature' || type == 'voltage' || type == 'fan' || type == 'power') {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
             // show value in group even if there is one value present
