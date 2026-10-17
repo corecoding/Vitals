@@ -94,9 +94,9 @@ function styleForEntries(value, entries) {
     return '';
 }
 
-// Prefer rules for sensorKey; otherwise group-wide rules (sensorKey == null).
-// Unknown / other sensor keys are ignored — never throws.
-export function getUsageColor(value, colors, sensorKey = null) {
+// Prefer rules for sensorKey; otherwise group-wide rules (sensorKey == null),
+// unless useGroupWide is false. Unknown / other sensor keys are ignored — never throws.
+export function getUsageColor(value, colors, sensorKey = null, useGroupWide = true) {
     if (!colors || colors.length === 0 || !Number.isFinite(value))
         return '';
 
@@ -109,6 +109,9 @@ export function getUsageColor(value, colors, sensorKey = null) {
         if (specific.length > 0)
             return styleForEntries(value, specific);
     }
+
+    if (!useGroupWide)
+        return '';
 
     const groupWide = entries.filter(entry => !entry.sensorKey);
     return styleForEntries(value, groupWide);
