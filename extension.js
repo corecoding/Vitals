@@ -572,8 +572,9 @@ var VitalsMenuButton = GObject.registerClass({
         let wantedKeys = this.menu.isOpen ? null : new Set(Object.keys(this._hotLabels));
 
         this._sensors.query((label, value, type, format) => {
-            // async reads can resolve after disable(); the panel widgets are gone by then
-            if (this._destroyed) return;
+            // reads started here can finish after destroy(), which nulls _sensors first
+            if (!this._sensors)
+                return;
 
             let typeKey = type.replace('-group', '');
             if (/^network-(?!rx$|tx$)/.test(typeKey)) typeKey = 'network';
@@ -656,12 +657,14 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     destroy() {
-        this._destroyed = true;
         this._destroyTimer();
-        this._sensors.destroy();
-
         this._settings.disconnectObject(this);
         this.menu.disconnectObject(this);
+
+        // null before in-flight reads deliver, so the query callback no-ops
+        let sensors = this._sensors;
+        this._sensors = null;
+        sensors.destroy();
 
         this._hotLabels = {};
         this._hotItems = {};

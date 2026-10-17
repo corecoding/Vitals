@@ -26,6 +26,7 @@ Constructor runs once on load. Do not create GObjects, connect signals, add time
 
 - `enable()`: build UI, connect, add sources, `Main.panel.addToStatusArea(...)`.
 - `disable()`: undo **everything** from `enable()`. Destroy widgets, disconnect, remove sources even if they would later return `SOURCE_REMOVE`, then null references. Screen lock also calls `disable()`. This is the usual EGO rejection reason.
+- Do not set a boolean in `destroy()` or `disable()` to remember that teardown already ran (`_destroyed` and the like). Stop timers, disconnect signals, and null the objects in-flight async callbacks close over. Those callbacks return when that object is null.
 
 Keep `enable()` / `disable()` next to each other and small. Timeout create/remove stay adjacent; do not wrap `destroy()` / `GLib.Source.remove()` in try/catch.
 
