@@ -205,6 +205,11 @@ export const Sensors = GObject.registerClass({
             this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
             this._returnValue(callback, 'Cached', cached, 'memory', 'memory');
             this._returnValue(callback, 'Free', memFree, 'memory', 'memory');
+
+            // swap shares /proc/meminfo with memory, so there is no separate read to skip
+            if (!this._settings.get_boolean('include-memory-swap'))
+                return;
+
             this._returnValue(callback, 'Swap Total', swapTotal, 'memory', 'memory');
             this._returnValue(callback, 'Swap Free', swapFree, 'memory', 'memory');
             this._returnValue(callback, 'Swap Used', swapUsed, 'memory', 'memory');
