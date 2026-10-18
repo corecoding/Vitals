@@ -29,6 +29,7 @@ import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
+import * as SensorsConf from './helpers/sensorsConf.js';
 
 let GTop, hasGTop = true;
 try {
@@ -55,6 +56,7 @@ export const Sensors = GObject.registerClass({
         this._addSettingChangedSignal('update-time', this._reconfigureNvidiaSmiProcess.bind(this));
         this._addSettingChangedSignal('network-public-ip-interval', () => {this._next_public_ip_check = 0;});
         this._addSettingChangedSignal('network-public-ip-provider', () => {this._next_public_ip_check = 0;});
+        this._addSettingChangedSignal('use-sensors-conf-labels', () => {this._hwmonRefresh = true;});
         //this._addSettingChangedSignal('include-static-gpu-info', this._reconfigureNvidiaSmiProcess.bind(this));
 
         this._gpu_drm_vendors = null;
@@ -63,6 +65,8 @@ export const Sensors = GObject.registerClass({
         this._nvidia_gpu_count = 1;
         this._nvidia_labels = [];
         this._bad_split_count = 0;
+        this._hwmonGeneration = 0;
+        this._hwmonRefresh = false;
 
         this._frameMonitorSignalId = 0;
         this._frameMonitorLastTime = 0;
@@ -143,6 +147,9 @@ export const Sensors = GObject.registerClass({
             this._queryStaticInfo(callback);
             this._discoverNetworkIfaces(callback);
         }
+
+        if (this._hwmonRefresh)
+            this._discoverHwmon(callback);
 
         for (let sensor in this._sensorIcons) {
             // Process Time needs core counts from _queryProcessor even if Processor is hidden
@@ -868,6 +875,23 @@ export const Sensors = GObject.registerClass({
     }
 
     _discoverHardwareMonitors(callback) {
+        this._discoverHwmon(callback);
+
+        // is static CPU information enabled?
+        this._queryStaticInfo(callback);
+
+        // Launch nvidia-smi subprocess if nvidia querying is enabled
+        this._reconfigureNvidiaSmiProcess();
+        this._discoverGpuDrm();
+        this._discoverNetworkIfaces(callback);
+        this._discoverPowercapInstances();
+        this._initFrameMonitor();
+    }
+
+    _discoverHwmon(callback) {
+        this._hwmonRefresh = false;
+        // callbacks from a superseded discovery must not add sensors
+        let generation = ++this._hwmonGeneration;
         this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {}, 'power': {} };
 
         let hwbase = '/sys/class/hwmon/';
@@ -887,42 +911,62 @@ export const Sensors = GObject.registerClass({
         if (this._settings.get_boolean('show-power'))
             sensor_types['power'] = 'power';
 
-        // a little informal, but this code has zero I/O block
-        new FileModule.File(hwbase).list().then(files => {
-            for (let file of files) {
-                // grab name of sensor
-                new FileModule.File(hwbase + file + '/name').read().then(name => {
-                    // are we dealing with a CPU?
-                    if (name == 'coretemp') {
-                        // determine which processor (socket) we are dealing with
-                        new FileModule.File(hwbase + file + '/temp1_label').read().then(prefix => {
-                            this._processTempVoltFan(callback, sensor_types, prefix, hwbase + file, file);
-                        }).catch(err => {
-                            // this shouldn't be necessary, but just in case temp1_label doesn't exist
-                            // attempt to fix #266
-                            this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
+        let loadConf = this._settings.get_boolean('use-sensors-conf-labels')
+            ? SensorsConf.loadSensorsConf(FileModule.File) : Promise.resolve([]);
+
+        loadConf.then(conf => {
+            if (generation !== this._hwmonGeneration)
+                return;
+
+            // a little informal, but this code has zero I/O block
+            new FileModule.File(hwbase).list().then(files => {
+                for (let file of files) {
+                    // grab name of sensor
+                    new FileModule.File(hwbase + file + '/name').read().then(name => {
+                        this._resolveHwmonChip(conf, name, hwbase + file).then(chip => {
+                            let hwmon = { conf, chip, generation };
+
+                            // are we dealing with a CPU?
+                            if (name == 'coretemp') {
+                                // determine which processor (socket) we are dealing with
+                                new FileModule.File(hwbase + file + '/temp1_label').read().then(prefix => {
+                                    this._processTempVoltFan(callback, sensor_types, prefix, hwbase + file, file, hwmon);
+                                }).catch(err => {
+                                    // this shouldn't be necessary, but just in case temp1_label doesn't exist
+                                    // attempt to fix #266
+                                    this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file, hwmon);
+                                });
+                            } else {
+                                // not a CPU, process all other sensors
+                                this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file, hwmon);
+                            }
                         });
-                    } else {
-                        // not a CPU, process all other sensors
-                        this._processTempVoltFan(callback, sensor_types, name, hwbase + file, file);
-                    }
-                }).catch(err => {
-                    new FileModule.File(hwbase + file + '/device/name').read().then(name => {
-                        this._processTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file);
-                    }).catch(err => { });
-                });
-            }
-        }).catch(err => { });
+                    }).catch(err => {
+                        new FileModule.File(hwbase + file + '/device/name').read().then(name => {
+                            this._resolveHwmonChip(conf, name, hwbase + file).then(chip => {
+                                this._processTempVoltFan(callback, sensor_types, name, hwbase + file + '/device', file, { conf, chip, generation });
+                            });
+                        }).catch(err => { });
+                    });
+                }
+            }).catch(err => { });
+        });
+    }
 
-        // is static CPU information enabled?
-        this._queryStaticInfo(callback);
+    // libsensors chip identity: walk up device links until a known bus type is found
+    _resolveHwmonChip(conf, prefix, hwmonPath) {
+        if (!conf.length)
+            return Promise.resolve(null);
 
-        // Launch nvidia-smi subprocess if nvidia querying is enabled
-        this._reconfigureNvidiaSmiProcess();
-        this._discoverGpuDrm();
-        this._discoverNetworkIfaces(callback);
-        this._discoverPowercapInstances();
-        this._initFrameMonitor();
+        let walk = path => new FileModule.File(path).readlink().then(devName => {
+            return new FileModule.File(path + '/subsystem').readlink().catch(() => null).then(subsystem => {
+                return SensorsConf.classifyDevice(subsystem, devName) || walk(path + '/device');
+            });
+        });
+
+        return walk(hwmonPath + '/device')
+            .catch(() => SensorsConf.VIRTUAL_DEVICE)
+            .then(device => Object.assign({ prefix }, device));
     }
 
     _queryStaticInfo(callback) {
@@ -1159,7 +1203,7 @@ export const Sensors = GObject.registerClass({
         }
     }
 
-    _processTempVoltFan(callback, sensor_types, name, path, file) {
+    _processTempVoltFan(callback, sensor_types, name, path, file, hwmon) {
         let sensor_files = [ 'input', 'label' ];
 
         // grab files from directory
@@ -1194,21 +1238,31 @@ export const Sensors = GObject.registerClass({
                 if (!('input' in obj))
                     continue;
 
+                let feature = obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0];
+                let conf = SensorsConf.resolveFeature(hwmon.conf, hwmon.chip, feature);
+                if (conf.ignored)
+                    continue;
+
                 new FileModule.File(obj['input']).read().then(value => {
-                    let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + obj['input'].substr(obj['input'].lastIndexOf('/')+1).split('_')[0] : '';
+                    let extra = (obj['label'].indexOf('_label')==-1) ? ' ' + feature : '';
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
+                        if (conf.label) {
+                            this._addTempVoltFan(callback, obj, conf.label, value, hwmon.generation);
+                            return;
+                        }
+
                         new FileModule.File(obj['label']).read().then(label => {
                             // some USB bridges expose an empty drivetemp model
                             if (!label && name == 'drivetemp')
                                 throw new Error('empty drivetemp model');
-                            this._addTempVoltFan(callback, obj, name, label, extra, value);
+                            this._addTempVoltFan(callback, obj, this._tempVoltFanLabel(name, label, extra), value, hwmon.generation);
                         }).catch(err => {
                             // device/model is not always present; keep the hwmon name as fallback
                             let tmpFile = name == 'drivetemp' ? path + '/name'
                                 : obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
-                                this._addTempVoltFan(callback, obj, name, label, extra, value);
+                                this._addTempVoltFan(callback, obj, this._tempVoltFanLabel(name, label, extra), value, hwmon.generation);
                             }).catch(err => { });
                         });
                     }
@@ -1217,7 +1271,7 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _addTempVoltFan(callback, obj, name, label, extra, value) {
+    _tempVoltFanLabel(name, label, extra) {
         // prepend module that provided sensor data, except drivetemp (label is already the model)
         if (name != label && name != 'drivetemp') label = name + ' ' + label;
 
@@ -1226,13 +1280,17 @@ export const Sensors = GObject.registerClass({
 
         label = label + extra;
 
-        // in the future we will read /etc/sensors3.conf
         if (label == 'acpitz temp1') label = 'ACPI Thermal Zone';
         if (label == 'pch_cannonlake temp1') label = 'Platform Controller Hub';
         if (label == 'iwlwifi_1 temp1') label = 'Wireless Adapter';
         if (label == 'Package id 0') label = 'Processor 0';
         if (label == 'Package id 1') label = 'Processor 1';
-        label = label.replace('Package id', 'CPU');
+        return label.replace('Package id', 'CPU');
+    }
+
+    _addTempVoltFan(callback, obj, label, value, generation) {
+        if (generation !== this._hwmonGeneration)
+            return;
 
         let types = [ 'temperature', 'voltage', 'fan', 'power' ];
         for (let type of types) {

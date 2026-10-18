@@ -307,7 +307,7 @@ class Settings {
                         'show-power', 'use-powercap',
                         'show-memory', 'include-memory-swap', 'show-processor', 'show-system',
                         'show-network', 'show-storage', 'use-higher-precision',
-                        'alphabetize', 'hide-zeros', 'include-public-ip',
+                        'alphabetize', 'hide-zeros', 'use-sensors-conf-labels', 'include-public-ip',
                         'network-public-ip-show-flag', 'show-battery', 'fixed-widths',
                         'hide-icons', 'menu-centered', 'include-static-info',
                         'include-processor-cores', 'use-processor-cpufreq',

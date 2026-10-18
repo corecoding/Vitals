@@ -531,6 +531,17 @@
         </child>
         <child>
           <object class="AdwActionRow">
+            <property name="title" translatable="yes">Use labels from sensors3.conf</property>
+            <property name="activatable-widget">use-sensors-conf-labels</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="use-sensors-conf-labels">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
             <property name="title" translatable="yes">Use fixed widths</property>
             <property name="activatable-widget">fixed-widths</property>
             <child type="suffix">

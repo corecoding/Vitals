@@ -38,6 +38,27 @@ File.prototype.read = function(delimiter = '', strip_header = false) {
     });
 };
 
+// resolves with the basename of the symlink target; rejects if the path is not a symlink
+File.prototype.readlink = function() {
+    return new Promise((resolve, reject) => {
+        try {
+            this.file.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SYMLINK_TARGET, Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+                GLib.PRIORITY_LOW, null, function(file, res) {
+                try {
+                    let target = file.query_info_finish(res).get_symlink_target();
+                    if (!target)
+                        throw new Error('not a symlink');
+                    resolve(GLib.path_get_basename(target));
+                } catch (e) {
+                    reject(e.message);
+                }
+            });
+        } catch (e) {
+            reject(e.message);
+        }
+    });
+};
+
 File.prototype.list = function() {
     return new Promise((resolve, reject) => {
         let max_items = 125, results = [];

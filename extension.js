@@ -77,7 +77,7 @@ var VitalsMenuButton = GObject.registerClass({
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
             this);
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'use-sensors-conf-labels',
                          'fixed-widths', 'hide-icons', 'unit', 'icon-style',
                          'memory-measurement', 'include-memory-swap', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',

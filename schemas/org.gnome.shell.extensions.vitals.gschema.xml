@@ -31,6 +31,11 @@
       <summary>Hide zero values</summary>
       <description>Hide data from sensors that are invalid</description>
     </key>
+    <key type="b" name="use-sensors-conf-labels">
+      <default>false</default>
+      <summary>Use labels from sensors3.conf</summary>
+      <description>Apply label and ignore statements from /etc/sensors3.conf and /etc/sensors.d to temperature, voltage, fan and power sensors</description>
+    </key>
     <key type="b" name="show-temperature">
       <default>true</default>
       <summary>Monitor temperature</summary>
