@@ -442,6 +442,12 @@ export const Sensors = GObject.registerClass({
     _queryBattery(callback) {
         let battery_slot = this._settings.get_int('battery-slot');
 
+        // index matches prefs.ui; a UPS is not a sysfs power_supply name
+        if (battery_slot == 8) {
+            this._queryUPowerBattery(callback);
+            return;
+        }
+
         // create a mapping of indices to battery paths (from prefs.ui)
         const BATTERY_PATHS = {
             0: 'BAT0',
@@ -564,6 +570,111 @@ export const Sensors = GObject.registerClass({
                 this._returnValue(callback, 'Time left', output['STATUS'], 'battery', '');
             }
         }).catch(err => { });
+    }
+
+    // UPower device kind UPS. Enumerate so the object path is not hardcoded.
+    _queryUPowerBattery(callback) {
+        if (this._upowerUpsPath) {
+            this._readUPowerDevice(callback, this._upowerUpsPath);
+            return;
+        }
+
+        this._upowerCall('/org/freedesktop/UPower', 'org.freedesktop.UPower', 'EnumerateDevices',
+            null, new GLib.VariantType('(ao)'), unpacked => {
+                if (!unpacked)
+                    return;
+
+                let paths = unpacked[0];
+                let pending = paths.length;
+                let chosen = null;
+                let chosenProps = null;
+                if (pending == 0)
+                    return;
+
+                for (let path of paths) {
+                    this._readUPowerProps(path, props => {
+                        if (props && this._upowerValue(props.Type) == 3 && !chosen) {
+                            chosen = path;
+                            chosenProps = props;
+                        }
+                        if (--pending == 0 && chosen) {
+                            this._upowerUpsPath = chosen;
+                            this._publishUPowerBattery(callback, chosenProps);
+                        }
+                    });
+                }
+            });
+    }
+
+    _readUPowerDevice(callback, path) {
+        this._readUPowerProps(path, props => {
+            if (!props || this._upowerValue(props.Type) != 3) {
+                this._upowerUpsPath = null;
+                return;
+            }
+            this._publishUPowerBattery(callback, props);
+        });
+    }
+
+    _readUPowerProps(path, done) {
+        this._upowerCall(path, 'org.freedesktop.DBus.Properties', 'GetAll',
+            new GLib.Variant('(s)', ['org.freedesktop.UPower.Device']),
+            new GLib.VariantType('(a{sv})'), unpacked => {
+                done(unpacked ? unpacked[0] : null);
+            });
+    }
+
+    _upowerCall(path, iface, method, params, replyType, done) {
+        try {
+            Gio.DBus.system.call(
+                'org.freedesktop.UPower',
+                path,
+                iface,
+                method,
+                params,
+                replyType,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                null,
+                (connection, res) => {
+                    try {
+                        done(connection.call_finish(res).deep_unpack());
+                    } catch (e) {
+                        done(null);
+                    }
+                });
+        } catch (e) {
+            done(null);
+        }
+    }
+
+    _upowerValue(value) {
+        while (value && typeof value.unpack === 'function')
+            value = value.unpack();
+        return value;
+    }
+
+    _publishUPowerBattery(callback, props) {
+        const states = ['Unknown', 'Charging', 'Discharging', 'Empty', 'Full', 'Pending charge', 'Pending discharge'];
+        let state = this._upowerValue(props.State);
+        if (state !== undefined)
+            this._returnValue(callback, 'State', states[state] || 'Unknown', 'battery', 'string');
+
+        let percentage = this._upowerValue(props.Percentage);
+        if (typeof percentage == 'number') {
+            let fraction = percentage / 100;
+            this._returnValue(callback, 'Percentage', fraction, 'battery', 'percent');
+            // laptop group header is watts; this UPS does not report a load
+            this._returnValue(callback, 'battery', fraction, 'battery-group', 'percent');
+        }
+
+        let timeToFull = this._upowerValue(props.TimeToFull);
+        let timeToEmpty = this._upowerValue(props.TimeToEmpty);
+        let seconds = (state == 1 || state == 5) ? timeToFull : timeToEmpty;
+        if (!(seconds > 0))
+            seconds = timeToEmpty;
+        if (seconds > 0)
+            this._returnValue(callback, 'Time left', seconds, 'battery', 'runtime');
     }
 
     _initFrameMonitor() {

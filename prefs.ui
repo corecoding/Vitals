@@ -1021,6 +1021,7 @@
                   <item translatable="yes">CMB1</item>
                   <item translatable="yes">CMB2</item>
                   <item translatable="yes">macsmc-battery</item>
+                  <item translatable="yes">UPower UPS</item>
                 </items>
               </object>
             </child>
