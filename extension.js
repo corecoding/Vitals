@@ -271,8 +271,10 @@ var VitalsMenuButton = GObject.registerClass({
         if (key == '_default_icon_') return;
 
         let label = new St.Label({
-            style_class: 'vitals-panel-label',
-            text: (value)?value:'\u2026', // ...
+            style_class: this._settings.get_boolean('fixed-widths')
+                ? 'vitals-panel-label vitals-panel-label-fixed'
+                : 'vitals-panel-label',
+            text: value ?? '',
             style: style || null,
             y_expand: true,
             y_align: Clutter.ActorAlign.CENTER
