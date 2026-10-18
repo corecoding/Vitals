@@ -51,6 +51,11 @@
       <summary>Monitor fan</summary>
       <description>Display fan rotation per minute</description>
     </key>
+    <key type="b" name="show-power">
+      <default>true</default>
+      <summary>Monitor power</summary>
+      <description>Display power draw of various components</description>
+    </key>
     <key type="b" name="show-memory">
       <default>true</default>
       <summary>Monitor memory</summary>
@@ -83,6 +88,7 @@
     </key>
     <key type="i" name="network-public-ip-interval">
       <default>60</default>
+      <range min="15" max="1440"/>
       <summary>Public IP refresh interval in minutes</summary>
     </key>
     <key name="network-public-ip-show-flag" type="b">
@@ -114,10 +120,20 @@
       <summary>Monitor battery</summary>
       <description>Monitor battery health</description>
     </key>
+    <key type="b" name="use-powercap">
+      <default>true</default>
+      <summary>Use powercap</summary>
+      <description>Read power draw from powercap interfaces like Intel RAPL</description>
+    </key>
     <key type="i" name="memory-measurement">
       <default>1</default>
       <summary>Memory measurement</summary>
       <description>Can use gigabyte or gibibyte for memory</description>
+    </key>
+    <key type="b" name="include-memory-swap">
+      <default>true</default>
+      <summary>Show swap memory</summary>
+      <description>Display swap usage alongside physical memory</description>
     </key>
     <key type="i" name="storage-measurement">
       <default>1</default>
@@ -153,6 +169,16 @@
       <default>false</default>
       <summary>Include processor static information</summary>
       <description>Display processor static information that doesn't change</description>
+    </key>
+    <key type="b" name="include-processor-cores">
+      <default>false</default>
+      <summary>Show individual CPU cores</summary>
+      <description>Display usage for each processor core</description>
+    </key>
+    <key type="b" name="use-processor-cpufreq">
+      <default>false</default>
+      <summary>Read live frequency from cpufreq</summary>
+      <description>Read Frequency, Max frequency and Min frequency from per-core scaling_cur_freq instead of /proc/cpuinfo</description>
     </key>
     <key type="b" name="show-gpu">
       <default>false</default>

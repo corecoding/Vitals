@@ -8,8 +8,8 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"POT-Creation-Date: 2022-04-10 21:29+0200\n"
+"Project-Id-Version: Vitals\n"
+"POT-Creation-Date: 2023-10-22 21:04+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Daniel Talens <dtalens@dtalens.com>\n"
 "Language-Team: \n"
@@ -18,23 +18,31 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
-#: extension.js:129
+#: extension.js:109
+msgid "Batteries"
+msgstr "Bateries"
+
+#: extension.js:133
+msgid "No Data"
+msgstr "Sense dades"
+
+#: extension.js:159
 msgid "Refresh"
 msgstr "Actualitza"
 
-#: extension.js:147
+#: extension.js:174
 msgid "System Monitor"
 msgstr "Monitor de sistema"
 
-#: extension.js:155
+#: extension.js:182 prefs.js:106
 msgid "Preferences"
 msgstr "Preferències"
 
 #: prefs.ui:42 schemas/org.gnome.shell.extensions.vitals.gschema.xml:81
 msgid "Include public IP address"
-msgstr "Incloure la direcció IP pública"
+msgstr "Inclou l'adreça IP pública"
 
 #: prefs.ui:70
 msgid "Format"
@@ -82,11 +90,11 @@ msgstr "Extrem dret"
 
 #: prefs.ui:220 schemas/org.gnome.shell.extensions.vitals.gschema.xml:21
 msgid "Use higher precision"
-msgstr "Utilitzar una major precisió"
+msgstr "Utilitza més precisió"
 
 #: prefs.ui:247 schemas/org.gnome.shell.extensions.vitals.gschema.xml:26
 msgid "Alphabetize sensors"
-msgstr "Ordenar sensors alfabèticament"
+msgstr "Ordena els sensors alfabèticament"
 
 #: prefs.ui:274 schemas/org.gnome.shell.extensions.vitals.gschema.xml:31
 msgid "Hide zero values"
@@ -96,87 +104,153 @@ msgstr "Amaga els valors zero"
 msgid "Use fixed widths"
 msgstr "Utilitza amplades fixes"
 
-#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+#: prefs.ui:328 schemas/org.gnome.shell.extensions.vitals.gschema.xml:171
 msgid "Hide icons in top bar"
 msgstr "Amaga les icones a la barra superior"
 
-#: prefs.ui:352
+#: prefs.ui:355
+msgid "Menu always centered"
+msgstr "Mostra el menú sempre centrat"
+
+#: prefs.ui:379
 msgid "About"
 msgstr "Quant a"
 
-#: prefs.ui:367
+#: prefs.ui:394
 msgid ""
 "Feature requests or bugs? Please visit <a href=\"https://github.com/"
 "corecoding/Vitals/issues\">GitHub</a>. No warranty, expressed or implied. <a "
 "href=\"https://corecoding.com/donate.php\">Donate</a> if you found this "
 "useful."
 msgstr ""
-"T'agrada el que veus? Dóna suport al desenvolupament d'aquesta extensió "
-"mitjançant <a href=\"https://corecoding.com/donate.php\">PayPal</a>.\n"
-"\n"
-"Sense garantia, expressa o implícita. Peticions de característiques o "
-"errors? Per favor visiti el nostre projecte a <a href=\"https://github.com/"
-"corecoding/Vitals\">GitHub</a>."
+"Voleu demanar noves funcionalitats o informar d'errors? Visiteu <a "
+"href=\"https://github.com/corecoding/Vitals/issues\">GitHub</a>. Sense cap "
+"garantia, expressa o implícita. <a href=\"https://corecoding.com/"
+"donate.php\">Feu una donació</a> si us ha resultat útil."
 
-#: prefs.ui:394
+#: prefs.ui:421
 msgid "Sensors"
 msgstr "Sensors"
 
-#: prefs.ui:422 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
+#: prefs.ui:449 schemas/org.gnome.shell.extensions.vitals.gschema.xml:36
 msgid "Monitor temperature"
 msgstr "Monitor de temperatura"
 
-#: prefs.ui:473 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
+#: prefs.ui:500 schemas/org.gnome.shell.extensions.vitals.gschema.xml:46
 msgid "Monitor voltage"
 msgstr "Monitor de voltatge"
 
-#: prefs.ui:501 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
+#: prefs.ui:528 schemas/org.gnome.shell.extensions.vitals.gschema.xml:51
 msgid "Monitor fan"
 msgstr "Monitor de ventilador"
 
-#: prefs.ui:529 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
+#: prefs.ui:556 schemas/org.gnome.shell.extensions.vitals.gschema.xml:56
 msgid "Monitor memory"
 msgstr "Monitor de memòria"
 
-#: prefs.ui:580 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
+#: prefs.ui:607 schemas/org.gnome.shell.extensions.vitals.gschema.xml:61
 msgid "Monitor processor"
 msgstr "Monitor de processador"
 
-#: prefs.ui:608 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
+#: prefs.ui:658 schemas/org.gnome.shell.extensions.vitals.gschema.xml:66
 msgid "Monitor system"
 msgstr "Monitor de sistema"
 
-#: prefs.ui:636 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
+#: prefs.ui:709 schemas/org.gnome.shell.extensions.vitals.gschema.xml:76
 msgid "Monitor network"
 msgstr "Monitor de xarxa"
 
-#: prefs.ui:687 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
+#: prefs.ui:760 schemas/org.gnome.shell.extensions.vitals.gschema.xml:71
 msgid "Monitor storage"
 msgstr "Monitor d'emmagatzematge"
 
-#: prefs.ui:738 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
+#: prefs.ui:811 schemas/org.gnome.shell.extensions.vitals.gschema.xml:96
 msgid "Monitor battery"
 msgstr "Monitor de bateria"
 
-#: prefs.ui:817
+#: prefs.ui:890
 msgid "Path"
 msgstr "Ruta"
 
-#: prefs.ui:849 prefs.ui:958
+#: prefs.ui:922 prefs.ui:1031
 msgid "Measurement"
 msgstr "Mesura"
 
-#: prefs.ui:903
+#: prefs.ui:930 prefs.ui:1039
+msgid "Binary"
+msgstr "Binari"
+
+#: prefs.ui:931 prefs.ui:1040
+msgid "Decimal"
+msgstr "Decimal"
+
+#: prefs.ui:976
 msgid "Unit"
 msgstr "Unitat"
 
-#: prefs.ui:1012
-msgid "Display Battery"
-msgstr "Mostra la bateria"
+#: prefs.ui:985
+msgid "°C"
+msgstr "°C"
+
+#: prefs.ui:986
+msgid "°F"
+msgstr "°F"
+
+#: prefs.ui:1086
+msgid "Monitor BAT0"
+msgstr "Monitor de BAT0"
+
+#: prefs.ui:1116
+msgid "Monitor BAT1"
+msgstr "Monitor de BAT1"
+
+#: prefs.ui:1146
+msgid "Monitor BAT2"
+msgstr "Monitor de BAT2"
+
+#: prefs.ui:1176
+msgid "Monitor CMB0"
+msgstr "Monitor de CMB0"
+
+#: prefs.ui:1206
+msgid "Monitor macsmc-battery"
+msgstr "Monitor de macsmc-battery"
+
+#: prefs.ui:1247
+msgid "Calculate Combined Values"
+msgstr "Calcula valors combinats"
+
+#: prefs.ui:1277 schemas/org.gnome.shell.extensions.vitals.gschema.xml:141
+msgid "Include BAT0"
+msgstr "Inclou BAT0"
+
+#: prefs.ui:1307 schemas/org.gnome.shell.extensions.vitals.gschema.xml:146
+msgid "Include BAT1"
+msgstr "Inclou BAT1"
+
+#: prefs.ui:1337 schemas/org.gnome.shell.extensions.vitals.gschema.xml:151
+msgid "Include BAT2"
+msgstr "Inclou BAT2"
+
+#: prefs.ui:1367 schemas/org.gnome.shell.extensions.vitals.gschema.xml:156
+msgid "Include CMB0"
+msgstr "Inclou CMB0"
+
+#: prefs.ui:1397 schemas/org.gnome.shell.extensions.vitals.gschema.xml:161
+msgid "Include macsmc-battery"
+msgstr "Inclou macsmc-battery"
+
+#: prefs.ui:1446
+msgid "Monitor command"
+msgstr "Ordre de monitorització"
+
+#: prefs.ui:1498
+msgid "Include static info"
+msgstr "Inclou informació estàtica"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:6
 msgid "Sensors to show in panel"
-msgstr "Sensors a mostrar al tauler"
+msgstr "Sensors que es mostraran al tauler"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:7
 msgid "List of sensors to be shown in the panel"
@@ -228,7 +302,7 @@ msgstr "Mostra la rotació del ventilador per minut"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:57
 msgid "Display memory information"
-msgstr "Mostrar la informació de memòria"
+msgstr "Mostra la informació de memòria"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:62
 msgid "Display processor information"
@@ -236,7 +310,7 @@ msgstr "Mostra la informació del processador"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:67
 msgid "Display system information"
-msgstr "Mostrar la informació del sistema"
+msgstr "Mostra la informació del sistema"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:72
 msgid "Display storage information"
@@ -244,7 +318,7 @@ msgstr "Mostra la informació d'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:77
 msgid "Display network information"
-msgstr "Mostrar la informació de xarxa"
+msgstr "Mostra la informació de xarxa"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:82
 msgid "Display public IP address of internet connection"
@@ -287,247 +361,380 @@ msgid "Can use gigabyte or gibibyte for storage"
 msgstr "Podeu utilitzar gigabyte o gibibyte per a l'emmagatzematge"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:111
-msgid "Battery slot to monitor"
-msgstr "Bateria a monitorar"
+msgid "Display battery BAT0"
+msgstr "Mostra la bateria BAT0"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:112
-msgid "Which numerical battery slot should vitals monitor"
-msgstr "Bateria a monitorar per vitals"
+msgid "Should battery 'BAT0' be displayed?"
+msgstr "Voleu mostrar la bateria 'BAT0'?"
 
 #: schemas/org.gnome.shell.extensions.vitals.gschema.xml:116
+msgid "Display battery BAT1"
+msgstr "Mostra la bateria BAT1"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+msgid "Should battery 'BAT1' be displayed?"
+msgstr "Voleu mostrar la bateria 'BAT1'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:121
+msgid "Display battery BAT2"
+msgstr "Mostra la bateria BAT2"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+msgid "Should battery 'BAT2' be displayed?"
+msgstr "Voleu mostrar la bateria 'BAT2'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:126
+msgid "Display battery CMB0"
+msgstr "Mostra la bateria CMB0"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:127
+msgid "Should battery 'CMB0' be displayed?"
+msgstr "Voleu mostrar la bateria 'CMB0'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:131
+msgid "Display battery macsmc-battery"
+msgstr "Mostra la bateria macsmc-battery"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:132
+msgid "Should battery 'macsmc-battery' be displayed?"
+msgstr "Voleu mostrar la bateria 'macsmc-battery'?"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:136
+msgid "Display combined battery data"
+msgstr "Mostra les dades de bateria combinades"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:137
+msgid "Display combined values for selected batteries"
+msgstr "Mostra els valors combinats de les bateries seleccionades"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:142
+msgid "Include 'BAT0' when calculating combined Battery"
+msgstr "Inclou 'BAT0' en calcular la bateria combinada"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:147
+msgid "Include 'BAT1' when calculating combined Battery"
+msgstr "Inclou 'BAT1' en calcular la bateria combinada"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:152
+msgid "Include 'BAT2' when calculating combined Battery"
+msgstr "Inclou 'BAT2' en calcular la bateria combinada"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:157
+msgid "Include 'CMB0' when calculating combined Battery"
+msgstr "Inclou 'CMB0' en calcular la bateria combinada"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:162
+msgid "Include 'macsmc-battery' when calculating combined Battery"
+msgstr "Inclou 'macsmc-battery' en calcular la bateria combinada"
+
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:166
 msgid "Use fixed widths in top bar"
 msgstr "Utilitza amplades fixes a la barra superior"
 
-#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:117
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:167
 msgid "Keep sensors in top bar from jumping around"
 msgstr ""
 "Evita que els sensors de la barra superior saltin d'un costat a l'altre"
 
-#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:122
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:172
 msgid "Keep top bar clean by only showing sensor values"
-msgstr "Mantingueu la barra superior neta mostrant només els valors del sensor"
+msgstr "Manté la barra superior neta mostrant només els valors del sensor"
 
-#: sensors.js:42
-msgid "Temperature"
-msgstr "Temperatura"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:176
+msgid "Make the menu centered"
+msgstr "Centra el menú"
 
-#: sensors.js:43 sensors.js:307 sensors.js:337
-msgid "Voltage"
-msgstr "Voltatge"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:177
+msgid "Center the menu to the icon regardless of the position in the panel"
+msgstr "Centra el menú a la icona independentment de la posició al tauler"
 
-#: sensors.js:44
-msgid "Fan"
-msgstr "Ventilador"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:181
+msgid "System Monitor command"
+msgstr "Ordre del monitor del sistema"
 
-#: sensors.js:45
-msgid "Memory"
-msgstr "Memòria"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:182
+msgid "The command run when system monitor button is clicked"
+msgstr "L'ordre s'executa quan es fa clic al botó del monitor del sistema"
 
-#: sensors.js:46
-msgid "Processor"
-msgstr "Processador"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:186
+msgid "Include processor static information"
+msgstr "Mostra la informació estàtica del processador"
 
-#: sensors.js:47
-msgid "System"
-msgstr "Sistema"
+#: schemas/org.gnome.shell.extensions.vitals.gschema.xml:187
+msgid "Display processor static information that doesn't change"
+msgstr "Mostra informació estàtica del processador que no canvia"
 
-#: sensors.js:48
-msgid "Network"
-msgstr "Xarxa"
-
-#: sensors.js:49
-msgid "Storage"
-msgstr "Emmagatzematge"
-
-#: sensors.js:76
+#: sensors.js:65
 msgid "Public IP"
 msgstr "IP pública"
 
-#: sensors.js:144
+#: sensors.js:133 sensors.js:181
 msgid "Usage"
 msgstr "Ús"
 
-#: sensors.js:145
+#: sensors.js:134
 msgid "memory"
 msgstr "memòria"
 
-#: sensors.js:146
+#: sensors.js:135
 msgid "Physical"
 msgstr "Física"
 
-#: sensors.js:147
+#: sensors.js:136
 msgid "Available"
 msgstr "Disponible"
 
-#: sensors.js:148
+#: sensors.js:137
 msgid "Allocated"
 msgstr "Assignada"
 
-#: sensors.js:149
+#: sensors.js:138
+msgid "Cached"
+msgstr "Memòria cau"
+
+#: sensors.js:139 sensors.js:355
+msgid "Free"
+msgstr "Lliure"
+
+#: sensors.js:140
 msgid "Swap"
 msgstr "Intercanvi"
 
-#: sensors.js:189
+#: sensors.js:248
 msgid "Average"
 msgstr "Mitjana"
 
-#: sensors.js:190
+#: sensors.js:180
 msgid "processor"
 msgstr "processador"
 
-#: sensors.js:192
+#: sensors.js:183
 #, javascript-format
 msgid "Core %d"
 msgstr "Nucli %d"
 
-#: sensors.js:236
+#: sensors.js:213 sensors.js:222
 msgid "Frequency"
 msgstr "Freqüència mitjana"
 
-#: sensors.js:237
-msgid "Boost"
-msgstr "Turbo"
-
-#: sensors.js:238
-msgid "Vendor"
-msgstr "Proveïdor"
-
-#: sensors.js:239
-msgid "Bogomips"
-msgstr "Bogomips"
-
-#: sensors.js:240
-msgid "Sockets"
-msgstr "Sòcols"
-
-#: sensors.js:241
-msgid "Cache"
-msgstr "Memòria cau"
-
-#: sensors.js:250
+#: sensors.js:231
 msgid "Open Files"
 msgstr "Fitxers oberts"
 
-#: sensors.js:258
+#: sensors.js:238
 msgid "Load 1m"
 msgstr "Càrrega (1m)"
 
-#: sensors.js:259
+#: sensors.js:239
 msgid "system"
 msgstr "sistema"
 
-#: sensors.js:260
+#: sensors.js:240
 msgid "Load 5m"
 msgstr "Càrrega (5m)"
 
-#: sensors.js:261
+#: sensors.js:241
 msgid "Load 15m"
 msgstr "Càrrega (15m)"
 
-#: sensors.js:262
+#: sensors.js:242
 msgid "Threads Active"
 msgstr "Fils actius"
 
-#: sensors.js:263
+#: sensors.js:243
 msgid "Threads Total"
 msgstr "Total de fils"
 
-#: sensors.js:269
+#: sensors.js:248
 msgid "Uptime"
 msgstr "Temps de funcionament"
 
-#: sensors.js:273
+#: sensors.js:252
 msgid "Process Time"
 msgstr "Temps actiu mitjà"
 
-#: sensors.js:290
-msgid "State"
-msgstr "Estat"
-
-#: sensors.js:295
-msgid "Cycles"
-msgstr "Cicles"
-
-#: sensors.js:300 sensors.js:330
-msgid "Energy (full)"
-msgstr "Energia (plena)"
-
-#: sensors.js:302 sensors.js:332
-msgid "Capacity"
-msgstr "Capacitat"
-
-#: sensors.js:303 sensors.js:333
-msgid "Energy (design)"
-msgstr "Energia (disseny)"
-
-#: sensors.js:311 sensors.js:340
-msgid "Rate"
-msgstr "Taxa"
-
-#: sensors.js:312 sensors.js:341
-msgid "battery"
-msgstr "bateria"
-
-#: sensors.js:316 sensors.js:344
-msgid "Energy (now)"
-msgstr "Energia (actual)"
-
-#: sensors.js:322 sensors.js:350
-msgid "Percentage"
-msgstr "Percentatge"
-
-#: sensors.js:411
+#: sensors.js:302
 msgid "WiFi Link Quality"
 msgstr "Qualitat de l'enllaç WiFi"
 
-#: sensors.js:412
+#: sensors.js:303
 msgid "WiFi Signal Level"
 msgstr "Nivell de senyal wifi"
 
-#: sensors.js:432
+#: sensors.js:318
 msgid "ARC Target"
 msgstr "ARC objectiu"
 
-#: sensors.js:433
+#: sensors.js:319
 msgid "ARC Maximum"
 msgstr "ARC màxim"
 
-#: sensors.js:434
+#: sensors.js:320
 msgid "ARC Current"
 msgstr "ARC actual"
 
-#: sensors.js:445
+#: sensors.js:330
 msgid "Read total"
 msgstr "Total lectura"
 
-#: sensors.js:446
+#: sensors.js:331
 msgid "Write total"
 msgstr "Total escriptura"
 
-#: sensors.js:447
+#: sensors.js:332
 msgid "Read rate"
 msgstr "Taxa lectura"
 
-#: sensors.js:448
+#: sensors.js:333
 msgid "Write rate"
 msgstr "Taxa escriptura"
 
-#: sensors.js:467
+#: sensors.js:352
 msgid "Total"
 msgstr "Total"
 
-#: sensors.js:468
+#: sensors.js:353
 msgid "Used"
 msgstr "Usat"
 
-#: sensors.js:469
+#: sensors.js:354
 msgid "Reserved"
 msgstr "Reservat"
 
-#: sensors.js:470
-msgid "Free"
-msgstr "Lliure"
-
-#: sensors.js:471
+#: sensors.js:356
 msgid "storage"
 msgstr "emmagatzematge"
+
+#: sensors.js:393
+msgid "Label"
+msgstr "Etiqueta"
+
+#: sensors.js:404 sensors.js:529
+msgid "State"
+msgstr "Estat"
+
+#: sensors.js:409 sensors.js:519
+msgid "Cycles"
+msgstr "Cicles"
+
+#: sensors.js:414
+msgid "Voltage"
+msgstr "Voltatge"
+
+#: sensors.js:418
+msgid "Level"
+msgstr "Nivell"
+
+#: sensors.js:422 sensors.js:553
+msgid "Percentage"
+msgstr "Percentatge"
+
+#: sensors.js:432 sensors.js:527
+msgid "Rate"
+msgstr "Taxa"
+
+#: sensors.js:442 sensors.js:535
+msgid "Energy (full)"
+msgstr "Energia (plena)"
+
+#: sensors.js:451 sensors.js:541
+msgid "Energy (design)"
+msgstr "Energia (disseny)"
+
+#: sensors.js:455
+msgid "Capacity"
+msgstr "Capacitat"
+
+#: sensors.js:464 sensors.js:547
+msgid "Energy (now)"
+msgstr "Energia (actual)"
+
+#: sensors.js:501 sensors.js:504 sensors.js:588 sensors.js:591
+msgid "Time left"
+msgstr "Temps restant"
+
+#: sensors.js:677
+msgid "Vendor"
+msgstr "Fabricant"
+
+#: sensors.js:678
+msgid "Bogomips"
+msgstr "Bogomips"
+
+#: sensors.js:679
+msgid "Sockets"
+msgstr "Sòcols"
+
+#: sensors.js:680
+msgid "Cache"
+msgstr "Memòria cau"
+
+#: sensors.js:685
+msgid "Kernel"
+msgstr "Nucli"
+
+#: prefs.js:98
+msgid "Temperature"
+msgstr "Temperatura"
+
+#: prefs.js:98
+msgid "Network"
+msgstr "Xarxa"
+
+#: prefs.js:98
+msgid "Storage"
+msgstr "Emmagatzematge"
+
+#: prefs.js:98
+msgid "Memory"
+msgstr "Memòria"
+
+#: prefs.js:98
+msgid "Battery"
+msgstr "Bateria"
+
+#: extension.js:112
+msgid "Battery 1"
+msgstr "Bateria 1"
+
+#: extension.js:112
+msgid "Battery 2"
+msgstr "Bateria 2"
+
+#: extension.js:112
+msgid "Battery 3"
+msgstr "Bateria 3"
+
+#: extension.js:112
+msgid "Battery 4"
+msgstr "Bateria 4"
+
+#: extension.js:112
+msgid "Battery 5"
+msgstr "Bateria 5"
+
+#: extension.js:115
+msgid "Battery (hidden)"
+msgstr "Bateria (amagada)"
+
+#: prefs.js:98
+msgid "System"
+msgstr "Sistema"
+
+#: prefs.js:98
+msgid "Processor"
+msgstr "Processador"
+
+#: sensors.js:759
+msgid "Fan"
+msgstr "Ventilador"
+
+#~ msgid "Battery slot to monitor"
+#~ msgstr "Ranura de bateria que cal monitoritzar"
+
+#~ msgid "Which numerical battery slot should vitals monitor"
+#~ msgstr "Quina ranura numèrica de bateria ha de monitoritzar Vitals"
+
+#~ msgid "Boost"
+#~ msgstr "Turbo"

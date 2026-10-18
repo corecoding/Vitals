@@ -25,21 +25,10 @@
 */
 
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
-
-// Shell and prefs hosts expose gettext on different module paths.
-let _;
-try {
-    ({gettext: _} = await import('resource:///org/gnome/shell/extensions/extension.js'));
-} catch (err) {
-    try {
-        ({gettext: _} = await import('resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js'));
-    } catch (err2) {
-        _ = (s) => s;
-    }
-}
 
 let GTop, hasGTop = true;
 try {
@@ -52,9 +41,10 @@ try {
 export const Sensors = GObject.registerClass({
     GTypeName: 'Sensors',
 }, class Sensors extends GObject.Object {
-    _init(settings, sensorIcons) {
+    _init(settings, sensorIcons, gettext) {
         this._settings = settings;
         this._sensorIcons = sensorIcons;
+        this._gettext = gettext || (s => s);
 
         this.resetHistory();
 
@@ -70,6 +60,7 @@ export const Sensors = GObject.registerClass({
         this._gpu_drm_vendors = null;
         this._gpu_drm_indices = null;
         this._nvidia_smi_process = null;
+        this._nvidia_gpu_count = 1;
         this._nvidia_labels = [];
         this._bad_split_count = 0;
 
@@ -135,30 +126,56 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    query(callback, dwell) {
+    query(callback, dwell, wantedKeys) {
+        // menu open (wantedKeys null) or Public IP pinned to the panel
+        if (this._settings.get_boolean('include-public-ip') &&
+            (!wantedKeys || wantedKeys.has('_network_public_ip_')))
+            this._queryPublicIp(callback);
+
         if (!this._hardware_detected) {
             // we could set _hardware_detected in discoverHardwareMonitors, but by
             // doing it here, we guarantee avoidance of race conditions
             this._hardware_detected = true;
             this._discoverHardwareMonitors(callback);
+        } else if (this._static_info_refresh) {
+            // menu redraw / Refresh: re-emit static CPU/kernel and rediscover NICs
+            this._static_info_refresh = false;
+            this._queryStaticInfo(callback);
+            this._discoverNetworkIfaces(callback);
         }
 
         for (let sensor in this._sensorIcons) {
-            if (this._settings.get_boolean('show-' + sensor)) {
-                if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan') {
-                    // for temp, volt, fan, we have a shared handler
-                    this._queryTempVoltFan(callback, sensor);
-                } else {
-                    // directly call queryFunction below
-                    let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
-                    this[method](callback, dwell);
-                }
+            // Process Time needs core counts from _queryProcessor even if Processor is hidden
+            if (!this._settings.get_boolean('show-' + sensor)) {
+                if (sensor === 'processor' && wantedKeys &&
+                    wantedKeys.has('_processor_process_time_'))
+                    this._queryProcessor(callback, dwell);
+                continue;
+            }
+
+            if (sensor == 'temperature' || sensor == 'voltage' || sensor == 'fan' || sensor == 'power') {
+                // wantedKeys filters individual hwmon files when the menu is closed
+                this._queryTempVoltFan(callback, sensor, wantedKeys);
+
+                if (sensor == 'power') this._queryPowercap(callback);
+            } else {
+                let method = '_query' + sensor[0].toUpperCase() + sensor.slice(1);
+                this[method](callback, dwell);
             }
         }
     }
 
-    _queryTempVoltFan(callback, type) {
+    _queryTempVoltFan(callback, type, wantedKeys) {
+        let readAll = !wantedKeys ||
+            wantedKeys.has('__' + type + '_avg__') ||
+            wantedKeys.has('__' + type + '_min__') ||
+            wantedKeys.has('__' + type + '_max__');
+
         for (let label in this._tempVoltFanSensors[type]) {
+            if (!readAll &&
+                !wantedKeys.has('_' + type + '_' + label.replaceAll(' ', '_').toLowerCase() + '_'))
+                continue;
+
             let sensor = this._tempVoltFanSensors[type][label];
 
             new FileModule.File(sensor['path']).read().then(value => {
@@ -172,19 +189,14 @@ export const Sensors = GObject.registerClass({
     _queryMemory(callback) {
         // check memory info
         new FileModule.File('/proc/meminfo').read().then(lines => {
-            let values = '', total = 0, avail = 0, swapTotal = 0, swapFree = 0, cached = 0, memFree = 0;
+            let m = Object.fromEntries([...lines.matchAll(/^(\w+):\s+(\d+)/gm)].map(x => [x[1], +x[2]]));
+            let total = m.MemTotal || 0, avail = m.MemAvailable || 0, swapTotal = m.SwapTotal || 0;
+            let swapFree = m.SwapFree || 0, cached = m.Cached || 0, memFree = m.MemFree || 0;
 
-            if (values = lines.match(/MemTotal:(\s+)(\d+) kB/)) total = values[2];
-            if (values = lines.match(/MemAvailable:(\s+)(\d+) kB/)) avail = values[2];
-            if (values = lines.match(/SwapTotal:(\s+)(\d+) kB/)) swapTotal = values[2];
-            if (values = lines.match(/SwapFree:(\s+)(\d+) kB/)) swapFree = values[2];
-            if (values = lines.match(/Cached:(\s+)(\d+) kB/)) cached = values[2];
-            if (values = lines.match(/MemFree:(\s+)(\d+) kB/)) memFree = values[2];
-
-            let used = total - avail
-            let utilized = used / total;
-            let swapUsed = swapTotal - swapFree
-            let swapUtilized = swapUsed / swapTotal;
+            let used = total - avail;
+            let utilized = total ? used / total : 0;
+            let swapUsed = swapTotal - swapFree;
+            let swapUtilized = swapTotal ? swapUsed / swapTotal : 0;
 
             this._returnValue(callback, 'Usage', utilized, 'memory', 'percent');
             this._returnValue(callback, 'memory', utilized, 'memory-group', 'percent');
@@ -193,6 +205,11 @@ export const Sensors = GObject.registerClass({
             this._returnValue(callback, 'Allocated', used, 'memory', 'memory');
             this._returnValue(callback, 'Cached', cached, 'memory', 'memory');
             this._returnValue(callback, 'Free', memFree, 'memory', 'memory');
+
+            // swap shares /proc/meminfo with memory, so there is no separate read to skip
+            if (!this._settings.get_boolean('include-memory-swap'))
+                return;
+
             this._returnValue(callback, 'Swap Total', swapTotal, 'memory', 'memory');
             this._returnValue(callback, 'Swap Free', swapFree, 'memory', 'memory');
             this._returnValue(callback, 'Swap Used', swapUsed, 'memory', 'memory');
@@ -201,8 +218,6 @@ export const Sensors = GObject.registerClass({
     }
 
     _queryProcessor(callback, dwell) {
-        let columns = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice'];
-
         // check processor usage
         new FileModule.File('/proc/stat').read("\n").then(lines => {
             let statistics = {};
@@ -212,22 +227,18 @@ export const Sensors = GObject.registerClass({
                 if (reverse_data) {
                     let cpu = reverse_data[1].trim();
 
-                    if (!(cpu in statistics))
-                        statistics[cpu] = {};
-
                     if (!(cpu in this._last_processor['core']))
                         this._last_processor['core'][cpu] = 0;
 
-                    let stats = reverse_data[2].trim().split(' ').reverse();
-                    for (let column of columns)
-                        statistics[cpu][column] = parseInt(stats.pop());
+                    let s = reverse_data[2].trim().split(' ');
+                    statistics[cpu] = parseInt(s[0]) + parseInt(s[1]) + parseInt(s[2]);
                 }
             }
 
             let cores = Object.keys(statistics).length - 1;
 
             for (let cpu in statistics) {
-                let total = statistics[cpu]['user'] + statistics[cpu]['nice'] + statistics[cpu]['system'];
+                let total = statistics[cpu];
 
                 // make sure we have data to report
                 if (this._last_processor['core'][cpu] > 0) {
@@ -238,27 +249,28 @@ export const Sensors = GObject.registerClass({
                         delta = delta / cores;
                         this._returnValue(callback, 'processor', delta / 100, 'processor-group', 'percent');
                         this._returnValue(callback, 'Usage', delta / 100, 'processor', 'percent');
-                    } else {
-                        this._returnValue(callback, _('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
+                    } else if (this._settings.get_boolean('include-processor-cores')) {
+                        this._returnValue(callback, this._gettext('Core %d').format(cpu.substr(3)), delta / 100, 'processor', 'percent');
                     }
                 }
 
                 this._last_processor['core'][cpu] = total;
             }
 
-            // if frequency scaling is enabled, gather cpu-freq values
-            if (!this._processor_uses_cpu_info) {
-                for (let core = 0; core <= cores; core++) {
-                    new FileModule.File('/sys/devices/system/cpu/cpu' + core + '/cpufreq/scaling_cur_freq').read().then(value => {
-                        this._last_processor['speed'][core] = parseInt(value);
-                    }).catch(err => { });
-                }
+            // per-core cpufreq: prefs override, or fallback when cpuinfo has no MHz
+            if (!this._useCpuinfoFrequency()) {
+                for (let core = 0; core < cores; core++)
+                    this._readKhz(this._cpufreqPath(core, 'scaling_cur_freq'), khz => this._last_processor['speed'][core] = khz);
             }
         }).catch(err => { });
 
-        // if frequency scaling is disabled, use cpuinfo for speed
-        if (this._processor_uses_cpu_info) {
-            // grab CPU frequency
+        // probe once per session; VMs often have no cpufreq
+        if (!this._cpufreqProbed) {
+            this._cpufreqProbed = true;
+            this._readKhz(this._cpufreqPath(0, 'scaling_cur_freq'), () => this._hasCpufreq = true);
+        }
+
+        if (this._useCpuinfoFrequency()) {
             new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
                 let freqs = [];
                 for (let line of lines) {
@@ -267,25 +279,41 @@ export const Sensors = GObject.registerClass({
                     if (value) freqs.push(parseFloat(value[2]));
                 }
 
-                let sum = freqs.reduce((a, b) => a + b);
-                let hertz = (sum / freqs.length) * 1000 * 1000;
-                this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-
-                let max_hertz = freqs.reduce((a, b) => Math.max(a, b)) * 1000 * 1000;
-                this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
-                let min_hertz = freqs.reduce((a, b) => Math.min(a, b)) * 1000 * 1000;
-                this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
-            }).catch(err => { });
-        // if frequency scaling is enabled, cpu-freq reports
+                if (!freqs.length) {
+                    this._processor_uses_cpu_info = false;
+                    return;
+                }
+                this._returnFrequencies(callback, freqs, 1000 * 1000);
+            }).catch(err => {
+                this._processor_uses_cpu_info = false;
+            });
         } else if (Object.values(this._last_processor['speed']).length > 0) {
-            let sum = this._last_processor['speed'].reduce((a, b) => a + b);
-            let hertz = (sum / this._last_processor['speed'].length) * 1000;
-            this._returnValue(callback, 'Frequency', hertz, 'processor', 'hertz');
-            let max_hertz = this._last_processor['speed'].reduce((a, b) => Math.max(a, b)) * 1000;
-            this._returnValue(callback, 'Max frequency', max_hertz, 'processor', 'hertz');
-            let min_hertz = this._last_processor['speed'].reduce((a, b) => Math.min(a, b)) * 1000;
-            this._returnValue(callback, 'Min frequency', min_hertz, 'processor', 'hertz');
+            this._returnFrequencies(callback, Object.values(this._last_processor['speed']), 1000);
         }
+    }
+
+    _cpufreqPath(core, file) {
+        return '/sys/devices/system/cpu/cpu' + core + '/cpufreq/' + file;
+    }
+
+    _readKhz(path, cb) {
+        new FileModule.File(path).read().then(v => {
+            let khz = parseInt(v);
+            if (!isNaN(khz)) cb(khz);
+        }).catch(() => {});
+    }
+
+    _useCpuinfoFrequency() {
+        let cpufreq = this._settings.get_boolean('use-processor-cpufreq') && this._hasCpufreq;
+        return !cpufreq && this._processor_uses_cpu_info;
+    }
+
+    _returnFrequencies(callback, freqs, scale) {
+        let sum = 0, min = freqs[0], max = freqs[0];
+        for (let v of freqs) { sum += v; if (v < min) min = v; if (v > max) max = v; }
+        this._returnValue(callback, 'Frequency', (sum / freqs.length) * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Max frequency', max * scale, 'processor', 'hertz');
+        this._returnValue(callback, 'Min frequency', min * scale, 'processor', 'hertz');
     }
 
     _querySystem(callback) {
@@ -316,56 +344,43 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _queryPublicIp(callback) {
+        // wall-clock deadline so skipped closed-menu polls still honor the interval
+        let now = GLib.get_real_time() / 1000000;
+        if (this._next_public_ip_check <= now) {
+            // prefs UI minimum is 15; clamp in case an older/dconf value is lower
+            let minutes = Math.max(15, this._settings.get_int('network-public-ip-interval'));
+            this._next_public_ip_check = now + minutes * 60;
+            this._refreshIPAddress(callback);
+        }
+    }
+
     _queryNetwork(callback, dwell) {
-        // check network speed
-        let directions = ['tx', 'rx'];
-        let netbase = '/sys/class/net/';
-
-        new FileModule.File(netbase).list().then(interfaces => {
-            for (let iface of interfaces) {
-                for (let direction of directions) {
-                    // lo tx and rx are the same
-                    if (iface == 'lo' && direction == 'rx') continue;
-
-                    new FileModule.File(netbase + iface + '/statistics/' + direction + '_bytes').read().then(value => {
-                        // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
-                        // by not using network-rx or network-tx
-                        let name = iface + ((iface == 'lo')?'':' ' + direction);
-
-                        let type = 'network' + ((iface=='lo')?'':'-' + direction);
-                        this._returnValue(callback, name, value, type, 'storage');
-                    }).catch(err => { });
-                }
-            }
-        }).catch(err => { });
-
-        // some may not want public ip checking
-        if (this._settings.get_boolean('include-public-ip')) {
-            // check the public ip every hour or when waking from sleep
-            if (this._next_public_ip_check <= 0) {
-                let intervalMinutes = this._settings.get_int('network-public-ip-interval');
-                this._next_public_ip_check = intervalMinutes * 60;
-
-                this._refreshIPAddress(callback);
-            }
-
-            this._next_public_ip_check -= dwell;
+        for (let sensor of this._networkIfaces) {
+            new FileModule.File(sensor.path).read().then(value => {
+                this._returnValue(callback, sensor.name, value, sensor.type, 'storage');
+            }).catch(err => { });
         }
 
-        // wireless interface statistics
+        if (this._hasWireless)
+            this._queryWireless(callback);
+    }
+
+    _queryWireless(callback) {
         new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
             // wireless has two headers - first is stripped in helper function
             lines.shift();
 
             // if multiple wireless device, we use the last one
-            for (let line of lines) {
-                let netArray = line.trim().split(/\s+/);
-                let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
-                let signal = netArray[3].substr(0, netArray[3].length-1);
+            let line = lines[lines.length - 1];
+            if (!line)
+                return;
+            let netArray = line.trim().split(/\s+/);
+            let quality_pct = netArray[2].substr(0, netArray[2].length-1) / 70;
+            let signal = netArray[3].substr(0, netArray[3].length-1);
 
-                this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
-                this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
-            }
+            this._returnValue(callback, 'WiFi Link Quality', quality_pct, 'network', 'percent');
+            this._returnValue(callback, 'WiFi Signal Level', signal, 'network', 'string');
         }).catch(err => { });
     }
 
@@ -393,8 +408,11 @@ export const Sensors = GObject.registerClass({
                     var write = (loadArray[9] * 512);
                     this._returnValue(callback, 'Read total', read, 'storage', 'storage');
                     this._returnValue(callback, 'Write total', write, 'storage', 'storage');
-                    this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
-                    this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
+                    // skip rates until counters are seeded (same pattern as processor cores)
+                    if (this._lastRead > 0)
+                        this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
+                    if (this._lastWrite > 0)
+                        this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
                     this._lastRead = read;
                     this._lastWrite = write;
                     break;
@@ -555,6 +573,17 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
+    _queryPowercap(callback) {
+        let usePowercap = this._settings.get_boolean('use-powercap');
+        if (!usePowercap) return;
+
+        for (let instance of this._powercapInstances) {
+            new FileModule.File(instance.path).read().then(value => {
+                this._returnValue(callback, instance.name, value, 'microjoules', 'microjoules');
+            }).catch(err => { });
+        }
+    }
+
     _initFrameMonitor() {
         // Prefs has no gnome-shell `global`; skip refresh-rate sampling there.
         if (typeof global === 'undefined' || !global.stage)
@@ -606,32 +635,46 @@ export const Sensors = GObject.registerClass({
         }
     }
 
+    _returnGpuGroupHeader(callback, typeName, utilization) {
+        if (utilization !== null && utilization !== undefined &&
+            utilization !== 'N/A' && utilization !== '[N/A]' && !isNaN(utilization)) {
+            this._returnGpuValue(callback, 'Graphics', utilization, typeName + '-group', 'percent');
+            return;
+        }
+
+        if (this._frameMonitorCurrentHz > 0)
+            this._returnGpuValue(callback, 'Graphics', this._frameMonitorCurrentHz, typeName + '-group', 'hertz');
+    }
+
     _queryGpu(callback) {
         if (this._frameMonitorCurrentHz > 0)
             this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1', 'hertz');
 
         if (!this._nvidia_smi_process) {
             // no nvidia-smi, so we use sysfs DRM if any cards was discovered
-            if (!this._gpu_drm_indices){
-                if (this._frameMonitorCurrentHz > 0)
-                    this._returnValue(callback, 'Refresh Rate', this._frameMonitorCurrentHz, 'gpu#1-group', 'hertz');
+            if (!this._gpu_drm_indices?.length) {
+                this._returnGpuGroupHeader(callback, 'gpu#1', null);
                 this._disableGpuLabels(callback);
                 return;
-            } else {
-                this._readGpuDrm(callback);
-                return;
             }
+
+            this._readGpuDrm(callback);
+            return;
         }
 
         this._nvidia_smi_process.read('\n').then(lines => {
-            /// for debugging multi-gpu on systems with only one gpu
-            /// duplicates the first gpu's data 3 times, for 4 total gpus
-            ///if(lines.length == 0) return;
-            ///for(let _gpuNum = 1; _gpuNum <= 3; _gpuNum++)
-            ///    lines.push(lines[0]);
+            const expectedSplitLength = 19;
+            let valid = lines.filter(line => line.trim() &&
+                line.split(',').length >= expectedSplitLength);
 
-            for (let i = 0; i < lines.length; i++) {
-                this._parseNvidiaSmiLine(callback, lines[i], i + 1, lines.length > 1);
+            if (valid.length > 0) {
+                // stdout can hold multiple snapshots; keep only the latest row per GPU
+                let count = this._nvidia_gpu_count || 1;
+                let batch = valid.slice(-count);
+                for (let i = 0; i < batch.length; i++)
+                    this._parseNvidiaSmiLine(callback, batch[i], i + 1, batch.length > 1);
+            } else {
+                this._returnGpuGroupHeader(callback, 'gpu#1', null);
             }
 
             // if we've already updated the static info during the last parse, then stop doing so.
@@ -697,10 +740,11 @@ export const Sensors = GObject.registerClass({
         const typeName = 'gpu#' + gpuNum;
         const globalLabel = 'GPU' + (multiGpu ? ' ' + gpuNum : '');
         const memTempValid = !isNaN(parseInt(temp_mem));
+        let util = parseInt(util_gpu) * 0.01;
 
-        this._returnGpuValue(callback, 'Graphics', parseInt(util_gpu) * 0.01, typeName + '-group', 'percent');
-
-        this._returnGpuValue(callback, 'Name', label, typeName, '');
+        this._returnGpuGroupHeader(callback, typeName, isNaN(util) ? null : util);
+        if (this._settings.get_boolean('include-static-gpu-info'))
+            this._returnGpuValue(callback, 'Vendor', label.trim(), typeName, 'string');
 
         this._returnGpuValue(callback, 'Fan', parseInt(fan_speed_pct) * 0.01, typeName, 'percent');
 
@@ -746,53 +790,54 @@ export const Sensors = GObject.registerClass({
         this._returnStaticGpuValue(callback, 'Sub Device ID', staticInfo['sub_device_id'], typeName, 'string');
     }
 
-    _readGpuDrm(callback){
-        const multiGpu = this._gpu_drm_indices.length > 1;
+    _readGpuDrm(callback) {
         const unit = this._settings.get_int('memory-measurement') ? 1000 : 1024;
-        for (let z = 0; z < this._gpu_drm_indices.length; z++ ) {
+        for (let z = 0; z < this._gpu_drm_indices.length; z++) {
             let i = this._gpu_drm_indices[z];
-            const typeName = 'gpu#' + i;
-            const vendor = this._gpu_drm_vendors[z];
+            const typeName = 'gpu#' + (z + 1);
+            const vendor = (this._gpu_drm_vendors[z] || '').toLowerCase();
+            const cardBase = '/sys/class/drm/card' + i + '/device/';
 
-            // AMD
-            if(vendor === "0x1002") {
-                // read GPU usage and create group lebel for card
-                new FileModule.File('/sys/class/drm/card'+i+'/device/gpu_busy_percent').read().then(value => {
-                    // create group
-                    this._returnGpuValue(callback, 'Graphics', parseInt(value) * 0.01, typeName + '-group', 'percent');
-                    this._returnGpuValue(callback, 'Vendor', "AMD", typeName, 'string');
-                    this._returnGpuValue(callback, 'Usage', parseInt(value) * 0.01, typeName, 'percent');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
-                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_used').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
-                new FileModule.File('/sys/class/drm/card'+i+'/device/mem_info_vram_total').read().then(value => {
-                    this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
-                }).catch(err => {
-                    // nothing to do, keep old value displayed
-                });
-            } else {
-                // for other vendors only show basic card info
+            this._returnGpuGroupHeader(callback, typeName, null);
+
+            if (this._settings.get_boolean('include-static-gpu-info')) {
                 let vendorName = null;
-                switch (vendor){
-                    case '0x10DE': vendorName = 'NVIDIA'; break; // should be never used as nvidia-smi should be preferred
-                    case '0x13B5': vendorName = 'ARM'; break;
+                switch (vendor) {
+                    case '0x1002': vendorName = 'AMD'; break;
+                    case '0x10de': vendorName = 'NVIDIA'; break;
+                    case '0x13b5': vendorName = 'ARM'; break;
                     case '0x5143': vendorName = 'Qualcomm'; break;
                     case '0x8086': vendorName = 'Intel'; break;
-                    default: vendorName = "Unknown " + vendor;
+                    case '0x1234': vendorName = 'QEMU'; break;
                 }
-                this._returnGpuValue(callback, 'Graphics', vendorName, typeName + '-group', 'string');
+                if (vendorName)
+                    this._returnGpuValue(callback, 'Vendor', vendorName, typeName, 'string');
+            }
+
+            if (vendor === '0x1002') {
+                new FileModule.File(cardBase + 'gpu_busy_percent').read().then(value => {
+                    let usage = parseInt(value) * 0.01;
+                    this._returnGpuGroupHeader(callback, typeName, usage);
+                    this._returnGpuValue(callback, 'Usage', usage, typeName, 'percent');
+                }).catch(err => {
+                    this._returnGpuGroupHeader(callback, typeName, null);
+                });
+                new FileModule.File(cardBase + 'mem_info_vram_used').read().then(value => {
+                    this._returnGpuValue(callback, 'Memory Used', parseInt(value) / unit, typeName, 'memory');
+                }).catch(err => { });
+                new FileModule.File(cardBase + 'mem_info_vram_total').read().then(value => {
+                    this._returnGpuValue(callback, 'Memory Total', parseInt(value) / unit, typeName, 'memory');
+                }).catch(err => { });
             }
         }
     }
 
     _disableGpuLabels(callback) {
-        for (let labelObj of this._nvidia_labels)
+        for (let labelObj of this._nvidia_labels) {
+            if (labelObj.type.includes('-group'))
+                continue;
             this._returnValue(callback, labelObj.label, 'disabled', labelObj.type, labelObj.format);
+        }
     }
 
     _returnStaticGpuValue(callback, label, value, type, format) {
@@ -807,23 +852,23 @@ export const Sensors = GObject.registerClass({
     _returnGpuValue(callback, label, value, type, format, display = true) {
         if(!display) return;
 
-        if(format !== "string" && (value === 'N/A' || value === '[N/A]' || isNaN(value))) return;
+        if (format !== 'string' && isNaN(value))
+            return;
 
-        let nvidiaLabel = {'label': label, 'type': type, 'format': format};
-        if (!this._nvidia_labels.includes(nvidiaLabel))
-            this._nvidia_labels.push(nvidiaLabel);
+        if (!this._nvidia_labels[label + type])
+            this._nvidia_labels.push(this._nvidia_labels[label + type] = {label, type, format});
 
         this._returnValue(callback, label, value, type, format);
     }
 
     _returnValue(callback, label, value, type, format) {
-        // don't return if value is not a number - will revisit later
-        //if (isNaN(value)) return;
+        if (value != 'disabled' && value != 'destroy' && format !== 'string' && isNaN(value))
+            return;
         callback(label, value, type, format);
     }
 
     _discoverHardwareMonitors(callback) {
-        this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {} };
+        this._tempVoltFanSensors = { 'temperature': {}, 'voltage': {}, 'fan': {}, 'power': {} };
 
         let hwbase = '/sys/class/hwmon/';
 
@@ -838,6 +883,9 @@ export const Sensors = GObject.registerClass({
 
         if (this._settings.get_boolean('show-fan'))
             sensor_types['fan'] = 'fan';
+
+        if (this._settings.get_boolean('show-power'))
+            sensor_types['power'] = 'power';
 
         // a little informal, but this code has zero I/O block
         new FileModule.File(hwbase).list().then(files => {
@@ -866,64 +914,115 @@ export const Sensors = GObject.registerClass({
             }
         }).catch(err => { });
 
-        // does this system support cpu scaling? if so we will use it to grab Frequency and Boost below
-        new FileModule.File('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq').read().then(value => {
-            this._processor_uses_cpu_info = false;
-        }).catch(err => { });
-
         // is static CPU information enabled?
-        if (this._settings.get_boolean('include-static-info')) {
-            // grab static CPU information
-            new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
-                let vendor_id = '';
-                let bogomips = '';
-                let sockets = {};
-                let cache = '';
-
-                for (let line of lines) {
-                    let value = '';
-
-                    // grab cpu vendor
-                    if (value = line.match(/^vendor_id(\s+): (\w+.*)/)) vendor_id = value[2];
-
-                    // grab bogomips
-                    if (value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/)) bogomips = value[2];
-
-                    // grab processor count
-                    if (value = line.match(/^physical id(\s+): (\d+)$/)) sockets[value[2]] = 1;
-
-                    // grab cache
-                    if (value = line.match(/^cache size(\s+): (\d+) KB$/)) cache = value[2];
-                }
-
-                this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
-                this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
-                this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
-                this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
-            }).catch(err => { });
-
-            // grab static CPU information
-            new FileModule.File('/proc/version').read(' ').then(kernelArray => {
-                this._returnValue(callback, 'Kernel', kernelArray[2], 'system', 'string');
-            }).catch(err => { });
-        }
+        this._queryStaticInfo(callback);
 
         // Launch nvidia-smi subprocess if nvidia querying is enabled
         this._reconfigureNvidiaSmiProcess();
         this._discoverGpuDrm();
+        this._discoverNetworkIfaces(callback);
+        this._discoverPowercapInstances();
         this._initFrameMonitor();
+    }
+
+    _queryStaticInfo(callback) {
+        if (!this._settings.get_boolean('include-static-info'))
+            return;
+
+        // grab static CPU information
+        new FileModule.File('/proc/cpuinfo').read("\n").then(lines => {
+            let vendor_id = '';
+            let bogomips = '';
+            let sockets = {};
+            let cache = '';
+
+            for (let line of lines) {
+                let value = '';
+
+                // grab cpu vendor
+                if (value = line.match(/^vendor_id(\s+): (\w+.*)/)) vendor_id = value[2];
+
+                // grab bogomips
+                if (value = line.match(/^bogomips(\s+): (\d*\.?\d*)$/)) bogomips = value[2];
+
+                // grab processor count
+                if (value = line.match(/^physical id(\s+): (\d+)$/)) sockets[value[2]] = 1;
+
+                // grab cache
+                if (value = line.match(/^cache size(\s+): (\d+) KB$/)) cache = value[2];
+            }
+
+            this._returnValue(callback, 'Vendor', vendor_id, 'processor', 'string');
+            this._returnValue(callback, 'Bogomips', bogomips, 'processor', 'string');
+            this._returnValue(callback, 'Sockets', Object.keys(sockets).length, 'processor', 'string');
+            this._returnValue(callback, 'Cache', cache, 'processor', 'memory');
+        }).catch(err => { });
+
+        // grab static CPU information
+        new FileModule.File('/proc/version').read(' ').then(kernelArray => {
+            this._returnValue(callback, 'Kernel', kernelArray[2], 'system', 'string');
+        }).catch(err => { });
+    }
+
+    _discoverNetworkIfaces(callback) {
+        let netbase = '/sys/class/net/';
+        let directions = ['tx', 'rx'];
+
+        new FileModule.File(netbase).list().then(interfaces => {
+            // swap in a complete list so overlapping discoveries can't append duplicates
+            let previous = this._networkIfaces;
+            let known = new Set(previous.map(sensor => sensor.name));
+            let ifaces = [];
+            for (let iface of interfaces) {
+                for (let direction of directions) {
+                    // lo tx and rx are the same
+                    if (iface == 'lo' && direction == 'rx')
+                        continue;
+
+                    // issue #217 - don't include 'lo' traffic in Maximum calculations in values.js
+                    // by not using network-rx or network-tx
+                    let name = iface + ((iface == 'lo') ? '' : ' ' + direction);
+                    let type = 'network' + ((iface == 'lo') ? '' : '-' + direction);
+                    let path = netbase + iface + '/statistics/' + direction + '_bytes';
+                    ifaces.push({name, type, path});
+
+                    // known ifaces are already polled this round; a second sample would read as ~0 speed
+                    if (known.has(name))
+                        continue;
+
+                    // update screen on initial build to prevent delay on update
+                    new FileModule.File(path).read().then(value => {
+                        this._returnValue(callback, name, value, type, 'storage');
+                    }).catch(err => { });
+                }
+            }
+
+            // issue #557 - drop ifaces that disappeared since last discovery
+            for (let sensor of previous) {
+                if (!interfaces.includes(sensor.name.split(' ')[0]))
+                    this._returnValue(callback, sensor.name, 'destroy', sensor.type, 'storage');
+            }
+
+            this._networkIfaces = ifaces;
+            this._hasWireless = false;
+            new FileModule.File('/proc/net/wireless').read("\n", true).then(lines => {
+                lines.shift();
+                if (!lines[lines.length - 1])
+                    return;
+                this._hasWireless = true;
+                this._queryWireless(callback);
+            }).catch(err => { });
+        }).catch(err => { });
     }
 
     _discoverGpuDrm() {
         // use DRM only if nvidia-smi is not used
         if (this._settings.get_boolean('show-gpu') && this._nvidia_smi_process == null) {
+            this._gpu_drm_indices = [];
+            this._gpu_drm_vendors = [];
             // try to discover up to 10 cards starting from index 0
             for(let i = 0; i < 10 ; i++){
                 new FileModule.File('/sys/class/drm/card'+i+'/device/vendor').read().then(value => {
-                    if(!this._gpu_drm_indices){
-                        this._gpu_drm_indices = [];
-                        this._gpu_drm_vendors = [];
-                    }
                     this._gpu_drm_indices.push(i);
                     this._gpu_drm_vendors.push(value);
                 }).catch(err => { });
@@ -932,6 +1031,49 @@ export const Sensors = GObject.registerClass({
             this._gpu_drm_vendors = null;
             this._gpu_drm_indices = null;
         }
+    }
+
+    _discoverPowercapInstances() {
+        const powercapbase = '/sys/class/powercap/';
+
+        new FileModule.File(powercapbase).list().then(children => {
+            const instances = [];
+
+            let processed = 0;
+            const onNameRead = () => {
+                // Wait for all names to be read
+                ++processed;
+                if (processed < children.length) return;
+
+                // Remove duplicates
+                for (let i = 1; i < instances.length; ++i) {
+                    for (let j = 0; j < i; ++j) {
+                        if (instances[i].name === instances[j].name) {
+                            instances.splice(i, 1);
+                            --i;
+                            break;
+                        }
+                    }
+                }
+
+                // Commit new list
+                this._powercapInstances = instances;
+            };
+
+
+            for (const id of children) {
+                const path = powercapbase + id + '/energy_uj';
+                const instance = {name: id, path};
+                instances.push(instance);
+
+                new FileModule.File(powercapbase + id + '/name').read().then(name => {
+                    instance.name = name;
+                    onNameRead();
+                }).catch(err => {
+                    onNameRead();
+                });
+            }
+        }).catch(err => { });
     }
 
     // The nvidia-smi subprocess will keep running and print new sensor data to stdout every
@@ -983,6 +1125,7 @@ export const Sensors = GObject.registerClass({
                 ];
 
                 this._nvidia_smi_process = new SubProcessModule.SubProcess(command);
+                this._detectNvidiaGpuCount();
             } catch(e) {
                 // proprietary nvidia driver not installed
                 this._terminateNvidiaSmiProcess();
@@ -990,6 +1133,23 @@ export const Sensors = GObject.registerClass({
         } else {
             this._terminateNvidiaSmiProcess();
         }
+    }
+
+    _detectNvidiaGpuCount() {
+        this._nvidia_gpu_count = 1;
+        try {
+            let proc = Gio.Subprocess.new(
+                ['nvidia-smi', '--query-gpu=name', '--format=csv,noheader,nounits'],
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
+            proc.communicate_utf8_async(null, null, (subprocess, res) => {
+                try {
+                    let [, stdout] = subprocess.communicate_utf8_finish(res);
+                    let count = stdout.trim().split('\n').filter(line => line.trim()).length;
+                    if (count > 0)
+                        this._nvidia_gpu_count = count;
+                } catch (e) { }
+            });
+        } catch (e) { }
     }
 
     _terminateNvidiaSmiProcess() {
@@ -1019,7 +1179,8 @@ export const Sensors = GObject.registerClass({
                                 trisensors[key2] = {
                                     'type': sensor_types[sensor_type],
                                   'format': sensor_type,
-                                   'label': path + '/name'
+                                   // drivetemp: prefer the drive model when sysfs exposes it
+                                   'label': path + (name == 'drivetemp' ? '/device/model' : '/name')
                                 };
                             }
 
@@ -1038,9 +1199,14 @@ export const Sensors = GObject.registerClass({
 
                     if (value > 0 || !this._settings.get_boolean('hide-zeros') || obj['type'] == 'fan') {
                         new FileModule.File(obj['label']).read().then(label => {
+                            // some USB bridges expose an empty drivetemp model
+                            if (!label && name == 'drivetemp')
+                                throw new Error('empty drivetemp model');
                             this._addTempVoltFan(callback, obj, name, label, extra, value);
                         }).catch(err => {
-                            let tmpFile = obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
+                            // device/model is not always present; keep the hwmon name as fallback
+                            let tmpFile = name == 'drivetemp' ? path + '/name'
+                                : obj['label'].substr(0, obj['label'].lastIndexOf('/')) + '/name';
                             new FileModule.File(tmpFile).read().then(label => {
                                 this._addTempVoltFan(callback, obj, name, label, extra, value);
                             }).catch(err => { });
@@ -1052,8 +1218,8 @@ export const Sensors = GObject.registerClass({
     }
 
     _addTempVoltFan(callback, obj, name, label, extra, value) {
-        // prepend module that provided sensor data
-        if (name != label) label = name + ' ' + label;
+        // prepend module that provided sensor data, except drivetemp (label is already the model)
+        if (name != label && name != 'drivetemp') label = name + ' ' + label;
 
         //if (label == 'nvme Composite') label = 'NVMe';
         //if (label == 'nouveau') label = 'Nvidia';
@@ -1068,7 +1234,7 @@ export const Sensors = GObject.registerClass({
         if (label == 'Package id 1') label = 'Processor 1';
         label = label.replace('Package id', 'CPU');
 
-        let types = [ 'temperature', 'voltage', 'fan' ];
+        let types = [ 'temperature', 'voltage', 'fan', 'power' ];
         for (let type of types) {
             // check if this label already exists
             if (label in this._tempVoltFanSensors[type]) {
@@ -1094,9 +1260,20 @@ export const Sensors = GObject.registerClass({
         };
     }
 
-    resetHistory() {
+    // rediscover=false keeps network/TVF/GPU discovery across cosmetic menu redraws
+    resetHistory(rediscover = true) {
         this._next_public_ip_check = 0;
-        this._hardware_detected = false;
+        this._static_info_refresh = false;
+        if (rediscover) {
+            this._hardware_detected = false;
+            this._networkIfaces = [];
+            this._hasWireless = false;
+            this._powercapInstances = [];
+            this._cpufreqProbed = false;
+            this._hasCpufreq = false;
+        } else {
+            this._static_info_refresh = true;
+        }
         this._nvidia_static_returned = false;
         this._processor_uses_cpu_info = true;
         this._battery_time_left_history = [];
@@ -1106,6 +1283,10 @@ export const Sensors = GObject.registerClass({
         this._frameMonitorLastTime = 0;
         this._frameMonitorFrameCount = 0;
         this._frameMonitorAccTime = 0;
+
+        // soft reset must restart nvidia-smi so static GPU fields are queried again
+        if (!rediscover)
+            this._reconfigureNvidiaSmiProcess();
     }
 
     destroy() {

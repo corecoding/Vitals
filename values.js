@@ -39,6 +39,10 @@ const cbFun = (d, c) => {
     return [d[0] + aa, bb];
 };
 
+const decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+const binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
+const hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
+
 const ESSENTIAL_SERIES_KEYS = new Set([
     '_processor_usage_',
     '_memory_usage_',
@@ -254,10 +258,6 @@ export const Values = GObject.registerClass({
         let ending = '';
         let exp = 0;
 
-        var decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
-        var binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
-        var hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
-
         switch (sensorClass) {
             case 'percent':
                 format = (use_higher_precision)?'%.1f%s':'%d%s';
@@ -285,6 +285,11 @@ export const Values = GObject.registerClass({
                 value = value / 1000;
                 format = ((value >= 0) ? '+' : '-') + ((use_higher_precision)?'%.2f %s':'%.1f %s');
                 ending = 'V';
+                break;
+            case 'power': // hwmon reports microwatts
+                value = value / 1000000;
+                format = (use_higher_precision)?'%.2f %s':'%.1f %s';
+                ending = 'W';
                 break;
             case 'hertz':
                 if (value > 0) {
@@ -458,8 +463,8 @@ export const Values = GObject.registerClass({
         // is the value different from last time?
         let legible = this._legible(value, format, type, key);
 
-        // don't return early when dealing with network traffic
-        if (historyType != 'network-rx' && historyType != 'network-tx') {
+        // don't return early when dealing with network traffic or energy rate
+        if (historyType != 'network-rx' && historyType != 'network-tx' && historyType != 'microjoules') {
             // only update when we are coming through for the first time, or if a value has changed
             if (key in this._history[historyType] && this._history[historyType][key][0] == legible.text)
                 return output;
@@ -475,7 +480,7 @@ export const Values = GObject.registerClass({
         this._history[historyType][key] = [legible.text, value];
 
         // process average, min and max values
-        if (type == 'temperature' || type == 'voltage' || type == 'fan') {
+        if (type == 'temperature' || type == 'voltage' || type == 'fan' || type == 'power') {
             let vals = Object.values(this._history[type]).map(x => parseFloat(x[1]));
 
             // show value in group even if there is one value present
@@ -541,13 +546,18 @@ export const Values = GObject.registerClass({
                 key: bootKey,
             });
 
-            // keeps track of session start point
-            if (!(key in this._networkSpeedOffset) || this._networkSpeedOffset[key] <= 0)
-                this._networkSpeedOffset[key] = sum;
+            // per-iface byte counter at first sight; session = sum of deltas (#234)
+            if (!(key in this._networkSpeedOffset))
+                this._networkSpeedOffset[key] = value;
 
-            // outputs session upload and download for all interfaces for #234
+            let sessionBytes = 0;
+            for (let k in this._history[type]) {
+                let cur = parseFloat(this._history[type][k][1]);
+                sessionBytes += cur - (this._networkSpeedOffset[k] ?? cur);
+            }
+
             let sessionKey = '__' + type + '_ses__';
-            let session = this._legible(sum - this._networkSpeedOffset[key], format, type, sessionKey);
+            let session = this._legible(sessionBytes, format, type, sessionKey);
             output.push({
                 label: 'Session ' + direction,
                 value: session.text,
@@ -556,11 +566,12 @@ export const Values = GObject.registerClass({
                 key: sessionKey,
             });
 
-            // calculate speed for this interface
-            let speed = 0;
-            if (previousValue)
-                speed = (value - previousValue[1]) / dwell;
+            // calculate speed for this interface. No previous sample, a zero
+            // baseline, or a counter reset (VPN/tunnel recycle) is not a rate.
+            let prevBytes = previousValue ? parseFloat(previousValue[1]) : 0;
+            let speed = (prevBytes && value >= prevBytes) ? (value - prevBytes) / dwell : 0;
             let speedFormatted = this._legible(speed, 'speed', type, key);
+
             output.push({
                 label,
                 value: speedFormatted.text,
@@ -605,9 +616,32 @@ export const Values = GObject.registerClass({
                     });
                 }
             }
+        } else if (type == 'microjoules') {
+            const prevMicrojoules = previousValue ? parseInt(previousValue[1]) : 0;
+            const microwatts = prevMicrojoules ? (value - prevMicrojoules) / dwell : 0;
+            const wattsFormatted = this._legible(microwatts, 'power', type, key);
+
+            output.push({
+                label,
+                value: wattsFormatted.text,
+                style: wattsFormatted.style,
+                type: 'power',
+                key,
+            });
         }
 
         return output;
+    }
+
+    // issue #557 - forget a removed interface, so its last counters stop being totalled
+    removeNetworkSensor(key, label, direction) {
+        for (let type of ['network', 'network-rx', 'network-tx'])
+            if (type in this._history) delete this._history[type][key];
+
+        delete this._networkSpeedOffset[key];
+
+        if (direction in this._networkSpeeds)
+            delete this._networkSpeeds[direction][label];
     }
 
     resetHistory(numGpus) {
