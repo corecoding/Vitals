@@ -37,7 +37,7 @@ const cbFun = (d, c) => {
     return [d[0] + aa, bb];
 };
 
-const decimal = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+const decimal = [ 'B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
 const binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
 const hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
@@ -167,7 +167,7 @@ export const Values = GObject.registerClass({
                 if (use_bps) {
                     ending = decimal[exp].replace('B', 'bps');
                 } else {
-                    ending = decimal[exp] + '/s';
+                    ending = decimal[exp];
                 }
 
                 break;
