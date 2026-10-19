@@ -6,7 +6,7 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import {sensorCatalog, colorPageForSensor} from './helpers/catalog.js';
+import {sensorCatalog, colorPageForSensor, colorThresholdUnit} from './helpers/catalog.js';
 import {
     compareColorEntries,
     DEFAULT_THRESHOLD_RGBA,
@@ -46,6 +46,8 @@ class Settings {
         this._removedHotSensors = {};
         // pageName -> sorted list of discovered sensor keys (from Sensors.query).
         this._discoveredSensorsByPage = {};
+        // sensor key -> value format (from Sensors.query), for threshold units.
+        this._discoveredSensorFormats = {};
         this._sensors = null;
         this._sensorDiscoveryTimeoutId = 0;
         this._bind_sensor_page_gates();
@@ -118,14 +120,19 @@ class Settings {
             this._discoveredSensorsByPage[pageName] = [];
         if (!this._discoveredSensorsByPage[pageName].includes(key))
             this._discoveredSensorsByPage[pageName].push(key);
+        this._discoveredSensorFormats[key] = format;
     }
 
     _refresh_add_colors_dropdowns() {
         for (let pageName of Object.keys(this._discoveredSensorsByPage))
             this._discoveredSensorsByPage[pageName].sort();
 
-        for (let pageName of Object.keys(this._thresholdColorPages))
+        // Palettes built before discovery ended have titles without units or availability.
+        for (let [pageName, state] of Object.entries(this._thresholdColorPages)) {
+            for (let palette of state.palettes)
+                palette.group.set_title(this._palette_title(palette.sensorKey, pageName));
             this._sync_add_colors_row(pageName);
+        }
     }
 
     _apply_icon_style() {
@@ -595,6 +602,9 @@ class Settings {
             return _('All sensors colors');
 
         let label = labelFromSensorKey(sensorKey);
+        let unit = colorThresholdUnit(this._discoveredSensorFormats[sensorKey]);
+        if (unit)
+            label = `${label} (${unit})`;
         if (this._sensor_key_is_live(pageName, sensorKey))
             return _('%s colors').format(label);
         return _('%s colors (unavailable)').format(label);
