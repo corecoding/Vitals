@@ -33,3 +33,44 @@
 .vitals-button-action { -st-icon-style: symbolic; border-radius: 32px; margin: 0px; min-height: 22px; min-width: 22px; padding: 10px; font-size: 100%; }
 .vitals-button-action > StIcon { icon-size: 16px; }
 .vitals-button-box { padding: 0px; spacing: 22px; }
+
+/* The generic .button background is a resolved mix: st-mix(#ffffff, #36363a,
+ * 9%) in the dark variant, st-mix(#222226, #fafafb, 12%) in the light one. That
+ * is not a colour, it is the theme's foreground composited over its own popup
+ * surface - and once it is resolved, it stops tracking that surface. With a
+ * translucent popup (a see-through shell theme, or a blur effect) these three
+ * buttons stay flat discs while the widgets around them follow the backdrop.
+ *
+ * Keep the theme's own expression instead of its resolved result: the same
+ * foreground at the same 9% / 12%, as an alpha layer. Over the popup colour the
+ * theme mixes against, this lands on the theme's value; over any other surface
+ * it keeps the same offset, the way the theme's other translucent popup
+ * controls (.notification-button: rgba(255, 255, 255, 0.15) in the dark
+ * variant, rgba(34, 34, 38, 0.15) in the light one) already behave.
+ *
+ * The two variants tint in opposite directions, and an extension stylesheet
+ * cannot see which one is loaded, so extension.js adds the variant class using
+ * the shell's own getStyleVariant().
+ *
+ * The hover and active steps are the theme's st-lighten(+4%) / st-lighten(+9%)
+ * (st-darken in the light variant) expressed as alpha. Every interactive state
+ * is restated because the theme's .button:hover, :active and :focus outrank a
+ * bare class.
+ */
+.vitals-glass-dark { background-color: rgba(255, 255, 255, 0.09); }
+.vitals-glass-dark:focus { background-color: rgba(255, 255, 255, 0.09); }
+.vitals-glass-dark:hover,
+.vitals-glass-dark:hover:focus { background-color: rgba(255, 255, 255, 0.14); }
+.vitals-glass-dark:active,
+.vitals-glass-dark:active:hover,
+.vitals-glass-dark:active:focus,
+.vitals-glass-dark:active:hover:focus { background-color: rgba(255, 255, 255, 0.20); }
+
+.vitals-glass-light { background-color: rgba(34, 34, 38, 0.12); }
+.vitals-glass-light:focus { background-color: rgba(34, 34, 38, 0.12); }
+.vitals-glass-light:hover,
+.vitals-glass-light:hover:focus { background-color: rgba(34, 34, 38, 0.17); }
+.vitals-glass-light:active,
+.vitals-glass-light:active:hover,
+.vitals-glass-light:active:focus,
+.vitals-glass-light:active:hover:focus { background-color: rgba(34, 34, 38, 0.23); }
