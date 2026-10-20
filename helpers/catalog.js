@@ -11,7 +11,7 @@ export const sensorCatalog = {
                    'icon-tx': 'network-upload-symbolic.svg'
         },
         'storage' : { 'icon': 'storage-symbolic.svg' },
-        'battery' : { 'icon': 'battery-symbolic.svg', colorFormats: ['percent'] },
+        'battery' : { 'icon': 'battery-symbolic.svg', colorFormats: ['percent', 'watt'] },
             'gpu' : { 'icon': 'gpu-symbolic.svg', colorFormats: ['percent'] }
         };
 
