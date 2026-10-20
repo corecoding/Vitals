@@ -208,7 +208,7 @@
     <key name="battery-colors" type="as">
       <default>[]</default>
       <summary>Battery color thresholds</summary>
-      <description>Color rules matched against battery percentage. Entries are "threshold r g b" or "threshold r g b sensor:&lt;key&gt;". Unknown sensor keys are ignored.</description>
+      <description>Color rules matched against battery percentage and power rate (watts). Entries are "threshold r g b" or "threshold r g b sensor:&lt;key&gt;". Unknown sensor keys are ignored.</description>
     </key>
     <key name="gpu-colors" type="as">
       <default>[]</default>
