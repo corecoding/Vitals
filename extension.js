@@ -171,6 +171,10 @@ var VitalsMenuButton = GObject.registerClass({
         // query sensors on menu open
         this.menu.connectObject('open-state-changed', (menu, isMenuOpen) => {
             if (isMenuOpen) {
+                // the theme variant can change while the session runs
+                for (const button of this._roundButtons ?? [])
+                    button.style_class = this._roundButtonStyleClass();
+
                 // make sure timer fires at next full interval
                 this._initializeTimer();
 
@@ -200,14 +204,27 @@ var VitalsMenuButton = GObject.registerClass({
 
     _createRoundButton(iconName) {
         let button = new St.Button({
-            style_class: 'button vitals-button-action'
+            style_class: this._roundButtonStyleClass()
         });
 
         button.child = new St.Icon({
             icon_name: iconName
         });
 
+        this._roundButtons = this._roundButtons ?? [];
+        this._roundButtons.push(button);
+
         return button;
+    }
+
+    // The fill tints with the foreground, which points in opposite directions
+    // per variant, so the class comes from the same function the shell uses to
+    // choose its own stylesheet.
+    _roundButtonStyleClass() {
+        const variant = Main.getStyleVariant();
+        return variant === ''
+            ? 'button vitals-button-action'
+            : `button vitals-button-action vitals-glass-${variant}`;
     }
 
     _removeMissingHotSensors(hotSensors) {
