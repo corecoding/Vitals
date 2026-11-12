@@ -199,6 +199,7 @@ class Settings {
 
         let enabled = this.builder.get_object(gate.toggle).get_active();
         this._set_dependent_widgets_sensitive(gate.widgets, enabled);
+        gate.hideZeroRow.set_sensitive(enabled);
 
         let state = this._thresholdColorPages[pageName];
         if (state) {
@@ -249,6 +250,21 @@ class Settings {
             toggle.connect('notify::active', () => {
                 this._sync_sensor_page_sensitivity(pageName);
             });
+
+            // per-group: pinned sensors leave the top bar while reading zero
+            gate.hideZeroRow = new Adw.SwitchRow({
+                title: _('Hide in top bar when zero'),
+                active: this._settings.get_strv('hide-zeros-panel').includes(pageName),
+            });
+            gate.hideZeroRow.connect('notify::active', row => {
+                let groups = this._settings.get_strv('hide-zeros-panel').filter(g => g !== pageName);
+                if (row.active) groups.push(pageName);
+                this._settings.set_strv('hide-zeros-panel', groups);
+            });
+            let group = new Adw.PreferencesGroup({ margin_start: 10, margin_end: 10 });
+            group.add(gate.hideZeroRow);
+            this.builder.get_object(`${pageName}-page`).add(group);
+
             this._sync_sensor_page_sensitivity(pageName);
         }
     }
