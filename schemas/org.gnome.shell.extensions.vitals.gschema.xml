@@ -31,6 +31,11 @@
       <summary>Hide zero values</summary>
       <description>Hide data from sensors that are invalid</description>
     </key>
+    <key type="as" name="hide-zeros-panel">
+      <default>[]</default>
+      <summary>Sensor groups hidden from top bar at zero</summary>
+      <description>Pinned sensors from these groups leave the top bar while reading zero</description>
+    </key>
     <key type="b" name="show-temperature">
       <default>true</default>
       <summary>Monitor temperature</summary>

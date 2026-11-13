@@ -77,7 +77,7 @@ var VitalsMenuButton = GObject.registerClass({
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
             this);
 
-        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'hide-zeros-panel',
                          'fixed-widths', 'hide-icons', 'unit', 'icon-style',
                          'memory-measurement', 'include-public-ip', 'network-public-ip-interval',
                          'network-public-ip-show-flag', 'network-public-ip-provider', 'network-speed-format', 'network-speed-unit', 'storage-measurement',
@@ -332,6 +332,15 @@ var VitalsMenuButton = GObject.registerClass({
         }
     }
 
+    // an empty panel box leaves no way to open the menu
+    _syncDefaultIcon() {
+        let anyVisible = Object.entries(this._hotItems).some(([k, item]) => k != '_default_icon_' && item.visible);
+        if (!anyVisible && !('_default_icon_' in this._hotItems))
+            this._createHotItem('_default_icon_');
+        else if (anyVisible && !this._settings.get_strv('hot-sensors').includes('_default_icon_'))
+            this._removeHotItem('_default_icon_');
+    }
+
     _redrawHotSensors() {
         this._removeHotItems();
         this._drawMenu();
@@ -391,6 +400,14 @@ var VitalsMenuButton = GObject.registerClass({
                     hotLabel.set_width(width2);
                     this._widths[key] = width2;
                 }
+            }
+
+            // pinned items reading zero leave the panel until their value changes
+            let group = SensorCatalog.sensorGroupFromType(type).split('-')[0];
+            let visible = !(parseFloat(value) === 0 && this._settings.get_strv('hide-zeros-panel').includes(group));
+            if (this._hotItems[key].visible !== visible) {
+                this._hotItems[key].visible = visible;
+                this._syncDefaultIcon();
             }
         }
 
@@ -591,9 +608,7 @@ var VitalsMenuButton = GObject.registerClass({
                 }
                 this._removeHotItem(key);
 
-                // an empty panel box leaves no way to open the menu
-                if (Object.keys(this._hotItems).length == 0)
-                    this._createHotItem('_default_icon_');
+                this._syncDefaultIcon();
                 return;
             }
 
