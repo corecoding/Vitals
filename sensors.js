@@ -29,6 +29,7 @@ import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import * as SubProcessModule from './helpers/subprocess.js';
 import * as FileModule from './helpers/file.js';
+import {storageGroups} from './helpers/catalog.js';
 
 let GTop, hasGTop = true;
 try {
@@ -72,11 +73,9 @@ export const Sensors = GObject.registerClass({
 
         if (hasGTop) {
             this.storage = new GTop.glibtop_fsusage();
-            this._storageDevice = '';
-            this._findStorageDevice();
-
-            this._lastRead = 0;
-            this._lastWrite = 0;
+            this._storageDevices = {};
+            this._storageCounters = {};
+            this.findStorageDevices();
         }
     }
 
@@ -114,15 +113,19 @@ export const Sensors = GObject.registerClass({
         }).catch(err => { });
     }
 
-    _findStorageDevice() {
+    findStorageDevices() {
         new FileModule.File('/proc/mounts').read("\n").then(lines => {
-            for (let line of lines) {
-                let loadArray = line.trim().split(/\s+/);
-                if (loadArray[1] == this._settings.get_string('storage-path')) {
-                    this._storageDevice = loadArray[0];
-                    break;
+            let devices = {};
+            for (let [, path] of storageGroups(this._settings)) {
+                for (let line of lines) {
+                    let loadArray = line.trim().split(/\s+/);
+                    if (loadArray[1] == path) {
+                        devices[path] = loadArray[0];
+                        break;
+                    }
                 }
             }
+            this._storageDevices = devices;
         }).catch(err => { });
     }
 
@@ -394,23 +397,26 @@ export const Sensors = GObject.registerClass({
             this._returnValue(callback, 'ARC Current', current, 'storage', 'storage');
         }).catch(err => { });
 
+        let groups = storageGroups(this._settings);
+
         // check disk performance stats
         new FileModule.File('/proc/diskstats').read("\n").then(lines => {
             for (let line of lines) {
                 let loadArray = line.trim().split(/\s+/);
-                if ('/dev/' + loadArray[2] == this._storageDevice) {
+                for (let [type, path] of groups) {
+                    if ('/dev/' + loadArray[2] != this._storageDevices[path]) continue;
+
                     var read = (loadArray[5] * 512);
                     var write = (loadArray[9] * 512);
-                    this._returnValue(callback, 'Read total', read, 'storage', 'storage');
-                    this._returnValue(callback, 'Write total', write, 'storage', 'storage');
+                    this._returnValue(callback, 'Read total', read, type, 'storage');
+                    this._returnValue(callback, 'Write total', write, type, 'storage');
                     // skip rates until counters are seeded (same pattern as processor cores)
-                    if (this._lastRead > 0)
-                        this._returnValue(callback, 'Read rate', (read - this._lastRead) / dwell, 'storage', 'storage');
-                    if (this._lastWrite > 0)
-                        this._returnValue(callback, 'Write rate', (write - this._lastWrite) / dwell, 'storage', 'storage');
-                    this._lastRead = read;
-                    this._lastWrite = write;
-                    break;
+                    let last = this._storageCounters[path];
+                    if (last) {
+                        this._returnValue(callback, 'Read rate', (read - last[0]) / dwell, type, 'storage');
+                        this._returnValue(callback, 'Write rate', (write - last[1]) / dwell, type, 'storage');
+                    }
+                    this._storageCounters[path] = [read, write];
                 }
             }
         }).catch(err => { });
@@ -418,27 +424,29 @@ export const Sensors = GObject.registerClass({
         // skip rest of stats if gtop not available
         if (!hasGTop) return;
 
-        GTop.glibtop_get_fsusage(this.storage, this._settings.get_string('storage-path'));
+        for (let [type, path] of groups) {
+            GTop.glibtop_get_fsusage(this.storage, path);
 
-        let total = this.storage.blocks * this.storage.block_size;
-        let avail = this.storage.bavail * this.storage.block_size;
-        let free = this.storage.bfree * this.storage.block_size;
-        let used = total - free;
-        let reserved = (total - avail) - used;
-        let freePercent = 0;
-        let usedPercent = 0;
-        if (total > 0) {
-          freePercent = Math.round((free / total) * 100);
-          usedPercent = Math.round((used / total) * 100);
+            let total = this.storage.blocks * this.storage.block_size;
+            let avail = this.storage.bavail * this.storage.block_size;
+            let free = this.storage.bfree * this.storage.block_size;
+            let used = total - free;
+            let reserved = (total - avail) - used;
+            let freePercent = 0;
+            let usedPercent = 0;
+            if (total > 0) {
+              freePercent = Math.round((free / total) * 100);
+              usedPercent = Math.round((used / total) * 100);
+            }
+
+            this._returnValue(callback, 'Total', total, type, 'storage');
+            this._returnValue(callback, 'Used', used, type, 'storage');
+            this._returnValue(callback, 'Reserved', reserved, type, 'storage');
+            this._returnValue(callback, 'Free', avail, type, 'storage');
+            this._returnValue(callback, 'Used %', usedPercent + '%', type, 'string');
+            this._returnValue(callback, 'Free %', freePercent + '%', type, 'string');
+            this._returnValue(callback, 'storage', avail, type + '-group', 'storage');
         }
-
-        this._returnValue(callback, 'Total', total, 'storage', 'storage');
-        this._returnValue(callback, 'Used', used, 'storage', 'storage');
-        this._returnValue(callback, 'Reserved', reserved, 'storage', 'storage');
-        this._returnValue(callback, 'Free', avail, 'storage', 'storage');
-        this._returnValue(callback, 'Used %', usedPercent + '%', 'storage', 'string');
-        this._returnValue(callback, 'Free %', freePercent + '%', 'storage', 'string');
-        this._returnValue(callback, 'storage', avail, 'storage-group', 'storage');
     }
 
     _queryBattery(callback) {

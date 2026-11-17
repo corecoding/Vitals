@@ -966,6 +966,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Path</property>
+            <property name="subtitle" translatable="yes">Separate several paths with commas</property>
             <property name="activatable-widget">storage-path</property>
             <child type="suffix">
               <object class="GtkEntry" id="storage-path">

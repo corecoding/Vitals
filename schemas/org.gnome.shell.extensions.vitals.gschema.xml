@@ -113,7 +113,7 @@
     <key type="s" name="storage-path">
       <default>"/"</default>
       <summary>Storage path</summary>
-      <description>Storage path for monitoring</description>
+      <description>Comma-separated storage paths for monitoring, each shown as its own group</description>
     </key>
     <key type="b" name="show-battery">
       <default>false</default>

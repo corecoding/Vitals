@@ -23,6 +23,12 @@ export function sensorGroupFromType(type) {
     return group.replace(/#\d+$/, '');
 }
 
+// The first path keeps the plain 'storage' type so existing panel keys still match.
+export function storageGroups(settings) {
+    return settings.get_string('storage-path').split(',')
+        .map((path, i) => [i ? 'storage#' + (i + 1) : 'storage', path.trim()]);
+}
+
 export function colorSettingsKeys() {
     return Object.keys(sensorCatalog)
         .filter(group => sensorCatalog[group].colorFormats)
