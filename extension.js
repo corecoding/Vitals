@@ -75,6 +75,7 @@ var VitalsMenuButton = GObject.registerClass({
             'changed::update-time', this._initializeTimer.bind(this),
             'changed::position-in-panel', this._positionInPanelChanged.bind(this),
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
+            'changed::storage-path', this._storagePathChanged.bind(this),
             this);
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',
@@ -106,6 +107,11 @@ var VitalsMenuButton = GObject.registerClass({
 
             //handle gpus separately.
             if (sensor === 'gpu') continue;
+
+            if (sensor === 'storage') {
+                this._initializeStorageGroups();
+                continue;
+            }
 
             this._initializeMenuGroup(sensor, sensor);
         }
@@ -180,8 +186,31 @@ var VitalsMenuButton = GObject.registerClass({
         }, this);
     }
 
+    _initializeStorageGroups(position = -1) {
+        let groups = SensorCatalog.storageGroups(this._settings);
+        for (let [type, path] of groups)
+            this._initializeMenuGroup(type, 'storage', groups.length > 1 ? ' ' + path : '', position < 0 ? -1 : position++);
+    }
+
+    _storagePathChanged() {
+        let position = this.menu._getMenuItems().indexOf(this._groups['storage']);
+        for (let groupName in this._groups) {
+            if (SensorCatalog.sensorGroupFromType(groupName) !== 'storage') continue;
+            this._groups[groupName].destroy();
+            delete this._groups[groupName];
+        }
+
+        // destroying a group took its rows with it
+        for (let key in this._sensorMenuItems)
+            if (/^_?storage/.test(key)) delete this._sensorMenuItems[key];
+
+        this._initializeStorageGroups(position);
+        this._sensors.findStorageDevices();
+        this._redrawMenu();
+    }
+
     _initializeMenuGroup(groupName, optionName, menuSuffix = '', position = -1) {
-        this._groups[groupName] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(groupName) + menuSuffix), true);
+        this._groups[groupName] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(optionName)) + menuSuffix, true);
         this._groups[groupName].icon.gicon = Gio.icon_new_for_string(this._sensorIconPath(groupName));
 
         // hide menu items that user has requested to not include
@@ -292,11 +321,9 @@ var VitalsMenuButton = GObject.registerClass({
 
     _showHideSensorsChanged(self, sensor) {
         const sensorName = sensor.substr(5);
-        if(sensorName === 'gpu') {
-            for(let i = 1; i <= this._numGpus; i++)
-                this._groups[sensorName + '#' + i].visible = this._settings.get_boolean(sensor);
-        } else
-            this._groups[sensorName].visible = this._settings.get_boolean(sensor);
+        for (let groupName in this._groups)
+            if (SensorCatalog.sensorGroupFromType(groupName) === sensorName)
+                this._groups[groupName].visible = this._settings.get_boolean(sensor);
 
         // prefs may have removed this group's sensors from hot-sensors; rebuild panel/menu
         this._redrawMenu();
@@ -420,6 +447,9 @@ var VitalsMenuButton = GObject.registerClass({
     _appendMenuItem(sensor, key) {
         let split = sensor.type.split('-');
         let type = split[0];
+        // a read started before storage-path changed can name a group that is gone
+        if (!(type in this._groups)) return;
+
         let icon = (split.length == 2)?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(this._sensorIconPath(type, icon, key));
 
@@ -473,8 +503,8 @@ var VitalsMenuButton = GObject.registerClass({
 
     _defaultIcon(key) {
         let split = key.replaceAll('_', ' ').trim().split(' ')[0].split('-');
-        let type = split[0];
-        let panelType = type.startsWith('gpu') ? 'gpu' : type;
+        let type = SensorCatalog.sensorGroupFromType(split[0]);
+        let panelType = type;
         if (type === 'network' && (split[1] === 'rx' || split[1] === 'tx'))
             panelType += '-' + split[1];
         let iconStyle = this._settings.get_int('icon-style') === 1 ? 'gnome' : 'original';
@@ -485,8 +515,7 @@ var VitalsMenuButton = GObject.registerClass({
         });
 
         // second condition prevents crash due to issue #225, which started when _max_ was moved to the end
-        // don't use the default system icon if the type is a gpu; use the universal gpu icon instead
-        if (type == 'default' || (!(type in this._sensorIcons) && !type.startsWith('gpu'))) {
+        if (type == 'default' || !(type in this._sensorIcons)) {
             icon.gicon = Gio.icon_new_for_string(this._sensorIconPath('system'));
         } else { // support for hide icons #80
             let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
@@ -497,10 +526,8 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _sensorIconPath(sensor, icon = 'icon', key = '') {
-        let sensorKey = sensor;
-
-        // If the sensor is a numbered gpu, use the gpu icon. Otherwise use whatever icon associated with the sensor name.
-        if (sensor.startsWith('gpu')) sensorKey = 'gpu';
+        // numbered groups (gpu#2, storage#2) use their category's icon
+        let sensorKey = SensorCatalog.sensorGroupFromType(sensor);
 
         // allows country flags to show
         const icons = this._sensorIcons[sensorKey];

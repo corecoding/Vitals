@@ -455,6 +455,9 @@ export const Values = GObject.registerClass({
             this._history[sensor + '-group'] = {};
         }
 
+        for (let type in this._history)
+            if (type.startsWith('storage#')) this._history[type] = {};
+
         for(let i = 1; i <= numGpus; i++){
             this._history['gpu#' + i] = {};
             this._history['gpu#' + i + '-group'] = {};
